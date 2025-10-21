@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="server_action_engagement_installment_reminder" model="ir.actions.server">
+            <field name="name">Engagement Installment Reminder</field>
+            <field name="model_id" ref="model_qlk_engagement_installment"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_notify_upcoming_installments()</field>
+        </record>
+
+        <record id="cron_engagement_installment_reminder" model="ir.cron">
+            <field name="name">Engagement Installment Reminder</field>
+            <field name="ir_actions_server_id" ref="server_action_engagement_installment_reminder"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="user_id" ref="base.user_root"/>
+        </record>
+    </data>
+</odoo>

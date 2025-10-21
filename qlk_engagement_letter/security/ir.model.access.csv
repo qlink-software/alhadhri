@@ -1,0 +1,19 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_engagement_letter_manager","Engagement Letter Manager","model_qlk_engagement_letter","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_letter_user","Engagement Letter User","model_qlk_engagement_letter","qlk_engagement_letter.group_engagement_user",1,1,1,0
+"access_engagement_letter_viewer","Engagement Letter Viewer","model_qlk_engagement_letter","qlk_engagement_letter.group_engagement_viewer",1,0,0,0
+"access_engagement_installment_manager","Engagement Installment Manager","model_qlk_engagement_installment","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_installment_user","Engagement Installment User","model_qlk_engagement_installment","qlk_engagement_letter.group_engagement_user",1,1,1,0
+"access_engagement_installment_viewer","Engagement Installment Viewer","model_qlk_engagement_installment","qlk_engagement_letter.group_engagement_viewer",1,0,0,0
+"access_engagement_corporate_log_manager","Corporate Log Manager","model_qlk_engagement_corporate_log","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_corporate_log_user","Corporate Log User","model_qlk_engagement_corporate_log","qlk_engagement_letter.group_engagement_user",1,1,1,0
+"access_engagement_corporate_log_viewer","Corporate Log Viewer","model_qlk_engagement_corporate_log","qlk_engagement_letter.group_engagement_viewer",1,0,0,0
+"access_engagement_corporate_alert_manager","Corporate Alert Manager","model_qlk_engagement_corporate_alert","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_corporate_alert_user","Corporate Alert User","model_qlk_engagement_corporate_alert","qlk_engagement_letter.group_engagement_user",1,0,0,0
+"access_engagement_litigation_case_manager","Engagement Litigation Case Manager","model_qlk_engagement_litigation_case","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_litigation_case_user","Engagement Litigation Case User","model_qlk_engagement_litigation_case","qlk_engagement_letter.group_engagement_user",1,1,1,0
+"access_engagement_litigation_case_viewer","Engagement Litigation Case Viewer","model_qlk_engagement_litigation_case","qlk_engagement_letter.group_engagement_viewer",1,0,0,0
+"access_engagement_article_template_manager","Engagement Article Template Manager","model_qlk_engagement_article_template","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_article_line_manager","Engagement Article Line Manager","model_qlk_engagement_article_line","qlk_engagement_letter.group_engagement_manager",1,1,1,1
+"access_engagement_article_line_user","Engagement Article Line User","model_qlk_engagement_article_line","qlk_engagement_letter.group_engagement_user",1,1,1,0
+"access_engagement_article_line_viewer","Engagement Article Line Viewer","model_qlk_engagement_article_line","qlk_engagement_letter.group_engagement_viewer",1,0,0,0
