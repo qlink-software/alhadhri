@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem id="menu_qlk_project_root"
+                  name="إدارة المشاريع"
+                  sequence="25"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+
+        <menuitem id="menu_qlk_project_workspace_root"
+                  name="مساحة العمل"
+                  parent="menu_qlk_project_root"
+                  sequence="1"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+
+        <menuitem id="menu_qlk_project_analytics_root"
+                  name="التحليلات"
+                  parent="menu_qlk_project_root"
+                  sequence="2"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+
+        <menuitem id="menu_qlk_project_dashboard"
+                  name="لوحة المعلومات"
+                  parent="menu_qlk_project_workspace_root"
+                  action="qlk_project_management.action_project_dashboard"
+                  sequence="5"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+
+        <menuitem id="menu_qlk_project_projects"
+                  name="المشاريع"
+                  parent="menu_qlk_project_workspace_root"
+                  action="qlk_project_management.action_qlk_project"
+                  sequence="10"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+
+        <menuitem id="menu_qlk_project_tasks"
+                  name="المهام"
+                  parent="menu_qlk_project_workspace_root"
+                  action="qlk_project_management.action_qlk_project_tasks"
+                  sequence="20"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+
+        <menuitem id="menu_qlk_project_hours"
+                  name="الساعات"
+                  parent="menu_qlk_project_workspace_root"
+                  action="qlk_project_management.action_qlk_project_hours"
+                  sequence="30"
+                  groups="qlk_law.group_qlk_law_manager"/>
+
+        <menuitem id="menu_qlk_project_stages"
+                  name="المراحل"
+                  parent="menu_qlk_project_workspace_root"
+                  action="qlk_project_management.action_qlk_project_stage"
+                  sequence="20"
+                  groups="qlk_law.group_qlk_law_manager"/>
+
+        <menuitem id="menu_qlk_project_analytics_dashboard"
+                  name="لوحة التحليلات"
+                  parent="menu_qlk_project_analytics_root"
+                  action="qlk_project_management.action_analysis_dashboard"
+                  sequence="1"
+                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+
+    </data>
+</odoo>

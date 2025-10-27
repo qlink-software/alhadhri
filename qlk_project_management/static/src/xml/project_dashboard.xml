@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_project_management.ProjectDashboard" owl="1">
+        <div class="qlk-project-dashboard"
+             t-att-style="'--qlk-primary: ' + (palette.primary || '#0F5CA8') + '; --qlk-accent: ' + (palette.accent || '#22B6C8') + '; --qlk-muted: ' + (palette.muted || '#0D3E7A') + '; --qlk-success: ' + (palette.success || '#27AE60') + ';'">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading…</span>
+                    </div>
+                    <span>Loading project insights…</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="qlk-project-dashboard__hero">
+                    <div class="hero__info">
+                        <h1>Project portfolio overview</h1>
+                        <p>Monitor pipeline, stage progress, and task approval status in real time.</p>
+                    </div>
+                    <div class="hero__metrics">
+                        <div class="metric-card">
+                            <span>Total projects</span>
+                            <strong t-esc="formatNumber(totals.total_projects)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Linked to cases</span>
+                            <strong t-esc="formatNumber(totals.with_case)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Approved hours</span>
+                            <strong t-esc="formatHours(totals.hours_total)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Open tasks</span>
+                            <strong t-esc="formatNumber(totals.tasks_total)"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="qlk-project-dashboard__grid">
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Pipeline stages</h2>
+                                <small>Most active stages across tracked projects</small>
+                            </div>
+                            <button t-if="actions.stages"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="openStages">
+                                Manage stages
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <t t-if="stageStats.length">
+                                <t t-foreach="stageStats" t-as="stage" t-key="stage.id">
+                                    <li class="qlk-list__item">
+                                        <span class="item__name">
+                                            <t t-esc="stage.name"/>
+                                        </span>
+                                        <span class="item__badge">
+                                            <t t-esc="formatNumber(stage.count)"/> active
+                                        </span>
+                                    </li>
+                                </t>
+                            </t>
+                            <li t-else="" class="qlk-empty">No stage activity recorded yet.</li>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Department mix</h2>
+                                <small>Projects grouped by operating department</small>
+                            </div>
+                        </header>
+                        <ul class="qlk-list">
+                            <t t-if="departmentStats.length">
+                                <t t-foreach="departmentStats" t-as="dept" t-key="dept.key">
+                                    <li class="qlk-list__item">
+                                        <span class="item__name">
+                                            <t t-esc="dept.label"/>
+                                        </span>
+                                        <span class="item__badge">
+                                            <t t-esc="formatNumber(dept.count)"/> open
+                                        </span>
+                                    </li>
+                                </t>
+                            </t>
+                            <li t-else="" class="qlk-empty">No departments detected.</li>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Task approvals</h2>
+                                <small>Breakdown by approval status</small>
+                            </div>
+                            <div>
+                                <button t-if="taskSummary.action"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="openTasks">
+                                    View tasks
+                                </button>
+                                <button t-if="taskSummary.hours_action"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="openHours">
+                                    Review hours
+                                </button>
+                            </div>
+                        </header>
+                        <ul class="qlk-list">
+                            <li class="qlk-list__item">
+                                <span class="item__name">Pending approval</span>
+                                <span class="item__badge">
+                                    <t t-esc="formatNumber(taskSummary.waiting)"/>
+                                </span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Approved</span>
+                                <span class="item__badge badge--success">
+                                    <t t-esc="formatNumber(taskSummary.approved)"/>
+                                </span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Returned</span>
+                                <span class="item__badge badge--danger">
+                                    <t t-esc="formatNumber(taskSummary.rejected)"/>
+                                </span>
+                            </li>
+                        </ul>
+                        <div>
+                            <small>Total tasks: <t t-esc="formatNumber(taskSummary.total)"/></small><br/>
+                            <small>Approved hours: <t t-esc="formatHours(taskSummary.hours)"/></small>
+                        </div>
+                    </article>
+
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Recent projects</h2>
+                                <small>Latest updated projects with progress and workload</small>
+                            </div>
+                            <button t-if="projectAction"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="openProjects">
+                                Open all projects
+                            </button>
+                        </header>
+                        <ul class="qlk-card-list">
+                            <t t-if="projectCards.length">
+                                <t t-foreach="projectCards" t-as="project" t-key="project.id">
+                                    <li class="project-card" t-on-click="() => openProject(project)">
+                                        <div class="project-card__header">
+                                            <div>
+                                                <span class="project-card__code" t-esc="project.code || '-'"/>
+                                                <span class="project-card__name" t-esc="project.name"/>
+                                            </div>
+                                            <span class="project-card__badge">
+                                                <t t-esc="project.department"/>
+                                            </span>
+                                        </div>
+                                        <div class="project-card__meta">
+                                            <span>
+                                                Client:
+                                                <t t-esc="project.client || '-'"/>
+                                            </span>
+                                            <span>
+                                                Stage:
+                                                <t t-esc="project.stage || '-'"/>
+                                            </span>
+                                            <span class="badge badge-success" t-if="project.has_case">
+                                                Linked case
+                                            </span>
+                                        </div>
+                                        <div class="project-card__progress">
+                                            <div class="progress-bar">
+                                                <div class="progress-bar__value"
+                                                     t-att-style="'width: ' + progressWidth(project.progress)"/>
+                                            </div>
+                                            <span>
+                                                <t t-esc="progressWidth(project.progress)"/>
+                                            </span>
+                                        </div>
+                                        <div class="project-card__meta">
+                                            <span>Tasks: <t t-esc="formatNumber(project.tasks)"/></span>
+                                            <span>Hours: <t t-esc="formatHours(project.hours)"/></span>
+                                        </div>
+                                    </li>
+                                </t>
+                            </t>
+                            <li t-else="" class="qlk-empty">No projects available for your filters.</li>
+                        </ul>
+                    </article>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>
+

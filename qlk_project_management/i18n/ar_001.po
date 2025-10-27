@@ -1,0 +1,1550 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* qlk_project_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-26 06:38+0000\n"
+"PO-Revision-Date: 2025-10-26 06:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_needaction
+msgid "Action Needed"
+msgstr "إجراء مطلوب"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__active
+msgid "Active"
+msgstr "نشط"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_ids
+msgid "Activities"
+msgstr "الأنشطة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "تمييز استثناء النشاط"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_state
+msgid "Activity State"
+msgstr "حالة النشاط"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "أيقونة نوع النشاط"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__notes
+msgid "Additional Notes"
+msgstr "ملاحظات إضافية"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "Already at the first stage."
+msgstr "المشروع موجود بالفعل في المرحلة الأولى."
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_analysis_dashboard
+msgid "Analytics Dashboard Service"
+msgstr "خدمة لوحة التحليلات"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_litigation_appeal
+msgid "Appeal Stage"
+msgstr "مرحلة الاستئناف"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project_stage__stage_number
+msgid ""
+"Applied to litigation project codes (e.g. Appeal = 1, Cassation = 2). Leave "
+"empty for first instance."
+msgstr ""
+"يُستخدم في أكواد مشاريع التقاضي (مثل الاستئناف = 1، النقض = 2). اتركه فارغًا"
+" للدرجة الأولى."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Approved"
+msgstr "معتمد"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__task_hours_total
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Approved Hours"
+msgstr "الساعات المعتمدة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__task_hours_month
+msgid "Approved Hours (Month)"
+msgstr "الساعات المعتمدة (شهريًا)"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Approved hours"
+msgstr "الساعات المعتمدة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Approved hours:"
+msgstr "الساعات المعتمدة:"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project_dashboard.py:0
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__department__arbitration
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__stage_type_code__arbitration
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project_stage__stage_type__arbitration
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_task__department__arbitration
+msgid "Arbitration"
+msgstr "التحكيم"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_arbitration_intake
+msgid "Arbitration Intake"
+msgstr "استقبال التحكيم"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid "Arbitration tasks must be linked to a project."
+msgstr "يجب ربط مهام التحكيم بمشروع."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid ""
+"Assign at least one lawyer to the project before generating standard tasks."
+msgstr "عيّن محاميًا واحدًا على الأقل للمشروع قبل إنشاء المهام القياسية."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__assigned_employee_id
+msgid "Assigned Lawyer"
+msgstr "المحامي المعيّن"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__assigned_employee_ids
+msgid "Assigned Lawyers"
+msgstr "المحامون المعيّنون"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_attachment_count
+msgid "Attachment Count"
+msgstr "عدد المرفقات"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__auto_task_name
+msgid "Auto Task Name"
+msgstr "اسم المهمة التلقائية"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__auto_task_template
+msgid "Auto Task Required"
+msgstr "المهمة التلقائية مطلوبة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project_stage__auto_task_template
+msgid "Automatically create a subtask when the project reaches this stage."
+msgstr "أنشئ مهمة فرعية تلقائيًا عند وصول المشروع إلى هذه المرحلة."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__translation_task_id
+msgid "Automatically generated translation task for pre-litigation workflow."
+msgstr "مهمة ترجمة تُنشأ تلقائيًا لسير عمل ما قبل التقاضي."
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_arbitration_award
+msgid "Award & Enforcement"
+msgstr "الحكم والتنفيذ"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Breakdown by approval status"
+msgstr "تفصيل حسب حالة الاعتماد"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_transfer_litigation_form
+msgid "Cancel"
+msgstr "إلغاء"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__case_main_category_id
+msgid "Case Group"
+msgstr "مجموعة القضايا"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__case_year
+msgid "Case Year"
+msgstr "سنة القضية"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_litigation_cassation
+msgid "Cassation Stage"
+msgstr "مرحلة النقض"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid ""
+"Centralised translation workflow.\n"
+"- Upload documents requiring translation.\n"
+"- Office Manager to coordinate translators.\n"
+"- Uploaded translations will notify the assigned lawyers."
+msgstr ""
+"سير عمل مركزي للترجمة.\n"
+"- حمّل المستندات التي تحتاج إلى ترجمة.\n"
+"- يتولى مدير المكتب تنسيق المترجمين.\n"
+"- ستُخطر الترجمات المرفوعة المحامين المعيّنين."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__transfer_ready
+msgid ""
+"Checked when all required stages are completed and case details can be "
+"submitted."
+msgstr ""
+"يُحدَّد عند اكتمال جميع المراحل المطلوبة وإمكانية إرسال تفاصيل القضية."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__client_id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__client_id
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "Client"
+msgstr "العميل"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_client
+msgid "Client Approval"
+msgstr "اعتماد العميل"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__client_code
+msgid "Client Code"
+msgstr "رمز العميل"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Client:"
+msgstr "العميل:"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__color
+msgid "Color Index"
+msgstr "فهرس الألوان"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__company_id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__company_id
+msgid "Company"
+msgstr "الشركة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__completed_by
+msgid "Completed By"
+msgstr "أُنجز بواسطة"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project_dashboard.py:0
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__department__corporate
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__stage_type_code__corporate
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project_stage__stage_type__corporate
+msgid "Corporate"
+msgstr "الشركات"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid ""
+"Corporate tasks must be linked to a corporate project or engagement letter."
+msgstr "يجب ربط مهام الشركات بمشروع شركات أو خطاب ارتباط."
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_correction
+msgid "Correction of the Claim"
+msgstr "تصحيح الدعوى"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__court_id
+msgid "Court"
+msgstr "المحكمة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__case_number
+msgid "Court Case Number"
+msgstr "رقم قضية المحكمة"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid "Court case number should contain digits only."
+msgstr "يجب أن يحتوي رقم القضية على أرقام فقط."
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_litigation_instance
+msgid "Court of First Instance"
+msgstr "محكمة الدرجة الأولى"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_transfer_litigation_form
+msgid "Create Case"
+msgstr "إنشاء قضية"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__create_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__create_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__create_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__create_uid
+msgid "Created by"
+msgstr "أُنشئ بواسطة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__create_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__create_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__create_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__create_date
+msgid "Created on"
+msgstr "تاريخ الإنشاء"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__date_end
+msgid "Date End"
+msgstr "تاريخ الانتهاء"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__date_start
+msgid "Date Start"
+msgstr "تاريخ البدء"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__is_default
+msgid "Default Stage"
+msgstr "المرحلة الافتراضية"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_corporate_delivery
+msgid "Delivery & Sign-off"
+msgstr "التسليم والتوقيع"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__department
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_task__department
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "Department"
+msgstr "القسم"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Department mix"
+msgstr "مزيج الأقسام"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__description
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__description
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Description"
+msgstr "الوصف"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__display_name
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__display_name
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__display_name
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__display_name
+msgid "Display Name"
+msgstr "اسم العرض"
+
+#. module: qlk_project_management
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__poa_state__draft
+msgid "Draft"
+msgstr "مسودة"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_memo
+msgid "Drafting the Memo"
+msgstr "صياغة المذكرة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__duration_days
+msgid "Duration Days"
+msgstr "أيام المدة"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_litigation_enforcement
+msgid "Enforcement Stage"
+msgstr "مرحلة التنفيذ"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__engagement_id
+msgid "Engagement Letter"
+msgstr "خطاب الارتباط"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_corporate_execution
+msgid "Execution"
+msgstr "التنفيذ"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_fees
+msgid "Fee Payment"
+msgstr "سداد الأتعاب"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__filing_date
+msgid "Filing Date"
+msgstr "تاريخ القيد"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__hearing_date
+msgid "First Hearing Date"
+msgstr "تاريخ الجلسة الأولى"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_follower_ids
+msgid "Followers"
+msgstr "المتابعون"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "المتابعون (الشركاء)"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "أيقونة Font Awesome مثل fa-tasks"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "Group By"
+msgstr "تجميع حسب"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__has_message
+msgid "Has Message"
+msgstr "يحتوي على رسائل"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_arbitration_hearing
+msgid "Hearing Preparation"
+msgstr "التحضير للجلسة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Hours:"
+msgstr "الساعات:"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__id
+msgid "ID"
+msgstr "المعرّف"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_exception_icon
+msgid "Icon"
+msgstr "أيقونة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "أيقونة لتمييز نشاط استثنائي."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "إذا تم التحديد، فهناك رسائل جديدة تتطلب انتباهك."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__message_has_error
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "إذا تم التحديد، فهناك رسائل تحتوي على خطأ في التسليم."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__pre_litigation_channel
+msgid "Indicates the matter is being prepared before registration in court."
+msgstr "يدل على أن الموضوع قيد التحضير قبل التسجيل في المحكمة."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid "Initial Hearing"
+msgstr "الجلسة الأولى"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_corporate_intake
+msgid "Intake & Planning"
+msgstr "الاستقبال والتخطيط"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_review
+msgid "Internal Review"
+msgstr "مراجعة داخلية"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_is_follower
+msgid "Is Follower"
+msgstr "هل هو متابع"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__write_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__write_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__write_uid
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__write_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__write_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__write_date
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__write_date
+msgid "Last Updated on"
+msgstr "تاريخ آخر تحديث"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Latest updated projects with progress and workload"
+msgstr "أحدث المشاريع مع عرض التقدم وحجم العمل"
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_project
+msgid "Legal Project"
+msgstr "مشروع قانوني"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__case_id
+msgid "Linked Court Case"
+msgstr "قضية المحكمة المرتبطة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Linked case"
+msgstr "القضية المرتبطة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Linked to cases"
+msgstr "مرتبط بقضايا"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project_dashboard.py:0
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__department__litigation
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__stage_type_code__litigation
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project_stage__stage_type__litigation
+msgid "Litigation"
+msgstr "التقاضي"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid ""
+"Litigation tasks must be linked to a litigation case or litigation project."
+msgstr "يجب ربط مهام التقاضي بقضية أو مشروع تقاضي."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Loading project insights…"
+msgstr "جارٍ تحميل إحصاءات المشروع…"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Loading…"
+msgstr "جارٍ التحميل…"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Manage stages"
+msgstr "إدارة المراحل"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid "Management tasks cannot be linked to a litigation case."
+msgstr "لا يمكن ربط مهام الإدارة بقضية تقاضي."
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Mark Stage Complete"
+msgstr "وضع علامة اكتمال للمرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__case_sequence
+msgid "Matter Index"
+msgstr "فهرس القضايا"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_has_error
+msgid "Message Delivery error"
+msgstr "خطأ في تسليم الرسائل"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_ids
+msgid "Messages"
+msgstr "الرسائل"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid ""
+"Monitor pipeline, stage progress, and task approval status in real time."
+msgstr "راقب مسار العمل وتقدّم المراحل وحالة اعتماد المهام في الوقت الفعلي."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Most active stages across tracked projects"
+msgstr "أكثر المراحل نشاطًا عبر المشاريع المتابعة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "موعد استحقاق أنشطتي"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "My Projects"
+msgstr "مشاريعي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__name
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "New"
+msgstr "جديد"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "حدث التقويم للنشاط التالي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "موعد النشاط التالي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_summary
+msgid "Next Activity Summary"
+msgstr "ملخص النشاط التالي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_type_id
+msgid "Next Activity Type"
+msgstr "نوع النشاط التالي"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Next Stage"
+msgstr "المرحلة التالية"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "No departments detected."
+msgstr "لم يتم العثور على أقسام."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "No further stages configured for this project."
+msgstr "لا توجد مراحل إضافية مُعَدّة لهذا المشروع."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "No projects available for your filters."
+msgstr "لا توجد مشاريع مطابقة لمرشحاتك."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "No stage activity recorded yet."
+msgstr "لا يوجد نشاط مرحلة مسجّل بعد."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "No stage configured for the %(dept)s department."
+msgstr "لا توجد مرحلة مكوّنة لقسم %(dept)s."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__notes
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Notes"
+msgstr "ملاحظات"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_needaction_counter
+msgid "Number of Actions"
+msgstr "عدد الإجراءات"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_has_error_counter
+msgid "Number of errors"
+msgstr "عدد الأخطاء"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "عدد الرسائل التي تتطلب إجراءً"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "عدد الرسائل ذات أخطاء التسليم"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid ""
+"Only pre-litigation or litigation projects can be transferred to a court "
+"case."
+msgstr "يمكن تحويل مشاريع ما قبل التقاضي أو التقاضي فقط إلى قضية محكمة."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid "Only pre-litigation or litigation projects can be transferred."
+msgstr "يمكن نقل مشاريع ما قبل التقاضي أو التقاضي فقط."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Open all projects"
+msgstr "فتح جميع المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Open tasks"
+msgstr "المهام المفتوحة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__opponent_id
+msgid "Opposing Party"
+msgstr "الطرف الخصم"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__deadline
+msgid "Overall Deadline"
+msgstr "الموعد النهائي العام"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__poa_attachment_ids
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "POA Documents"
+msgstr "مستندات الوكالة"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_poa
+msgid "POA Preparation"
+msgstr "تحضير الوكالة"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "POA Received"
+msgstr "تم استلام الوكالة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__poa_received_on
+msgid "POA Received On"
+msgstr "تاريخ استلام الوكالة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__poa_requested_on
+msgid "POA Requested On"
+msgstr "تاريخ طلب الوكالة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__poa_state
+msgid "POA Status"
+msgstr "حالة الوكالة"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "POA Uploaded"
+msgstr "تم رفع الوكالة"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "POA documents uploaded."
+msgstr "تم رفع مستندات الوكالة."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "POA has been requested from the client."
+msgstr "تم طلب الوكالة من العميل."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "POA received and pending upload."
+msgstr "تم استلام الوكالة وتنتظر الرفع."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Pending approval"
+msgstr "بانتظار الاعتماد"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Pipeline stages"
+msgstr "مراحل مسار العمل"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid ""
+"Please assign a lawyer to the project before transferring it to litigation."
+msgstr "يرجى تعيين محامٍ للمشروع قبل تحويله إلى التقاضي."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project_dashboard.py:0
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__department__pre_litigation
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__stage_type_code__pre_litigation
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project_stage__stage_type__pre_litigation
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_task__department__pre_litigation
+msgid "Pre-Litigation"
+msgstr "ما قبل التقاضي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__pre_litigation_channel
+msgid "Pre-Litigation Channel"
+msgstr "قناة ما قبل التقاضي"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid "Pre-Litigation tasks cannot be linked to a court case."
+msgstr "لا يمكن ربط مهام ما قبل التقاضي بقضية محكمة."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid "Pre-Litigation tasks must be linked to a project."
+msgstr "يجب ربط مهام ما قبل التقاضي بمشروع."
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Previous Stage"
+msgstr "المرحلة السابقة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__project_id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__project_id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_task__project_id
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Project"
+msgstr "المشروع"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "Project %(code)s has been created and assigned to you."
+msgstr "تم إنشاء المشروع %(code)s وإسناده إليك."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "Project %(code)s moved from %(previous)s to %(current)s."
+msgstr "انتقل المشروع %(code)s من %(previous)s إلى %(current)s."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__code
+msgid "Project Code"
+msgstr "رمز المشروع"
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_project_dashboard
+msgid "Project Dashboard Service"
+msgstr "خدمة لوحة معلومات المشروع"
+
+#. module: qlk_project_management
+#: model:ir.actions.act_window,name:qlk_project_management.action_qlk_project_hours
+msgid "Project Hours"
+msgstr "ساعات المشروع"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__owner_id
+msgid "Project Owner"
+msgstr "مالك المشروع"
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_project_stage
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_stage_form
+msgid "Project Stage"
+msgstr "مرحلة المشروع"
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_project_stage_log
+msgid "Project Stage Log"
+msgstr "سجل مراحل المشروع"
+
+#. module: qlk_project_management
+#: model:ir.actions.act_window,name:qlk_project_management.action_qlk_project_stage
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_stage_tree
+msgid "Project Stages"
+msgstr "مراحل المشروع"
+
+#. module: qlk_project_management
+#: model:ir.actions.act_window,name:qlk_project_management.action_qlk_project_tasks
+msgid "Project Tasks"
+msgstr "مهام المشروع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Project portfolio overview"
+msgstr "نظرة عامة على محفظة المشاريع"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "Project team updated."
+msgstr "تم تحديث فريق المشروع."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid "Project transferred to litigation as case %(case)s (court %(court)s)."
+msgstr "تم تحويل المشروع إلى التقاضي كقضية %(case)s (محكمة %(court)s)."
+
+#. module: qlk_project_management
+#: model:ir.actions.act_window,name:qlk_project_management.action_qlk_project
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_tree
+msgid "Projects"
+msgstr "المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Projects grouped by operating department"
+msgstr "المشاريع مجمّعة حسب قسم التشغيل"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_corporate_review
+msgid "Quality Review"
+msgstr "مراجعة الجودة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__rating_ids
+msgid "Ratings"
+msgstr "التقييمات"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_completed
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "Ready for Litigation"
+msgstr "جاهز للتقاضي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__transfer_ready
+msgid "Ready to Transfer"
+msgstr "جاهز للتحويل"
+
+#. module: qlk_project_management
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__poa_state__received
+msgid "Received"
+msgstr "تم الاستلام"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Recent projects"
+msgstr "أحدث المشاريع"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__reference
+msgid "Reference"
+msgstr "المرجع"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_registration
+msgid "Registration Stage"
+msgstr "مرحلة التسجيل"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Request POA"
+msgstr "طلب وكالة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__poa_state__requested
+msgid "Requested"
+msgstr "مطلوب"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__activity_user_id
+msgid "Responsible User"
+msgstr "المستخدم المسؤول"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Returned"
+msgstr "مُعاد"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Review hours"
+msgstr "مراجعة الساعات"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "خطأ في تسليم الرسائل القصيرة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__sequence
+msgid "Sequence"
+msgstr "التسلسل"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project_stage__is_default
+msgid "Set this stage as the starting point for the related project type."
+msgstr "اضبط هذه المرحلة كنقطة بداية لنوع المشروع المرتبط."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project_stage__stage_code
+msgid "Short code used when generating project numbers."
+msgstr "رمز قصير يُستخدم عند إنشاء أرقام المشاريع."
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_signature
+msgid "Signature & Stamp"
+msgstr "التوقيع والختم"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/task.py:0
+msgid "Specify whether the litigation task is pre or post litigation."
+msgstr "حدد ما إذا كانت مهمة التقاضي قبل أو بعد التقاضي."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_id
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage_log__stage_id
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_search
+msgid "Stage"
+msgstr "مرحلة"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+msgid "Stage %(stage)s marked completed."
+msgstr "تم وضع علامة اكتمال للمرحلة %(stage)s."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__stage_code
+msgid "Stage Code"
+msgstr "رمز المرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_completed_on
+msgid "Stage Completed On"
+msgstr "تاريخ اكتمال المرحلة"
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/models/project.py:0
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_log_ids
+msgid "Stage History"
+msgstr "سجل المرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_log_count
+msgid "Stage Log Count"
+msgstr "عدد سجلات المرحلة"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Stage Logs"
+msgstr "سجلات المرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__stage_number
+msgid "Stage Number"
+msgstr "رقم المرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_started_on
+msgid "Stage Started On"
+msgstr "تاريخ بدء المرحلة"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Stage Timeline"
+msgstr "الجدول الزمني للمرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__stage_type
+msgid "Stage Type"
+msgstr "نوع المرحلة"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__stage_type_code
+msgid "Stage Type Code"
+msgstr "رمز نوع المرحلة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Stage:"
+msgstr "المرحلة:"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"الحالة بناءً على الأنشطة\n"
+"متأخر: تم تجاوز تاريخ الاستحقاق\n"
+"اليوم: تاريخ النشاط هو اليوم\n"
+"مجدول: أنشطة مستقبلية."
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_task
+msgid "Task & Hours Entry"
+msgstr "تسجيل المهام والساعات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Task approvals"
+msgstr "اعتمادات المهام"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__task_ids
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+msgid "Tasks"
+msgstr "المهام"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Tasks:"
+msgstr "المهام:"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_stage__technical_code
+msgid "Technical Code"
+msgstr "الكود التقني"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project_stage__technical_code
+msgid "Technical identifier used for automation rules."
+msgstr "معرّف تقني يُستخدم لقواعد الأتمتة."
+
+#. module: qlk_project_management
+#: model:ir.model.constraint,message:qlk_project_management.constraint_qlk_project_qlk_project_code_unique
+msgid "The project code must be unique."
+msgstr "يجب أن يكون رمز المشروع فريدًا."
+
+#. module: qlk_project_management
+#. odoo-python
+#: code:addons/qlk_project_management/wizard/transfer_litigation.py:0
+msgid "This project is already linked to a litigation case."
+msgstr "هذا المشروع مرتبط بالفعل بقضية تقاضي."
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__case_sequence
+msgid ""
+"Three-digit number unique per client and department used in the project "
+"code."
+msgstr "رقم من ثلاثة أرقام فريد لكل عميل وقسم ويُستخدم في رمز المشروع."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Total projects"
+msgstr "إجمالي المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "Total tasks:"
+msgstr "إجمالي المهام:"
+
+#. module: qlk_project_management
+#: model:ir.model,name:qlk_project_management.model_qlk_project_transfer_litigation
+msgid "Transfer Project to Litigation Case"
+msgstr "تحويل المشروع إلى قضية تقاضي"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_project_form
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_transfer_litigation_form
+msgid "Transfer to Litigation"
+msgstr "تحويل إلى التقاضي"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__translation_task_id
+msgid "Translation Task"
+msgstr "مهمة ترجمة"
+
+#. module: qlk_project_management
+#: model:qlk.project.stage,name:qlk_project_management.qlk_project_stage_pre_translation
+msgid "Translation of Documents"
+msgstr "ترجمة المستندات"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project_transfer_litigation__case_type_id
+msgid "Type of Case"
+msgstr "نوع القضية"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "نوع نشاط الاستثناء المسجَّل."
+
+#. module: qlk_project_management
+#: model:ir.model.fields.selection,name:qlk_project_management.selection__qlk_project__poa_state__uploaded
+msgid "Uploaded"
+msgstr "تم الرفع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "View tasks"
+msgstr "عرض المهام"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,field_description:qlk_project_management.field_qlk_project__website_message_ids
+msgid "Website Messages"
+msgstr "رسائل الموقع"
+
+#. module: qlk_project_management
+#: model:ir.model.fields,help:qlk_project_management.field_qlk_project__website_message_ids
+msgid "Website communication history"
+msgstr "سجل تواصل الموقع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "active"
+msgstr "نشط"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/project_dashboard.xml:0
+msgid "open"
+msgstr "مفتوح"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_root
+msgid "إدارة المشاريع"
+msgstr "إدارة المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "الاستشارات"
+msgstr "الاستشارات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+msgid "الاستشارات الشهرية"
+msgstr "الاستشارات الشهرية"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "البلاغات"
+msgstr "البلاغات"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_analytics_root
+msgid "التحليلات"
+msgstr "التحليلات"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_task_search_project_inherit
+msgid "التقاضي"
+msgstr "التقاضي"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+msgid "الجدول الزمني للجلسات"
+msgstr "الجدول الزمني للجلسات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "الجلسات"
+msgstr "الجلسات"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_hours
+msgid "الساعات"
+msgstr "الساعات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "الساعات المعتمدة للمشاريع"
+msgstr "الساعات المعتمدة للمشاريع"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_task_search_project_inherit
+msgid "الشركات"
+msgstr "الشركات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "القضايا"
+msgstr "القضايا"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "القضايا الشهرية"
+msgstr "القضايا الشهرية"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "اللوحة التحليلية الشاملة"
+msgstr "اللوحة التحليلية الشاملة"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_stages
+msgid "المراحل"
+msgstr "المراحل"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_projects
+msgid "المشاريع"
+msgstr "المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "المشاريع الجديدة"
+msgstr "المشاريع الجديدة"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_task_search_project_inherit
+msgid "المشروع"
+msgstr "المشروع"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_tasks
+msgid "المهام"
+msgstr "المهام"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "المهام حسب القسم"
+msgstr "المهام حسب القسم"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "بلاغات الشرطة"
+msgstr "بلاغات الشرطة"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+msgid "تعذر تحميل لوحة التحليلات"
+msgstr "تعذر تحميل لوحة التحليلات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/project_dashboard.js:0
+msgid "تعذر تحميل لوحة المشاريع"
+msgstr "تعذر تحميل لوحة المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "تقدم المشاريع"
+msgstr "تقدم المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "توزيع حالات القضايا"
+msgstr "توزيع حالات القضايا"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "جار التحميل..."
+msgstr "جار التحميل..."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "حالات الجلسات"
+msgstr "حالات الجلسات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "شهرًا"
+msgstr "شهرًا"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/js/analysis_dashboard.js:0
+msgid "عدد القضايا شهريًا"
+msgstr "عدد القضايا شهريًا"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض الاستشارات"
+msgstr "عرض الاستشارات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض البلاغات"
+msgstr "عرض البلاغات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض الجلسات"
+msgstr "عرض الجلسات"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض القضايا"
+msgstr "عرض القضايا"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض المشاريع"
+msgstr "عرض المشاريع"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض المهام"
+msgstr "عرض المهام"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "عرض تحليلي لكل القضايا والجلسات والاستشارات والبلاغات والمشاريع."
+msgstr "عرض تحليلي لكل القضايا والجلسات والاستشارات والبلاغات والمشاريع."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "لا توجد بيانات للاستشارات."
+msgstr "لا توجد بيانات للاستشارات."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "لا توجد بيانات للبلاغات."
+msgstr "لا توجد بيانات للبلاغات."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "لا توجد بيانات للحالات."
+msgstr "لا توجد بيانات للحالات."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "لا توجد بيانات للمشاريع."
+msgstr "لا توجد بيانات للمشاريع."
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "لا توجد بيانات."
+msgstr "لا توجد بيانات."
+
+#. module: qlk_project_management
+#: model:ir.actions.client,name:qlk_project_management.action_project_dashboard
+msgid "لوحة إدارة المشاريع"
+msgstr "لوحة إدارة المشاريع"
+
+#. module: qlk_project_management
+#: model:ir.actions.client,name:qlk_project_management.action_analysis_dashboard
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_analytics_dashboard
+msgid "لوحة التحليلات"
+msgstr "لوحة التحليلات"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_dashboard
+msgid "لوحة المعلومات"
+msgstr "لوحة المعلومات"
+
+#. module: qlk_project_management
+#: model_terms:ir.ui.view,arch_db:qlk_project_management.view_qlk_task_search_project_inherit
+msgid "ما قبل التقاضي"
+msgstr "ما قبل التقاضي"
+
+#. module: qlk_project_management
+#: model:ir.ui.menu,name:qlk_project_management.menu_qlk_project_workspace_root
+msgid "مساحة العمل"
+msgstr "مساحة العمل"
+
+#. module: qlk_project_management
+#. odoo-javascript
+#: code:addons/qlk_project_management/static/src/xml/analysis_dashboard.xml:0
+msgid "نطاق زمني"
+msgstr "نطاق زمني"

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="action_dynamic_analysis_dashboard" model="ir.actions.client">
+            <field name="name">Dynamic Analysis Dashboard</field>
+            <field name="tag">qlk.dynamic.analysis.dashboard</field>
+            <field name="target">main</field>
+        </record>
+
+        <menuitem id="menu_dynamic_analysis_root"
+                  name="Dynamic Analytics"
+                  sequence="90"
+                  groups="base.group_user"/>
+
+        <menuitem id="menu_dynamic_analysis_dashboard"
+                  name="Overview"
+                  parent="menu_dynamic_analysis_root"
+                  action="action_dynamic_analysis_dashboard"
+                  sequence="1"
+                  groups="base.group_user"/>
+
+    </data>
+</odoo>

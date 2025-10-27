@@ -1,0 +1,4 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_qlk_task_manager","qlk.task manager","model_qlk_task","qlk_law.group_qlk_law_manager",1,1,1,1
+"access_qlk_task_lawyer","qlk.task lawyer","model_qlk_task","qlk_law.group_qlk_law_lawyer",1,1,1,0
+"access_qlk_task_viewer","qlk.task viewer","model_qlk_task","qlk_law.group_qlk_law_viewer",1,0,0,0

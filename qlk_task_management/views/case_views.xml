@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_qlk_case_form_task_inherit" model="ir.ui.view">
+        <field name="name">qlk.case.form.task.inherit</field>
+        <field name="model">qlk.case</field>
+        <field name="inherit_id" ref="qlk_law.view_qlk_case_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//div[contains(@class, 'oe_button_box')]" position="inside">
+                <button type="object"
+                        name="action_open_litigation_tasks"
+                        class="oe_stat_button"
+                        icon="fa-clock-o">
+                    <field name="task_hours_total" string="Task Hours"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//sheet//notebook" position="inside">
+                <page string="Tasks &amp; Hours">
+                    <group>
+                        <group>
+                            <field name="task_hours_total" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="task_hours_pre" readonly="1"/>
+                            <field name="task_hours_post" readonly="1"/>
+                            <field name="task_waiting_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="task_ids"
+                           context="{'default_department': 'litigation', 'default_case_id': id, 'default_litigation_phase': 'pre'}"
+                           nolabel="1">
+                        <list editable="bottom">
+                            <field name="approval_state" readonly="1"/>
+                            <field name="name"/>
+                            <field name="litigation_phase"/>
+                            <field name="employee_id"/>
+                            <field name="hours_spent"/>
+                            <field name="date_start"/>
+                            <field name="date_finished"/>
+                        </list>
+                        <form string="Task">
+                            <sheet>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="department" readonly="1"/>
+                                    <field name="litigation_phase"/>
+                                    <field name="employee_id"/>
+                                    <field name="hours_spent"/>
+                                    <field name="date_start"/>
+                                    <field name="date_finished"/>
+                                    <field name="reviewer_id"/>
+                                    <field name="approval_state" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="description"/>
+                                    <field name="approval_comment" readonly="1"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

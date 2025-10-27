@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_analysis_dashboard" model="ir.actions.client">
+            <field name="name">لوحة التحليلات</field>
+            <field name="tag">qlk.analysis.dashboard</field>
+            <field name="target">main</field>
+        </record>
+    </data>
+</odoo>

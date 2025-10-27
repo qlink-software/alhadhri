@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Pre-Litigation Pipeline -->
+        <record id="qlk_project_stage_pre_poa" model="qlk.project.stage">
+            <field name="name">POA Preparation</field>
+            <field name="sequence">10</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">poa</field>
+            <field name="stage_code">POA</field>
+            <field name="is_default" eval="True"/>
+            <field name="description">Collect and upload Power of Attorney before pre-litigation work begins.</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_translation" model="qlk.project.stage">
+            <field name="name">Translation of Documents</field>
+            <field name="sequence">20</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">translation</field>
+            <field name="stage_code">TR</field>
+            <field name="auto_task_template" eval="True"/>
+            <field name="auto_task_name">Translation Request</field>
+            <field name="description">Mandatory translation workflow for submitted documents.</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_memo" model="qlk.project.stage">
+            <field name="name">Drafting the Memo</field>
+            <field name="sequence">30</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">memo_drafting</field>
+            <field name="stage_code">DM</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_review" model="qlk.project.stage">
+            <field name="name">Internal Review</field>
+            <field name="sequence">40</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">internal_review</field>
+            <field name="stage_code">RV</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_client" model="qlk.project.stage">
+            <field name="name">Client Approval</field>
+            <field name="sequence">50</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">client_approval</field>
+            <field name="stage_code">CA</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_signature" model="qlk.project.stage">
+            <field name="name">Signature &amp; Stamp</field>
+            <field name="sequence">60</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">signature</field>
+            <field name="stage_code">SS</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_registration" model="qlk.project.stage">
+            <field name="name">Registration Stage</field>
+            <field name="sequence">70</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">registration</field>
+            <field name="stage_code">RG</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_correction" model="qlk.project.stage">
+            <field name="name">Correction of the Claim</field>
+            <field name="sequence">80</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">correction</field>
+            <field name="stage_code">CR</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_fees" model="qlk.project.stage">
+            <field name="name">Fee Payment</field>
+            <field name="sequence">90</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">fees</field>
+            <field name="stage_code">FP</field>
+        </record>
+
+        <record id="qlk_project_stage_pre_completed" model="qlk.project.stage">
+            <field name="name">Ready for Litigation</field>
+            <field name="sequence">100</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">ready_litigation</field>
+            <field name="stage_code">RL</field>
+        </record>
+
+        <!-- Litigation Pipeline -->
+        <record id="qlk_project_stage_litigation_instance" model="qlk.project.stage">
+            <field name="name">Court of First Instance</field>
+            <field name="sequence">10</field>
+            <field name="stage_type">litigation</field>
+            <field name="technical_code">first_instance</field>
+            <field name="stage_code">F</field>
+            <field name="is_default" eval="True"/>
+        </record>
+
+        <record id="qlk_project_stage_litigation_appeal" model="qlk.project.stage">
+            <field name="name">Appeal Stage</field>
+            <field name="sequence">20</field>
+            <field name="stage_type">litigation</field>
+            <field name="technical_code">appeal</field>
+            <field name="stage_code">A</field>
+            <field name="stage_number">1</field>
+        </record>
+
+        <record id="qlk_project_stage_litigation_cassation" model="qlk.project.stage">
+            <field name="name">Cassation Stage</field>
+            <field name="sequence">30</field>
+            <field name="stage_type">litigation</field>
+            <field name="technical_code">cassation</field>
+            <field name="stage_code">CA</field>
+            <field name="stage_number">2</field>
+        </record>
+
+        <record id="qlk_project_stage_litigation_enforcement" model="qlk.project.stage">
+            <field name="name">Enforcement Stage</field>
+            <field name="sequence">40</field>
+            <field name="stage_type">litigation</field>
+            <field name="technical_code">enforcement</field>
+            <field name="stage_code">E</field>
+            <field name="stage_number">3</field>
+        </record>
+
+        <!-- Corporate Pipeline -->
+        <record id="qlk_project_stage_corporate_intake" model="qlk.project.stage">
+            <field name="name">Intake &amp; Planning</field>
+            <field name="sequence">10</field>
+            <field name="stage_type">corporate</field>
+            <field name="technical_code">corp_intake</field>
+            <field name="stage_code">IN</field>
+            <field name="is_default" eval="True"/>
+        </record>
+
+        <record id="qlk_project_stage_corporate_execution" model="qlk.project.stage">
+            <field name="name">Execution</field>
+            <field name="sequence">20</field>
+            <field name="stage_type">corporate</field>
+            <field name="technical_code">corp_execution</field>
+            <field name="stage_code">EX</field>
+        </record>
+
+        <record id="qlk_project_stage_corporate_review" model="qlk.project.stage">
+            <field name="name">Quality Review</field>
+            <field name="sequence">30</field>
+            <field name="stage_type">corporate</field>
+            <field name="technical_code">corp_review</field>
+            <field name="stage_code">QR</field>
+        </record>
+
+        <record id="qlk_project_stage_corporate_delivery" model="qlk.project.stage">
+            <field name="name">Delivery &amp; Sign-off</field>
+            <field name="sequence">40</field>
+            <field name="stage_type">corporate</field>
+            <field name="technical_code">corp_delivery</field>
+            <field name="stage_code">DL</field>
+        </record>
+
+        <!-- Arbitration Pipeline -->
+        <record id="qlk_project_stage_arbitration_intake" model="qlk.project.stage">
+            <field name="name">Arbitration Intake</field>
+            <field name="sequence">10</field>
+            <field name="stage_type">arbitration</field>
+            <field name="technical_code">arb_intake</field>
+            <field name="stage_code">AI</field>
+            <field name="is_default" eval="True"/>
+        </record>
+
+        <record id="qlk_project_stage_arbitration_hearing" model="qlk.project.stage">
+            <field name="name">Hearing Preparation</field>
+            <field name="sequence">20</field>
+            <field name="stage_type">arbitration</field>
+            <field name="technical_code">arb_hearing</field>
+            <field name="stage_code">HP</field>
+        </record>
+
+        <record id="qlk_project_stage_arbitration_award" model="qlk.project.stage">
+            <field name="name">Award &amp; Enforcement</field>
+            <field name="sequence">30</field>
+            <field name="stage_type">arbitration</field>
+            <field name="technical_code">arb_award</field>
+            <field name="stage_code">AW</field>
+        </record>
+
+    </data>
+</odoo>
+

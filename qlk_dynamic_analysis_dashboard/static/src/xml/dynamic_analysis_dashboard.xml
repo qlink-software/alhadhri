@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_dynamic_analysis_dashboard.DynamicAnalysisDashboard" owl="1">
+        <div class="qlk-dynamic-dashboard" t-att-style="paletteStyle">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span>Preparing insights...</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="dashboard-hero">
+                    <div class="hero-text">
+                        <h1>Practice Analytics Overview</h1>
+                        <p>Live legal KPIs combining cases, hearings, consultations, reports, and tracked hours &amp; tasks.</p>
+                    </div>
+                    <div class="hero-cards">
+                        <t t-foreach="cards" t-as="card" t-key="card.title">
+                            <div class="metric-card">
+                                <span class="metric-label"><t t-esc="card.title"/></span>
+                                <strong class="metric-value">
+                                    <t t-esc="card.value"/>
+                                </strong>
+                                <div class="metric-trend" t-att-class="'metric-trend ' + (card.trend || 'neutral')">
+                                    <t t-esc="card.delta"/>
+                                </div>
+                                <small class="metric-subtitle">
+                                    <t t-esc="card.subtitle"/>
+                                </small>
+                            </div>
+                        </t>
+                    </div>
+                </section>
+
+                <section class="dashboard-grid">
+                    <article class="dashboard-card" t-if="chartConfigs.activity_mix">
+                        <header>
+                            <div>
+                                <h2>Integrated activity mix</h2>
+                                <p>Cases, hearings, consultations, complaints, and projects month over month.</p>
+                            </div>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="activityMixCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="dashboard-card" t-if="chartConfigs.department_load">
+                        <header>
+                            <div>
+                                <h2>Department workload</h2>
+                                <p>Open tasks split across operating departments.</p>
+                            </div>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="departmentLoadCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="dashboard-card" t-if="chartConfigs.case_status_mix">
+                        <header>
+                            <div>
+                                <h2>Case status mix</h2>
+                                <p>Distribution of all matters per status.</p>
+                            </div>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="caseStatusCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="dashboard-card" t-if="chartConfigs.case_track_mix">
+                        <header>
+                            <div>
+                                <h2>Case track coverage</h2>
+                                <p>Litigation, corporate, and pre-litigation mix.</p>
+                            </div>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="caseTrackCanvas"></canvas>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="hours-tasks" t-if="hoursTasks">
+                    <article class="hours-card">
+                        <header>
+                            <h2>Hours &amp; approvals</h2>
+                            <p>Latest approved workload and month-over-month delta.</p>
+                        </header>
+                        <div class="hours-metric">
+                            <strong><t t-esc="hoursTasks.total_hours or '0h'"/></strong>
+                            <span class="trend" t-att-class="'trend ' + (hoursTasks.trend or 'steady')">
+                                <t t-esc="hoursTasks.delta"/>
+                            </span>
+                        </div>
+                        <div class="chart-wrapper hours-chart" t-if="chartConfigs.hours_trend and hoursTasks.series and hoursTasks.series.labels and hoursTasks.series.labels.length">
+                            <canvas t-ref="hoursTrendCanvas"></canvas>
+                        </div>
+                        <div t-else="" class="qlk-empty">No approved hours captured yet.</div>
+                    </article>
+
+                    <article class="tasks-card">
+                        <header>
+                            <h2>Tasks snapshot</h2>
+                            <p>Current approval states and departmental spread.</p>
+                        </header>
+                        <t t-set="taskStatus" t-value="hoursTasks.status or {}"/>
+                        <div class="tasks-total">
+                            <span>Total tasks</span>
+                            <strong><t t-esc="hoursTasks.total_tasks or 0"/></strong>
+                        </div>
+                        <div class="task-pills">
+                            <div class="task-pill success">
+                                <span>Approved</span>
+                                <strong><t t-esc="taskStatus.approved or 0"/></strong>
+                            </div>
+                            <div class="task-pill warning">
+                                <span>Waiting</span>
+                                <strong><t t-esc="taskStatus.waiting or 0"/></strong>
+                            </div>
+                            <div class="task-pill info">
+                                <span>Draft</span>
+                                <strong><t t-esc="taskStatus.draft or 0"/></strong>
+                            </div>
+                            <div class="task-pill danger">
+                                <span>Returned</span>
+                                <strong><t t-esc="taskStatus.rejected or 0"/></strong>
+                            </div>
+                        </div>
+                        <t t-if="hoursTasks.department_breakdown and hoursTasks.department_breakdown.length">
+                            <ul class="dept-breakdown">
+                                <t t-foreach="hoursTasks.department_breakdown" t-as="dept" t-key="dept.label">
+                                    <li>
+                                        <span class="label"><t t-esc="dept.label"/></span>
+                                        <span class="value"><t t-esc="dept.value"/></span>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <div t-else="" class="qlk-empty">No departmental split yet.</div>
+                    </article>
+                </section>
+
+                <section class="dashboard-bottom">
+                    <article class="timeline-card">
+                        <header>
+                            <h2>Weekly timeline</h2>
+                            <p>Key delivery milestones for the ongoing cycle.</p>
+                        </header>
+                        <t t-if="timeline and timeline.length">
+                            <ul>
+                                <t t-foreach="timeline" t-as="event" t-key="event.title">
+                                    <li t-att-class="'timeline-item status-' + (event.status || 'planned')">
+                                        <div class="timeline-period">
+                                            <t t-esc="event.period"/>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <strong><t t-esc="event.title"/></strong>
+                                            <p><t t-esc="event.description"/></p>
+                                        </div>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <div t-else="" class="qlk-empty">No upcoming milestones.</div>
+                    </article>
+
+                    <article class="insights-card">
+                        <header>
+                            <h2>Strategic insights</h2>
+                            <p>Quick takeaways curated for leadership.</p>
+                        </header>
+                        <t t-if="insights and insights.length">
+                            <div class="insights-list">
+                                <t t-foreach="insights" t-as="note" t-key="note.title">
+                                    <div class="insight">
+                                        <strong><t t-esc="note.title"/></strong>
+                                        <p><t t-esc="note.body"/></p>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <div t-else="" class="qlk-empty">Insights will appear once data is available.</div>
+                    </article>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

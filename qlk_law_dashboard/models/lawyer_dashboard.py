@@ -230,6 +230,22 @@ class LawyerDashboard(models.AbstractModel):
         }
 
     @api.model
+    def _format_project(self, project):
+        return {
+            "id": project.id,
+            "name": project.name,
+            "code": project.code or "",
+            "department": project.department,
+            "stage": project.stage_id.name if project.stage_id else "",
+            "client": project.client_id.name if project.client_id else "",
+            "hours": round(project.task_hours_total or 0.0, 2),
+            "url": {
+                "res_model": "qlk.project",
+                "res_id": project.id,
+            },
+        }
+
+    @api.model
     def _get_action_metadata(self):
         refs = {
             "case": "qlk_law.act_open_qlk_case_view",
@@ -242,6 +258,8 @@ class LawyerDashboard(models.AbstractModel):
             "my_work": "qlk_law.act_open_qlk_my_work_view",
             "employees": "hr.open_view_employee_list",
             "leaves": "hr_holidays.hr_leave_action_my_department",
+            "task": "qlk_task_management.action_qlk_task_all",
+            "project": "qlk_project_management.action_qlk_project",
         }
         data = {}
         for key, xml_id in refs.items():
@@ -307,30 +325,65 @@ class LawyerDashboard(models.AbstractModel):
                 limit=10,
             )
 
+        action_meta = self._get_action_metadata()
+
+        project_items = []
+        if "qlk.project" in self.env:
+            project_domain = self._lawyer_domain(
+                employee_ids,
+                user.id,
+                ["assigned_employee_ids"],
+                allow_all=is_manager,
+            )
+            owner_domain = [("owner_id", "=", user.id)] if not is_manager else []
+            if project_domain and owner_domain:
+                project_domain = OR([project_domain, owner_domain])
+            elif owner_domain:
+                project_domain = owner_domain
+            project_model = self.env["qlk.project"]
+            project_items = project_model.search(project_domain, order="write_date desc", limit=10)
+
         work_domain = self._lawyer_domain(
             employee_ids, user.id, ["employee_id"], allow_all=is_manager
         )
         work_model = self.env["qlk.work"]
         work_count = work_model.search_count(work_domain)
 
-        timesheet_total = 0.0
-        if "account.analytic.line" in self.env:
-            ts_model = self.env["account.analytic.line"]
-            if is_manager:
-                ts_domain = []
-            elif employee_ids and "employee_id" in ts_model._fields:
-                ts_domain = [("employee_id", "in", employee_ids)]
-            elif "user_id" in ts_model._fields:
-                ts_domain = [("user_id", "=", user.id)]
+        task_hours_total = 0.0
+        task_count = 0
+        task_action_meta = action_meta.get("task")
+        if "qlk.task" in self.env:
+            task_model = self.env["qlk.task"]
+            task_domain = self._lawyer_domain(
+                employee_ids, user.id, ["employee_id"], allow_all=is_manager
+            )
+            task_count = task_model.search_count(task_domain)
+            if task_domain:
+                approved_domain = AND([task_domain, [("approval_state", "=", "approved")]])
             else:
-                ts_domain = []
+                approved_domain = [("approval_state", "=", "approved")]
+            grouped = task_model.read_group(approved_domain, ["hours_spent"], [])
+            if grouped:
+                task_hours_total = grouped[0].get("hours_spent", 0.0) or 0.0
 
-            if ts_domain is not None:
-                grouped = ts_model.read_group(ts_domain, ["unit_amount"], [])
-                if grouped:
-                    timesheet_total = grouped[0].get("unit_amount", 0.0) or 0.0
+        timesheet_total = task_hours_total
+        if not task_count:
+            if "account.analytic.line" in self.env:
+                ts_model = self.env["account.analytic.line"]
+                if is_manager:
+                    ts_domain = []
+                elif employee_ids and "employee_id" in ts_model._fields:
+                    ts_domain = [("employee_id", "in", employee_ids)]
+                elif "user_id" in ts_model._fields:
+                    ts_domain = [("user_id", "=", user.id)]
+                else:
+                    ts_domain = []
 
-        action_meta = self._get_action_metadata()
+                if ts_domain is not None:
+                    grouped = ts_model.read_group(ts_domain, ["unit_amount"], [])
+                    if grouped:
+                        timesheet_total = grouped[0].get("unit_amount", 0.0) or 0.0
+
         hr_data = self._get_hr_data(employee_ids, is_manager, lang)
 
         return {
@@ -378,10 +431,15 @@ class LawyerDashboard(models.AbstractModel):
                 "count": len(complaint_items),
                 "action": action_meta.get("complaint"),
             },
+            "projects": {
+                "items": [self._format_project(item) for item in project_items],
+                "count": len(project_items),
+                "action": action_meta.get("project"),
+            },
             "tasks": {
-                "count": work_count,
+                "count": task_count or work_count,
                 "hours": round(timesheet_total, 2),
-                "action": action_meta.get("my_work") or action_meta.get("work"),
+                "action": task_action_meta or action_meta.get("my_work") or action_meta.get("work"),
             },
             "hr": {
                 **hr_data,

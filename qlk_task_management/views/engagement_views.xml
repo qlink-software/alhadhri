@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_engagement_letter_form_task_inherit" model="ir.ui.view">
+        <field name="name">qlk.engagement.letter.form.task.inherit</field>
+        <field name="model">qlk.engagement.letter</field>
+        <field name="inherit_id" ref="qlk_engagement_letter.view_engagement_letter_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//div[contains(@class, 'oe_button_box')]" position="inside">
+                <button type="object"
+                        name="action_open_corporate_tasks"
+                        class="oe_stat_button"
+                        icon="fa-tasks"
+                        invisible="retainer_scope not in ['corporate', 'both']">
+                    <field name="task_hours_total" string="Task Hours"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//sheet//notebook" position="inside">
+                <page string="Corporate Tasks" invisible="retainer_scope not in ['corporate', 'both']">
+                    <group>
+                        <field name="task_hours_total" readonly="1"/>
+                        <field name="task_waiting_count" readonly="1"/>
+                    </group>
+                    <field name="task_ids"
+                           context="{'default_department': 'corporate', 'default_engagement_id': id}"
+                           domain="[('department', '=', 'corporate')]"
+                           nolabel="1">
+                        <list editable="bottom" default_order="date_start desc">
+                            <field name="approval_state" readonly="1"/>
+                            <field name="name"/>
+                            <field name="employee_id"/>
+                            <field name="hours_spent"/>
+                            <field name="date_start"/>
+                            <field name="date_finished"/>
+                            <field name="reviewer_id"/>
+                        </list>
+                        <form string="Task">
+                            <sheet>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="department" readonly="1"/>
+                                    <field name="employee_id"/>
+                                    <field name="hours_spent"/>
+                                    <field name="date_start"/>
+                                    <field name="date_finished"/>
+                                    <field name="reviewer_id"/>
+                                    <field name="approval_state" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="description"/>
+                                    <field name="approval_comment" readonly="1"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_qlk_task_manager_all" model="ir.rule">
+        <field name="name">QLK Task Manager Access</field>
+        <field name="model_id" ref="model_qlk_task"/>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('qlk_law.group_qlk_law_manager'))]"/>
+    </record>
+
+    <record id="rule_qlk_task_employee_self" model="ir.rule">
+        <field name="name">QLK Task Employee Self Access</field>
+        <field name="model_id" ref="model_qlk_task"/>
+        <field name="domain_force">['|', ('employee_id.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('qlk_law.group_qlk_law_lawyer'))]"/>
+    </record>
+
+    <record id="rule_qlk_task_viewer" model="ir.rule">
+        <field name="name">QLK Task Viewer Access</field>
+        <field name="model_id" ref="model_qlk_task"/>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('qlk_law.group_qlk_law_viewer'))]"/>
+    </record>
+</odoo>
+

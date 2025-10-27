@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_notification_item_list" model="ir.ui.view">
+        <field name="name">noto.notification.item.list</field>
+        <field name="model">noto.notification.item</field>
+        <field name="arch" type="xml">
+            <list string="Active Notifications" create="true" edit="true" delete="false">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="due_datetime"/>
+                <field name="priority"/>
+                <field name="state"/>
+                <field name="reference_display_name" optional="show"/>
+                <field name="note" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_notification_item_form" model="ir.ui.view">
+        <field name="name">noto.notification.item.form</field>
+        <field name="model">noto.notification.item</field>
+        <field name="arch" type="xml">
+            <form string="Notification">
+                <header>
+                    <button name="action_mark_done" string="Action Taken" type="object" class="btn-primary"/>
+                    <button name="action_snooze" string="Snooze 15 Minutes" type="object" modifiers="{'invisible': [('state','=','done')]}"/>
+                    <button name="action_reset_pending" string="Reactivate" type="object" modifiers="{'invisible': [('state','=','pending')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,snoozed,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="notification_type"/>
+                            <field name="priority"/>
+                            <field name="due_datetime"/>
+                            <field name="grace_minutes"/>
+                            <field name="need_sound"/>
+                            <field name="sticky_ack_required"/>
+                        </group>
+                        <group>
+                            <field name="reference_model_id"/>
+                            <field name="reference_res_id" modifiers="{'readonly': [('reference_model_id','=',False)]}"/>
+                            <field name="reference_display_name" readonly="1"/>
+                            <field name="action_url"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                        <page string="History">
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="message_ids" widget="mail_thread"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_notification_item_search" model="ir.ui.view">
+        <field name="name">noto.notification.item.search</field>
+        <field name="model">noto.notification.item</field>
+        <field name="arch" type="xml">
+            <search string="Notification Search">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="state"/>
+                <filter string="Due Now" name="due" domain="[('due_datetime','&lt;=',context_today()), ('state','=','pending')]"/>
+                <filter string="Awaiting Action" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Handled" name="done" domain="[('state','=','done')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="By Type" name="group_by_type" context="{'group_by':'notification_type'}"/>
+                    <filter string="By Company" name="group_by_company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_notification_item" model="ir.actions.act_window">
+        <field name="name">Noto Notifications</field>
+        <field name="res_model">noto.notification.item</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_notification_item_search"/>
+        <field name="context">{'default_notification_type':'session'}</field>
+    </record>
+
+    <menuitem id="menu_notification_root" name="Noto Notifications" sequence="10"/>
+    <menuitem id="menu_notification_items" name="Notification Register" parent="menu_notification_root" action="action_notification_item" sequence="10"/>
+</odoo>

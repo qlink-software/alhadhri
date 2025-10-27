@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_transfer_litigation_form" model="ir.ui.view">
+            <field name="name">qlk.project.transfer.litigation.form</field>
+            <field name="model">qlk.project.transfer.litigation</field>
+            <field name="arch" type="xml">
+                <form string="Transfer to Litigation" create="false" edit="false">
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="1"/>
+                            <field name="client_id" readonly="1"/>
+                            <field name="assigned_employee_id"/>
+                            <field name="court_id"/>
+                            <field name="case_main_category_id"/>
+                            <field name="case_type_id"/>
+                        </group>
+                        <group>
+                            <field name="case_number"/>
+                            <field name="case_year"/>
+                            <field name="filing_date"/>
+                            <field name="opponent_id"/>
+                            <field name="hearing_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" widget="text"/>
+                    </group>
+                    <footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        <button string="Create Case" name="action_confirm" type="object" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
