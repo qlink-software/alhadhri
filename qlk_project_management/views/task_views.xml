@@ -33,12 +33,12 @@
                     <field name="project_id"/>
                 </xpath>
                 <xpath expr="//search/filter[@name='filter_waiting']" position="after">
-                    <filter name="filter_pre_litigation" string="ما قبل التقاضي" domain="[('department', '=', 'pre_litigation')]"/>
-                    <filter name="filter_corporate" string="الشركات" domain="[('department', '=', 'corporate')]"/>
-                    <filter name="filter_litigation" string="التقاضي" domain="[('department', '=', 'litigation')]"/>
+                    <filter name="filter_pre_litigation" string="Pre-Litigation" domain="[('department', '=', 'pre_litigation')]"/>
+                    <filter name="filter_corporate" string="Corporate" domain="[('department', '=', 'corporate')]"/>
+                    <filter name="filter_litigation" string="Litigation" domain="[('department', '=', 'litigation')]"/>
                 </xpath>
                 <xpath expr="//search/group" position="inside">
-                    <filter name="group_project" string="المشروع" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
                 </xpath>
             </field>
         </record>

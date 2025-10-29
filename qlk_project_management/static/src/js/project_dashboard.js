@@ -22,7 +22,7 @@ class ProjectDashboard extends Component {
                 this.state.data = payload;
             } catch (error) {
                 console.error("Failed to load project dashboard", error);
-                this.notification.add(_t("تعذر تحميل لوحة المشاريع"), {
+                this.notification.add(_t("Failed to load the project dashboard"), {
                     type: "danger",
                 });
                 throw error;

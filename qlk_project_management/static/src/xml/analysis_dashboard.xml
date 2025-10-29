@@ -6,48 +6,48 @@
             <t t-if="state.loading">
                 <div class="qlk-dashboard__loading">
                     <div class="spinner-border text-light" role="status">
-                        <span class="sr-only">جار التحميل...</span>
+                        <span class="sr-only">Loading...</span>
                     </div>
-                    <span>جار التحميل...</span>
+                    <span>Loading...</span>
                 </div>
             </t>
             <t t-else="">
                 <section class="qlk-analysis__hero">
                     <div class="hero__info">
-                        <h1>اللوحة التحليلية الشاملة</h1>
-                        <p>عرض تحليلي لكل القضايا والجلسات والاستشارات والبلاغات والمشاريع.</p>
+                        <h1>Comprehensive Analytics Dashboard</h1>
+                        <p>Explore insights for cases, hearings, consultations, complaints, and projects.</p>
                     </div>
                     <div class="hero__filters">
-                        <span>نطاق زمني</span>
+                        <span>Time Range</span>
                         <div class="filter-group">
                             <t t-foreach="periods" t-as="period" t-key="period">
                                 <button type="button"
                                         t-att-class="isActivePeriod(period) ? 'filter-chip active' : 'filter-chip'"
                                         t-on-click="() => this.changePeriod(period)">
-                                    <t t-esc="period"/> شهرًا
+                                    <t t-esc="period"/> months
                                 </button>
                             </t>
                         </div>
                     </div>
                     <div class="hero__metrics">
                         <div class="metric-card">
-                            <span>القضايا</span>
+                            <span>Cases</span>
                             <strong t-esc="totals.cases || 0"/>
                         </div>
                         <div class="metric-card">
-                            <span>الجلسات</span>
+                            <span>Hearings</span>
                             <strong t-esc="totals.hearings || 0"/>
                         </div>
                         <div class="metric-card">
-                            <span>الاستشارات</span>
+                            <span>Consultations</span>
                             <strong t-esc="totals.consultations || 0"/>
                         </div>
                         <div class="metric-card">
-                            <span>البلاغات</span>
+                            <span>Complaints</span>
                             <strong t-esc="totals.complaints || 0"/>
                         </div>
                         <div class="metric-card">
-                            <span>المشاريع</span>
+                            <span>Projects</span>
                             <strong t-esc="totals.projects || 0"/>
                         </div>
                     </div>
@@ -57,10 +57,10 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>القضايا الشهرية</h2>
+                                <h2>Monthly Cases</h2>
                             </div>
                             <button t-if="state.data.actions.cases" class="qlk-link" t-on-click="() => openAction(state.data.actions.cases)">
-                                عرض القضايا
+                                View Cases
                             </button>
                         </header>
                         <div class="chart-wrapper">
@@ -71,10 +71,10 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>الجلسات</h2>
+                                <h2>Hearings</h2>
                             </div>
                             <button t-if="state.data.actions.hearings" class="qlk-link" t-on-click="() => openAction(state.data.actions.hearings)">
-                                عرض الجلسات
+                                View Hearings
                             </button>
                         </header>
                         <div class="chart-wrapper">
@@ -85,44 +85,44 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>الاستشارات</h2>
+                                <h2>Consultations</h2>
                             </div>
                             <button t-if="state.data.actions.consultations" class="qlk-link" t-on-click="() => openAction(state.data.actions.consultations)">
-                                عرض الاستشارات
+                                View Consultations
                             </button>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.consultations and series.consultations.length">
                                 <canvas t-ref="consultationsCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات للاستشارات.</div>
+                            <div t-else="" class="qlk-empty">No consultation data available.</div>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>بلاغات الشرطة</h2>
+                                <h2>Police Complaints</h2>
                             </div>
                             <button t-if="state.data.actions.complaints" class="qlk-link" t-on-click="() => openAction(state.data.actions.complaints)">
-                                عرض البلاغات
+                                View Complaints
                             </button>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.complaints and series.complaints.length">
                                 <canvas t-ref="complaintsCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات للبلاغات.</div>
+                            <div t-else="" class="qlk-empty">No complaint data available.</div>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>المشاريع الجديدة</h2>
+                                <h2>New Projects</h2>
                             </div>
                             <button t-if="state.data.actions.projects" class="qlk-link" t-on-click="() => openAction(state.data.actions.projects)">
-                                عرض المشاريع
+                                View Projects
                             </button>
                         </header>
                         <div class="chart-wrapper">
@@ -133,10 +133,10 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>الساعات المعتمدة للمشاريع</h2>
+                                <h2>Approved Project Hours</h2>
                             </div>
                             <button t-if="state.data.actions.tasks" class="qlk-link" t-on-click="() => openAction(state.data.actions.tasks)">
-                                عرض المهام
+                                View Tasks
                             </button>
                         </header>
                         <div class="chart-wrapper">
@@ -147,56 +147,56 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>توزيع حالات القضايا</h2>
+                                <h2>Case Status Distribution</h2>
                             </div>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.case_status and series.case_status.length">
                                 <canvas t-ref="caseStatusCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات للحالات.</div>
+                            <div t-else="" class="qlk-empty">No case data available.</div>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>حالات الجلسات</h2>
+                                <h2>Hearing Status</h2>
                             </div>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.hearing_stage and series.hearing_stage.length">
                                 <canvas t-ref="hearingStageCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات.</div>
+                            <div t-else="" class="qlk-empty">No data available.</div>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>تقدم المشاريع</h2>
+                                <h2>Project Progress</h2>
                             </div>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.project_progress and series.project_progress.length">
                                 <canvas t-ref="projectProgressCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات للمشاريع.</div>
+                            <div t-else="" class="qlk-empty">No project data available.</div>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>المهام حسب القسم</h2>
+                                <h2>Tasks by Department</h2>
                             </div>
                         </header>
                         <div class="chart-wrapper">
                             <t t-if="series.task_department and series.task_department.length">
                                 <canvas t-ref="taskDepartmentCanvas"></canvas>
                             </t>
-                            <div t-else="" class="qlk-empty">لا توجد بيانات.</div>
+                            <div t-else="" class="qlk-empty">No data available.</div>
                         </div>
                     </article>
                 </section>

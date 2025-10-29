@@ -44,7 +44,7 @@ class AnalysisDashboard extends Component {
             this.state.data = payload;
         } catch (error) {
             console.error("Failed to load analytics dashboard", error);
-            this.notification.add(_t("تعذر تحميل لوحة التحليلات"), {
+            this.notification.add(_t("Failed to load the analytics dashboard"), {
                 type: "danger",
             });
         } finally {
@@ -94,70 +94,70 @@ class AnalysisDashboard extends Component {
 
         const chartConfigs = {
             cases: {
-                title: _t("عدد القضايا شهريًا"),
+                title: _t("Monthly Case Count"),
                 dataset: this.series.cases,
                 color: this.palette.primary || "#0F5CA8",
                 type: "line",
                 actionKey: "cases",
             },
             hearings: {
-                title: _t("الجدول الزمني للجلسات"),
+                title: _t("Hearing Timeline"),
                 dataset: this.series.hearings,
                 color: this.palette.accent || "#22B6C8",
                 type: "line",
                 actionKey: "hearings",
             },
             consultations: {
-                title: _t("الاستشارات الشهرية"),
+                title: _t("Monthly Consultations"),
                 dataset: this.series.consultations || [],
                 color: "#8E44AD",
                 type: "line",
                 actionKey: "consultations",
             },
             complaints: {
-                title: _t("بلاغات الشرطة"),
+                title: _t("Police Complaints"),
                 dataset: this.series.complaints || [],
                 color: "#C0392B",
                 type: "line",
                 actionKey: "complaints",
             },
             projects: {
-                title: _t("المشاريع الجديدة"),
+                title: _t("New Projects"),
                 dataset: this.series.projects,
                 color: this.palette.muted || "#0D3E7A",
                 type: "bar",
                 actionKey: "projects",
             },
             taskHours: {
-                title: _t("الساعات المعتمدة للمشاريع"),
+                title: _t("Approved Project Hours"),
                 dataset: this.series.task_hours,
                 color: this.palette.success || "#27AE60",
                 type: "bar",
                 actionKey: "tasks",
             },
             caseStatus: {
-                title: _t("توزيع حالات القضايا"),
+                title: _t("Case Status Distribution"),
                 dataset: this.series.case_status || [],
                 color: ["#0F5CA8", "#22B6C8", "#27AE60", "#C0392B", "#8E44AD"],
                 type: "pie",
                 actionKey: "cases",
             },
             hearingStage: {
-                title: _t("حالات الجلسات"),
+                title: _t("Hearing Status"),
                 dataset: this.series.hearing_stage || [],
                 color: ["#22B6C8", "#0F5CA8", "#F39C12", "#C0392B"],
                 type: "doughnut",
                 actionKey: "hearings",
             },
             projectProgress: {
-                title: _t("تقدم المشاريع"),
+                title: _t("Project Progress"),
                 dataset: this.series.project_progress || [],
                 color: this.palette.muted || "#0D3E7A",
                 type: "bar",
                 actionKey: "projects",
             },
             taskDepartment: {
-                title: _t("المهام حسب القسم"),
+                title: _t("Tasks by Department"),
                 dataset: this.series.task_department || [],
                 color: ["#0F5CA8", "#22B6C8", "#27AE60", "#8E44AD"],
                 type: "pie",
