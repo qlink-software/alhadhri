@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_create_proposal_form" model="ir.actions.act_window">
+        <field name="name">Proposals</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">form,list</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="proposal_agreement_form"/>
+        <field name="context">{'default_is_proposal':True,}</field>
+    </record>
+
+    <record id="inherit_view_id_crm_lead" model="ir.ui.view">
+        <field name="name">crm.lead.view.form.inherit</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="replace">
+                <header>
+                    <button string="Interested" name="action_interested" type="object" class="oe_highlight" invisible="state != 'new'"/>
+                    <button string="Not Interested" name="action_not_interested" type="object" class="oe_highlight" invisible="state != 'interested'"/>
+                    <button string="Follow Up" name="action_follow_up" type="object" class="oe_highlight" invisible="state != 'not_interested'"/>
+                    <button string="Send Proposal" name="action_send" type="object" class="oe_highlight" invisible="state != 'follow_up'"/>
+                    <button string="New Proposal"
+                        name="action_create_proposal"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'send'"/>
+                    <button string="Reset To New" name="action_reset_to_new" type="object" invisible="state == 'new'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,interested,not_interested,follow_up,send"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="string">Responsible</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="priority_selection" />
+                <field name="opportunity_type" />
+            </xpath>
+            <!-- hide those fields in crm form view -->
+            <xpath expr="//h2" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='expected_revenue']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='probability']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_deadline']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='lead']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="Working Hours">
+                    <field name="task_ids" />
+                </page>
+            </xpath>
+            <xpath expr="//button[@name='action_view_sale_quotation']" position="replace">
+                <button class="oe_stat_button" type="object"
+                    name="action_open_proposal" icon="fa-pencil-square-o">
+                    <field name="proposal_count" widget="statinfo" string="Proposals"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+     <record id="crm.quick_create_opportunity_form" model="ir.ui.view">
+            <field name="name">crm.lead.form.quick_create</field>
+            <field name="model">crm.lead</field>
+            <field name="priority">1000</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="partner_id" widget="res_partner_many2one"
+                            class="o_field_highlight"
+                            string='Contact'
+                            context="{
+                            'res_partner_search_mode': type == 'opportunity' and 'customer' or False,
+                            'default_name': contact_name or partner_name,
+                            'default_is_company': type == 'opportunity' and contact_name == False,
+                            'default_company_name': type == 'opportunity' and partner_name,
+                            'default_type': 'contact',
+                            'default_phone': phone,
+                            'default_email': email_from,
+                            'default_user_id': user_id,
+                            'default_team_id': team_id,
+                            'show_vat': True}"/>
+                        <field name="opportunity_type"  />
+                        <field name="email_from" string="Email" placeholder='e.g. "email@address.com"' />
+                        <field name="phone" string="Phone" placeholder='e.g. "0123456789"' />
+                        <field name="priority_selection" string="Priority"/>
+                        <!-- <label for="expected_revenue"/> -->
+                        <div>
+                            <div class="o_row">
+                                <!-- <field name="expected_revenue" class="oe_inline me-5 o_field_highlight" widget="monetary" options="{'currency_field': 'company_currency'}"/> -->
+                                
+                            </div>
+                            <!-- <div class="o_row" groups="crm.group_use_recurring_revenues">
+                                <field name="recurring_revenue" class="oe_inline o_field_highlight" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                                <field name="recurring_plan" class="oe_inline" placeholder='e.g. "Monthly"'
+                                    required="recurring_revenue != 0" options="{'no_create': True, 'no_open': True}"/>
+                            </div> -->
+                        </div>
+                        <field name="company_currency" invisible="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="user_id" invisible="1"/>
+                        <field name="user_company_ids" invisible="1"/>
+                        <field name="team_id" invisible="1"/>
+                        <field name="type" invisible="1"/>
+                        <field name="partner_name" invisible="1"/>
+                        <field name="contact_name" invisible="1"/>
+                        <field name="country_id" invisible="1"/>
+                        <field name="state_id" invisible="1"/>
+                        <field name="city" invisible="1"/>
+                        <field name="street" invisible="1"/>
+                        <field name="street2" invisible="1"/>
+                        <field name="zip" invisible="1"/>
+                        <field name="mobile" invisible="1"/>
+                        <field name="website" invisible="1"/>
+                        <field name="function" invisible="1"/>
+                        <field name="title" invisible="1"/>
+                        <field name="activity_ids" invisible="1"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+    <record id="inherit_view_id_inherit_kanban" model="ir.ui.view">
+        <field name="name">crm.lead.view.kanban.inherit</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="replace">
+                <kanban highlight_color="color" default_group_by="state" class="o_kanban_small_column o_opportunity_kanban" on_create="quick_create" quick_create_view="crm.quick_create_opportunity_form" archivable="false" sample="1" js_class="crm_kanban">
+                    <field name="probability"/>
+                    <field name="active"/>
+                    <field name="company_currency"/>
+                    <field name="recurring_revenue_monthly"/>
+                    <field name="team_id"/>
+                    <progressbar field="activity_state" colors="{&quot;planned&quot;: &quot;success&quot;, &quot;today&quot;: &quot;warning&quot;, &quot;overdue&quot;: &quot;danger&quot;}" sum_field="expected_revenue" recurring_revenue_sum_field="recurring_revenue_monthly" help="This bar allows to filter the opportunities based on scheduled activities."/>
+                    <templates>
+                        <t t-name="menu">
+                            <t t-if="widget.editable"><a role="menuitem" type="open" class="dropdown-item">Edit</a></t>
+                            <t t-if="widget.deletable"><a role="menuitem" type="delete" class="dropdown-item">Delete</a></t>
+                            <field name="color" widget="kanban_color_picker"/>
+                        </t>
+                        <t t-name="card">
+                            <!-- <t t-set="lost_ribbon" t-value="!record.active.raw_value and record.probability and record.probability.raw_value == 0"/>
+                            <widget name="web_ribbon" title="lost" bg_color="text-bg-danger" invisible="probability &gt; 0 or active"/>
+                            <field class="fw-bold fs-5" name="name"/>
+                            <div>
+                                <t t-if="record.expected_revenue.raw_value">
+                                    <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                                    <span t-if="record.recurring_revenue and record.recurring_revenue.raw_value" groups="crm.group_use_recurring_revenues"> + </span>
+                                </t>
+                                <t t-if="record.recurring_revenue and record.recurring_revenue.raw_value">
+                                    <field class="me-1" name="recurring_revenue" widget="monetary" options="{'currency_field': 'company_currency'}" groups="crm.group_use_recurring_revenues"/>
+                                    <field name="recurring_plan" groups="crm.group_use_recurring_revenues"/>
+                                </t>
+                            </div> -->
+                            <field name="partner_id" class="text-truncate"/>
+                            <!-- <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/> -->
+                            <field name="opportunity_type" />
+                            <footer class="pt-1">
+                                <div class="d-flex mt-auto align-items-center">
+                                    <field name="priority_selection"  
+                                        decoration-danger="priority == 'high'"
+                                        decoration-warning="priority == 'medium'"
+                                        decoration-success="priority == 'low'"/>
+                                    <!-- <field name="activity_ids" widget="kanban_activity"/> -->
+                                </div>
+                                <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]" class="ms-auto"/>
+                            </footer>
+                        </t>
+                    </templates>
+                </kanban>
+            </xpath>     
+        </field>
+    </record>
+    <record id="inherit_view_id_crm_lead_sale_crm" model="ir.ui.view">
+        <field name="name">crm.lead.sale.crm.view.form.inherit</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_sale_quotations_new']" position="replace">
+                
+            </xpath>
+        </field>
+    </record>
+
+    <!-- <record id="opportunity_type_view_form" model="ir.ui.view">
+        <field name="name">opportunity.type.view.form</field>
+        <field name="model">opportunity.type</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="opportunity_type_view_tree" model="ir.ui.view">
+        <field name="name">opportunity.type.view.tree</field>
+        <field name="model">opportunity.type</field>
+        <field name="arch" type="xml">
+            <list string="">
+                <field name="name" />
+            </list>
+        </field>
+    </record>
+    <record id="opportunity_type_action" model="ir.actions.act_window">
+        <field name="name">Opportunity Type</field>
+        <field name="res_model">opportunity.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem
+        id="root_opportunity_menu"
+        name="Type"
+        parent="crm.crm_menu_config"
+        sequence="20"/>
+
+    <menuitem
+        id="opportunity_type_menu"
+        name="Opportunity Type"
+        action="opportunity_type_action"
+        parent="root_opportunity_menu"
+        sequence="1"/> -->
+
+    <record id="action_contacts_form" model="ir.actions.act_window">
+        <field name="name">Create Contact</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">form,list</field>
+        <field name="target">current</field>
+        <field name="context">{'default_is_company': True,}</field>
+    </record>
+
+
+    <record id="request_contact_view_form" model="ir.ui.view">
+        <field name="name">request.contact.view.form</field>
+        <field name="model">request.contact</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <header>
+                    <button string="Reset To Draft" name="action_reset_to_draft" type="object" invisible="state == 'draft'"/>
+                    <button string="Pending" name="action_pending" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button string="Approved" name="action_approved" type="object" class="oe_highlight" invisible="state != 'pending'"/>
+                    <button string="Cancel" name="action_cancel" type="object" class="oe_highlight" invisible="state != 'approved'"/>
+                    <button string="Create Contact" name="%(action_contacts_form)d" 
+                    type="action" class="oe_highlight"
+                    invisible="state != 'approved'"
+                    context="{'default_name': new_client}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                        </group>
+                        <group>
+                            <field name="user_id" />
+                            <field name="new_client" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Note">
+                            <field name="note" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="request_contact_view_tree" model="ir.ui.view">
+        <field name="name">request.contact.view.tree</field>
+        <field name="model">request.contact</field>
+        <field name="arch" type="xml">
+            <list string="">
+                <field name="name" />
+                <field name="new_client" />
+            </list>
+        </field>
+    </record>
+    <record id="request_contact_action" model="ir.actions.act_window">
+        <field name="name">Request Contact</field>
+        <field name="res_model">request.contact</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+    
+
+    <!-- hide my quotations menu in crm -->
+    <menuitem
+        id="sale_crm.sale_order_menu_quotations_crm"
+        name="My Quotations"
+        action="sale.action_quotations"
+        parent="crm.crm_menu_sales"
+        active="false"
+        sequence="2"/>
+
+    <!-- hide my CRM menu -->
+    <menuitem
+        id="crm.crm_menu_root"
+        name="CRM"
+        web_icon="crm,static/description/icon.png"
+        active="false"
+        groups="sales_team.group_sale_salesman,sales_team.group_sale_manager"
+        sequence="25"/>
+
+    <menuitem
+        id="request_contact_menu"
+        name="Request contact"
+        action="request_contact_action"
+        active="false"
+        parent="qlk_management.client_data_menu"
+        sequence="1"/>
+
+    <menuitem id="contacts.res_partner_menu_contacts"
+        name="Contacts"
+        parent="qlk_management.client_data_menu"
+        sequence="2"/>
+
+    <menuitem id="menu_contacts"
+        name="Contact"
+        action="contacts.action_contacts"
+        parent="contacts.res_partner_menu_contacts"
+        sequence="1"/>
+
+    
+    <menuitem
+        id="crm.menu_crm_opportunities"
+        name="PD-Data"
+        parent="qlk_management.client_data_menu"
+        action="crm.action_your_pipeline"
+        sequence="3"/>
+
+</odoo>

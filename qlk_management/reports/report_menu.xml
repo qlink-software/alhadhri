@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- close the PDF Quote Print -->
+    <record id="sale.action_report_saleorder" model="ir.actions.report">
+        <field name="binding_model_id" eval="False"/>
+        <field name="print_report_name">(object.state in ('draft', 'sent') and 'Proposal - %s' % (object.proposal_seq))</field>
+    </record>
+
+    <!-- close the Quotation / Order Print -->
+    <record id="sale_pdf_quote_builder.action_report_saleorder_raw" model="ir.actions.report">
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+    
+</odoo>

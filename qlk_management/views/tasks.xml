@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="task_view_form" model="ir.ui.view">
+        <field name="name">task.view.form</field>
+        <field name="model">task</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <header>
+                    <button string="To Confirm" name="confirm_acrion" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button string="Done" name="done_acrion" type="object" class="oe_highlight" invisible="state != 'confrim'"/>
+                    <button string="Reject" name="reject_acrion" type="object" invisible="state in ['draft','reject']"/>
+                    <button string="Cancel" name="cancel_acrion" type="object" invisible="state in ['draft','cancel']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confrim,done,reject,cancel"/>
+                </header>
+                <sheet>
+                    <div>
+                        <h1><field name="name" /></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_ids" widget="many2many_tags"/>
+                            <field name="user_id" />
+                        </group>
+                        
+                        <group>
+                            <field name="start_date" />
+                            <field name="end_date" />
+                        </group>
+                        <group>
+                            <field name="priority" />
+                            <field name="main_project_id"/>
+                        </group>
+                        <group>
+                            <field name="work_hours" />
+                            <field name="work_hours_display" />
+                        </group>
+                    </group>
+                    <notebook> 
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="task_view_tree" model="ir.ui.view">
+        <field name="name">task.view.tree</field>
+        <field name="model">task</field>
+        <field name="arch" type="xml">
+            <list string="">
+                <field name="name" />
+                <field name="employee_ids" widget="many2many_tags"/>
+                <field name="user_id" />
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="priority" 
+                    decoration-danger="priority == 'high'"
+                    decoration-warning="priority == 'medium'"
+                    decoration-success="priority == 'low'"
+                    />
+                <!-- <field name="sub_project_id"/> -->
+                <field name="attachment_ids" />
+                <field name="work_hours" />
+                <!-- <field name="work_hours_display" /> -->
+            </list>
+        </field>
+    </record>
+    <record id="task_action" model="ir.actions.act_window">
+        <field name="name">Working Hours</field>
+        <field name="res_model">task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <menuitem
+        id="root_task_menu"
+        name="Working Hours"
+        web_icon="qlk_management,static/description/tasks.png"
+        sequence="10"/>
+
+    <menuitem
+        id="task_menu"
+        name="Working Hours"
+        action="task_action"
+        parent="qlk_management.root_task_menu"
+        sequence="1"/>
+
+</odoo>

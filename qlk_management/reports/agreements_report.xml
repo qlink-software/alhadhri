@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="customer_agreements_alhadhri_action" model="ir.actions.report">
+        <field name="name">Agreement Template</field>
+        <field name="model">managment.agreement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.report_customer_agreements_alhadhri_template_id</field>
+        <field name="report_file">qlk_management.report_customer_agreements_alhadhri_template_id</field>
+        <!-- <field name="print_report_name">(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)</field> -->
+        <!-- <field name="binding_model_id" ref="model_sale_order"/> -->
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="report_customer_agreements_alhadhri_template_id"> 
+        <!-- <div class="header">
+            <div class="row">
+                <div class="col-xs-12 text-center">
+                    <img t-if="docs._get_header()" t-att-src="'data:image/png;base64,%s' %  docs._get_header()"
+                          style="max-height: 156px;"/>
+                </div>
+            </div>
+        </div> -->
+        <t t-call="web.html_container">
+          <t t-call="web.external_layout">
+            <div class="page" style="direction: rtl;">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="qlk_management.agreements_report">
+                    </t>
+                    <div style="page-break-after:always;"></div>
+                </t>
+            </div>
+            </t>
+        </t>
+        <!-- <div class="footer">
+            <div class="row">
+                <div class="col-xs-12 text-center">
+                    <img t-if="docs._get_footer()" t-att-src="'data:image/png;base64,%s' %  docs._get_footer()"
+                          style="max-height: 90px;"/>
+                </div>
+            </div>
+        </div> -->
+    </template>
+
+
+    <template id="agreements_report">
+      <style type="text/css">
+          table {border-collapse: collapse;}
+          td {padding: 10px;}
+
+          @font-face {
+            font-family: 'Carlito';
+            src: url('/qlk_management/static/font/Carlito-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+          }
+
+          span,strong,td,p,th {
+          font-family: 'Carlito', sans-serif;
+          <!-- font-size: 18px; -->
+          }
+
+      </style>
+        <div class="col-xs-12 mb32">
+        </div>
+        <div dir="rtl">
+          <table class="table table-condensed" style="background-color:#436175;text-align:right"  width="100%">
+            <thead>
+              <tr>
+                <th width="10%"></th>
+                <th width="30%" style="color:white;font-size:23px;font-weight: bold;">اتفاقية اتعاب</th>
+                <th width="20%"></th>
+                <th width="30%" style="color:white;;font-size:23px;font-weight: bold;">Mandate Agreement</th>
+                <th width="10%"></th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+
+        <!-- ############## -->
+        <div class="row" style="margin-top: 30px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            <strong> <span style="text-decoration:underline;font-weight:bold;font-size:25px;">الموضوع: تقديم خدمات قانونية</span></strong><br/>
+            <strong>  <span style="text-decoration:underline;font-weight:bold;font-size:25px;">الرقم المرجعي: <span t-esc="o.reference_no"></span>. </span></strong><br/>
+          </div>
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+            <strong> <span style="text-decoration:underline;font-weight:bold;font-size:25px;">Subject: Provision of Legal Services</span></strong><br/>
+            <strong> <span style="text-decoration:underline;font-weight:bold;font-size:25px;">Reference No: <span t-esc="o.reference_no"></span></span></strong><br/>
+          </div>
+        </div>
+
+        <!-- ############## -->
+        <div class="row" style="margin-top: 20px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            <span>ابرمت هذه الاتفاقية في يوم <span t-esc="o.weekday_ar"/><span></span><span> الموافق <span t-esc="o.date"></span> بين كل من:</span></span><br/>
+          </div>
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+          <span>This Agreement is entered on <span t-esc="o.weekday_en"/><span></span><span> the <span t-esc="o.date"></span>   between:</span></span><br/>
+          </div>
+        </div>
+
+        <!-- firts party info -->
+        <div class="row" style="margin-top: 20px;padding:15px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            -<span >اولا:<span t-esc="o.first_party_name"></span> </span><br/>
+            -<span >  رخصة المكتب رقم: <span t-esc="o.license_number"></span>. </span><br/>
+              -<span >عنوانه : <span t-esc="o.address"></span>. </span><br/><br/>
+            -<span >رقم الهاتف:<span t-esc="o.phone"></span> </span><br/>   
+            -<span >ص.ب:<span t-esc="o.pox_office_address"></span> </span><br/> 
+            -<a href="'mailto:' + o.email_en">بريد الكتروني: <span t-esc="o.email_en"></span> </a><br/>  
+          </div>
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+            -<span >First:<span t-esc="o.first_party_name_en"></span> </span><br/>
+            -<span >Office License Number: <span t-esc="o.license_number_en"></span>. </span><br/>
+            -<span >Address :<span t-esc="o.address_en"></span> </span><br/>   
+            -<span >Tel:<span t-esc="o.phone_en"></span> </span><br/> 
+            -<span >P.O Box :<span t-esc="o.pox_office_address_en"></span> </span><br/>  
+            -<a t-att-href="'mailto:' + o.email_en">Email Address: <span t-esc="o.email_en"></span></a><br/>
+          </div>
+        </div>
+
+        <!-- ############## -->
+        <div class="row" style="margin-top: 10px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            <span> <span>(يشار اليه فيما بعد ب"الطرف الاول")  </span></span><br/><br/> 
+            <span>  <span> و يمثله المحامي عبدالله الحضري،بصفته:الشريك المدير. <span t-esc="o.reference_no"></span>. </span></span><br/>
+          </div>
+
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+            <span> <span>(Hereinafter referred to as the “1st Party”)</span></span><br/>
+            <span> <span >Represented by Lawyer Abdalla Al-Hadhri, in the capacity of Managing Partner. <span t-esc="o.reference_no"></span></span></span><br/>
+          </div>
+        </div>
+        
+        <!-- second party info -->
+        <div class="row" style="margin-top: 20px;padding:15px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            -<span >ثانيا:<span t-esc="o.second_party_name"></span></span><br/>
+              -<span >  بطاقة شخصية/سجل تجاري رقم: <span t-esc="o.id_number"></span>.</span><br/>
+            -<span >رقم الهاتف:<span t-esc="o.second_party_phone"></span></span><br/> 
+            -<a href="'mailto:' + o.email_en">بريد الكتروني: <span t-esc="o.second_party_email"></span> </a><br/>   
+            -<span >ص.ب/عنوان:<span t-esc="o.first_pox_office_address"></span></span><br/> 
+          </div>
+
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+            -<span >Second:<span t-esc="o.second_party_name_en"></span> </span><br/>
+              -<span >ID/CR Number: <span t-esc="o.id_number_en"></span>. </span><br/>
+            -<span >Tel:<span t-esc="o.second_party_phone_en"></span> </span><br/>
+              - <a t-att-href="'mailto:' + o.email_en">Email Address: <span t-esc="o.second_party_email"></span></a><br/> 
+            -<span >Address/P.O Box :<span t-esc="o.second_pox_office_address_en"></span> </span><br/>  
+          </div>
+        </div>
+
+      <!-- ############## -->
+        <div class="row" style="margin-top: 20px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;">
+            <span> <span>(ويشار إليهم فيما بعد ب “الطرف الثاني")  </span></span><br/> 
+          </div>
+
+          <!-- النص الإنجليزي -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;">
+            <span> <span>(Hereinafter referred to “the 2nd Party”)</span></span><br/>
+          </div>
+        </div>
+
+
+        <div style="page-break-after:always;"></div>
+        <div class="col-xs-12 mb32">
+        </div>
+        <table class="table table-bordered" >
+          <thead style="background-color:#436175;">
+            <tr>
+              <th style="color:white;text-align:center;font-size:23px;font-weight: bold">نطاق الاعمال الموكلة من قبلكم </th>
+              <th style="color:white;text-align:center;font-size:23px;font-weight: bold"> Scope of Work</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td> <span t-esc="o.scope_of_work_ar"></span></td>
+              <td> <span t-esc="o.scope_of_work"></span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="col-xs-12 mb32">
+        </div>
+        <div style="page-break-after:always;"></div>
+        <table class="table table-bordered" >
+          <thead style="background-color:#436175;">
+            <tr>
+              <th style="color:white;text-align:center;font-size:23px;font-weight: bold"> الاتعاب </th>
+              <th style="color:white;text-align:center;font-size:23px;font-weight: bold"> Fees</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>  ستكون أتعابنا مقابل تقديم خدماتنا المهنية للعميل وفقاً لنطاق العمل المذكور أعلاه مبلغ <span t-esc="o.fees"></span>ريال قطري و تدفع كالتالي:<br/></td>
+              <td> Our fees for providing the client with our professional services in accordance with the above-mentioned scope of work will be <span t-esc="o.fees"/> QAR  paid as follows:</td>
+            </tr>
+            <tr>
+              <td>
+                #<span>تستحق كافة المبالغ المذكورة أعلاه في حالة تسوية أو التنازل</span>
+              </td>
+              <td>
+              
+                #<span>All the above amounts are due in the event of settlement or cancellation of the Case.</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- ######## -->
+        <div class="row" style="margin-top: 30px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 47%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;border-top:2px solid;float:right">
+            <span style="font-weight:bold;"> First Party:Al Hadhri and Partners Law Firm represented by Mr. Abdulla Al Hadhri</span>
+          </div>
+          <!-- النص الإنجليزي -->
+          <div style="width: 47%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;border-top:2px solid;float:left">
+            <span style="font-weight:bold;"> Second Party:<span t-esc="o.second_party_name"/></span>
+          </div>
+        </div>
+
+        <div style="page-break-after:always;"></div>
+          <!--  The terms and conditions -->
+          <div class="col-xs-12 mb32">
+          </div>
+          <div dir="rtl">
+            <table class="table table-condensed" style="background-color:#436175;" width="100%">
+              <thead>
+                <tr>
+                  <th width="30%" style="color:white;font-size:23px;font-weight: bold">ملحق الشروط و الاحكام </th>
+                  <th width="20%"></th>
+                  <th width="40%" style="color:white;font-size:23px;font-weight: bold">Terms and Provisions Addendum</th>
+                  <!-- <th width="10%"></th> -->
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="row" style="margin-top: 10px; text-align: center;">
+            <!-- النص العربي على اليمين -->
+            <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+              <h3 style="text-decoration:underline;font-weight:bold;">تمهيد:</h3>
+              <span>
+                حيث إن الطرف الأول محامي مرخص لمزاولة مهنة المحاماة ويتولى الترافع والدفاع نيابة عن عملائه أمام المحاكم القطرية وتقديم الاستشارات القانونية وتنظيم وصياغة العقود القانونية المختلفة.
+                
+              </span>
+            </div>
+
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Preamble:</h3>
+            <span>
+              Whereas the First Party is a lawyer licensed to practice the legal profession and pleads and defend on behalf of his clients before the Qatari courts, providing legal consultations, organizing, and drafting various legal contracts.
+            </span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px; text-align: center;">
+            <!-- النص العربي على اليمين -->
+            <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+              
+              <span>
+                وحيث إن الطرف الثاني يرغب بتوكيل الطرف الأول للمرافعة والمدافعة عنه أمام المحاكم المختصة والدوائر الحكومية على اختلافها واتخاذ كل ما يلزم للحفاظ على حقوقه/ أو يرغب بالاستفادة من الخبرات القانونية التي يتمتع بها الطرف الأول بما في ذلك تقديم الاستشارة القانونية اللازمة/ أو صياغة عقود أو اتفاقيات تتعلق بأعمال الطرف الثاني.          
+              </span>
+            </div>
+
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            
+            <span>
+              And whereas the Second Party wishes to appoint the First Party to plead and defend him/her before the competent courts, different government departments and to take all necessary measures to preserve his/her rights / or wish to benefit from the legal expertise enjoyed by the First Party, including providing the necessary legal advice / or drafting contracts or agreements Related to the business of the Second Party.      
+              </span>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 10px; text-align: center;">
+            <!-- النص العربي على اليمين -->
+            <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+              
+              <span>
+                و بعد أن أقر الطرفان بأهليتهما للتعاقد، وتلاقت إرادتهما، اتفقا على ما ورد في ملحق هذه الاتفاقية:        </span>
+            </div>
+
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            
+            <span>
+              After the parties acknowledged their legal capacity to contract, and their wills converged, they agreed on the following:
+              </span>
+          </div>
+        </div>
+        <!-- ######### Article (1)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (1)</h3>
+            <span>يعتبر التمهيد السابق وجميع الشروط والأحكام المرفقة جزءاً لا يتجزأ من هذه الاتفاقية ومتمماً لها.</span>
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (1)</h3>
+            <span>The above preamble and all the annexes attached thereto shall be an integral and interpretive part of this Contract.</span>
+          </div>
+        </div>
+        <!-- ######### Article (2)-->
+        <div class="row">
+          
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (2)</h3>
+            <span>
+            تسـري هذه الاتفاقية من يوم التوقيع عليها من قبل الطرفين، وتنتهي إما بانتهاء إجراء التقاضي الموكل إلى الطرف الأول/أو بتوقف الطرف الأول عن الدفاع عن الطرف الثاني حال إخلاله/ها لبند الأتعاب الوارد في نطاق العمل محل هذه الاتفاقية وطبقاً لحكم المادة (6) من هذه الاتفاقية.
+
+            </span><br/>
+            <span>ويحق للطرف الأول أن ينهي الاتفاقية بإرادته المنفردة في أي مرحلة من مراحل الدعوى.</span>
+
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (2)</h3>
+
+          <span> This agreement shall be effective from the day it is signed by the two parties and ends either at the end of the litigation procedure entrusted to the First Party / or with the First Party ceasing from  defending on behalf of the Second Party In the event that he/she breaches the fees clause mentioned in the scope of work subject of this Agreement and in accordance with the provisions of Article (6) of this agreement. The First Party has the right to terminate the agreement of its own unilateral will at any stage of the lawsuit.
+          </span>
+          </div>
+        </div>
+        <!-- ######### Article (3)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (3)</h3>
+            <span>يقوم الطرف الأول بتمثيل الطرف الثاني في الدعوى المقامة أمام المحكمة المذكورة في نطاق العمل المشار إليه في هذه الاتفاقية.</span>
+
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (3)</h3>
+              <span>The First Party will represent the Second Party in the case before Court mentioned in the above scope of work of this Agreement.</span>
+          </div>
+        </div>
+
+        <!-- ######### Article (4)-->
+        <div class="row">
+            <!-- النص العربي على اليمين -->
+            <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+              <h3 style="text-decoration:underline;font-weight:bold;">مادة (4)</h3>
+              يلتزم الطرف الثاني بالإفصاح عن كافة المعلومات المتعلقة بالعمل الذي وكل به الطرف الأول، وفي حال عدم قيامه بذلك، فإنه وحده يتحمل ما قد يترتب على ذلك من نتائج.
+            </div>
+          
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+          <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (4)</h3>
+            The Second Party obligates to disclose all information related to the work entrusted to the First Party, in the event the Second Party failure to perform his/her obligation, he/she alone shall bear any consequences result from his/her failure.
+          </div>
+        </div>
+        <!-- ######### Article (5)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (5)</h3>
+            إذا تأخر الطرف الثاني عن سداد الاتعاب المتفق عليها أو جزء منها في المواعيد المحددة بموجب هذه الاتفاقية لمدة تزيد على أسبوع، يكون للطرف الأول الحق في التوقف عن الاستمرار في العمل الموكل به من قبل الطرف الثاني، ويتحمل الطرف الثاني وحدة كامل المسؤولية عن النتائج المترتبة على هذا التوقف.
+          </div>        
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (5)</h3>
+            If the Second Party did not pay  the agreed fees or part of them on the dates specified under this Agreement for a period of more than a week, the First Party has the right to discontinue the work entrusted to him by the Second Party, and the Second Party alone bears all responsibility for the consequences of this decision.
+          </div>
+        </div>
+        <!-- ######### Article (6)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (6)</h3>
+            يكون للطرف الأول الحق في حبس ما يدخل في حوزته من أوراق أو مستندات أو أموال من الطرف الثاني أو بسببه إلى حين استيفاء كامل اتعابه المتفق عليها وفقاً لحكم المادة (41) من قانون المحاماة رقم (23) لسنة 2006 وتعديلاته.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (6)</h3>
+              The First Party shall have the right to withhold any papers, documents or funds come into his possession from or because of the Second Party until the full agreed fees are paid off in accordance with the provision of the Article (41) of the code of Law Practice no: (23) of year 2006 and its amendments.
+          </div>
+        </div>
+        <!-- ######### Article (7)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (7)</h3>
+            يتحمل الطرف الثاني وحده كافة مصاريف الدعوى ونفقاتها بما في ذلك الرسوم القضائية ونفقات طلب الخبرة، ولا تعتبر هذه المصاريف والنفقات من أتعاب المحاماة.
+          </div>
+        
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (7)</h3>
+            The Second Party alone bears all costs and expenses of the lawsuit, including judicial fees and expenses of requesting expertise, and these expenses are not considered among the attorney's fees.
+          </div>
+        </div>
+        <!-- ######### Article (8)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (8)</h3>
+            يلتزم الطرف الثاني بتزويد الطرف الأول بكافة المستندات والوثائق اللازمة للقيام بالعمل الموكل به فور طلبها، ولا يتحمل الطرف الأول النتائج المترتبة على عدم تقديمها بالوقت المحدد، ويتحمل الطرف الثاني وحده المسؤولية المدنية والجنائية عن صحة هذه المستندات.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (8)</h3>
+            The Second Party obliges to provide all necessary documents upon First Party`s request to deliver the work he entrusted to him, in the event the Second Party did not fulfil this obligation or did not provide it on time, he/she alone shall bear the civil and the criminal responsibility towards the authenticity of these documents.
+          </div>
+        </div>
+        <!-- ######### Article (9)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (9)</h3>
+            يلتزم الطرف الأول بالمحافظة على سرية البيانات التي يدلي بها الطرف الثاني، كما يلتزم بالمحافظة على كافة المستندات والأوراق التي يتسلمها من الطرف الثاني وبإعادتها إليه عند انتهاء العمل الموكل به، ما لم يكن قد أودعها في ملف الدعوى لدى المحكمة، ومع عدم الإخلال بأحكام المادة (6) من هذه الاتفاقية.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+          <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (9)</h3>
+            The First Party obligates to maintain the confidentiality of the data provided by the Second Party, as well as he also obligates to maintain all documents that he receives from the Second Party and to return them to him upon completion of the work entrusted to him unless he has deposited them in the case file in the court and provided the fee dues to the First Party is paid off, and without prejudice the provision of the Article (6) of this Agreement.
+          </div>
+        </div>
+        <!-- ######### Article (10)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (10)</h3>
+            يقر الطرف الثاني بأن التزام الطرف الأول هو التزام ببذل العناية اللازمة وليس التزام بتحقيق نتيجة.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (10)</h3>
+            The Second party acknowledges that the obligation of the first party is an obligation to exercise due diligence and not an obligation to achieve a result.
+          </div>
+        </div>
+        <!-- ######### Article (11)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+          <h3 style="text-decoration:underline;font-weight:bold;">مادة (11)</h3>
+            يستحق الطرف الأول كامل الاتعاب المتفق عليها في هذه الاتفاقية. حتى ولو قام الطرف الثاني بالتنازل عن توكيل الطرف الأول قبل إنهاء العمل الذي وكل فيه، أو قام بعزله لسبب لا علاقة للطرف الأول به، أو إذا تعلق التوكيل بنزاع قضائي وانتهى هذا النزاع بطريق الصلح أو بسبب اسقاط الدعوى أو التنازل عنها.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+          <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (11)</h3>
+            The First party shall be entitled to the full fees agreed upon in this agreement. Even if the second party waived the power of attorney for the first party before ending the work for which he was entrusted or dismissed him for a reason unrelated to the first party, or if the power of attorney was related to a judicial dispute and this dispute ended through conciliation or because of the dismissal or assignment of the lawsuit.
+          </div>
+        </div>
+        <!-- ######### Article (12)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (12)</h3>
+            تقتصر مسئولية المكتب تجاهكم بموجب هذه الاتفاقية-سواء كانت المسئولية عن إخلال  بالالتزامات التعاقدية أو بالنظام (بما في ذلك الإهمال أو الإقرار الخاطئ أو خلافه) أو بالتزام تشريعي أو خلافه، وسواءٌ كانت هذه المسئولية تتعلق بأي تصرفٍ أو إغفالٍ أو تأخيرٍ في العمل- في حدود مبلغ الأتعاب المُتفق عليه في هذه الاتفاقية. ولن يتحمل المكتب بأي حالٍ من الأحوال المسئولية عن أية خسارة غير مباشرة /او عن قرارات تجارية صدرت من جانبكم /أو خسارة تبعية. كما لن يتحمل المكتب أية مسئولية أخرى من أي نوع كان إن نشأت عن تصرفٍ أجريناه وبحسن نية باعتباره تصرفًا ضروريًا بالنسبة لنا للالتزام بالقانون. 
+
+            وعلاوة على ذلك، يخلو المكتب من أية مسؤولية حال استخدام رأينا الاستشاري في خارج نطاق التعاقد الماثل.
+
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (12)</h3>
+            The firm's liability to you under this Agreement, whether in breach of contractual obligations /or breach the order (including negligence, false acknowledgement, or otherwise) /or breach of the statutory obligation/or otherwise, and whether in connection with any act, omission, or delay in action, shall be limited to the amount of fees agreed upon in this Agreement. In no event will the Firm be liable for any indirect loss / or commercial decisions made by you / or consequential loss. Nor will the Firm bear any other liability of any kind if it arises from an act we have taken in good faith as necessary for us to comply with the law.
+
+            In addition, the office is free of any responsibility if our advisory opinion is used outside the scope of this contract.
+
+          </div>
+        </div>
+        <!-- ######### Article (13)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (13)</h3>
+            يلتزم الطرف الأول بعدم الإفصاح عن المعلومات الـسريــة التي تلقاها من الطرف الثاني ما لم يطلب الطرف الثاني بالإفصاح عنها أو كانت تلك المعلومات معلنة، أو رأينا – بحسن نية – أن الافصاح عن المعلومات مفروض بحكم القانون أو السلطة الرسمية لأية هيئة حكومية أو تنظيمية أو مهنية. 
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (13)</h3>
+            The First Party obligates not to disclose the confidential information it received from the Second Party unless the Second Party requests to disclose it or that information is public, or the First Party believe - in good faith - that the disclosure of the information is imposed by law or the official authority of any governmental council, regulatory or professional body.
+          </div>
+        </div>
+        <!-- ######### Article (14)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (14)</h3>
+            في حال نشوء أي خلاف بين الطرفين بشأن تنفيذ أو تفسير بنود هذه الاتفاقية تختص المحاكم القطرية بالفصل فيه، وفقاً للقوانين القطرية ذات العلاقة.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (14)</h3>
+            In the event of any dispute arising between the two parties regarding the implementation or interpretation of the provisions of this agreement, the Qatari courts shall be competent to adjudicate it, in accordance with the relevant Qatari laws.
+          </div>
+        </div>
+        <!-- ######### Article (15)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (15)</h3>
+            يعتبر عنوان الطرفين الوارد في هذه الاتفاقية موطناً مختاراً لكل منهما، ترسل عليه جميع المراسلات والإخطارات والإعلانات، بما في ذلك البريد الالكتروني.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (15)</h3>
+            The address of the two parties mentioned in this agreement is considered a domicile for each of them, to which all correspondences, notifications, and advertisements, including e-mail, are to be sent.
+          </div>
+        </div>
+        <!-- ######### Article (16)-->
+        <div class="row">
+          <!-- النص العربي على اليمين -->
+          <div style="width: 49%; text-align: right; padding-right: 10px; direction: rtl; display: inline-block; vertical-align: top;">
+            <h3 style="text-decoration:underline;font-weight:bold;">مادة (16)</h3>
+            حررت هذه الاتفاقية، باللغتين؛ العربية والإنجليزية، و من نسختين بيد كل طرف نسخة للعمل بموجبها.
+            <br/><br/>
+            وفي حال الخلاف بين اللغتين، ترجح النسخة العربية.
+          </div>
+          <!-- النص الإنجليزي على اليسار -->
+          <div style="width: 49%; text-align: left; padding-left: 10px; direction: ltr; display: inline-block; vertical-align: top;">
+            <h3 style="direction: ltr;text-decoration:underline;font-weight:bold;">Article (16)</h3>
+            This agreement was made up in two copies in the Arabic language, with each party holding a copy to act accordingly.
+            In case of any discrepancy between the two versions, Arabic version shall prevail.
+          </div>
+        </div>
+        <!-- ######## -->
+        
+        <div class="row" style="margin-top: 30px;font-size:20px;">
+          <!-- النص العربي -->
+          <div style="width: 47%; text-align: right; padding-right: 10px; direction: rtl;display:inline-block;border-top:2px solid;float:right">
+            <span style="font-weight:bold;"> First Party:Al Hadhri and Partners Law Firm represented by Mr. Abdulla Al Hadhri</span>
+          </div>
+          <!-- النص الإنجليزي -->
+          <div style="width: 47%; text-align: left; padding-left: 10px; direction: ltr;display:inline-block;border-top:2px solid;float:left">
+            <span style="font-weight:bold;"> Second Party:<span t-esc="o.second_party_name"/></span>
+          </div>
+        </div>
+    </template>
+ 
+</data>
+</odoo>

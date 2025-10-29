@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- inherit menus to rename it  -->
+    <menuitem
+        name="Planner"
+        id="project.menu_main_pm"
+        groups="project.group_project_manager,project.group_project_user"
+        web_icon="project,static/description/icon.png"
+        sequence="70"/>
+
+    <menuitem
+        name="Planner"
+        id="project.menu_projects"
+        action="project.open_view_project_all"
+        sequence="1"
+        parent="project.menu_main_pm"/>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="name">Planner</field>
+    </record>
+
+    <record id="project.open_view_project_all_config" model="ir.actions.act_window">
+        <field name="name">Planner</field>
+    </record>
+
+
+</odoo>

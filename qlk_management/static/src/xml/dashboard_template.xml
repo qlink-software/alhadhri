@@ -1,0 +1,131 @@
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="qlk_management.DashboardTemplate">
+        <Layout>
+            <div class="o_managment_dashboard">
+                <!-- Header -->
+                <div class="o_dashboard_header">
+                    <h2>Law Firm Management Dashboard</h2>
+                    <p>Overview of proposals, agreements</p>
+                    <button class="btn btn-secondary" t-on-click="refresh">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+
+                <t t-if="state.loading">
+                    <div class="text-center p-4">
+                        <i class="fa fa-spinner fa-spin"></i> Loading dashboard data...
+                    </div>
+                </t>
+                <t t-else="">
+                    <!-- Metrics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="o_metric_card">
+                                <div class="o_metric_value">
+                                    <t t-esc="state.data.total_proposals or 0"/>
+                                </div>
+                                <div class="o_metric_label">Total Proposals</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="o_metric_card">
+                                <div class="o_metric_value">
+                                    <t t-esc="state.data.pending_approvals or 0"/>
+                                </div>
+                                <div class="o_metric_label">Pending Approvals</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="o_metric_card">
+                                <div class="o_metric_value">
+                                    <t t-esc="state.data.active_agreements or 0"/>
+                                </div>
+                                <div class="o_metric_label">Active Agreements</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="o_metric_card">
+                                <div class="o_metric_value">
+                                    <t t-esc="state.data.conversion_rate ? state.data.conversion_rate.toFixed(1) + '%' : '0%'"/>
+                                </div>
+                                <div class="o_metric_label">Conversion Rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Data -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="o_chart_container">
+                                <h5>Proposals by Status</h5>
+                                <t t-if="state.data.proposal_by_status">
+                                    <t t-foreach="state.data.proposal_by_status" t-as="status" t-key="status[0]">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span t-att-class="'o_status_' + status[0]">
+                                                <t t-esc="status[1]"/>: <t t-esc="status[2]"/>
+                                            </span>
+                                            <span class="font-weight-bold">
+                                                <t t-esc="status[3]"/>
+                                            </span>
+                                        </div>
+                                        <div class="o_progress_bar">
+                                            <div t-att-style="'width: ' + status[4] + '%;'" class="o_progress_fill"></div>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="o_chart_container">
+                                <h5>Recent Activities</h5>
+                                <t t-if="state.data.recent_activities">
+                                    <t t-foreach="state.data.recent_activities" t-as="activity" t-key="activity[0]">
+                                        <div class="mb-2 p-2 border-bottom">
+                                            <div class="d-flex justify-content-between">
+                                                <strong><t t-esc="activity[1]"/></strong>
+                                                <small class="text-muted"><t t-esc="activity[3]"/></small>
+                                            </div>
+                                            <small class="text-muted"><t t-esc="activity[2]"/></small>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="o_dashboard_card">
+                                <h5>Quick Actions</h5>
+                                <div class="row">
+                                    <div class="col-md-3 text-center">
+                                        <button class="btn btn-outline-primary btn-block mb-2" t-on-click="openProposalForm">
+                                            <i class="fa fa-file-text fa-2x"></i>
+                                            <div>New Proposal</div>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <button class="btn btn-outline-success btn-block mb-2" t-on-click="openAgreementForm">
+                                            <i class="fa fa-handshake-o fa-2x"></i>
+                                            <div>New Agreement</div>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="col-md-3 text-center">
+                                        <button class="btn btn-outline-secondary btn-block mb-2">
+                                            <i class="fa fa-line-chart fa-2x"></i>
+                                            <div>Generate Report</div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </Layout>
+    </t>
+</templates> -->

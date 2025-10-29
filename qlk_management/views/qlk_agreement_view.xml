@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="managment_agreement_view_form" model="ir.ui.view">
+        <field name="name">managment.agreement.view.form</field>
+        <field name="model">managment.agreement</field>
+        <field name="arch" type="xml">
+            <form string="Proposal">
+                <header>
+                    <field name="agreement_state" widget="statusbar" statusbar_visible="ag_draft,age_approve,ag_sale,ag_done"/>
+                    <!-- agreement status buttons -->
+                    <button string="To Approve" name="action_agree_approve" type="object" class="oe_highlight" invisible="agreement_state != 'ag_draft'"/>
+                    <button string="MP Approval" name="action_agree_approve_by" type="object" class="oe_highlight" invisible="agreement_state != 'age_approve'"/>
+                    <button string="Approved" name="action_agree_mp_approval" type="object" class="oe_highlight" invisible="agreement_state != 'ag_sent'"/>
+                    <button string="Done" name="action_agree_done" type="object" class="oe_highlight" invisible="agreement_state != 'ag_sale'"/>
+                    <button string="Reset To Draft" name="action_agree_reset_to_draft" type="object" invisible="agreement_state == 'ag_draft'"/>
+                    <button string="Cancel" name="action_agree_cancel" type="object" invisible="agreement_state == 'ag_cancel'"/>
+                    <button 
+                    string="Print Agreement Template" 
+                    name="%(qlk_management.customer_agreements_alhadhri_action)d" 
+                    type="action" class="oe_highlight" 
+                    invisible="agreement_state not in ['age_approve','ag_sale']"/>  
+                    <button id="create_invoice" name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
+                    type="action" class="btn-primary" data-hotkey="q"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="agrement_seq"/>
+                        <h1><field name="agrement_seq" readonly="1" /></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_agreement" invisible="1"/>
+                            <field name="to_be_approve"/>
+                            <field name="proposal_id" invisible="1"/>
+                            <field name="weekday_ar" invisible="1"/>
+                            <field name="weekday_en" invisible="1"/>
+                        </group>
+                         <group>
+                            <field name="start_date" />
+                            <field name="end_date"/>
+                        </group>
+                        <group>
+                            <field name="client_id" />
+                            <field name="reference_no"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="First Party Arabic-Info">
+                            <field name="first_party_name"/>
+                            <field name="license_number"/>
+                            <field name="address"/>
+                            <field name="phone"/>
+                            <field name="pox_office_address" />
+                            <field name="email"/>
+                        </group>
+                        <group string="First Party English-Info">
+                            <field name="first_party_name_en"/>
+                            <field name="license_number_en"/>
+                            <field name="address_en"/>
+                            <field name="phone_en"/>
+                            <field name="pox_office_address_en" />
+                            <field name="email_en"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Second Party Arabic-Info">
+                            <field name="second_party_name"/>
+                            <field name="id_number"/>
+                            <field name="second_party_address"/>
+                            <field name="second_party_phone"/>
+                            <field name="first_pox_office_address" />
+                            <field name="second_party_email"/>
+                        </group>
+                        <group string="Second Party English-Info">
+                            <field name="second_party_name_en"/>
+                            <field name="id_number_en"/>
+                            <field name="second_party_address_en"/>
+                            <field name="second_party_phone_en"/>
+                            <field name="second_pox_office_address_en" />
+                            <field name="second_party_email_en"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Working Hours">
+                            <field name="task_ids" />
+                        </page>
+                        <page string="Content">
+                            <field name="content" />
+                        </page>        
+                    </notebook> 
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="agreement_tree" model="ir.ui.view">
+        <field name="name">managment.agreement.list</field>
+        <field name="model">managment.agreement</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <list>
+               <field name="agrement_seq" />
+                <field name="date"/>
+                <field name="agreement_date"/>
+                <field name="reference_no"/>
+               <field name="first_party_name"/>
+                <field name="license_number"/>
+                <field name="address"/>
+                <field name="phone"/>
+                <field name="pox_office_address" />
+                <field name="email"/>
+                <field name="first_party_name_en"/>
+                <field name="license_number_en"/>
+                <field name="address_en"/>
+                <field name="phone_en"/>
+                <field name="pox_office_address_en" />
+                <field name="email_en"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_agreement_kanban" model="ir.ui.view">
+        <field name="name">managment.agreement.kanban</field>
+        <field name="model">managment.agreement</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1" quick_create="false">
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-baseline mb-2">
+                            <!-- <field name="partner_id" class="fw-bolder fs-5 me-2"/> -->
+                            <!-- <field name="amount_total" widget="monetary" class="fw-bolder ms-auto flex-shrink-0"/> -->
+                        </div>
+                        <footer class="align-items-end">
+                            <div class="d-flex flex-wrap gap-1 text-muted text-nowrap">
+                                <!-- <field name="proposal_seq" invisible="is_proposal"/> -->
+                                <!-- <field name="agrement_seq" invisible="is_agreement"/> -->
+                                <field name="agrement_seq" />
+                                <!-- <field name="date_order"/> -->
+                                
+                                <!-- <field name="activity_ids" widget="kanban_activity"/> -->
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 text-muted text-nowrap">
+                                <field name="agreement_state"
+                                widget="label_selection"
+                                options="{'classes': {'ag_draft': 'info', 'cancel': 'default','age_approve': 'success', 'ag_done': 'success'}}" class="ms-auto"/>
+                            </div>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="agreement_view_search" model="ir.ui.view">
+        <field name="name">managment.agreement.search</field>
+        <field name="model">managment.agreement</field>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="agreement_state" />
+                <group expand="0" string="Group By">
+                    <filter string="State" name="state" domain="[]" context="{'group_by': 'agreement_state'}"/>
+                </group>
+           </search>
+        </field>
+    </record>
+    
+    
+    <record id="managment_agreement_action" model="ir.actions.act_window">
+        <field name="name">Agreement</field>
+        <field name="res_model">managment.agreement</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_agreement','=', True)]</field>
+        <field name="context">{'default_is_agreement':True,'search_default_state':1}</field>
+    </record>
+
+    <record id="agreements_alhadhri_action" model="ir.actions.act_window">
+    <field name="name">Agreement</field>
+    <field name="res_model">managment.agreement</field>
+    <field name="view_mode">form</field>
+    <field name="target">current</field>
+</record>
+
+    
+
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <record id="view_managment_dashboard" model="ir.ui.view">
+        <field name="name">managment.dashboard</field>
+        <field name="model">managment.dashboard</field>
+        <field name="arch" type="xml">
+            <form js_class="managment_dashboard">
+                <sheet>
+                    <div class="oe_title"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_managment_dashboard" model="ir.actions.act_window">
+        <field name="name">Law Firm Dashboard</field>
+        <field name="res_model">managment.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_managment_dashboard"/>
+    </record> -->
+</odoo>

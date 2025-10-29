@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="main_project_view_form" model="ir.ui.view">
+        <field name="name">main.project.view.form</field>
+        <field name="model">main.project</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+                    <div>
+                        <h1><field name="name" /></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" />
+                        </group>
+                        <group>
+                            <field name="start_date" />
+                            <field name="end_date" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sub Projects">
+                            <field name="sub_project_ids">
+                                <list editable="bottom">
+                                    <field name="start_date" />
+                                    <field name="end_date" />
+                                    <field name="partner_id" />
+                                    <field name="description" />
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Attachment">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Description">
+                            <field name="description" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="main_project_view_tree" model="ir.ui.view">
+        <field name="name">main.project.view.tree</field>
+        <field name="model">main.project</field>
+        <field name="arch" type="xml">
+            <list string="">
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="partner_id" />
+                <field name="sub_project_ids" />
+                <field name="description" />
+            </list>
+        </field>
+    </record>
+    <record id="main_project_action" model="ir.actions.act_window">
+        <field name="name">Main Project</field>
+        <field name="res_model">main.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+   
+
+    <menuitem
+        id="main_project_menu"
+        name="Main Project"
+        action="main_project_action"
+        parent="root_task_menu"
+        sequence="2"/>
+
+</odoo>
