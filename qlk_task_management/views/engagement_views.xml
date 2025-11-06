@@ -3,7 +3,7 @@
     <record id="view_engagement_letter_form_task_inherit" model="ir.ui.view">
         <field name="name">qlk.engagement.letter.form.task.inherit</field>
         <field name="model">qlk.engagement.letter</field>
-        <field name="inherit_id" ref="qlk_engagement_letter.view_engagement_letter_form"/>
+        <field name="inherit_id" ref="qlk_proposals_engagement_letter.view_engagement_letter_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet//div[contains(@class, 'oe_button_box')]" position="inside">
                 <button type="object"

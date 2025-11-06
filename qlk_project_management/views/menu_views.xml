@@ -33,51 +33,18 @@
                   sequence="10"
                   groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
 
-        <menuitem id="menu_qlk_project_departments_root"
-                  name="Departments"
-                  sequence="2"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
-
-        <menuitem id="menu_qlk_project_pre_litigation"
-                  name="Pre-Litigation"
-                  parent="menu_qlk_project_departments_root"
-                  action="qlk_project_management.action_qlk_project_pre_litigation"
-                  sequence="1"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
-
-        <menuitem id="menu_qlk_project_litigation"
-                  name="Litigation"
-                  parent="menu_qlk_project_departments_root"
-                  action="qlk_project_management.action_qlk_project_litigation"
-                  sequence="2"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
-
-        <menuitem id="menu_qlk_project_corporate"
-                  name="Corporate"
-                  parent="menu_qlk_project_departments_root"
-                  action="qlk_project_management.action_qlk_project_corporate"
-                  sequence="3"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
-
-        <menuitem id="menu_qlk_project_arbitration"
-                  name="Arbitration"
-                  parent="menu_qlk_project_departments_root"
-                  action="qlk_project_management.action_qlk_project_arbitration"
-                  sequence="4"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
-
         <menuitem id="menu_qlk_project_tasks"
                   name="Tasks"
-                  parent="menu_qlk_project_workspace_root"
+                  parent="qlk_proposals_engagement_letter.menu_management_root"
                   action="qlk_project_management.action_qlk_project_tasks"
-                  sequence="20"
+                  sequence="5"
                   groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
 
         <menuitem id="menu_qlk_project_hours"
                   name="Hours"
-                  parent="menu_qlk_project_workspace_root"
+                  parent="qlk_proposals_engagement_letter.menu_management_root"
                   action="qlk_project_management.action_qlk_project_hours"
-                  sequence="30"
+                  sequence="10"
                   groups="qlk_law.group_qlk_law_manager"/>
 
         <menuitem id="menu_qlk_project_stages"

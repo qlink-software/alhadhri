@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="cost_calculation_view_form" model="ir.ui.view">
+            <field name="name">cost.calculation.view.form</field>
+            <field name="model">cost.calculation</field>
+            <field name="arch" type="xml">
+                <form string="Cost Calculation">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id"/>
+                            </group>
+                            <group>
+                                <field name="mactech"/>
+                                <field name="email_charge"/>
+                            </group>
+                            <group>
+                                <field name="office_rent"/>
+                                <field name="printer_rent"/>
+                            </group>
+                            <group>
+                                <field name="telephone"/>
+                                <field name="salary"/>
+                            </group>
+                            <group string="Cost Summary">
+                                <field name="total" readonly="1"/>
+                                <field name="cost_per_hour" readonly="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="cost_calculation_view_tree" model="ir.ui.view">
+            <field name="name">cost.calculation.view.tree</field>
+            <field name="model">cost.calculation</field>
+            <field name="arch" type="xml">
+                <list string="Cost Calculations">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="mactech"/>
+                    <field name="email_charge"/>
+                    <field name="office_rent"/>
+                    <field name="printer_rent"/>
+                    <field name="telephone"/>
+                    <field name="salary"/>
+                    <field name="total"/>
+                    <field name="cost_per_hour"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="cost_calculation_action" model="ir.actions.act_window">
+            <field name="name">Cost Calculations</field>
+            <field name="res_model">cost.calculation</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="cost_calculation_menu"
+                  name="Cost Calculations"
+                  parent="account.menu_finance_configuration"
+                  action="cost_calculation_action"
+                  sequence="90"
+                  groups="account.group_account_user"/>
+
+    </data>
+</odoo>

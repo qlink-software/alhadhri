@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_qlk_pricing_table_list" model="ir.ui.view">
+            <field name="name">qlk.pricing.table.list</field>
+            <field name="model">qlk.pricing.table</field>
+            <field name="arch" type="xml">
+                <list string="Pricing Tables">
+                    <field name="name"/>
+                    <field name="company_id"/>
+                    <field name="currency_id"/>
+                    <field name="avg_case_cost"/>
+                    <field name="active"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_qlk_pricing_table_form" model="ir.ui.view">
+            <field name="name">qlk.pricing.table.form</field>
+            <field name="model">qlk.pricing.table</field>
+            <field name="arch" type="xml">
+                <form string="Pricing Table">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="company_id"/>
+                                <field name="active"/>
+                            </group>
+                            <group>
+                                <field name="currency_id"/>
+                                <field name="avg_case_cost"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_qlk_pricing_table_search" model="ir.ui.view">
+            <field name="name">qlk.pricing.table.search</field>
+            <field name="model">qlk.pricing.table</field>
+            <field name="arch" type="xml">
+                <search string="Pricing Tables">
+                    <field name="name"/>
+                    <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
+                    <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_pricing_tables" model="ir.actions.act_window">
+            <field name="name">Pricing Tables</field>
+            <field name="res_model">qlk.pricing.table</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="qlk_proposals_engagement_letter.view_qlk_pricing_table_search"/>
+        </record>
+    </data>
+</odoo>

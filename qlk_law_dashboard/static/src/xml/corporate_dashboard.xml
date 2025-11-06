@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_law_dashboard.CorporateDashboard" owl="1">
+        <div class="qlk-law-dashboard"
+             t-att-style="'--qlk-primary: ' + (palette.primary || '#00457E') + '; --qlk-accent: ' + (palette.accent || '#31C3A2') + '; --qlk-muted: ' + (palette.muted || '#0B1F3A') + '; --qlk-success: ' + (palette.success || '#2ECC71') + '; --qlk-warning: ' + (palette.warning || '#F39C12') + ';'">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span>Loading...</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="qlk-dashboard__hero">
+                    <div class="hero__info">
+                        <h1>Corporate Dashboard</h1>
+                        <p>
+                            Welcome,
+                            <strong t-esc="userInfo.name or ''"/>
+                        </p>
+                        <t t-if="userInfo.company">
+                            <span class="hero__company" t-esc="userInfo.company"/>
+                        </t>
+                    </div>
+                    <div class="hero__metrics">
+                        <div class="metric-card">
+                            <span>Total Cases</span>
+                            <strong t-esc="metrics.cases_total"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Hours Today</span>
+                            <strong t-esc="formatHours(metrics.hours_today)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Hours This Week</span>
+                            <strong t-esc="formatHours(metrics.hours_week)"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="qlk-dashboard__grid">
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Recent Cases</h2>
+                                <small t-esc="metrics.cases_week + ' this week'"/>
+                            </div>
+                            <button t-if="state.data.actions?.cases"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('cases')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_cases.length" class="qlk-empty">No cases recorded.</li>
+                            <t t-foreach="lists.recent_cases" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.status"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.client"/>
+                                        <span class="item__date" t-esc="item.next_deadline"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card accent">
+                        <header>
+                            <div>
+                                <h2>Upcoming Consultations</h2>
+                                <small t-esc="'Today: ' + metrics.today_label"/>
+                            </div>
+                            <button t-if="state.data.actions?.consultations"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('consultations')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.upcoming_consultations.length" class="qlk-empty">No upcoming consultations.</li>
+                            <t t-foreach="lists.upcoming_consultations" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.status"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Recent Contracts</h2>
+                                <small t-esc="metrics.contracts_week + ' this week'"/>
+                            </div>
+                            <button t-if="state.data.actions?.contracts"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('contracts')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_contracts.length" class="qlk-empty">No contracts recorded.</li>
+                            <t t-foreach="lists.recent_contracts" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.type"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.start_date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card accent">
+                        <header>
+                            <div>
+                                <h2>Documents Filed</h2>
+                                <small t-esc="metrics.documents_week + ' this week'"/>
+                            </div>
+                            <button t-if="state.data.actions?.documents"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('documents')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_documents.length" class="qlk-empty">No documents recorded.</li>
+                            <t t-foreach="lists.recent_documents" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.type"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.issue_date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+                </section>
+
+                <section class="qlk-dashboard__summary">
+                    <div class="qlk-summary-card">
+                        <h3>Today Overview</h3>
+                        <ul>
+                            <li>
+                                <span>New Cases Today</span>
+                                <strong t-esc="metrics.cases_today"/>
+                            </li>
+                            <li>
+                                <span>Consultations Today</span>
+                                <strong t-esc="metrics.consultations_today"/>
+                            </li>
+                            <li>
+                                <span>Hours Today</span>
+                                <strong t-esc="formatHours(metrics.hours_today)"/>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="qlk-summary-card">
+                        <h3>This Week Overview</h3>
+                        <small t-esc="metrics.week_range.start + ' - ' + metrics.week_range.end"/>
+                        <ul>
+                            <li>
+                                <span>Cases This Week</span>
+                                <strong t-esc="metrics.cases_week"/>
+                            </li>
+                            <li>
+                                <span>Consultations This Week</span>
+                                <strong t-esc="metrics.consultations_week"/>
+                            </li>
+                            <li>
+                                <span>Hours This Week</span>
+                                <strong t-esc="formatHours(metrics.hours_week)"/>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

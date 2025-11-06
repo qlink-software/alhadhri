@@ -31,10 +31,13 @@ class QlkProjectDashboard(models.AbstractModel):
         project_domain = self._project_domain(employee_ids, user, allow_all)
         projects = project_model.search(project_domain, order="write_date desc", limit=10)
         total_projects = project_model.search_count(project_domain)
-        projects_with_case = project_model.search_count(OR([project_domain, [("case_id", "!=", False)]])) if project_domain else project_model.search_count([("case_id", "!=", False)])
+        case_condition = ["|", "|", ("case_id", "!=", False), ("corporate_case_id", "!=", False), ("arbitration_case_id", "!=", False)]
+        if project_domain:
+            projects_with_case = project_model.search_count(OR([project_domain, case_condition]))
+        else:
+            projects_with_case = project_model.search_count(case_condition)
 
         department_labels = {
-            "pre_litigation": _("Pre-Litigation"),
             "litigation": _("Litigation"),
             "corporate": _("Corporate"),
             "arbitration": _("Arbitration"),
@@ -119,7 +122,7 @@ class QlkProjectDashboard(models.AbstractModel):
                     "client": project.client_id.name if project.client_id else "",
                     "department": department_labels.get(project.department, project.department),
                     "stage": project.stage_id.name if project.stage_id else "",
-                    "has_case": bool(project.case_id),
+                    "has_case": bool(project.case_id or project.corporate_case_id or project.arbitration_case_id),
                     "tasks": task_map[project.id]["count"],
                     "hours": round(task_map[project.id]["hours"], 2),
                     "progress": round(progress, 2),
@@ -171,4 +174,3 @@ class QlkProjectDashboard(models.AbstractModel):
                 **action_payload,
             },
         }
-

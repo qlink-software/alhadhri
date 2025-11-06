@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="module_category_engagement_letter" model="ir.module.category">
+            <field name="name">Engagement Letters</field>
+            <field name="sequence" eval="35"/>
+        </record>
+
+        <record id="group_engagement_manager" model="res.groups">
+            <field name="name">Engagement Letter Manager</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('qlk_law.group_qlk_law_manager'))]"/>
+        </record>
+
+        <record id="group_engagement_user" model="res.groups">
+            <field name="name">Engagement Letter User</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_engagement_viewer" model="res.groups">
+            <field name="name">Engagement Letter Viewer</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_legal_employee" model="res.groups">
+            <field name="name">Legal Employee</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('qlk_proposals_engagement_letter.group_engagement_user'))]"/>
+        </record>
+
+        <record id="group_legal_manager" model="res.groups">
+            <field name="name">Legal Manager</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('qlk_proposals_engagement_letter.group_legal_employee')), (4, ref('qlk_proposals_engagement_letter.group_engagement_manager'))]"/>
+        </record>
+
+        <record id="group_general_manager" model="res.groups">
+            <field name="name">General Manager</field>
+            <field name="category_id" ref="module_category_engagement_letter"/>
+            <field name="implied_ids" eval="[(4, ref('qlk_proposals_engagement_letter.group_legal_manager'))]"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,394 @@
+@font-face {
+    font-family: 'Poppins' !important;
+    src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&amp;display=swap');
+}
+body {
+    font-family: 'Poppins', sans-serif !important;
+    background-color: #c4eaf6;
+    
+}
+/* ✅ القوائم الفرعية الأساسية */
+.sidebar_sub_menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+/* ✅ عندما تكون مفتوحة */
+.sidebar_sub_menu.open {
+    max-height: 70vh; /* يجعلها أقصى طول ممكن 70% من ارتفاع الشاشة */
+    overflow-y: auto; /* تفعيل تمرير رأسي */
+    opacity: 1;
+}
+
+/* ✅ تصميم العناصر داخل القائمة الفرعية */
+.sidebar_sub_menu li {
+    background: #ffffff !important;
+    border: 1px solid #0d057e;
+    color: #0d057e;
+    font-weight: bold;
+}
+
+/* ✅ تحسين النصوص */
+.sidebar_sub_menu .text-900 {
+    color: #1f0183;
+    font-weight: bold;
+}
+
+/* ✅ (اختياري) تخصيص شكل شريط التمرير */
+.sidebar_sub_menu::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar_sub_menu::-webkit-scrollbar-thumb {
+    background-color: #999;
+    border-radius: 3px;
+}
+.sidebar_sub_menu::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+.bg-transparent {
+    color:#110f16;
+    font-size:1rem;
+    font-weight: bold;
+    border-bottom: 1px solid #e6e5e8;
+}
+
+#sidebar_panel {
+    height: calc(100% - 0%);
+	position: fixed;
+    top: 0px;
+    background: #042273 !important;
+    display: none;
+    width: 250px;
+    border-radius: 12px;
+    overflow-y: scroll;
+    -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
+    scrollbar-width: none;  /* Hide scrollbar for Firefox */
+    // z-index: 999;
+    // border-radius: 10px;
+    // box-shadow: 0 4px 20px#edf0f6;
+    
+}
+// #sidebar_panel::-webkit-scrollbar {
+//     display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+// }
+$primary_accent: #556ee6 !default;
+$secondary_accent: #334332 !default;
+$inverse_accent: #ffffff !default;
+$o-kanban-color-border-width: 8px;
+$selected_row: #ffffff !default;
+$bg_white: #ffffff !default;
+$f_color: #ffffff !default;
+$primary_hover: #485ec4 !default;
+
+.sidebar_panel .sidebar {
+    padding: 0;
+    white-space: nowrap;
+    padding-bottom: 20px;
+    padding-top: 5px;
+    max-height: 100vh;       /* full height of the viewport */
+    overflow-y: auto;        /* enable vertical scrolling */
+    overflow-x: hidden;      /* hide horizontal scrollbar */
+    
+}
+.sidebar_panel .sidebar_close {
+    text-align: end;
+    display: none;
+    position: sticky;
+    height: 35px;
+    padding-top: 5px;
+    top: 0;
+    background: #ffffff;
+    z-index: 1;
+}
+.sidebar_panel .sidebar_close a#closeSidebar {
+    font-size:1rem;
+    margin-right: 10px;
+    color: #ffffff;
+    // opacity: .3;
+}
+.o_navbar_apps_menu{
+    display: none;
+}
+.sidebar_panel .sidebar_close a#closeSidebar img {
+    width: 15px;
+}
+.sidebar_panel .sidebar .sidebar_logo {
+    padding-top: 20px;
+    text-align: center;
+    padding-bottom: 20px;
+}
+.sidebar_panel .sidebar .sidebar_logo img {
+    margin-top:-30px;
+    max-width: 250px;
+}
+.sidebar_panel .sidebar .sidebar_head {
+    padding-top: 20px;
+    padding-left: 15px;
+    color: #fcfcfe;
+    font-size:1rem;
+}
+.sidebar_panel .sidebar .sidebar_menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border:2px solid #042273;
+    font-size:1rem; 
+    
+}
+.sidebar_panel .sidebar .sidebar_menu li {
+    margin: 0;
+    padding: 0;
+    border: 0px;
+    display: block;
+    font-size:1rem;
+    
+    
+}
+.sidebar_panel .sidebar .sidebar_menu li a {
+    margin: 0;
+    border: 0px;
+    display: block;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 8px 10px 8px 25px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size:1rem;
+    transition:.3s all;
+}
+
+// .sidebar_panel .sidebar .sidebar_menu li:hover  a {
+//     background: #fbfcfc;
+//     border:2px solid #042273;
+//     color: #042273;
+// }
+.sidebar_panel .nav-link {
+	// opacity: .5;
+    transition:.3s all;
+}
+// .sidebar_panel .sidebar a.nav-link.active {
+//     color: #23b5ef !important;
+//     background: #fbfcfc;
+//     border: 3px solid rgb(38, 190, 202);
+// 	opacity: 1;
+// }
+.sidebar_panel .sidebar .sidebar_menu li a .sidebar_img {
+    width: 20px;
+    margin-right: 8px;
+}
+
+// conrtol panel menu
+
+// my code to discover top menu sections
+.o_control_panel {
+    border-bottom: none important;
+    margin: 15px 15px 0 15px;
+    // padding: 28px;
+    background-color: #ffffff !important;
+    -webkit-box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03) !important;
+    box-shadow: #042273 !important;
+    border-radius: 5px;
+    border:2px solid #042273;
+}
+.btn:hover{
+    background-color: #042273;
+    color: white;
+}
+.btn-outline-primary {
+    --btn-color: #042273;
+    --btn-border-color: #042273;
+    --btn-hover-color: #FFFFFF;
+    --btn-hover-bg: #042273;
+    --btn-hover-border-color: #042273;
+    --btn-focus-shadow-rgb: 113, 99, 158;
+    --btn-active-color: #FFFFFF;
+    --btn-active-bg: #042273;
+    --btn-active-border-color: #042273;
+    --btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --btn-disabled-color: #042273;
+    --btn-disabled-bg: transparent;
+    --btn-disabled-border-color: #042273;
+    --gradient: none;
+}
+.btn-outline-secondary {
+    --btn-color: #fcfcfc;
+    --btn-bg: transparent;
+    --btn-border-color: #dee2e6;
+    --btn-hover-color: #343a40;
+    --btn-hover-bg: #e9ecef;
+    --btn-hover-border-color: #dee2e6;
+    --btn-focus-shadow-rgb: 200, 204, 209;
+    --btn-active-color: #212529;
+    --btn-active-bg: #dddbe8;
+    --btn-active-border-color: #71639e;
+    --btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --btn-disabled-color: #000000;
+    --btn-disabled-bg: transparent;
+    --btn-disabled-border-color: #dee2e6;
+}
+.o-form-buttonbox .o_pie_value, .o-form-buttonbox .oe_stat_button .o_stat_info .o_stat_value, .o-form-buttonbox .oe_stat_button > span .o_stat_value, .o-form-buttonbox .oe_stat_button .o_field_statinfo .o_stat_value {
+    order: 2;
+    font-weight: 500;
+    color: var(--o-stat-text-color, #ffffff);
+    font-size: 0.75rem;
+}
+// custmize any link 
+a {
+    color: #042273;
+    font-weight: bold;
+    text-decoration: none;
+}
+.nav-link {
+    display: block;
+    padding: var(--nav-link-padding-y) var(--nav-link-padding-x);
+    font-size:1rem;
+    font-weight: var(--nav-link-font-weight);
+    color: #042273;
+    background: none;
+    border: 0;
+    transition: color 0.15s 
+    ease-in-out, background-color 0.15s 
+    ease-in-out, border-color 0.15s 
+    ease-in-out;
+}
+.nav-link:hover{
+    color: #042273;
+}
+.o_form_view .o_form_uri > span:first-child {
+    color: #042273;
+}
+.o_form_view .o_form_uri {
+    display: inline-block;
+    color: #042273;
+}
+// 
+
+// table view 
+.o_list_renderer .o_list_table {
+    --table-bg: white;
+    // border-collapse:separate;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_list_renderer .o_list_table .th {
+    font-weight: 500;
+    text-align: inherit;
+    text-align: -webkit-match-parent;
+    color: #042273;
+}
+
+.btn-primary{
+    background-color: #042273;
+    color: white;
+}
+.btn-primary:hover {
+    color: #fff !important;
+    background-color: rgb(38, 190, 202) !important;
+    // border-color: #4458b8 !important;
+}
+.btn-primary:active {
+    color: #fff !important;
+    background-color: rgb(38, 190, 202) !important;
+    border-color: rgb(38, 190, 202) !important;
+}
+.btn-secondary{
+    background-color:  rgb(38, 190, 202);
+    color: white;
+}
+.btn-secondary:hover{
+    background-color: #042273;
+    color: white;
+}
+// to customize field view
+.o_field_widget input.o_input {
+    border: 1px solid rgba(203, 214, 245, 0.5); /* 0.5 = 50% transparency */
+    border-radius: 10px;
+}
+
+
+//  to customize form view
+.o_form_view .o_form_sheet{
+    box-shadow: 0 0.75rem 1.5rem rgba(18,38,63, .03) !important;
+    border:1px solid #042273;
+    border-radius: 10px;
+}
+//  to customize conrtol panel statinfo view
+.o-form-buttonbox .oe_stat_button{
+    background-color: #042273;
+    color: #ffffff;
+    border-radius: 10px;
+    // border: 1px solid #ffffff;
+}
+//  to customize conrtol panel button view
+.o-form-buttonbox .oe_stat_button .o_button_icon{
+    background-color: #042273;
+    color: #ffffff;
+    font-weight: bold;
+}
+.o-form-buttonbox .oe_stat_button .o_stat_text{
+    color: #ffffff;
+    font-weight: bold;
+}
+
+
+// mani navbar menu
+html .o_web_client .o_main_navbar {
+    margin-left:300px;
+    border-radius: 12px;
+    background-color: #042273;
+
+}
+html .o_web_client .o_main_navbar {
+    margin-left: 300px;
+    background-color: #042273;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+.o_main_navbar .o_menu_brand{
+    padding:20px;
+}
+/* ✅ التنسيق على العناصر الداخلية - يجب أن يكون بسيطًا */
+.o_menu_sections, .o_menu_systray, .o_web_client > header {
+    background: #042273 !important;
+    /* ❌ إزالة border-radius هنا */
+}
+
+/* ✅ التنسيق على شريط التنقل الرئيسي فقط (حيث تريد الزوايا الدائرية) */
+html .o_web_client .o_main_navbar {
+    /* ... الكود السابق ... */
+    background-color: #042273 !important;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    /* ... باقي التنسيقات */
+}
+
+/* ملاحظة: تأكد من أن UserMenu ليس لديه تنسيق زوائد داخلي (padding/margin) يجعله يظهر منفصلاً */
+.o_user_menu {
+    /* التأكد من إزالة أي تنسيق زائد */
+    padding: 0 10px; 
+}
+
+.o_main_navbar .o_menu_sections .o_nav_entry{
+   color: $f_color !important;
+  
+    background: #042273 !important;
+    border-radius: 4px;
+    box-shadow: #042273;
+    border-radius: 12px;
+
+
+}
+.o_main_navbar .o_menu_sections .dropdown-toggle {
+    color: $f_color !important;
+    background: #042273 !important;
+    border-radius: 4px;
+    box-shadow: #040b5a;
+
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- 🧭 تعديل NavBar الرئيسي -->
+    <t t-inherit="web.NavBar" t-inherit-mode="extension" owl="1">
+        <xpath expr="//nav[hasclass('o_main_navbar')]" position="replace">
+            <nav class="o_main_navbar d-flex justify-content-between"
+                 t-ref="o_main_navbar"
+                 t-on-dropdown-item-selected="onNavBarDropdownItemSelection"
+                 data-command-category="navbar">
+
+                <!-- زر فتح الـ sidebar (visible على الموبايل) -->
+                <div class="d-flex align-items-center">
+                    <a id="openSidebar" t-ref="openSidebar" style="cursor:pointer;">
+                        <i class="fa fa-bars fa-lg"/>
+                    </a>
+                </div>
+
+                <!-- عرض التطبيق الحالي -->
+                <DropdownItem
+                    t-if="!env.isSmall and currentApp"
+                    t-esc="currentApp.name"
+                    class="'o_menu_brand d-flex'"
+                    onSelected="() => this.onNavBarDropdownItemSelection(currentApp)"
+                    attrs="{ href: getMenuItemHref(currentApp), 'data-menu-xmlid': currentApp.xmlid, 'data-section': currentApp.id }"
+                />
+
+                <!-- breadcrumbs -->
+                <div class="o_navbar_breadcrumbs d-contents"/>
+
+                <!-- systray -->
+                <div class="o_menu_systray d-flex flex-shrink-0 ms-auto" role="menu">
+                  <t t-foreach="systrayItems" t-as="item" t-key="item.key">
+                    <div t-att-data-index="item.index"/>
+                    <ErrorHandler onError="error => this.handleItemError(error, item)">
+                        <t t-component="item.Component" t-props="item.props"/>
+                    </ErrorHandler>
+                  </t>
+                  <t t-component="UserMenu"/>
+                </div>
+            </nav>
+
+            <!-- 🧭 Sidebar -->
+            <div class="sidebar_panel" id="sidebar_panel">
+                <div class="sidebar">
+                    <div class="sidebar_close">
+                        <a id="closeSidebar" t-ref="closeSidebar" style="cursor:pointer;">
+                            <img src="/code_backend_theme/static/src/img/icons/close.png"/>
+                        </a>
+                    </div>
+
+                    <div class="sidebar_logo">
+                        <img src="/qlink_backend_theme/static/description/alhadhri.png" class="logo_img"/>
+                    </div>
+
+                    <ul class="sidebar_menu" t-ref="sidebarLinks">
+                        <t t-foreach="menuService.getApps()" t-as="app" t-key="app_index">
+                            <li data-toggle="tooltip" data-placement="right"
+                                t-att-title="app.name"
+                                t-att-data-app-id="app.id"
+                                t-att-class="{'active': currentApp === app}">
+                                
+                                <!-- القائمة الرئيسية -->
+                                <a role="menuitem"
+                                   t-attf-href="#menu_id={{app.id}}"
+                                   t-att-data-id="app.id"
+                                   t-att-data-xmlid="app.xmlid"
+                                   t-att-data-action-id="app.actionID"
+                                   class="nav-link sidebar_main_menu">
+                                    <span class="sidebar_app_name"><t t-esc="app.name"/></span>
+                                    <span class="arrow-indicator" style="float:right;">&#9654;</span>
+                                </a>
+
+                                <!-- القوائم الفرعية -->
+                                <ul class="sidebar_sub_menu list-unstyled">
+                                    <t t-set="sections" t-value="menuService.getMenuAslist(app.id).childrenlist" />
+                                    <t t-foreach="sections" t-as="section" t-key="section.id">
+                                        <t t-call="web.SectionMenu">
+                                            <t t-set="section" t-value="section" />
+                                        </t>
+                                    </t>
+                                </ul>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_engagement_letters" model="ir.actions.act_window">
+            <field name="name">Engagement Letters</field>
+            <field name="res_model">qlk.engagement.letter</field>
+            <field name="view_mode">kanban,list,calendar,graph,form</field>
+            <field name="view_id" ref="qlk_proposals_engagement_letter.view_engagement_letter_kanban"/>
+            <field name="search_view_id" ref="qlk_proposals_engagement_letter.view_engagement_letter_search"/>
+            <field name="context">{'default_contract_type': 'retainer'}</field>
+        </record>
+
+        <record id="action_engagement_installments" model="ir.actions.act_window">
+            <field name="name">Installments</field>
+            <field name="res_model">qlk.engagement.installment</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_engagement_corporate_logs" model="ir.actions.act_window">
+            <field name="name">Corporate Usage Logs</field>
+            <field name="res_model">qlk.engagement.corporate.log</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_engagement_litigation_cases" model="ir.actions.act_window">
+            <field name="name">Litigation Cases</field>
+            <field name="res_model">qlk.engagement.litigation.case</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_engagement_article_templates" model="ir.actions.act_window">
+            <field name="name">Article Templates</field>
+            <field name="res_model">qlk.engagement.article.template</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_engagement_proposals" model="ir.actions.act_window">
+            <field name="name">Engagement Proposals</field>
+            <field name="res_model">qlk.engagement.proposal</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_engagement_project_approvals" model="ir.actions.act_window">
+            <field name="name">Project Approvals</field>
+            <field name="res_model">qlk.engagement.letter</field>
+            <field name="view_mode">list,form</field>
+            <!-- <field name="domain">[('state', '=', 'draft'), ('is_approved', '=', False)]</field>
+            <field name="context">{'search_default_draft': 1}</field> -->
+        </record>
+
+        <menuitem id="menu_engagement_root"
+                  name="Proposals &amp; Engagement"
+                  sequence="35"
+                  groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager,qlk_proposals_engagement_letter.group_engagement_user,qlk_proposals_engagement_letter.group_engagement_viewer"/>
+
+        <menuitem id="menu_management_root"
+                  name="Management"
+                  sequence="40"/>
+
+        <menuitem id="menu_bd_root"
+                  name="BD"
+                  sequence="45"/>
+        <menuitem id="menu_proposal_pricing"
+                  name="Pricing Tables"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_pricing_tables"
+                  sequence="1"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_proposal_initiation"
+                  name="Proposal Initiations"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_proposal_initiation"
+                  sequence="5"
+                  groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_business_proposals"
+                  name="Clients Data"
+                  parent="menu_bd_root"
+                  action="qlk_proposals_engagement_letter.action_business_proposal"
+                  sequence="5"
+                  groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_business_proposals_waiting"
+                  name="Proposal Approvals"
+                  parent="menu_management_root"
+                  action="qlk_proposals_engagement_letter.action_business_proposal_waiting"
+                  sequence="10"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_business_proposals_rejected"
+                  name="Rejected Proposals"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_business_proposal_rejected"
+                  sequence="17"
+                  groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_proposal_reports"
+                  name="Proposal Reports"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_proposal_report"
+                  sequence="20"
+                  groups="qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_legal_manager"/>
+        <menuitem id="menu_engagement_letters"
+                  name="Clients Data"
+                  parent="menu_bd_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_letters"
+                  sequence="10"
+                  groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager,qlk_proposals_engagement_letter.group_engagement_user,qlk_proposals_engagement_letter.group_engagement_viewer"/>
+        <menuitem id="menu_engagement_project_approvals"
+                  name="Engagement Approvals"
+                  parent="menu_management_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_project_approvals"
+                  sequence="15"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+        <menuitem id="menu_engagement_installments"
+                  name="Installments"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_installments"
+                  sequence="40"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager,qlk_proposals_engagement_letter.group_engagement_user"/>
+        <menuitem id="menu_engagement_corporate_logs"
+                  name="Corporate Usage"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_corporate_logs"
+                  sequence="45"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager"/>
+        <menuitem id="menu_engagement_litigation_cases"
+                  name="Litigation Cases"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_litigation_cases"
+                  sequence="50"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager"/>
+        <menuitem id="menu_engagement_article_templates"
+                  name="Article Templates"
+                  parent="menu_engagement_root"
+                  action="qlk_proposals_engagement_letter.action_engagement_article_templates"
+                  sequence="60"
+                  groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager,qlk_proposals_engagement_letter.group_engagement_manager"/>
+
+        <record id="crm.crm_menu_root" model="ir.ui.menu">
+            <field name="name">Clients Data</field>
+            <field name="parent_id" ref="qlk_proposals_engagement_letter.menu_bd_root"/>
+        </record>
+
+        <record id="crm.menu_crm_opportunities" model="ir.ui.menu">
+            <field name="parent_id" ref="crm.crm_menu_root"/>
+            <field name="name">Pipeline</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="crm.crm_menu_sales" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+        <record id="crm.crm_menu_leads" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+        <record id="crm.crm_menu_report" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+        <record id="crm.crm_menu_config" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+        <record id="crm.menu_import_crm" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+
+        <record id="contacts.menu_contacts" model="ir.ui.menu">
+            <field name="name">Clients Data</field>
+            <field name="parent_id" ref="qlk_proposals_engagement_letter.menu_bd_root"/>
+        </record>
+
+        <record id="contacts.res_partner_menu_config" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+    </data>
+</odoo>

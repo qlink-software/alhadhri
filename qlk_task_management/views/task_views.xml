@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_qlk_task_tree" model="ir.ui.view">
+    <record id="view_qlk_task_list" model="ir.ui.view">
         <field name="name">qlk.task.list</field>
         <field name="model">qlk.task</field>
         <field name="type">list</field>

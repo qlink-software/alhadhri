@@ -11,13 +11,12 @@ class QlkProjectStage(models.Model):
     sequence = fields.Integer(default=10)
     stage_type = fields.Selection(
         selection=[
-            ("pre_litigation", "Pre-Litigation"),
             ("litigation", "Litigation"),
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
         ],
         required=True,
-        default="pre_litigation",
+        default="litigation",
     )
     technical_code = fields.Char(help="Technical identifier used for automation rules.")
     stage_code = fields.Char(string="Stage Code", help="Short code used when generating project numbers.")

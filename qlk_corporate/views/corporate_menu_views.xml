@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Actions -->
+        <record id="action_corporate_case" model="ir.actions.act_window">
+            <field name="name">Corporate Cases</field>
+            <field name="res_model">qlk.corporate.case</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_corporate_contract" model="ir.actions.act_window">
+            <field name="name">Corporate Contracts</field>
+            <field name="res_model">qlk.corporate.contract</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_corporate_memo" model="ir.actions.act_window">
+            <field name="name">Corporate Memos</field>
+            <field name="res_model">qlk.corporate.memo</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_corporate_consultation" model="ir.actions.act_window">
+            <field name="name">Corporate Consultations</field>
+            <field name="res_model">qlk.corporate.consultation</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_corporate_document" model="ir.actions.act_window">
+            <field name="name">Corporate Documents</field>
+            <field name="res_model">qlk.corporate.document</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem id="menu_corporate_root"
+                  name="Corporate"
+                  sequence="20"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <menuitem id="menu_corporate_case"
+                  name="Corporate Cases"
+                  parent="menu_corporate_root"
+                  sequence="1"
+                  action="action_corporate_case"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <menuitem id="menu_corporate_contract"
+                  name="Contracts"
+                  parent="menu_corporate_root"
+                  sequence="5"
+                  action="action_corporate_contract"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <menuitem id="menu_corporate_memo"
+                  name="Memos"
+                  parent="menu_corporate_root"
+                  sequence="10"
+                  action="action_corporate_memo"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <menuitem id="menu_corporate_consultation"
+                  name="Consultations"
+                  parent="menu_corporate_root"
+                  sequence="15"
+                  action="action_corporate_consultation"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <menuitem id="menu_corporate_document"
+                  name="Documents"
+                  parent="menu_corporate_root"
+                  sequence="20"
+                  action="action_corporate_document"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+        <!-- Views -->
+        <record id="view_corporate_case_list" model="ir.ui.view">
+            <field name="name">qlk.corporate.case.list</field>
+            <field name="model">qlk.corporate.case</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="client_id"/>
+                    <field name="service_type"/>
+                    <field name="state"/>
+                    <field name="responsible_employee_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_corporate_case_form" model="ir.ui.view">
+            <field name="name">qlk.corporate.case.form</field>
+            <field name="model">qlk.corporate.case</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="action" name="%(qlk_corporate.action_corporate_contract)d">
+                                <span>Contracts</span>
+                            </button>
+                            <button class="oe_stat_button" type="action" name="%(qlk_corporate.action_corporate_memo)d">
+                                <span>Memos</span>
+                            </button>
+                            <button class="oe_stat_button" type="action" name="%(qlk_corporate.action_corporate_consultation)d">
+                                <span>Consultations</span>
+                            </button>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="client_id"/>
+                                <field name="service_type"/>
+                                <field name="state"/>
+                                <field name="responsible_employee_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Contracts">
+                                <field name="contract_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="contract_type"/>
+                                        <field name="counterparty_id"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="auto_renew"/>
+                                        <field name="contract_value"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Memos">
+                                <field name="memo_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="date"/>
+                                        <field name="employee_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Consultations">
+                                <field name="consultation_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="consultation_date"/>
+                                        <field name="fee_amount"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Documents">
+                                <field name="document_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="document_type"/>
+                                        <field name="issuing_authority"/>
+                                        <field name="issue_date"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_corporate_contract_list" model="ir.ui.view">
+            <field name="name">qlk.corporate.contract.list</field>
+            <field name="model">qlk.corporate.contract</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="contract_type"/>
+                    <field name="counterparty_id"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="auto_renew"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_corporate_contract_form" model="ir.ui.view">
+            <field name="name">qlk.corporate.contract.form</field>
+            <field name="model">qlk.corporate.contract</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="case_id"/>
+                                <field name="contract_type"/>
+                                <field name="counterparty_id"/>
+                            </group>
+                            <group>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="auto_renew"/>
+                                <field name="contract_value"/>
+                                <field name="attachment_id"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_corporate_memo_list" model="ir.ui.view">
+            <field name="name">qlk.corporate.memo.list</field>
+            <field name="model">qlk.corporate.memo</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="date"/>
+                    <field name="employee_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_corporate_memo_form" model="ir.ui.view">
+            <field name="name">qlk.corporate.memo.form</field>
+            <field name="model">qlk.corporate.memo</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="case_id"/>
+                                <field name="date"/>
+                                <field name="employee_id"/>
+                            </group>
+                            <group>
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </group>
+                        </group>
+                        <field name="body"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_corporate_consultation_list" model="ir.ui.view">
+            <field name="name">qlk.corporate.consultation.list</field>
+            <field name="model">qlk.corporate.consultation</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="consultation_date"/>
+                    <field name="fee_amount"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_corporate_consultation_form" model="ir.ui.view">
+            <field name="name">qlk.corporate.consultation.form</field>
+            <field name="model">qlk.corporate.consultation</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="case_id"/>
+                            <field name="consultation_date"/>
+                            <field name="fee_amount"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="notes"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_corporate_document_list" model="ir.ui.view">
+            <field name="name">qlk.corporate.document.list</field>
+            <field name="model">qlk.corporate.document</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="document_type"/>
+                    <field name="issuing_authority"/>
+                    <field name="issue_date"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_corporate_document_form" model="ir.ui.view">
+            <field name="name">qlk.corporate.document.form</field>
+            <field name="model">qlk.corporate.document</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="case_id"/>
+                                <field name="document_type"/>
+                                <field name="issuing_authority"/>
+                                <field name="issue_date"/>
+                            </group>
+                            <group>
+                                <field name="attachment_id"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="notes"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

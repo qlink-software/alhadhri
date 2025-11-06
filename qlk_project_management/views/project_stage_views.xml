@@ -2,7 +2,7 @@
 <odoo>
     <data>
 
-        <record id="view_qlk_project_stage_tree" model="ir.ui.view">
+        <record id="view_qlk_project_stage_list" model="ir.ui.view">
             <field name="name">qlk.project.stage.list</field>
             <field name="model">qlk.project.stage</field>
             <field name="type">list</field>

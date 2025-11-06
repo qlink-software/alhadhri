@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_arbitration_case_form_inherit_project" model="ir.ui.view">
+            <field name="name">qlk.arbitration.case.form.project</field>
+            <field name="model">qlk.arbitration.case</field>
+            <field name="inherit_id" ref="qlk_arbitration.view_arbitration_case_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet/group/group[1]/field[@name='arbitration_center']" position="after">
+                    <field name="project_id"/>
+                </xpath>
+                <xpath expr="//form/sheet/group/group[2]" position="inside">
+                    <field name="agreement_hours"/>
+                    <field name="agreement_start_date"/>
+                    <field name="agreement_end_date"/>
+                    <field name="actual_hours_total" readonly="1"/>
+                    <field name="actual_hours_month" readonly="1"/>
+                    <field name="over_hours" readonly="1"/>
+                </xpath>
+                <xpath expr="//form/sheet/group[1]" position="before">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_project_hours"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-clock-o"
+                                invisible="not project_id">
+                            <field name="actual_hours_total" string="Approved Hours"/>
+                        </button>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_arbitration_case_list_inherit_project" model="ir.ui.view">
+            <field name="name">qlk.arbitration.case.list.project</field>
+            <field name="model">qlk.arbitration.case</field>
+            <field name="inherit_id" ref="qlk_arbitration.view_arbitration_case_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
+                    <field name="project_id"/>
+                    <field name="actual_hours_total"/>
+                    <field name="over_hours"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

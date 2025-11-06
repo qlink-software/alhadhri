@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="action_arbitration_case" model="ir.actions.act_window">
+            <field name="name">Arbitration Cases</field>
+            <field name="res_model">qlk.arbitration.case</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_arbitration_session" model="ir.actions.act_window">
+            <field name="name">Arbitration Sessions</field>
+            <field name="res_model">qlk.arbitration.session</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_arbitration_memo" model="ir.actions.act_window">
+            <field name="name">Arbitration Memos</field>
+            <field name="res_model">qlk.arbitration.memo</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_arbitration_award" model="ir.actions.act_window">
+            <field name="name">Arbitration Awards</field>
+            <field name="res_model">qlk.arbitration.award</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_arbitrator_register" model="ir.actions.act_window">
+            <field name="name">Arbitrators</field>
+            <field name="res_model">qlk.arbitration.arbitrator</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_arbitration_root"
+                  name="Arbitration"
+                  
+                  sequence="30"
+                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+
+        <menuitem id="menu_arbitration_case"
+                  name="Arbitration Cases"
+                  parent="menu_arbitration_root"
+                  sequence="1"
+                  action="action_arbitration_case"
+                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+
+        <menuitem id="menu_arbitration_session"
+                  name="Sessions"
+                  parent="menu_arbitration_root"
+                  sequence="5"
+                  action="action_arbitration_session"
+                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+
+        <menuitem id="menu_arbitration_memo"
+                  name="Memos"
+                  parent="menu_arbitration_root"
+                  sequence="10"
+                  action="action_arbitration_memo"
+                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+
+        <menuitem id="menu_arbitration_award"
+                  name="Awards"
+                  parent="menu_arbitration_root"
+                  sequence="15"
+                  action="action_arbitration_award"
+                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+
+        <menuitem id="menu_arbitrator_register"
+                  name="Arbitrators"
+                  parent="menu_arbitration_root"
+                  sequence="20"
+                  action="action_arbitrator_register"
+                  groups="qlk_arbitration.group_arbitration_manager"/>
+
+        <record id="view_arbitration_case_list" model="ir.ui.view">
+            <field name="name">qlk.arbitration.case.list</field>
+            <field name="model">qlk.arbitration.case</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="case_number"/>
+                    <field name="name"/>
+                    <field name="arbitration_center"/>
+                    <field name="claimant_id"/>
+                    <field name="respondent_id"/>
+                    <field name="state"/>
+                    <field name="responsible_employee_id"/>
+                    <field name="start_date"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_arbitration_case_form" model="ir.ui.view">
+            <field name="name">qlk.arbitration.case.form</field>
+            <field name="model">qlk.arbitration.case</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="case_number"/>
+                                <field name="name"/>
+                                <field name="arbitration_center"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="state"/>
+                            </group>
+                            <group>
+                                <field name="claimant_id"/>
+                                <field name="respondent_id"/>
+                                <field name="responsible_employee_id"/>
+                                <field name="arbitrator_ids" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Sessions">
+                                <field name="session_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="session_date"/>
+                                        <field name="arbitrator_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Memos">
+                                <field name="memo_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="memo_type"/>
+                                        <field name="submission_date"/>
+                                        <field name="employee_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Awards">
+                                <field name="award_ids">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="decision_date"/>
+                                        <field name="enforcement_body"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_arbitration_session_list" model="ir.ui.view">
+            <field name="name">qlk.arbitration.session.list</field>
+            <field name="model">qlk.arbitration.session</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="session_date"/>
+                    <field name="arbitrator_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_arbitration_session_form" model="ir.ui.view">
+            <field name="name">qlk.arbitration.session.form</field>
+            <field name="model">qlk.arbitration.session</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="case_id"/>
+                            <field name="session_date"/>
+                            <field name="arbitrator_id"/>
+                        </group>
+                        <group>
+                            <field name="notes"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_arbitration_memo_list" model="ir.ui.view">
+            <field name="name">qlk.arbitration.memo.list</field>
+            <field name="model">qlk.arbitration.memo</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="memo_type"/>
+                    <field name="submission_date"/>
+                    <field name="employee_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_arbitration_memo_form" model="ir.ui.view">
+            <field name="name">qlk.arbitration.memo.form</field>
+            <field name="model">qlk.arbitration.memo</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="case_id"/>
+                                <field name="memo_type"/>
+                                <field name="submission_date"/>
+                            </group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </group>
+                        </group>
+                        <field name="body"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_arbitration_award_list" model="ir.ui.view">
+            <field name="name">qlk.arbitration.award.list</field>
+            <field name="model">qlk.arbitration.award</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="case_id"/>
+                    <field name="decision_date"/>
+                    <field name="enforcement_body"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_arbitration_award_form" model="ir.ui.view">
+            <field name="name">qlk.arbitration.award.form</field>
+            <field name="model">qlk.arbitration.award</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="case_id"/>
+                                <field name="decision_date"/>
+                            </group>
+                            <group>
+                                <field name="enforcement_body"/>
+                                <field name="attachment_id"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="notes"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_arbitrator_list" model="ir.ui.view">
+            <field name="name">qlk.arbitration.arbitrator.list</field>
+            <field name="model">qlk.arbitration.arbitrator</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="expertise"/>
+                    <field name="organization"/>
+                    <field name="country_id"/>
+                    <field name="email"/>
+                    <field name="phone"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_arbitrator_form" model="ir.ui.view">
+            <field name="name">qlk.arbitration.arbitrator.form</field>
+            <field name="model">qlk.arbitration.arbitrator</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="expertise"/>
+                            <field name="organization"/>
+                            <field name="country_id"/>
+                            <field name="email"/>
+                            <field name="phone"/>
+                        </group>
+                        <group>
+                            <field name="case_ids" widget="many2many_tags"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

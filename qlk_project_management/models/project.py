@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class QlkProject(models.Model):
@@ -10,18 +10,23 @@ class QlkProject(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
+    _department_case_field_map = {
+        "litigation": "case_id",
+        "corporate": "corporate_case_id",
+        "arbitration": "arbitration_case_id",
+    }
+
     name = fields.Char(required=True, tracking=True)
     code = fields.Char(string="Project Code", compute="_compute_code", store=True, tracking=True)
     reference = fields.Char(string="Reference", copy=False, tracking=True)
     department = fields.Selection(
         selection=[
-            ("pre_litigation", "Pre-Litigation"),
             ("litigation", "Litigation"),
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
         ],
         required=True,
-        default="pre_litigation",
+        default="litigation",
         tracking=True,
     )
     stage_id = fields.Many2one(
@@ -33,7 +38,6 @@ class QlkProject(models.Model):
     )
     stage_type_code = fields.Selection(
         selection=[
-            ("pre_litigation", "Pre-Litigation"),
             ("litigation", "Litigation"),
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
@@ -107,21 +111,30 @@ class QlkProject(models.Model):
         compute="_compute_task_hours",
         readonly=True,
     )
-    translation_task_id = fields.Many2one(
-        "qlk.task",
-        string="Translation Task",
-        help="Automatically generated translation task for pre-litigation workflow.",
+    task_count = fields.Integer(
+        string="Tasks",
+        compute="_compute_task_hours",
+        readonly=True,
     )
     deadline = fields.Date(string="Overall Deadline")
     color = fields.Integer(string="Color Index")
-    pre_litigation_channel = fields.Boolean(
-        string="Pre-Litigation Channel",
-        help="Indicates the matter is being prepared before registration in court.",
-    )
     transfer_ready = fields.Boolean(
         string="Ready to Transfer",
         help="Checked when all required stages are completed and case details can be submitted.",
     )
+    corporate_case_id = fields.Many2one(
+        "qlk.corporate.case",
+        string="Corporate Case",
+        tracking=True,
+        ondelete="set null",
+    )
+    arbitration_case_id = fields.Many2one(
+        "qlk.arbitration.case",
+        string="Arbitration Case",
+        tracking=True,
+        ondelete="set null",
+    )
+    related_case_display = fields.Char(string="Related Matter", compute="_compute_related_case_display")
 
     _sql_constraints = [
         ("qlk_project_code_unique", "unique(code)", "The project code must be unique."),
@@ -139,7 +152,7 @@ class QlkProject(models.Model):
     @api.depends("department")
     def _compute_stage_type_code(self):
         for project in self:
-            project.stage_type_code = project.department or "pre_litigation"
+            project.stage_type_code = project.department or "litigation"
 
     @api.onchange("department")
     def _onchange_department(self):
@@ -154,7 +167,10 @@ class QlkProject(models.Model):
         )
         if stage:
             self.stage_id = stage.id
-        self.pre_litigation_channel = self.department == "pre_litigation"
+        allowed_field = self._department_case_field_map.get(self.department)
+        for field_name in self._department_case_field_map.values():
+            if field_name != allowed_field:
+                setattr(self, field_name, False)
 
     @api.depends("client_id", "engagement_id.client_unique_code")
     def _compute_client_code(self):
@@ -180,9 +196,6 @@ class QlkProject(models.Model):
                     project.code = f"{client_code}/L{sequence:03d}-{stage.stage_number}/{suffix}"
                 else:
                     project.code = f"{client_code}/L{sequence:03d}/{suffix}"
-            elif project.department == "pre_litigation":
-                suffix = stage.stage_code or (stage.technical_code or "PL")
-                project.code = f"{client_code}/PL{sequence:03d}/{suffix}"
             elif project.department == "corporate":
                 suffix = stage.stage_code or (stage.technical_code or "COR")
                 project.code = f"{client_code}/C{sequence:03d}/{suffix}"
@@ -203,22 +216,51 @@ class QlkProject(models.Model):
         for project in self:
             total = 0.0
             month_total = 0.0
+            count = 0
             for task in project.task_ids:
                 if task.approval_state in approved_states:
                     total += task.hours_spent
                     if task.date_start and task.date_start >= month_start:
                         month_total += task.hours_spent
+                count += 1
             project.task_hours_total = total
             project.task_hours_month = month_total
+            project.task_count = count
+
+    def _get_department_label(self, department):
+        department_field = self._fields["department"]
+        selection = department_field.selection
+        if callable(selection):
+            selection = selection(self)
+        selection_dict = dict(selection or [])
+        if isinstance(department, str):
+            return selection_dict.get(department, department.title())
+        return selection_dict.get(department, department)
+
+    def _validate_case_vals(self, vals, department, *, is_create=False):
+        allowed_field = self._department_case_field_map.get(department)
+        department_label = self._get_department_label(department)
+        for field_name in self._department_case_field_map.values():
+            if field_name == allowed_field:
+                continue
+            value = vals.get(field_name)
+            if value:
+                raise ValidationError(
+                    _("%(field)s cannot be set on %(dept)s projects.") % {
+                        "field": self._fields[field_name].string,
+                        "dept": department_label,
+                    }
+                )
+            if is_create and field_name not in vals:
+                vals[field_name] = False
 
     @api.model_create_multi
     def create(self, vals_list):
         stage_model = self.env["qlk.project.stage"]
         res = []
         for vals in vals_list:
-            department = vals.get("department") or "pre_litigation"
-            if "pre_litigation_channel" not in vals and department == "pre_litigation":
-                vals["pre_litigation_channel"] = True
+            department = vals.get("department") or "litigation"
+            self._validate_case_vals(vals, department, is_create=True)
             if not vals.get("stage_id"):
                 default_stage = stage_model.search(
                     [("stage_type", "=", department), ("is_default", "=", True)], order="sequence asc", limit=1
@@ -241,14 +283,41 @@ class QlkProject(models.Model):
 
         projects = super().create(res)
         projects._init_stage_logs()
+        projects._sync_case_project_link()
         projects._post_create_notifications()
-        projects._ensure_translation_task()
         return projects
 
     def write(self, vals):
         tracked_stage = "stage_id" in vals
         # capture original stages before write
         previous_stage = {project.id: project.stage_id for project in self} if tracked_stage else {}
+        case_fields = tuple(self._department_case_field_map.values())
+        old_corporate_cases = {project.id: project.corporate_case_id for project in self}
+        old_arbitration_cases = {project.id: project.arbitration_case_id for project in self}
+
+        if "department" in vals:
+            new_department = vals["department"]
+            if new_department == "litigation":
+                if "corporate_case_id" not in vals:
+                    vals["corporate_case_id"] = False
+                if "arbitration_case_id" not in vals:
+                    vals["arbitration_case_id"] = False
+            elif new_department == "corporate":
+                if "case_id" not in vals:
+                    vals["case_id"] = False
+                if "arbitration_case_id" not in vals:
+                    vals["arbitration_case_id"] = False
+            elif new_department == "arbitration":
+                if "case_id" not in vals:
+                    vals["case_id"] = False
+                if "corporate_case_id" not in vals:
+                    vals["corporate_case_id"] = False
+
+        if any(field in vals for field in case_fields) or "department" in vals:
+            for project in self:
+                department = vals.get("department", project.department)
+                self._validate_case_vals(vals, department, is_create=False)
+
         result = super().write(vals)
         if tracked_stage:
             new_stage_id = vals.get("stage_id")
@@ -258,10 +327,69 @@ class QlkProject(models.Model):
                     project._handle_stage_transition(previous_stage.get(project.id), project.stage_id)
         if "assigned_employee_ids" in vals:
             self._notify_assignment_changes()
-        if "department" in vals:
-            # potentially re-align default stage type and translation task
-            self._ensure_translation_task()
+
+        if any(key in vals for key in (*case_fields, "department")):
+            self._clear_stale_case_links(old_corporate_cases, old_arbitration_cases)
+            self._sync_case_project_link()
         return result
+
+    def _clear_stale_case_links(self, old_corporate_cases, old_arbitration_cases):
+        for project in self:
+            old_corporate = old_corporate_cases.get(project.id)
+            if old_corporate and old_corporate != project.corporate_case_id:
+                if hasattr(old_corporate, "project_id") and old_corporate.project_id == project:
+                    old_corporate.project_id = False
+            old_arbitration = old_arbitration_cases.get(project.id)
+            if old_arbitration and old_arbitration != project.arbitration_case_id:
+                if hasattr(old_arbitration, "project_id") and old_arbitration.project_id == project:
+                    old_arbitration.project_id = False
+
+    def _sync_case_project_link(self):
+        for project in self:
+            corporate_case = project.corporate_case_id
+            if corporate_case and hasattr(corporate_case, "project_id"):
+                existing_project = corporate_case.project_id
+                if existing_project and existing_project != project:
+                    raise ValidationError(
+                        _("%(case)s is already linked to project %(project)s.") % {
+                            "case": corporate_case.display_name,
+                            "project": existing_project.display_name,
+                        }
+                    )
+                if existing_project != project:
+                    corporate_case.project_id = project.id
+
+            arbitration_case = project.arbitration_case_id
+            if arbitration_case and hasattr(arbitration_case, "project_id"):
+                existing_project = arbitration_case.project_id
+                if existing_project and existing_project != project:
+                    raise ValidationError(
+                        _("%(case)s is already linked to project %(project)s.") % {
+                            "case": arbitration_case.display_name,
+                            "project": existing_project.display_name,
+                        }
+                    )
+                if existing_project != project:
+                    arbitration_case.project_id = project.id
+
+    @api.constrains("department", "case_id", "corporate_case_id", "arbitration_case_id")
+    def _check_department_case_alignment(self):
+        all_fields = tuple(self._department_case_field_map.values())
+        for project in self:
+            linked_fields = [field for field in all_fields if getattr(project, field)]
+            if len(linked_fields) > 1:
+                raise ValidationError(_("Only one matter can be linked to a project at a time."))
+            if not linked_fields:
+                continue
+            allowed_field = self._department_case_field_map.get(project.department)
+            linked_field = linked_fields[0]
+            if allowed_field and linked_field != allowed_field:
+                raise ValidationError(
+                    _("%(field)s does not match the %(dept)s department.") % {
+                        "field": self._fields[linked_field].string,
+                        "dept": self._get_department_label(project.department),
+                    }
+                )
 
     def _next_case_sequence(self, client_id, department):
         domain = [("client_id", "=", client_id), ("department", "=", department)]
@@ -300,8 +428,7 @@ class QlkProject(models.Model):
         )
         self.stage_started_on = now
         self.stage_completed_on = False
-        self.transfer_ready = new_stage.technical_code == "ready_litigation"
-        self._ensure_translation_task()
+        self.transfer_ready = False
         self._notify_stage_change(previous_stage, new_stage)
 
     def _post_create_notifications(self):
@@ -373,7 +500,7 @@ class QlkProject(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Stage History"),
             "res_model": "qlk.project.stage.log",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("project_id", "=", self.id)],
             "context": {"default_project_id": self.id},
         }
@@ -387,7 +514,7 @@ class QlkProject(models.Model):
         context.update(
             {
                 "default_project_id": self.id,
-                "default_department": self.department if self.department in {"litigation", "corporate"} else "pre_litigation",
+                "default_department": self.department,
                 "search_default_group_month": 1,
             }
         )
@@ -395,59 +522,99 @@ class QlkProject(models.Model):
         action["domain"] = [("project_id", "=", self.id)]
         return action
 
-    def _ensure_translation_task(self):
-        """Ensure the mandatory translation task exists whenever the project is in the translation stage."""
-        translation_stage_codes = {"translation"}
-        Task = self.env["qlk.task"]
-        for project in self:
-            stage = project.stage_id
-            if stage and stage.technical_code in translation_stage_codes:
-                if not project.translation_task_id or project.translation_task_id not in project.task_ids:
-                    vals = project._prepare_standard_task(stage, technical_code="translation")
-                    task = Task.create(vals)
-                    project.translation_task_id = task.id
-            else:
-                # keep pointer but do not delete task - user may still need it
-                continue
+    def action_view_hours(self):
+        self.ensure_one()
+        action = self.env.ref("qlk_project_management.action_qlk_project_hours").read()[0]
+        action["domain"] = [
+            ("project_id", "=", self.id),
+            ("approval_state", "=", "approved"),
+        ]
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        context.update({
+            "default_project_id": self.id,
+            "group_by": "assigned_user_id",
+        })
+        action["context"] = context
+        return action
 
-    def _prepare_standard_task(self, stage, technical_code=None):
-        employee = self.assigned_employee_ids[:1]
-        if not employee and self.owner_id and self.owner_id.employee_ids:
-            employee = self.owner_id.employee_ids[:1]
-        if not employee and self.env.user.employee_ids:
-            employee = self.env.user.employee_ids[:1]
-        if not employee:
-            raise UserError(
-                _("Assign at least one lawyer to the project before generating standard tasks."))
-        reviewer = self.owner_id or self.env.user
-        department = (
-            "corporate"
-            if self.department == "corporate"
-            else ("litigation" if self.department == "litigation" else "pre_litigation")
-        )
-        description = ""
-        if technical_code == "translation":
-            description = _(
-                "Centralised translation workflow.\n"
-                "- Upload documents requiring translation.\n"
-                "- Office Manager to coordinate translators.\n"
-                "- Uploaded translations will notify the assigned lawyers."
-            )
-        return {
-            "name": stage.auto_task_name or stage.name,
-            "department": department,
-            "project_id": self.id,
-            "employee_id": employee.id,
-            "reviewer_id": reviewer.id,
-            "description": description,
-            "hours_spent": 1.0,
-            "date_start": fields.Date.context_today(self),
-        }
+    @api.depends("department", "case_id", "corporate_case_id", "arbitration_case_id")
+    def _compute_related_case_display(self):
+        for project in self:
+            if project.department == "litigation" and project.case_id:
+                project.related_case_display = project.case_id.display_name
+            elif project.department == "corporate" and project.corporate_case_id:
+                project.related_case_display = project.corporate_case_id.display_name
+            elif project.department == "arbitration" and project.arbitration_case_id:
+                project.related_case_display = project.arbitration_case_id.display_name
+            else:
+                project.related_case_display = ""
+
+    def action_open_related_case(self):
+        self.ensure_one()
+        if self.department == "litigation" and self.case_id:
+            action = self.env.ref("qlk_law.act_open_qlk_case_view", raise_if_not_found=False)
+            if action:
+                result = action.read()[0]
+                result["res_id"] = self.case_id.id
+                result["view_mode"] = "form"
+                result["views"] = [(False, "form")]
+                context = result.get("context")
+                if isinstance(context, str):
+                    context = safe_eval(context)
+                context = dict(context or {})
+                context.setdefault("default_project_id", self.id)
+                result["context"] = context
+                return result
+        elif self.department == "corporate" and self.corporate_case_id:
+            action = self.env.ref("qlk_corporate.action_corporate_case", raise_if_not_found=False)
+            if action:
+                result = action.read()[0]
+                result["res_id"] = self.corporate_case_id.id
+                result["view_mode"] = "form"
+                result["views"] = [(False, "form")]
+                domain = result.get("domain")
+                if isinstance(domain, str):
+                    domain = safe_eval(domain)
+                if not domain:
+                    domain = []
+                domain.append(("id", "=", self.corporate_case_id.id))
+                result["domain"] = domain
+                context = result.get("context")
+                if isinstance(context, str):
+                    context = safe_eval(context)
+                context = dict(context or {})
+                context.setdefault("default_project_id", self.id)
+                result["context"] = context
+                return result
+        elif self.department == "arbitration" and self.arbitration_case_id:
+            action = self.env.ref("qlk_arbitration.action_arbitration_case", raise_if_not_found=False)
+            if action:
+                result = action.read()[0]
+                result["res_id"] = self.arbitration_case_id.id
+                result["view_mode"] = "form"
+                result["views"] = [(False, "form")]
+                domain = result.get("domain")
+                if isinstance(domain, str):
+                    domain = safe_eval(domain)
+                if not domain:
+                    domain = []
+                domain.append(("id", "=", self.arbitration_case_id.id))
+                result["domain"] = domain
+                context = result.get("context")
+                if isinstance(context, str):
+                    context = safe_eval(context)
+                context = dict(context or {})
+                context.setdefault("default_project_id", self.id)
+                result["context"] = context
+                return result
+        raise UserError(_("No related case is linked to this project."))
 
     def action_transfer_to_litigation(self):
         self.ensure_one()
-        if self.department not in {"pre_litigation", "litigation"}:
-            raise UserError(_("Only pre-litigation or litigation projects can be transferred to a court case."))
+        if self.department != "litigation":
+            raise UserError(_("Only litigation projects can be transferred to a court case."))
         return {
             "type": "ir.actions.act_window",
             "res_model": "qlk.project.transfer.litigation",

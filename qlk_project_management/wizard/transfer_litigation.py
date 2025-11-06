@@ -28,8 +28,8 @@ class ProjectTransferLitigation(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         project = self.project_id
-        if project.department not in {"pre_litigation", "litigation"}:
-            raise UserError(_("Only pre-litigation or litigation projects can be transferred."))
+        if project.department != "litigation":
+            raise UserError(_("Only litigation projects can be transferred."))
         if project.case_id:
             raise UserError(_("This project is already linked to a litigation case."))
 

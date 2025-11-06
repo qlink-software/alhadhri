@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_engagement_corporate_overage" model="mail.template">
+            <field name="name">Engagement Corporate Retainer Alert</field>
+            <field name="model_id" ref="qlk_proposals_engagement_letter.model_qlk_engagement_letter"/>
+            <field name="subject">Corporate retainer alert: ${object.reference}</field>
+            <field name="body_html">
+                <![CDATA[
+<p>Dear Team,</p>
+<p>
+The corporate retainer for engagement <strong>${object.reference}</strong> has exceeded its monthly allowance.
+</p>
+<p>
+    <strong>Month:</strong> ${ctx.get('notification_month_name') or ctx.get('notification_month')} ${ctx.get('notification_year')}<br/>
+    <strong>Allocated hours:</strong> ${ctx.get('hour_cap')}<br/>
+    <strong>Hours logged:</strong> ${ctx.get('hours_over')}
+</p>
+<p>Please review the logged work and take the required action.</p>
+                ]]>
+            </field>
+            <field name="auto_delete" eval="True"/>
+            <field name="email_from">${(object.company_id.email_formatted or user.email_formatted or '')}</field>
+        </record>
+
+        <record id="mail_template_engagement_litigation_overage" model="mail.template">
+            <field name="name">Engagement Litigation Retainer Alert</field>
+            <field name="model_id" ref="qlk_proposals_engagement_letter.model_qlk_engagement_letter"/>
+            <field name="subject">Litigation cases exceeded: ${object.reference}</field>
+            <field name="body_html">
+                <![CDATA[
+<p>Dear Team,</p>
+<p>
+The litigation retainer for engagement <strong>${object.reference}</strong> has reached its limit.
+</p>
+<p>
+    <strong>Covered cases:</strong> ${ctx.get('litigation_limit')}<br/>
+    <strong>Tracked cases:</strong> ${ctx.get('litigation_total')}
+</p>
+<p>Please coordinate with the managing partner for approval of any extra litigation matters.</p>
+                ]]>
+            </field>
+            <field name="auto_delete" eval="True"/>
+            <field name="email_from">${(object.company_id.email_formatted or user.email_formatted or '')}</field>
+        </record>
+
+        <record id="mail_template_engagement_installment_due" model="mail.template">
+            <field name="name">Engagement Installment Reminder</field>
+            <field name="model_id" ref="qlk_proposals_engagement_letter.model_qlk_engagement_letter"/>
+            <field name="subject">Upcoming payment for ${object.reference}</field>
+            <field name="body_html">
+                <![CDATA[
+<p>Dear Accounting,</p>
+<p>
+An installment for engagement <strong>${object.reference}</strong> is approaching.
+</p>
+<p>
+    <strong>Description:</strong> ${ctx.get('installment_description') or 'Installment'}<br/>
+    <strong>Amount:</strong> ${ctx.get('installment_amount')} ${object.currency_id.display_name}<br/>
+    <strong>Due date:</strong> ${ctx.get('installment_due_date')}
+</p>
+<p>Please prepare and issue the corresponding invoice.</p>
+                ]]>
+            </field>
+            <field name="auto_delete" eval="True"/>
+            <field name="email_from">${(object.company_id.email_formatted or user.email_formatted or '')}</field>
+        </record>
+    </data>
+</odoo>

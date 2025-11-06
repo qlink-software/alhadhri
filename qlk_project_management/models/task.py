@@ -8,11 +8,9 @@ class QlkTask(models.Model):
 
     department = fields.Selection(
         selection_add=[
-            ("pre_litigation", "Pre-Litigation"),
             ("arbitration", "Arbitration"),
         ],
         ondelete={
-            "pre_litigation": "set default",
             "arbitration": "set default",
         },
     )
@@ -33,12 +31,12 @@ class QlkTask(models.Model):
     @api.onchange("department")
     def _onchange_department(self):
         super()._onchange_department()
-        if self.department not in ("litigation", "pre_litigation"):
+        if self.department != "litigation":
             self.litigation_phase = False
             self.case_id = False
         if self.department != "corporate":
             self.engagement_id = False
-        if self.department not in {"litigation", "pre_litigation", "corporate", "arbitration"}:
+        if self.department not in {"litigation", "corporate", "arbitration"}:
             self.project_id = False
 
     @api.onchange("project_id")
@@ -60,11 +58,6 @@ class QlkTask(models.Model):
             self.case_id = project.case_id.id
             self.litigation_phase = self.litigation_phase or "post"
             self.engagement_id = project.engagement_id.id
-        elif project.department == "pre_litigation":
-            self.department = "pre_litigation"
-            self.case_id = False
-            self.litigation_phase = False
-            self.engagement_id = project.engagement_id.id
         else:  # arbitration / management alike
             self.department = "arbitration"
             self.case_id = False
@@ -79,11 +72,6 @@ class QlkTask(models.Model):
                     raise ValidationError(_("Litigation tasks must be linked to a litigation case or litigation project."))
                 if task.case_id and not task.litigation_phase:
                     raise ValidationError(_("Specify whether the litigation task is pre or post litigation."))
-            elif task.department == "pre_litigation":
-                if not task.project_id:
-                    raise ValidationError(_("Pre-Litigation tasks must be linked to a project."))
-                if task.case_id:
-                    raise ValidationError(_("Pre-Litigation tasks cannot be linked to a court case."))
             elif task.department == "corporate":
                 if not task.project_id and not task.engagement_id:
                     raise ValidationError(_("Corporate tasks must be linked to a corporate project or engagement letter."))

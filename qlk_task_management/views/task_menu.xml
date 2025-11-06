@@ -18,7 +18,7 @@
               action="qlk_task_management.action_qlk_task_corporate"
               parent="menu_task_management_root"
               sequence="20"
-              groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager,qlk_engagement_letter.group_engagement_manager,qlk_engagement_letter.group_engagement_user"/>
+              groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager,qlk_proposals_engagement_letter.group_engagement_manager,qlk_proposals_engagement_letter.group_engagement_user"/>
 
     <menuitem id="menu_task_management_internal"
               name="Management Tasks"

@@ -16,7 +16,7 @@ provides approval workflows, and surfaces hour summaries in related records.
         "mail",
         "hr",
         "qlk_law",
-        "qlk_engagement_letter",
+        "qlk_proposals_engagement_letter",
     ],
     "data": [
         "security/task_security.xml",

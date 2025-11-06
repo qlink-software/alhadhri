@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="action_corporate_dashboard_client" model="ir.actions.client">
+            <field name="name">Corporate Dashboard</field>
+            <field name="tag">qlk.corporate.dashboard</field>
+            <field name="target">main</field>
+        </record>
+
+        <menuitem id="menu_corporate_dashboard"
+                  name="Corporate Dashboard"
+                  parent="qlk_corporate.menu_corporate_root"
+                  sequence="0"
+                  action="action_corporate_dashboard_client"
+                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+
+    </data>
+</odoo>

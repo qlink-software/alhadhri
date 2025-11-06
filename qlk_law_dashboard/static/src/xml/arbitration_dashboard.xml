@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_law_dashboard.ArbitrationDashboard" owl="1">
+        <div class="qlk-law-dashboard"
+             t-att-style="'--qlk-primary: ' + (palette.primary || '#6C2BD9') +
+                          '; --qlk-accent: ' + (palette.accent || '#9F7AEA') +
+                          '; --qlk-muted: ' + (palette.muted || '#321C64') +
+                          '; --qlk-success: ' + (palette.success || '#48BB78') +
+                          '; --qlk-warning: ' + (palette.warning || '#E2A72E') + ';'">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span>Loading...</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="qlk-dashboard__hero">
+                    <div class="hero__info">
+                        <h1>Arbitration Dashboard</h1>
+                        <p>
+                            Welcome,
+                            <strong t-esc="userInfo.name or ''"/>
+                        </p>
+                        <t t-if="userInfo.company">
+                            <span class="hero__company" t-esc="userInfo.company"/>
+                        </t>
+                    </div>
+                    <div class="hero__metrics">
+                        <div class="metric-card">
+                            <span>Total Cases</span>
+                            <strong t-esc="metrics.cases_total"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Hearings This Week</span>
+                            <strong t-esc="metrics.sessions_week"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Awards This Week</span>
+                            <strong t-esc="metrics.awards_week"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="qlk-dashboard__grid">
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Latest Cases</h2>
+                                <small t-esc="metrics.cases_month + ' this month'"/>
+                            </div>
+                            <button t-if="state.data.actions?.cases"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('cases')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_cases.length" class="qlk-empty">No cases recorded.</li>
+                            <t t-foreach="lists.recent_cases" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.state"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case_number"/>
+                                        <span class="item__court" t-esc="item.center"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card accent">
+                        <header>
+                            <div>
+                                <h2>Today's Hearings</h2>
+                                <small t-esc="metrics.today_label"/>
+                            </div>
+                            <button t-if="state.data.actions?.sessions"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('sessions')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.upcoming_sessions.length" class="qlk-empty">No hearings scheduled today.</li>
+                            <t t-foreach="lists.upcoming_sessions" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.arbitrator"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Recent Memos</h2>
+                                <small t-esc="metrics.memos_week + ' this week'"/>
+                            </div>
+                            <button t-if="state.data.actions?.memos"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('memos')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_memos.length" class="qlk-empty">No memos recorded.</li>
+                            <t t-foreach="lists.recent_memos" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.type"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card accent">
+                        <header>
+                            <div>
+                                <h2>Recent Awards</h2>
+                                <small t-esc="metrics.awards_week + ' this week'"/>
+                            </div>
+                            <button t-if="state.data.actions?.awards"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction('awards')">
+                                View All
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li t-if="!lists.recent_awards.length" class="qlk-empty">No awards recorded.</li>
+                            <t t-foreach="lists.recent_awards" t-as="item" t-key="item.id">
+                                <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
+                                    <div class="item__title">
+                                        <span class="item__name" t-esc="item.name"/>
+                                        <span class="item__badge" t-esc="item.enforcement_body"/>
+                                    </div>
+                                    <div class="item__meta">
+                                        <span class="item__client" t-esc="item.case"/>
+                                        <span class="item__date" t-esc="item.date"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+                </section>
+
+                <section class="qlk-dashboard__summary">
+                    <div class="qlk-summary-card">
+                        <h3>Today Overview</h3>
+                        <ul>
+                            <li>
+                                <span>Hearings Today</span>
+                                <strong t-esc="lists.upcoming_sessions.length"/>
+                            </li>
+                            <li>
+                                <span>Awards This Week</span>
+                                <strong t-esc="metrics.awards_week"/>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="qlk-summary-card">
+                        <h3>This Week Overview</h3>
+                        <small t-esc="metrics.week_range.start + ' - ' + metrics.week_range.end"/>
+                        <ul>
+                            <li>
+                                <span>Cases Registered</span>
+                                <strong t-esc="metrics.cases_month"/>
+                            </li>
+                            <li>
+                                <span>Upcoming Hearings</span>
+                                <strong t-esc="metrics.sessions_week"/>
+                            </li>
+                            <li>
+                                <span>Memos Filed</span>
+                                <strong t-esc="metrics.memos_week"/>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

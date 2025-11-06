@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report id="action_report_business_proposal"
+                model="qlk.business.proposal"
+                string="Business Proposal"
+                report_type="qweb-pdf"
+                name="qlk_proposals_engagement_letter.report_business_proposal"
+                file="qlk_proposals_engagement_letter.report_business_proposal"
+                print_report_name="(object.name or 'Business Proposal')"/>
+
+        <template id="report_business_proposal">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <h2 class="text-center">Business Proposal</h2>
+                            <table class="table table-sm mt-3">
+                                <tr>
+                                    <th>Proposal Reference</th>
+                                    <td><span t-field="doc.name"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Date</th>
+                                    <td><span t-field="doc.date" t-options='{"widget": "date"}'/></td>
+                                </tr>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <td><span t-esc="doc.client_name"/></td>
+                                </tr>
+                                <tr t-if="doc.reference_no">
+                                    <th>Reference No.</th>
+                                    <td><span t-esc="doc.reference_no"/></td>
+                                </tr>
+                                <tr t-if="doc.initiation_id">
+                                    <th>Initiation Reference</th>
+                                    <td><span t-esc="doc.initiation_id.name"/></td>
+                                </tr>
+                            </table>
+
+                            <h3>Scope of Work</h3>
+                            <p t-esc="doc.scope_of_work or ''"/>
+
+                            <h3>Financial Summary</h3>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Estimated Cost</th>
+                                    <td><span t-field="doc.estimated_cost"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Legal Fees</th>
+                                    <td><span t-field="doc.legal_fees"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Amount Collected</th>
+                                    <td><span t-field="doc.amount_collected"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Remaining Amount</th>
+                                    <td><span t-field="doc.remaining_amount"/></td>
+                                </tr>
+                            </table>
+
+                            <div t-if="doc.terms_conditions">
+                                <h3>Terms and Conditions</h3>
+                                <p t-esc="doc.terms_conditions"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

@@ -13,10 +13,10 @@
             </field>
         </record>
 
-        <record id="view_qlk_task_tree_project_inherit" model="ir.ui.view">
+        <record id="view_qlk_task_list_project_inherit" model="ir.ui.view">
             <field name="name">qlk.task.list.project.inherit</field>
             <field name="model">qlk.task</field>
-            <field name="inherit_id" ref="qlk_task_management.view_qlk_task_tree"/>
+            <field name="inherit_id" ref="qlk_task_management.view_qlk_task_list"/>
             <field name="arch" type="xml">
                 <xpath expr="//list/field[@name='department']" position="after">
                     <field name="project_id"/>
@@ -33,12 +33,14 @@
                     <field name="project_id"/>
                 </xpath>
                 <xpath expr="//search/filter[@name='filter_waiting']" position="after">
-                    <filter name="filter_pre_litigation" string="Pre-Litigation" domain="[('department', '=', 'pre_litigation')]"/>
                     <filter name="filter_corporate" string="Corporate" domain="[('department', '=', 'corporate')]"/>
                     <filter name="filter_litigation" string="Litigation" domain="[('department', '=', 'litigation')]"/>
+                    <filter name="filter_arbitration" string="Arbitration" domain="[('department', '=', 'arbitration')]"/>
                 </xpath>
                 <xpath expr="//search/group" position="inside">
                     <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_employee" string="Lawyer" context="{'group_by': 'assigned_user_id'}"/>
+                    <filter name="group_task_date" string="Date" context="{'group_by': 'date_start'}"/>
                 </xpath>
             </field>
         </record>
