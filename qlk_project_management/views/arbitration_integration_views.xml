@@ -29,6 +29,24 @@
                         </button>
                     </div>
                 </xpath>
+                <xpath expr="//form/sheet/notebook" position="inside">
+                    <page string="Client Documents">
+                        <group>
+                            <field name="client_document_warning"
+                                   nolabel="1"
+                                   widget="html"
+                                   options="{'invisible': [('client_document_warning_required', '=', False)]}"/>
+                        </group>
+                        <field name="client_document_ids" nolabel="1" readonly="1">
+                            <list>
+                                <field name="doc_type"/>
+                                <field name="is_uploaded"/>
+                                <field name="poa_reference"/>
+                                <field name="poa_expiration_date"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
             </field>
         </record>
 

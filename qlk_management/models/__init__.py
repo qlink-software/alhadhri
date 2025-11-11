@@ -10,4 +10,3 @@ from . import main_project
 from . import sub_project
 from . import task
 from . import crm_lead
-from . import cost_calculation

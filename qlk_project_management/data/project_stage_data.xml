@@ -2,6 +2,24 @@
 <odoo>
     <data noupdate="1">
 
+        <!-- Pre-Litigation Pipeline -->
+        <record id="qlk_case_stage_pre_intake" model="qlk.project.stage">
+            <field name="name">Pre-Litigation Intake</field>
+            <field name="sequence">5</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">pre_intake</field>
+            <field name="stage_code">PL</field>
+            <field name="is_default" eval="True"/>
+        </record>
+
+        <record id="qlk_case_stage_pre_negotiation" model="qlk.project.stage">
+            <field name="name">Negotiation &amp; Settlement</field>
+            <field name="sequence">8</field>
+            <field name="stage_type">pre_litigation</field>
+            <field name="technical_code">pre_negotiation</field>
+            <field name="stage_code">PN</field>
+        </record>
+
         <!-- Litigation Pipeline -->
         <record id="qlk_project_stage_litigation_instance" model="qlk.project.stage">
             <field name="name">Court of First Instance</field>

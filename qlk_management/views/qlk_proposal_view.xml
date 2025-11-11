@@ -89,9 +89,8 @@
                 <field name="user_id" widget="many2one_avatar_user" optional="show" string="Responsible"/>
                 <!-- <field name="activity_ids" widget="list_activity" optional="show"/> -->
                 <!-- <field name="team_id" optional="hide"/> -->
-                <!-- <field name="company_id" groups="!base.group_multi_company" column_invisible="True"/> -->
+                <!-- <field name="company_id" column_invisible="True"/> -->
                 <!-- <field name="company_id"
-                       groups="base.group_multi_company"
                        optional="show"
                        readonly="1"/> -->
                 <field name="amount_untaxed"
@@ -152,7 +151,6 @@
                     invisible="state != 'draft'" class="btn-primary"
                     context="{'validate_analytic': True, 'check_document_layout': True}"/> -->
                 <!-- <button name="action_quotation_send" id="send_proforma_primary" type="object" string="Send PRO-FORMA Invoice" class="btn-primary"
-                    groups="sale.group_proforma_sales"
                     invisible="state != 'draft' or invoice_count &gt;= 1" context="{'proforma': True, 'validate_analytic': True}"/> -->
                 <!-- <button name="action_confirm" id="action_confirm" data-hotkey="q"
                     string="Confirm" class="btn-primary" type="object" context="{'validate_analytic': True}"
@@ -204,20 +202,19 @@
                     invisible="is_proposal_agreement == True or state == 'draft'"/>
 
                 
-                <!-- <button name="action_quotation_send" id="send_proforma" type="object" string="Send PRO-FORMA Invoice" groups="sale.group_proforma_sales" invisible="state == 'draft' or invoice_count &gt;= 1" context="{'proforma': True, 'validate_analytic': True}"/> -->
+                <!-- <button name="action_quotation_send" id="send_proforma" type="object" string="Send PRO-FORMA Invoice" invisible="state == 'draft' or invoice_count &gt;= 1" context="{'proforma': True, 'validate_analytic': True}"/> -->
                 <!-- <button name="action_quotation_send" id="send_by_email" string="Send by Email" type="object" invisible="state not in ('sent', 'sale')" data-hotkey="g" context="{'validate_analytic': True, 'check_document_layout': True}"/> -->
 
                 <!-- allow to unlock locked orders even if setting is not enabled (e.g. orders synchronized from connectors) -->
                 <!-- <button name="action_unlock" type="object" string="Unlock"
-                        invisible="not locked" groups="sales_team.group_sale_manager"/> -->
+                        invisible="not locked"/> -->
                 <!-- <button name="action_preview_sale_order" string="Preview" type="object" class="btn-secondary"/> -->
                 <button name="action_cancel" type="object" string="Cancel" invisible="state not in ['draft', 'sent', 'sale'] or is_proposal == False or is_proposal_agreement == True" data-hotkey="x"/>
                 <button name="action_draft" invisible="state != 'cancel'" type="object" string="Set to Proposal" data-hotkey="w"/>
-                <!-- <t groups="sale.group_auto_done_setting">
+                <!-- <t>
                     <button name="action_lock" type="object" string="Lock"
                         help="If the sale is locked, you can not modify it anymore. However, you will still be able to invoice or deliver."
-                        invisible="locked or state != 'sale'"
-                        groups="sales_team.group_sale_manager"/>
+                        invisible="locked or state != 'sale'"/>
                 </t> -->
                 <field name="state" widget="statusbar" statusbar_visible="draft,approve,sent,sale,done"/>
                 
@@ -269,12 +266,10 @@
                         <field name="opportunity_id"/>
                         <field name="sale_order_template_id" string="Proposal Template" invisible="is_proposal == False or state != 'approve'"/>
                         <field name="partner_invoice_id"
-                              groups="account.group_delivery_invoice_address"
                               options="{'no_quick_create': True}"
                               context="{'default_type':'invoice', 'show_address': False, 'show_vat': False, 'default_parent_id': partner_id}"
                               readonly="state == 'cancel' or locked"/>
                         <field name="partner_shipping_id"
-                              groups="account.group_delivery_invoice_address"
                               options="{'no_quick_create': True}"
                               context="{'default_type':'delivery', 'show_address': False, 'show_vat': False, 'default_parent_id': partner_id}"
                               readonly="state == 'cancel' or locked"/>
@@ -282,10 +277,10 @@
                     </group>
                     <group name="order_details">
                         <field name="validity_date" invisible="state == 'sale'" readonly="state in ['cancel', 'sale']"/>
-                        <div class="o_td_label" groups="base.group_no_one" invisible="state in ['sale', 'cancel']">
+                        <div class="o_td_label" invisible="state in ['sale', 'cancel']">
                             <label for="date_order" string="Date"/>
                         </div>
-                        <!-- <field name="daßte_order" nolabel="1" groups="base.group_no_one" invisible="state in ['sale', 'cancel']" readonly="state in ['cancel', 'sale']"/> -->
+                        <!-- <field name="daßte_order" nolabel="1" invisible="state in ['sale', 'cancel']" readonly="state in ['cancel', 'sale']"/> -->
                         <!-- <div class="o_td_label" invisible="state in ['draft', 'sent']">
                             <label for="date_order" string="Date"/>
                         </div> -->
@@ -293,9 +288,8 @@
                         <field name="has_active_pricelist" invisible="1"/>
                         <field name="show_update_pricelist" invisible="1"/>
                         <label for="pricelist_id"
-                               groups="product.group_product_pricelist"
                                invisible="not has_active_pricelist"/>
-                        <div groups="product.group_product_pricelist"
+                        <div
                              class="o_row"
                              invisible="not has_active_pricelist">
                             <field name="pricelist_id" options="{'no_open':True,'no_create': True}" readonly="state in ['cancel', 'sale']"/>
@@ -310,7 +304,7 @@
                         <field name="company_id" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
                         <!-- <field name="display_name" invisible="1"/> -->
-                        <field name="pricelist_id" invisible="1" readonly="state in ['cancel', 'sale']" groups="!product.group_product_pricelist"/>
+                        <field name="pricelist_id" invisible="1" readonly="state in ['cancel', 'sale']"/>
                         <field name="tax_country_id" invisible="1"/>
                         <field name="tax_calculation_rounding_method" invisible="1"/>
                         <field name="payment_term_id" placeholder="Immediate" options="{'no_open': True, 'no_create': True}"/>
@@ -371,11 +365,10 @@
                                             <field
                                                 context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom, 'uom_qty_change':True, 'company_id': parent.company_id}"
                                                 name="product_uom_qty"/>
-                                            <field name="product_uom" invisible="1" groups="!uom.group_uom"/>
+                                            <field name="product_uom" invisible="1"/>
                                             <field
                                                 name="product_uom"
                                                 force_save="1"
-                                                groups="uom.group_uom"
                                                 class="oe_no_button"
                                                 readonly="product_uom_readonly"
                                                 required="not display_type and not is_downpayment"/>
@@ -388,12 +381,12 @@
                                         <div name="invoiced_qty" invisible="parent.state != 'sale'">
                                             <field name="qty_invoiced"/>
                                         </div> -->
-                                        <!-- <field name="product_packaging_qty" invisible="not product_id or not product_packaging_id" groups="product.group_stock_packaging"/> -->
-                                        <!-- <field name="product_packaging_id" invisible="not product_id" context="{'default_product_id': product_id, 'list_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}" groups="product.group_stock_packaging" /> -->
+                                        <!-- <field name="product_packaging_qty" invisible="not product_id or not product_packaging_id"/> -->
+                                        <!-- <field name="product_packaging_id" invisible="not product_id" context="{'default_product_id': product_id, 'list_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}" /> -->
                                         <field name="price_unit"/>
                                         <!-- <field name="tax_id" widget="many2many_tags" options="{'no_create': True}" context="{'search_view_ref': 'account.account_tax_view_search'}" domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
                                             readonly="qty_invoiced &gt; 0"/>
-                                        <t groups="sale.group_discount_per_so_line">
+                                        <t>
                                             <label for="discount"/>
                                             <div name="discount">
                                                 <field name="discount" class="oe_inline"/> %
@@ -413,7 +406,6 @@
                                             <field name="customer_lead" class="oe_inline"/> days
                                         </div>
                                         <field name="analytic_distribution" widget="analytic_distribution"
-                                           groups="analytic.group_analytic_accounting"
                                            options="{'product_field': 'product_id', 'business_domain': 'sale_order'}"/>
                                     </group>
                                 </group>
@@ -421,7 +413,7 @@
                                 <label for="name" string="Section Name (eg. Products, Services)" invisible="display_type != 'line_section'"/>
                                 <label for="name" string="Note" invisible="display_type != 'line_note'"/>
                                 <field name="name"/>
-                                <div name="invoice_lines" groups="base.group_no_one" invisible="display_type">
+                                <div name="invoice_lines" invisible="display_type">
                                     <label for="invoice_lines"/>
                                     <field name="invoice_lines"/>
                                 </div>
@@ -508,7 +500,6 @@
                                 />
                                 <!-- <field name="analytic_distribution" widget="analytic_distribution"
                                            optional="hide"
-                                           groups="analytic.group_analytic_accounting"
                                            options="{'product_field': 'product_id', 'business_domain': 'sale_order', 'amount_field': 'price_subtotal'}"/> -->
                                 <field
                                     name="product_uom_qty"
@@ -537,7 +528,7 @@
                                     optional="show"/> -->
                                 <field name="qty_to_invoice" column_invisible="True"/>
                                 <field name="product_uom_readonly" column_invisible="True"/>
-                                <field name="product_uom" column_invisible="True" groups="!uom.group_uom"/>
+                                <field name="product_uom" column_invisible="True"/>
                                 <!-- <field
                                     name="product_uom"
                                     force_save="1"
@@ -545,7 +536,6 @@
                                     readonly="product_uom_readonly"
                                     required="not display_type and not is_downpayment"
                                     context="{'company_id': parent.company_id}"
-                                    groups="uom.group_uom"
                                     options='{"no_open": True}'
                                     width="60px"
                                     optional="show"/> -->
@@ -554,8 +544,8 @@
                                     optional="hide"
                                     width="80px"
                                     readonly="parent.state not in ['draft', 'sent', 'sale'] or is_downpayment"/>
-                                <field name="product_packaging_qty" invisible="not product_id or not product_packaging_id" groups="product.group_stock_packaging" optional="show"/>
-                                <field name="product_packaging_id" invisible="not product_id" context="{'default_product_id': product_id, 'list_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}" groups="product.group_stock_packaging" optional="show"/> -->
+                                <field name="product_packaging_qty" invisible="not product_id or not product_packaging_id" optional="show"/>
+                                <field name="product_packaging_id" invisible="not product_id" context="{'default_product_id': product_id, 'list_view_ref':'product.product_packaging_tree_view', 'form_view_ref':'product.product_packaging_form_view'}" optional="show"/> -->
                                 <field
                                     name="price_unit"
                                     readonly="qty_invoiced &gt; 0"/>
@@ -571,7 +561,6 @@
                                 <field
                                     name="discount"
                                     string="Disc.%"
-                                    groups="sale.group_discount_per_so_line"
                                     width="50px"
                                     optional="show"/>
                                 <field name="is_downpayment" column_invisible="True"/>
@@ -656,8 +645,7 @@
                             <button string="Discount"
                                     name="action_open_discount_wizard"
                                     type="object"
-                                    class="btn btn-secondary"
-                                    groups="sale.group_discount_per_so_line"/>
+                                    class="btn btn-secondary"/>
                         </div>
                         <group name="note_group" col="6" class="mt-2 mt-md-0">
                             <group colspan="4" class="order-1 order-lg-0">
@@ -734,7 +722,7 @@
                             class="d-inline"
                         />
                     </page>
-                    <!-- <page groups="base.group_no_one" string="Customer Signature" name="customer_signature" invisible="not require_signature and not signed_by and not signature and not signed_on">
+                    <!-- <page string="Customer Signature" name="customer_signature" invisible="not require_signature and not signed_by and not signature and not signed_on">
                         <group>
                             <field name="signed_by" readonly="signature"/>
                             <field name="signed_on" readonly="signature"/>

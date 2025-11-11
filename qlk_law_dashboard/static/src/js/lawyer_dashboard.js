@@ -22,7 +22,7 @@ class LawyerDashboard extends Component {
                 this.state.data = payload;
             } catch (error) {
                 console.error("Failed to load lawyer dashboard", error);
-                this.notification.add(_t("تعذر تحميل لوحة المحامي"), {
+                this.notification.add(_t("Failed to load lawyer dashboard"), {
                     type: "danger",
                 });
                 throw error;

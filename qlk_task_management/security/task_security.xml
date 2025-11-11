@@ -30,7 +30,7 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('qlk_law.group_qlk_law_viewer'))]"/>
+        <field name="groups" eval="[(4, ref('qlk_law.group_qlk_law_lawyer'))]"/>
     </record>
 </odoo>
 

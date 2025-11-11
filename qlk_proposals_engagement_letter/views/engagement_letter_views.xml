@@ -126,12 +126,11 @@
                 <form string="Engagement Letter" class="qlk_engagement_form">
                     <header>
                         <button name="action_submit_for_approval" string="Send for Approval" type="object" class="btn-secondary" invisible="approval_state not in ('draft', 'rejected')"/>
-                        <button name="action_approve" string="Approve" type="object" class="btn-primary" groups="qlk_proposals_engagement_letter.group_engagement_manager" invisible="approval_state != 'waiting'"/>
-                        <button name="action_reject" string="Reject" type="object" class="btn-secondary" groups="qlk_proposals_engagement_letter.group_engagement_manager" invisible="approval_state != 'waiting'"/>
+                        <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="approval_state != 'waiting'"/>
+                        <button name="action_reject" string="Reject" type="object" class="btn-secondary" invisible="approval_state != 'waiting'"/>
                         <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary" invisible="approval_state != 'rejected'"/>
                         <button name="action_print_letter" string="Print" type="object" class="btn-secondary" invisible="not can_print"/>
                         <button name="action_mark_project_approved" string="Approve Project" type="object" class="btn-primary"
-                                groups="qlk_proposals_engagement_letter.group_engagement_manager"
                                 invisible="is_approved"/>
                         <button name="action_create_project" string="Create Project" type="object" class="btn-primary"
                                 invisible="not is_approved or project_id"/>
@@ -206,6 +205,7 @@
                                     </group>
                                     <group string="Client Snapshot" class="qlk_maroon_outline">
                                         <field name="partner_id" readonly="1"/>
+                                        <field name="client_capacity"/>
                                         <field name="client_type" readonly="1"/>
                                         <field name="total_fees" readonly="1"/>
                                         <field name="currency_id" readonly="1"/>
@@ -213,6 +213,23 @@
                                         <field name="client_unique_code" readonly="1"/>
                                     </group>
                                 </group>
+                            </page>
+                            <page string="Client Documents">
+                                <group>
+                                    <field name="client_document_warning"
+                                           nolabel="1"
+                                           widget="html"
+                                           options="{'invisible': [('client_document_warning', '=', False)]}"/>
+                                </group>
+                                <field name="client_document_ids" nolabel="1" readonly="1">
+                                    <list>
+                                        <field name="doc_type"/>
+                                        <field name="is_uploaded"/>
+                                        <field name="poa_reference"/>
+                                        <field name="poa_expiration_date"/>
+                                    </list>
+                                </field>
+                                <label for="partner_id" string="Manage documents in contact"/>
                             </page>
                             <page string="Client Information">
                                 <group string="Individual Client" invisible="client_type != 'individual'">
@@ -347,13 +364,13 @@
                                     <group string="Approval" class="qlk_maroon_outline">
                                         <field name="approval_state" readonly="1"/>
                                         <field name="requester_id" readonly="1"/>
-                                        <field name="approver_id" groups="qlk_proposals_engagement_letter.group_engagement_manager"/>
+                                        <field name="approver_id"/>
                                         <field name="approval_requested_on" readonly="1"/>
                                         <field name="approval_decision_on" readonly="1"/>
-                                        <field name="approval_comment" placeholder="Add approval notes" readonly="approval_state not in ('waiting', 'approved')" groups="qlk_proposals_engagement_letter.group_engagement_manager"/>
-                                        <field name="approval_comment" readonly="1" groups="qlk_proposals_engagement_letter.group_engagement_user,qlk_proposals_engagement_letter.group_engagement_viewer"/>
-                                        <field name="rejection_reason" placeholder="Provide rejection reason" readonly="approval_state != 'waiting'" groups="qlk_proposals_engagement_letter.group_engagement_manager"/>
-                                        <field name="rejection_reason" readonly="1" groups="qlk_proposals_engagement_letter.group_engagement_user,qlk_proposals_engagement_letter.group_engagement_viewer"/>
+                                        <field name="approval_comment" placeholder="Add approval notes" readonly="approval_state not in ('waiting', 'approved')"/>
+                                        <field name="approval_comment" readonly="1"/>
+                                        <field name="rejection_reason" placeholder="Provide rejection reason" readonly="approval_state != 'waiting'"/>
+                                        <field name="rejection_reason" readonly="1"/>
                                     </group>
                                     <group string="Signed Document" class="qlk_maroon_outline">
                                         <field name="signed_document" filename="signed_document_filename" readonly="approval_state != 'approved'"/>

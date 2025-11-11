@@ -103,7 +103,7 @@
                                 <!-- <field name="expected_revenue" class="oe_inline me-5 o_field_highlight" widget="monetary" options="{'currency_field': 'company_currency'}"/> -->
                                 
                             </div>
-                            <!-- <div class="o_row" groups="crm.group_use_recurring_revenues">
+                            <!-- <div class="o_row">
                                 <field name="recurring_revenue" class="oe_inline o_field_highlight" widget="monetary" options="{'currency_field': 'company_currency'}"/>
                                 <field name="recurring_plan" class="oe_inline" placeholder='e.g. "Monthly"'
                                     required="recurring_revenue != 0" options="{'no_create': True, 'no_open': True}"/>
@@ -158,11 +158,11 @@
                             <div>
                                 <t t-if="record.expected_revenue.raw_value">
                                     <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
-                                    <span t-if="record.recurring_revenue and record.recurring_revenue.raw_value" groups="crm.group_use_recurring_revenues"> + </span>
+                                    <span t-if="record.recurring_revenue and record.recurring_revenue.raw_value"> + </span>
                                 </t>
                                 <t t-if="record.recurring_revenue and record.recurring_revenue.raw_value">
-                                    <field class="me-1" name="recurring_revenue" widget="monetary" options="{'currency_field': 'company_currency'}" groups="crm.group_use_recurring_revenues"/>
-                                    <field name="recurring_plan" groups="crm.group_use_recurring_revenues"/>
+                                    <field class="me-1" name="recurring_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                                    <field name="recurring_plan"/>
                                 </t>
                             </div> -->
                             <field name="partner_id" class="text-truncate"/>
@@ -315,7 +315,6 @@
         name="CRM"
         web_icon="crm,static/description/icon.png"
         active="false"
-        groups="sales_team.group_sale_salesman,sales_team.group_sale_manager"
         sequence="25"/>
 
     <menuitem

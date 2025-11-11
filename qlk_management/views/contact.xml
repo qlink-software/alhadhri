@@ -181,8 +181,7 @@
         id="contacts.menu_contacts"
         sequence="20"
         active="false"
-        web_icon="contacts,static/description/icon.png"
-        groups="base.group_user,base.group_partner_manager"/>
+        web_icon="contacts,static/description/icon.png"/>
 
 
     <menuitem

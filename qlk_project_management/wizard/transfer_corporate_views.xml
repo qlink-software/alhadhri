@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_transfer_corporate_form" model="ir.ui.view">
+            <field name="name">qlk.project.transfer.corporate.form</field>
+            <field name="model">qlk.project.transfer.corporate</field>
+            <field name="arch" type="xml">
+                <form string="Create Corporate Case" create="false" edit="false">
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="1"/>
+                            <field name="client_id" readonly="1"/>
+                            <field name="case_name"/>
+                            <field name="service_type"/>
+                        </group>
+                        <group>
+                            <field name="assigned_employee_id"/>
+                            <field name="agreement_hours"/>
+                            <field name="agreement_start_date"/>
+                            <field name="agreement_end_date"/>
+                        </group>
+                    </group>
+                    <field name="notes"/>
+                    <footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        <button string="Create Case" type="object" name="action_confirm" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

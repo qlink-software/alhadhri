@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_project_log_hours_form" model="ir.ui.view">
+            <field name="name">qlk.project.log.hours.form</field>
+            <field name="model">qlk.project.log.hours</field>
+            <field name="arch" type="xml">
+                <form string="Log Hours" create="false" edit="false">
+                    <group>
+                        <field name="project_id" readonly="1"/>
+                        <field name="department"/>
+                        <field name="litigation_phase" options="{'invisible': [('department', '!=', 'litigation')]}"/>
+                    </group>
+                    <group>
+                        <field name="task_name"/>
+                        <field name="employee_id"/>
+                    </group>
+                    <group>
+                        <field name="hours_spent"/>
+                        <field name="date_start"/>
+                    </group>
+                    <field name="description"/>
+                    <footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        <button string="Log Hours" type="object" name="action_log_hours" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -124,50 +124,42 @@
                                 string="Send for Approval"
                                 type="object"
                                 class="btn-primary"
-                                invisible="status not in ('draft', 'rejected') or not active"
-                                groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager"/>
+                                invisible="status not in ('draft', 'rejected') or not active"/>
                         <button name="action_approve"
                                 string="Approve"
                                 type="object"
                                 class="btn-primary"
-                                invisible="status != 'waiting'"
-                                groups="qlk_proposals_engagement_letter.group_legal_manager"/>
+                                invisible="status != 'waiting'"/>
                         <button name="action_reject"
                                 string="Reject"
                                 type="object"
                                 class="btn-secondary"
-                                invisible="status != 'waiting'"
-                                groups="qlk_proposals_engagement_letter.group_legal_manager"/>
+                                invisible="status != 'waiting'"/>
                         <button name="action_resubmit"
                                 string="Resubmit"
                                 type="object"
                                 class="btn-secondary"
-                                invisible="status != 'rejected'"
-                                groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager"/>
+                                invisible="status != 'rejected'"/>
                         <button name="action_print_pdf"
                                 string="Print PDF"
                                 type="object"
                                 class="btn-secondary"
-                                invisible="status != 'approved'"
-                                groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+                                invisible="status != 'approved'"/>
                         <button name="action_convert_to_engagement"
                                 string="Convert to Engagement Letter"
                                 type="object"
                                 class="btn-primary"
-                                invisible="status != 'approved' or report_status != 'approved_client'"
-                                groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+                                invisible="status != 'approved' or report_status != 'approved_client'"/>
                         <button name="action_close_proposal"
                                 string="Close"
                                 type="object"
                                 class="btn-danger"
-                                invisible="status not in ('approved', 'converted', 'rejected')"
-                                groups="qlk_proposals_engagement_letter.group_general_manager"/>
+                                invisible="status not in ('approved', 'converted', 'rejected')"/>
                         <button name="action_reject_and_close"
                                 string="Reject and Close"
                                 type="object"
                                 class="btn-danger"
-                                invisible="status != 'rejected'"
-                                groups="qlk_proposals_engagement_letter.group_general_manager"/>
+                                invisible="status != 'rejected'"/>
                         <field name="status" widget="statusbar" statusbar_visible="draft,waiting,approved,rejected,converted,closed"/>
                     </header>
                     <sheet>
@@ -214,7 +206,7 @@
                             <field name="terms_conditions" widget="text"/>
                         </group>
                         <group string="Reviewer Comment" invisible="status not in ('waiting', 'rejected')">
-                            <field name="reviewer_comment" groups="qlk_proposals_engagement_letter.group_legal_manager,qlk_proposals_engagement_letter.group_general_manager"/>
+                            <field name="reviewer_comment"/>
                         </group>
                         <notebook>
                             <page string="Financial Overview">

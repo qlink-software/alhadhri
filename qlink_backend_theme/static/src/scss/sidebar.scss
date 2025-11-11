@@ -1,298 +1,238 @@
+/*
+| الألوان الأساسية:
+| - الأزرق الداكن (Primary/Corporate): #042273
+| - الأزرق الفيروزي (Accent/Hover): rgb(38, 190, 202)
+| - الخلفية العامة (Light Background): #f8f9fa
+*/
+
+// الألوان الأساسية والمظهر العام
 @font-face {
     font-family: 'Poppins' !important;
     src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&amp;display=swap');
 }
 body {
     font-family: 'Poppins', sans-serif !important;
-    background-color: #c4eaf6;
-    
+    background-color: #f8f9fa !important; /* خلفية فاتحة ومريحة */
 }
-/* ✅ القوائم الفرعية الأساسية */
-.sidebar_sub_menu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-    opacity: 0;
-}
-
-/* ✅ عندما تكون مفتوحة */
-.sidebar_sub_menu.open {
-    max-height: 70vh; /* يجعلها أقصى طول ممكن 70% من ارتفاع الشاشة */
-    overflow-y: auto; /* تفعيل تمرير رأسي */
-    opacity: 1;
-}
-
-/* ✅ تصميم العناصر داخل القائمة الفرعية */
-.sidebar_sub_menu li {
-    background: #ffffff !important;
-    border: 1px solid #0d057e;
-    color: #0d057e;
-    font-weight: bold;
-}
-
-/* ✅ تحسين النصوص */
-.sidebar_sub_menu .text-900 {
-    color: #1f0183;
-    font-weight: bold;
-}
-
-/* ✅ (اختياري) تخصيص شكل شريط التمرير */
-.sidebar_sub_menu::-webkit-scrollbar {
-    width: 6px;
-}
-.sidebar_sub_menu::-webkit-scrollbar-thumb {
-    background-color: #999;
-    border-radius: 3px;
-}
-.sidebar_sub_menu::-webkit-scrollbar-track {
-    background: #f5f5f5;
-}
-
 .bg-transparent {
     color:#110f16;
     font-size:1rem;
     font-weight: bold;
     border-bottom: 1px solid #e6e5e8;
 }
+.logo_img{
+    width:200px;
+}
+.sidebar-active {
+    margin-left: 350px !important;
+    width: calc(100% - 350px) !important;
+    left: 350px !important;
+}
 
-#sidebar_panel {
-    height: calc(100% - 0%);
-	position: fixed;
-    top: 0px;
-    background: #042273 !important;
-    display: none;
-    width: 250px;
+// شريط التنقل العلوي (Navbar)
+/* 🚀 3. تحديث وتحديث القائمة العلوية (Navbar) */
+html .o_web_client .o_main_navbar {
+    margin-left: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1); 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+}
+.o_main_navbar {
+    height: var(--o-navbar-height);
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-bottom: 1px solid #5a4f7f;
+    font-size: 0.875rem;
+}
+/* ✅ حالة الفتح: تحريك الـ Navbar */
+.o_main_navbar.sidebar-active {
+    margin-left: 350px !important;
+    width: calc(100% - 350px) !important;
+    left: 350px !important;
+}
+/* 🚀 2. إخفاء شعار العلامة التجارية (Brand/Logo) */
+.o_web_client .o_main_navbar .o_menu_brand {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 🔑 خلفية شريط التنقل العلوي: تدرج أفقي أزرق حيوي */
+html .o_web_client .o_main_navbar,
+.o_main_navbar,
+.o_main_navbar .o_menu_brand,
+.o_menu_sections,
+.o_menu_systray,
+.o_web_client > header {
+    background: #042273 !important; 
+    box-shadow: 0 4px 20px rgba(4, 34, 115, 0.3);
+}
+
+/* 💡 تنسيق عناصر القائمة الافتراضية */
+.o_main_navbar .o_menu_sections .o_nav_entry,
+.o_main_navbar .o_menu_sections .dropdown-toggle {
+    color: #ffffff !important; 
+    background: transparent !important; 
     border-radius: 12px;
-    overflow-y: scroll;
-    -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
-    scrollbar-width: none;  /* Hide scrollbar for Firefox */
-    // z-index: 999;
-    // border-radius: 10px;
-    // box-shadow: 0 4px 20px#edf0f6;
-    
+    box-shadow: none;
+    transition: all 0.2s ease-in-out; 
 }
-// #sidebar_panel::-webkit-scrollbar {
-//     display: none; /* Hide scrollbar for Chrome, Safari and Opera */
-// }
-$primary_accent: #556ee6 !default;
-$secondary_accent: #334332 !default;
-$inverse_accent: #ffffff !default;
-$o-kanban-color-border-width: 8px;
-$selected_row: #ffffff !default;
-$bg_white: #ffffff !default;
-$f_color: #ffffff !default;
-$primary_hover: #485ec4 !default;
+/* 🚀 تأثير التمرير والعنصر النشط: الأزرق الفيروزي (Accent) */
+.o_main_navbar .o_menu_sections .o_nav_entry:hover,
+.o_main_navbar .o_menu_sections .dropdown-toggle:hover,
+.o_main_navbar .o_menu_sections .o_nav_entry.active,
+.o_main_navbar .o_menu_sections .dropdown-toggle.show {
+    color: #042273 !important; 
+    background: rgb(38, 190, 202) !important; 
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(38, 190, 202, 0.5); 
+}
+.o_user_menu {
+    padding: 0 10px; 
+    border-left: 1px solid rgba(255,255,255,0.2);
+    transition: background 0.2s ease-in-out;
+}
+.o_user_menu:hover {
+    background: rgba(38, 190, 202, 0.2);
+}
 
-.sidebar_panel .sidebar {
-    padding: 0;
-    white-space: nowrap;
-    padding-bottom: 20px;
-    padding-top: 5px;
-    max-height: 100vh;       /* full height of the viewport */
-    overflow-y: auto;        /* enable vertical scrolling */
-    overflow-x: hidden;      /* hide horizontal scrollbar */
-    
-}
-.sidebar_panel .sidebar_close {
-    text-align: end;
-    display: none;
-    position: sticky;
-    height: 35px;
-    padding-top: 5px;
-    top: 0;
-    background: #ffffff;
-    z-index: 1;
-}
-.sidebar_panel .sidebar_close a#closeSidebar {
-    font-size:1rem;
-    margin-right: 10px;
-    color: #ffffff;
-    // opacity: .3;
-}
-.o_navbar_apps_menu{
-    display: none;
-}
-.sidebar_panel .sidebar_close a#closeSidebar img {
-    width: 15px;
-}
-.sidebar_panel .sidebar .sidebar_logo {
-    padding-top: 20px;
-    text-align: center;
-    padding-bottom: 20px;
-}
-.sidebar_panel .sidebar .sidebar_logo img {
-    margin-top:-30px;
-    max-width: 250px;
-}
-.sidebar_panel .sidebar .sidebar_head {
-    padding-top: 20px;
-    padding-left: 15px;
-    color: #fcfcfe;
-    font-size:1rem;
-}
-.sidebar_panel .sidebar .sidebar_menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border:2px solid #042273;
-    font-size:1rem; 
-    
-}
-.sidebar_panel .sidebar .sidebar_menu li {
-    margin: 0;
-    padding: 0;
-    border: 0px;
-    display: block;
-    font-size:1rem;
-    
-    
-}
-.sidebar_panel .sidebar .sidebar_menu li a {
-    margin: 0;
-    border: 0px;
-    display: block;
-    cursor: pointer;
+// السايدبار (القائمة الجانبية)
+/* 🚀 1. القوائم الفرعية والوضوح */
+.sidebar_sub_menu {
+    max-height: 0;
     overflow: hidden;
-    padding: 8px 10px 8px 25px;
-    color: #ffffff;
+    transition: max-height 0.4s ease-out, opacity 0.4s ease-out; 
+    opacity: 0;
+    /* ✅ تحسين: خلفية ناعمة جداً وإلغاء الظل الداخلي القوي */
+    background: rgba(4, 34, 115, 0.03); /* خلفية خفيفة جداً */
+    box-shadow: none; 
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.sidebar_sub_menu.open {
+    max-height: 70vh;
+    overflow-y: auto;
+    opacity: 1;
+}
+.sidebar_sub_menu li {
+    background: transparent !important;
+    border: none !important;
+    color: #1f0183; 
+    font-weight: normal;
+    /* ✅ زيادة المسافة اليسرى للتداخل البصري */
+    padding: 8px 10px 8px 55px !important; 
+}
+/* ⚡️ تأثير التمرير (Hover) */
+.sidebar_sub_menu li:hover {
+    /* ✅ تخفيف درجة شفافية الخلفية لراحة العين */
+    background: rgba(38, 190, 202, 0.1) !important; 
+    color: #042273 !important;
+    font-weight: 600;
+}
+.sidebar_sub_menu .text-900 {
+    color: #1f0183;
     font-weight: bold;
+}
+
+/* 🚀 2. لوحة السايدبار الرئيسية والحركة (تحسين العمق) */
+#sidebar_panel {
+    height: 100%;
+    position: fixed;
+    top: 0px;
+    background: #f8f7f7 !important; 
+    /* ✅ تحسين: ظل ناعم وأكثر حداثة (Modern Shadow) */
+    box-shadow: 4px 0 15px rgba(38, 190, 202, 0.08); 
+    border-radius: 0 16px 16px 0;
+    border-radius: 13px;
+    width: 350px;
+    left: -350px; 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+}
+#sidebar_panel.open {
+    left: 0 !important;
+    display: block !important;
+}
+.sidebar_panel .sidebar {
+    padding-bottom: 20px;
+    padding-top: 5px;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+/* 💡 تنسيق الروابط الرئيسية: تحويلها لـ "بطاقات" (Pill-like) */
+.sidebar_panel .sidebar .sidebar_menu li a {
+    /* ✅ تصحيح: لون النص الافتراضي */
+    color: #042273; 
+    font-weight: 500; /* متوسط بدلاً من سميك */
     font-size:1rem;
-    transition:.3s all;
-}
 
-// .sidebar_panel .sidebar .sidebar_menu li:hover  a {
-//     background: #fbfcfc;
-//     border:2px solid #042273;
-//     color: #042273;
-// }
-.sidebar_panel .nav-link {
-	// opacity: .5;
-    transition:.3s all;
-}
-// .sidebar_panel .sidebar a.nav-link.active {
-//     color: #23b5ef !important;
-//     background: #fbfcfc;
-//     border: 3px solid rgb(38, 190, 202);
-// 	opacity: 1;
-// }
-.sidebar_panel .sidebar .sidebar_menu li a .sidebar_img {
-    width: 20px;
-    margin-right: 8px;
-}
+    /* ✅ تحسين مظهر البطاقة (Pill) */
+    display: flex; 
+    align-items: center;
+    margin: 5px 15px 5px 15px; /* مسافة بيضاء حول البطاقة */
+    padding: 10px 15px !important; /* مسافة داخلية مريحة */
+    border-radius: 8px; /* زوايا ناعمة */
 
-// conrtol panel menu
-
-// my code to discover top menu sections
-.o_control_panel {
-    border-bottom: none important;
-    margin: 15px 15px 0 15px;
-    // padding: 28px;
-    background-color: #ffffff !important;
-    -webkit-box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03) !important;
-    box-shadow: #042273 !important;
-    border-radius: 5px;
+    transition: all 0.2s ease-in-out; 
+}
+/* ⚡️ تأثير التمرير على العناصر الرئيسية (Hover) */
+.sidebar_panel .sidebar .sidebar_menu li a:hover {
+    /* ✅ خلفية شفافة خفيفة جداً وإلغاء الشريط الجانبي القوي */
+    background: rgba(38, 190, 202, 0.1); 
+    color: #042273; 
+    border-left: none; 
+    padding-left: 15px !important; /* إعادة ضبط المسافة */
+}
+/* 🥇 حالة النشاط (Active State) - الأهم */
+.sidebar_panel .sidebar .sidebar_menu li.active a {
+    /* ✅ المظهر العصري: خلفية بلون الشركة ونص أبيض */
+    background: #042273 !important; 
+    color: #ffffff !important; 
+    font-weight: 600; 
+    box-shadow: 0 4px 10px rgba(4, 34, 115, 0.3); /* عمق خفيف */
+    transform: scale(1.01); /* تأثير حركة خفيف */
+}
+/* إلغاء تغيير مظهر البطاقة النشطة عند التمرير */
+.sidebar_panel .sidebar .sidebar_menu li.active a:hover {
+    background: #042273 !important;
+    color: #ffffff !important;
+    transform: scale(1.01);
+}
+.arrow-indicator {
+    transition: transform 0.3s ease-in-out;
+}
+.sidebar_sub_menu.open + .sidebar_main_menu .arrow-indicator {
+    transform: rotate(90deg);
+}
+.sidebar_panel .sidebar_logo, .sidebar_panel .sidebar_close, .sidebar_panel .sidebar_head {
+    /* (إبقاء باقي تنسيقات العناصر داخل السايدبار كما هي) */
+}
+// form border
+.o_form_view .o_form_sheet {
+    border-radius: 8px;
     border:2px solid #042273;
 }
-.btn:hover{
-    background-color: #042273;
-    color: white;
-}
-.btn-outline-primary {
-    --btn-color: #042273;
-    --btn-border-color: #042273;
-    --btn-hover-color: #FFFFFF;
-    --btn-hover-bg: #042273;
-    --btn-hover-border-color: #042273;
-    --btn-focus-shadow-rgb: 113, 99, 158;
-    --btn-active-color: #FFFFFF;
-    --btn-active-bg: #042273;
-    --btn-active-border-color: #042273;
-    --btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --btn-disabled-color: #042273;
-    --btn-disabled-bg: transparent;
-    --btn-disabled-border-color: #042273;
-    --gradient: none;
-}
-.btn-outline-secondary {
-    --btn-color: #fcfcfc;
-    --btn-bg: transparent;
-    --btn-border-color: #dee2e6;
-    --btn-hover-color: #343a40;
-    --btn-hover-bg: #e9ecef;
-    --btn-hover-border-color: #dee2e6;
-    --btn-focus-shadow-rgb: 200, 204, 209;
-    --btn-active-color: #212529;
-    --btn-active-bg: #dddbe8;
-    --btn-active-border-color: #71639e;
-    --btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --btn-disabled-color: #000000;
-    --btn-disabled-bg: transparent;
-    --btn-disabled-border-color: #dee2e6;
-}
-.o-form-buttonbox .o_pie_value, .o-form-buttonbox .oe_stat_button .o_stat_info .o_stat_value, .o-form-buttonbox .oe_stat_button > span .o_stat_value, .o-form-buttonbox .oe_stat_button .o_field_statinfo .o_stat_value {
-    order: 2;
-    font-weight: 500;
-    color: var(--o-stat-text-color, #ffffff);
-    font-size: 0.75rem;
-}
-// custmize any link 
-a {
-    color: #042273;
-    font-weight: bold;
-    text-decoration: none;
-}
-.nav-link {
-    display: block;
-    padding: var(--nav-link-padding-y) var(--nav-link-padding-x);
-    font-size:1rem;
-    font-weight: var(--nav-link-font-weight);
-    color: #042273;
-    background: none;
-    border: 0;
-    transition: color 0.15s 
-    ease-in-out, background-color 0.15s 
-    ease-in-out, border-color 0.15s 
-    ease-in-out;
-}
-.nav-link:hover{
-    color: #042273;
-}
-.o_form_view .o_form_uri > span:first-child {
-    color: #042273;
-}
-.o_form_view .o_form_uri {
-    display: inline-block;
-    color: #042273;
-}
-// 
-
-// table view 
-.o_list_renderer .o_list_table {
-    --table-bg: white;
-    // border-collapse:separate;
-    font-variant-numeric: tabular-nums;
-}
-
-.o_list_renderer .o_list_table .th {
-    font-weight: 500;
-    text-align: inherit;
-    text-align: -webkit-match-parent;
-    color: #042273;
-}
-
+// التفاعل والأزرار (Buttons & Interactions)
+/* 🚀 الأزرار الرئيسية */
 .btn-primary{
     background-color: #042273;
     color: white;
+    border-radius: 8px; 
+    box-shadow: 0 4px 6px rgba(4, 34, 115, 0.2); 
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover{
+    background-color: #042273;
+    color: white;
+
 }
 .btn-primary:hover {
     color: #fff !important;
     background-color: rgb(38, 190, 202) !important;
-    // border-color: #4458b8 !important;
-}
-.btn-primary:active {
-    color: #fff !important;
-    background-color: rgb(38, 190, 202) !important;
-    border-color: rgb(38, 190, 202) !important;
+    transform: translateY(-1px); 
+    box-shadow: 0 6px 10px rgba(4, 34, 115, 0.3) !important; 
 }
 .btn-secondary{
     background-color:  rgb(38, 190, 202);
@@ -302,93 +242,107 @@ a {
     background-color: #042273;
     color: white;
 }
-// to customize field view
-.o_field_widget input.o_input {
-    border: 1px solid rgba(203, 214, 245, 0.5); /* 0.5 = 50% transparency */
-    border-radius: 10px;
-}
-
-
-//  to customize form view
-.o_form_view .o_form_sheet{
-    box-shadow: 0 0.75rem 1.5rem rgba(18,38,63, .03) !important;
-    border:1px solid #042273;
-    border-radius: 10px;
-}
-//  to customize conrtol panel statinfo view
+/* ✅ الأزرار الإحصائية (تحسين النيومورفيزم) */
 .o-form-buttonbox .oe_stat_button{
     background-color: #042273;
     color: #ffffff;
-    border-radius: 10px;
-    // border: 1px solid #ffffff;
+    border-radius: 12px;
+    /* ظل عميق وواضح */
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3), 
+                -5px -5px 15px rgba(255, 255, 255, 0.1); 
+    transition: all 0.3s ease-in-out;
 }
-//  to customize conrtol panel button view
-.o-form-buttonbox .oe_stat_button .o_button_icon{
-    background-color: #042273;
+.o-form-buttonbox .oe_stat_button:hover {
+    background-color: rgb(38, 190, 202); /* الفيروزي عند التمرير */
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(38, 190, 202, 0.6);
+}
+.o-form-buttonbox .o_pie_value, .o-form-buttonbox .oe_stat_button .o_stat_info .o_stat_value, .o-form-buttonbox .oe_stat_button > span .o_stat_value, .o-form-buttonbox .oe_stat_button .o_field_statinfo .o_stat_value {
     color: #ffffff;
-    font-weight: bold;
+    font-size: 0.75rem;
 }
 .o-form-buttonbox .oe_stat_button .o_stat_text{
     color: #ffffff;
     font-weight: bold;
 }
 
+/* 💡 تحسين الروابط (Links) */
+a {
+    color: #083680; /* أزرق متوسط */
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+a:hover {
+    color: rgb(38, 190, 202); /* فيروزي عند التمرير */
+    text-decoration: underline;
+}
+.nav-link {
+    color: #042273;
+}
+.o_field_widget input.o_input {
+    border: 1px solid #e6e4e4;;
+    border-radius: 8px;
+    color: #042273;
+    transition: all 0.3s;
+}
+.o_field_widget input.o_input:focus {
+    border-color: rgb(38, 190, 202); 
+    box-shadow: 0 0 5px rgba(38, 190, 202, 0.5);
+}
 
-// mani navbar menu
-html .o_web_client .o_main_navbar {
-    margin-left:300px;
-    border-radius: 12px;
+/* 🚀 4. زر فتح القائمة الجانبية (Sidebar Toggle) */
+.o_floating_sidebar_toggle_container {
+    position: fixed;
+    top: 10px;
+    left: 35px;
+    z-index: 1000;
+}
+.o_modern_sidebar_toggle {
+    border-radius: 20%; 
+    background-color: rgb(38, 190, 202); 
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(38, 190, 202, 0.4); 
+    transition: all 0.2s ease-in-out;
+}
+.o_modern_sidebar_toggle:hover {
     background-color: #042273;
-
-}
-html .o_web_client .o_main_navbar {
-    margin-left: 300px;
-    background-color: #042273;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    box-shadow: 0 6px 12px rgba(4, 34, 115, 0.4); 
+    transform: translateY(-1px) scale(1.05);
 }
 
 
-.o_main_navbar .o_menu_brand{
-    padding:20px;
-}
-/* ✅ التنسيق على العناصر الداخلية - يجب أن يكون بسيطًا */
-.o_menu_sections, .o_menu_systray, .o_web_client > header {
-    background: #042273 !important;
-    /* ❌ إزالة border-radius هنا */
-}
-
-/* ✅ التنسيق على شريط التنقل الرئيسي فقط (حيث تريد الزوايا الدائرية) */
-html .o_web_client .o_main_navbar {
-    /* ... الكود السابق ... */
-    background-color: #042273 !important;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    /* ... باقي التنسيقات */
+/* 1. استهداف فئة الصورة مباشرة لزيادة الحجم والوضوح */
+.logo_img {
+    width: 90% !important; 
+    max-width: 300px; 
+    height: auto;
+    object-fit: contain; 
+    transition: all 0.5s ease-in-out; 
+    image-rendering: -webkit-optimize-contrast; 
 }
 
-/* ملاحظة: تأكد من أن UserMenu ليس لديه تنسيق زوائد داخلي (padding/margin) يجعله يظهر منفصلاً */
-.o_user_menu {
-    /* التأكد من إزالة أي تنسيق زائد */
-    padding: 0 10px; 
+
+/* 2. التأكد من أن حاوية الشعار في السايدبار تسمح بالصورة الكبيرة */
+.sidebar_panel .sidebar .sidebar_logo {
+    padding-top: 30px; 
+    padding-bottom: 30px;
+    text-align: center;
 }
 
-.o_main_navbar .o_menu_sections .o_nav_entry{
-   color: $f_color !important;
-  
-    background: #042273 !important;
-    border-radius: 4px;
-    box-shadow: #042273;
-    border-radius: 12px;
-
-
+/* 3. إلغاء أي قيود قديمة على حجم الصورة داخل السايدبار (إذا كانت موجودة) */
+.sidebar_panel .sidebar .sidebar_logo img {
+    max-width: none !important; 
+    max-height: none !important;
 }
-.o_main_navbar .o_menu_sections .dropdown-toggle {
-    color: $f_color !important;
-    background: #042273 !important;
-    border-radius: 4px;
-    box-shadow: #040b5a;
+// html .o_web_client > .o_action_manager {
+//     direction: ltr;
+//     -webkit-box-flex: 1;
+//     -webkit-flex: 1 1 auto;
+//     flex: 1 1 auto;
+//     height: 100%;
+//     background-color: #1350b5;
+//     overflow: hidden;
+// }
 
-}
+

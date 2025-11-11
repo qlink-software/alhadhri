@@ -7,7 +7,7 @@
             <field name="model">qlk.project.stage</field>
             <field name="type">list</field>
             <field name="arch" type="xml">
-                <list string="Project Stages">
+                <list string="Case Stages">
                     <field name="name"/>
                     <field name="stage_type"/>
                     <field name="sequence"/>
@@ -24,7 +24,7 @@
             <field name="name">qlk.project.stage.form</field>
             <field name="model">qlk.project.stage</field>
             <field name="arch" type="xml">
-                <form string="Project Stage">
+                <form string="Case Stage">
                     <sheet>
                         <group>
                             <field name="name"/>
@@ -58,7 +58,7 @@
         </record>
 
         <record id="action_qlk_project_stage" model="ir.actions.act_window">
-            <field name="name">Project Stages</field>
+            <field name="name">Case Stages</field>
             <field name="res_model">qlk.project.stage</field>
             <field name="view_mode">list,form</field>
         </record>

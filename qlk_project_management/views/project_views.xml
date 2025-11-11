@@ -11,7 +11,6 @@
                     <field name="code"/>
                     <field name="name"/>
                     <field name="department" widget="badge"/>
-                    <field name="stage_id"/>
                     <field name="client_id"/>
                     <field name="related_case_display" string="Related Matter"/>
                     <field name="engagement_id"/>
@@ -29,20 +28,25 @@
             <field name="arch" type="xml">
                 <form string="Project">
                     <header>
-                        <button name="action_previous_stage" type="object" string="Previous Stage" class="btn-secondary"/>
-                        <button name="action_next_stage" type="object" string="Next Stage" class="btn-primary"/>
-                        <button name="action_mark_stage_completed" type="object" string="Mark Stage Complete" class="btn-light"
-                                invisible="stage_completed_on"/>
                         <button name="action_request_poa" type="object" string="Request POA" class="btn-warning"
                                 invisible="department != 'litigation' or poa_state != 'draft'"/>
                         <button name="action_mark_poa_received" type="object" string="POA Received" class="btn-primary"
                                 invisible="department != 'litigation' or poa_state != 'requested'"/>
                         <button name="action_mark_poa_uploaded" type="object" string="POA Uploaded" class="btn-success"
                                 invisible="department != 'litigation' or (poa_state != 'received' and poa_state != 'uploaded')"/>
-                        <button name="action_transfer_to_litigation" type="object" string="Transfer to Litigation"
+                        <button name="action_open_log_hours" type="object" string="Log Hours" class="btn-primary"/>
+                        <button name="action_transfer_to_pre_litigation" type="object" string="Create Pre-Litigation Case"
+                                class="btn-secondary"
+                                invisible="department != 'litigation' or case_id"/>
+                        <button name="action_transfer_to_litigation" type="object" string="Create Litigation Case"
                                 class="btn-primary"
                                 invisible="department != 'litigation' or case_id"/>
-                        <field name="stage_id" widget="statusbar"/>
+                        <button name="action_transfer_to_corporate" type="object" string="Create Corporate Case"
+                                class="btn-primary"
+                                invisible="department != 'corporate' or corporate_case_id"/>
+                        <button name="action_transfer_to_arbitration" type="object" string="Create Arbitration Case"
+                                class="btn-primary"
+                                invisible="department != 'arbitration' or arbitration_case_id"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -56,14 +60,11 @@
 
                         <div class="oe_button_box" name="button_box">
                             <button type="object" class="oe_stat_button" name="action_view_hours" icon="fa-clock-o">
-                                <field name="task_hours_total" string="Approved Hours"/>
-                            </button>
-                            <button type="object" class="oe_stat_button" name="action_view_tasks" icon="fa-tasks">
-                                <field name="task_count" string="Tasks"/>
-                            </button>
-                            <button type="object" class="oe_stat_button" name="action_view_stage_logs" icon="fa-line-chart">
-                                <field name="stage_log_count" string="Stage Logs"/>
-                            </button>
+                            <field name="task_hours_total" string="Approved Hours"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" name="action_view_tasks" icon="fa-tasks">
+                            <field name="task_count" string="Tasks"/>
+                        </button>
                             <button type="object" class="oe_stat_button" name="action_open_related_case" icon="fa-external-link"
                                     invisible="not related_case_display">
                                 <field name="related_case_display" string="Related Matter" readonly="1"/>
@@ -71,10 +72,10 @@
                         </div>
 
                         <group>
-                            <group>
+                        <group>
                                 <field name="department"/>
-                                <field name="stage_id" readonly="1"/>
                                 <field name="client_id"/>
+                                <field name="client_capacity"/>
                                 <field name="engagement_id"/>
                                 <field name="case_id" invisible="department != 'litigation'"/>
                                 <field name="corporate_case_id"
@@ -94,8 +95,6 @@
                                 <field name="poa_received_on" readonly="1"/>
                                 <field name="deadline"/>
                                 <field name="transfer_ready"/>
-                                <field name="stage_started_on" readonly="1"/>
-                                <field name="stage_completed_on" readonly="1"/>
                             </group>
                         </group>
 
@@ -120,14 +119,19 @@
                                     </list>
                                 </field>
                             </page>
-                            <page string="Stage Timeline">
-                                <field name="stage_log_ids" nolabel="1">
+                            <page string="Client Documents">
+                                <group>
+                                    <field name="client_document_warning"
+                                           nolabel="1"
+                                           widget="html"
+                                           options="{'invisible': [('client_document_warning_required', '=', False)]}"/>
+                                </group>
+                                <field name="client_document_ids" nolabel="1" readonly="1">
                                     <list>
-                                        <field name="stage_id"/>
-                                        <field name="date_start"/>
-                                        <field name="date_end"/>
-                                        <field name="duration_days"/>
-                                        <field name="completed_by"/>
+                                        <field name="doc_type"/>
+                                        <field name="is_uploaded"/>
+                                        <field name="poa_reference"/>
+                                        <field name="poa_expiration_date"/>
                                     </list>
                                 </field>
                             </page>
@@ -149,14 +153,12 @@
                     <field name="code" filter_domain="[('code', 'ilike', self)]"/>
                     <field name="client_id"/>
                     <field name="department"/>
-                    <field name="stage_id"/>
                     <field name="case_id"/>
                     <filter name="filter_my_projects" string="My Projects"
                             domain="['|', ('assigned_employee_ids.user_id', '=', uid), ('owner_id', '=', uid)]"/>
                     <filter name="filter_transfer_ready" string="Ready for Litigation" domain="[('transfer_ready', '=', True)]"/>
                     <group expand="0" string="Group By">
                         <filter name="group_department" string="Department" context="{'group_by': 'department'}"/>
-                        <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
                         <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
                     </group>
                 </search>
@@ -167,7 +169,7 @@
             <field name="name">Projects</field>
             <field name="res_model">qlk.project</field>
             <field name="view_mode">list,form</field>
-            <field name="context">{'search_default_filter_my_projects': 1, 'search_default_group_stage': 1}</field>
+            <field name="context">{'search_default_filter_my_projects': 1}</field>
         </record>
 
         <record id="action_qlk_project_tasks" model="ir.actions.act_window">
@@ -207,7 +209,7 @@
             <field name="res_model">qlk.project</field>
             <field name="view_mode">list,form</field>
             <field name="domain">[('department', '=', 'litigation')]</field>
-            <field name="context">{'default_department': 'litigation', 'search_default_group_stage': 1}</field>
+            <field name="context">{'default_department': 'litigation'}</field>
         </record>
 
         <record id="action_qlk_project_corporate" model="ir.actions.act_window">
@@ -215,7 +217,7 @@
             <field name="res_model">qlk.project</field>
             <field name="view_mode">list,form</field>
             <field name="domain">[('department', '=', 'corporate')]</field>
-            <field name="context">{'default_department': 'corporate', 'search_default_group_stage': 1}</field>
+            <field name="context">{'default_department': 'corporate'}</field>
         </record>
 
         <record id="action_qlk_project_arbitration" model="ir.actions.act_window">
@@ -223,7 +225,7 @@
             <field name="res_model">qlk.project</field>
             <field name="view_mode">list,form</field>
             <field name="domain">[('department', '=', 'arbitration')]</field>
-            <field name="context">{'default_department': 'arbitration', 'search_default_group_stage': 1}</field>
+            <field name="context">{'default_department': 'arbitration'}</field>
         </record>
 
     </data>

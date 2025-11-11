@@ -4,7 +4,6 @@
     <menuitem
         name="Planner"
         id="project.menu_main_pm"
-        groups="project.group_project_manager,project.group_project_user"
         web_icon="project,static/description/icon.png"
         sequence="70"/>
 

@@ -68,7 +68,7 @@ class QlkAnalysisDashboard(models.AbstractModel):
     @api.model
     def get_dashboard_data(self, months=6):
         user = self.env.user
-        allow_all = user.has_group("qlk_law.group_qlk_law_manager") or user.has_group("base.group_system")
+        allow_all = user.has_group("base.group_system")
         employee_ids = user.employee_ids.ids
 
         try:
@@ -146,16 +146,17 @@ class QlkAnalysisDashboard(models.AbstractModel):
 
         project_progress = []
         if "qlk.project" in self.env:
-            grouped = self.env["qlk.project"].read_group(project_domain(), ["stage_id"], ["stage_id"])
+            selection = dict(self.env["qlk.project"]._fields["department"].selection)
+            grouped = self.env["qlk.project"].read_group(project_domain(), ["department"], ["department"])
             for entry in grouped:
-                stage_ref = entry.get("stage_id")
-                if not stage_ref:
+                dept = entry.get("department")
+                if not dept:
                     continue
                 project_progress.append(
                     {
-                        "label": stage_ref[1],
-                        "value": entry.get("stage_id_count", 0),
-                        "domain": [["stage_id", "=", stage_ref[0]]],
+                        "label": selection.get(dept, dept),
+                        "value": entry.get("department_count", 0),
+                        "domain": [["department", "=", dept]],
                         "action": "projects",
                     }
                 )

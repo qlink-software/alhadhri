@@ -10,15 +10,13 @@
 
         <menuitem id="menu_dynamic_analysis_root"
                   name="Dynamic Analytics"
-                  sequence="90"
-                  groups="base.group_user"/>
+                  sequence="90"/>
 
         <menuitem id="menu_dynamic_analysis_dashboard"
                   name="Overview"
                   parent="menu_dynamic_analysis_root"
                   action="action_dynamic_analysis_dashboard"
-                  sequence="1"
-                  groups="base.group_user"/>
+                  sequence="1"/>
 
     </data>
 </odoo>

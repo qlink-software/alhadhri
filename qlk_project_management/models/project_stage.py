@@ -11,12 +11,13 @@ class QlkProjectStage(models.Model):
     sequence = fields.Integer(default=10)
     stage_type = fields.Selection(
         selection=[
+            ("pre_litigation", "Pre-Litigation"),
             ("litigation", "Litigation"),
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
         ],
         required=True,
-        default="litigation",
+        default="pre_litigation",
     )
     technical_code = fields.Char(help="Technical identifier used for automation rules.")
     stage_code = fields.Char(string="Stage Code", help="Short code used when generating project numbers.")
@@ -37,12 +38,12 @@ class QlkProjectStage(models.Model):
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company)
 
 
-class QlkProjectStageLog(models.Model):
-    _name = "qlk.project.stage.log"
-    _description = "Project Stage Log"
+class QlkCaseStageLog(models.Model):
+    _name = "qlk.case.stage.log"
+    _description = "Case Stage Log"
     _order = "id desc"
 
-    project_id = fields.Many2one("qlk.project", required=True, ondelete="cascade")
+    case_id = fields.Many2one("qlk.case", required=True, ondelete="cascade")
     stage_id = fields.Many2one("qlk.project.stage", required=True, ondelete="restrict")
     date_start = fields.Datetime(default=fields.Datetime.now, required=True)
     date_end = fields.Datetime()

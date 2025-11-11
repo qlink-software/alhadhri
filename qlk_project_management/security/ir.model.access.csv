@@ -1,7 +1,6 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
-"access_qlk_project_manager","qlk.project manager","model_qlk_project","qlk_law.group_qlk_law_manager",1,1,1,1
-"access_qlk_project_lawyer","qlk.project lawyer","model_qlk_project","qlk_law.group_qlk_law_lawyer",1,1,1,0
-"access_qlk_project_viewer","qlk.project viewer","model_qlk_project","qlk_law.group_qlk_law_viewer",1,0,0,0
-"access_qlk_project_stage_manager","qlk.project.stage manager","model_qlk_project_stage","qlk_law.group_qlk_law_manager",1,1,1,1
-"access_qlk_project_stage_log_lawyer","qlk.project.stage.log lawyer","model_qlk_project_stage_log","qlk_law.group_qlk_law_lawyer",1,0,0,0
-"access_qlk_project_stage_log_manager","qlk.project.stage.log manager","model_qlk_project_stage_log","qlk_law.group_qlk_law_manager",1,1,1,1
+"access_qlk_project_manager","qlk.project manager","model_qlk_project","",1,1,1,1
+"access_qlk_project_lawyer","qlk.project lawyer","model_qlk_project","",1,1,1,0
+"access_qlk_project_stage_manager","qlk.project.stage manager","model_qlk_project_stage","",1,1,1,1
+"access_qlk_case_stage_log_lawyer","qlk.case.stage.log lawyer","model_qlk_case_stage_log","",1,0,0,0
+"access_qlk_case_stage_log_manager","qlk.case.stage.log manager","model_qlk_case_stage_log","",1,1,1,1

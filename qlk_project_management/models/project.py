@@ -29,22 +29,6 @@ class QlkProject(models.Model):
         default="litigation",
         tracking=True,
     )
-    stage_id = fields.Many2one(
-        "qlk.project.stage",
-        string="Stage",
-        required=True,
-        tracking=True,
-        domain="[('stage_type', '=', stage_type_code)]",
-    )
-    stage_type_code = fields.Selection(
-        selection=[
-            ("litigation", "Litigation"),
-            ("corporate", "Corporate"),
-            ("arbitration", "Arbitration"),
-        ],
-        compute="_compute_stage_type_code",
-        store=True,
-    )
     case_sequence = fields.Integer(
         string="Matter Index",
         copy=False,
@@ -58,6 +42,7 @@ class QlkProject(models.Model):
         tracking=True,
         domain="[('customer', '=', True), ('parent_id', '=', False)]",
     )
+    client_capacity = fields.Char(string="Client Capacity", tracking=True)
     engagement_id = fields.Many2one("qlk.engagement.letter", string="Engagement Letter", tracking=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
     client_code = fields.Char(string="Client Code", compute="_compute_client_code", store=True)
@@ -96,10 +81,6 @@ class QlkProject(models.Model):
     poa_received_on = fields.Datetime(string="POA Received On")
     active = fields.Boolean(default=True)
     notes = fields.Text()
-    stage_log_ids = fields.One2many("qlk.project.stage.log", "project_id", string="Stage History")
-    stage_log_count = fields.Integer(compute="_compute_stage_log_count")
-    stage_started_on = fields.Datetime(string="Stage Started On", tracking=True)
-    stage_completed_on = fields.Datetime(string="Stage Completed On")
     task_ids = fields.One2many("qlk.task", "project_id", string="Tasks")
     task_hours_total = fields.Float(
         string="Approved Hours",
@@ -135,6 +116,20 @@ class QlkProject(models.Model):
         ondelete="set null",
     )
     related_case_display = fields.Char(string="Related Matter", compute="_compute_related_case_display")
+    client_document_ids = fields.One2many(
+        related="client_id.client_document_ids",
+        string="Client Documents",
+        readonly=True,
+    )
+    client_document_warning = fields.Html(
+        related="client_id.document_warning_message",
+        string="Document Warning",
+        readonly=True,
+    )
+    client_document_warning_required = fields.Boolean(
+        related="client_id.document_warning_required",
+        readonly=True,
+    )
 
     _sql_constraints = [
         ("qlk_project_code_unique", "unique(code)", "The project code must be unique."),
@@ -149,28 +144,23 @@ class QlkProject(models.Model):
             result.append((project.id, name))
         return result
 
-    @api.depends("department")
-    def _compute_stage_type_code(self):
-        for project in self:
-            project.stage_type_code = project.department or "litigation"
-
     @api.onchange("department")
     def _onchange_department(self):
         if not self.department:
             return
-        stage = self.env["qlk.project.stage"].search(
-            [
-                ("stage_type", "=", self.department),
-            ],
-            order="sequence asc",
-            limit=1,
-        )
-        if stage:
-            self.stage_id = stage.id
         allowed_field = self._department_case_field_map.get(self.department)
         for field_name in self._department_case_field_map.values():
             if field_name != allowed_field:
                 setattr(self, field_name, False)
+
+    @api.onchange("engagement_id")
+    def _onchange_engagement_id(self):
+        if not self.engagement_id:
+            return
+        if not self.client_id:
+            self.client_id = self.engagement_id.partner_id
+        if self.engagement_id.client_capacity and not self.client_capacity:
+            self.client_capacity = self.engagement_id.client_capacity
 
     @api.depends("client_id", "engagement_id.client_unique_code")
     def _compute_client_code(self):
@@ -180,33 +170,17 @@ class QlkProject(models.Model):
                 code = project.client_id.ref or f"{project.client_id.id:03d}"
             project.client_code = code or ""
 
-    @api.depends("stage_id", "case_sequence", "department", "client_code")
+    @api.depends("case_sequence", "department", "client_code")
     def _compute_code(self):
         for project in self:
             client_code = project.client_code or "PRJ"
             sequence = project.case_sequence or 1
-            stage = project.stage_id
-            if not stage:
-                project.code = f"{client_code}/PR{sequence:03d}"
-                continue
-
-            if project.department == "litigation":
-                suffix = stage.stage_code or "F"
-                if stage.stage_number:
-                    project.code = f"{client_code}/L{sequence:03d}-{stage.stage_number}/{suffix}"
-                else:
-                    project.code = f"{client_code}/L{sequence:03d}/{suffix}"
-            elif project.department == "corporate":
-                suffix = stage.stage_code or (stage.technical_code or "COR")
-                project.code = f"{client_code}/C{sequence:03d}/{suffix}"
-            else:  # arbitration
-                suffix = stage.stage_code or (stage.technical_code or "ARB")
-                project.code = f"{client_code}/A{sequence:03d}/{suffix}"
-
-    @api.depends("stage_log_ids")
-    def _compute_stage_log_count(self):
-        for project in self:
-            project.stage_log_count = len(project.stage_log_ids)
+            department_prefix = {
+                "litigation": "L",
+                "corporate": "C",
+                "arbitration": "A",
+            }.get(project.department, "P")
+            project.code = f"{client_code}/{department_prefix}{sequence:03d}"
 
     @api.depends("task_ids.approval_state", "task_ids.hours_spent", "task_ids.date_start")
     def _compute_task_hours(self):
@@ -237,6 +211,23 @@ class QlkProject(models.Model):
             return selection_dict.get(department, department.title())
         return selection_dict.get(department, department)
 
+    def _ensure_client_documents_ready(self):
+        for project in self:
+            if not project.client_id:
+                continue
+            missing = project.client_id.get_missing_document_labels()
+            if missing:
+                raise UserError(
+                    _(
+                        "Client %(client)s is missing the following documents: %(docs)s. "
+                        "Please attach them from the contact record before proceeding."
+                    )
+                    % {
+                        "client": project.client_id.display_name,
+                        "docs": ", ".join(missing),
+                    }
+                )
+
     def _validate_case_vals(self, vals, department, *, is_create=False):
         allowed_field = self._department_case_field_map.get(department)
         department_label = self._get_department_label(department)
@@ -256,41 +247,31 @@ class QlkProject(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        stage_model = self.env["qlk.project.stage"]
         res = []
         for vals in vals_list:
             department = vals.get("department") or "litigation"
             self._validate_case_vals(vals, department, is_create=True)
-            if not vals.get("stage_id"):
-                default_stage = stage_model.search(
-                    [("stage_type", "=", department), ("is_default", "=", True)], order="sequence asc", limit=1
-                )
-                if not default_stage:
-                    default_stage = stage_model.search(
-                        [("stage_type", "=", department)], order="sequence asc", limit=1
-                    )
-                if not default_stage:
-                    raise UserError(
-                        _("No stage configured for the %(dept)s department.") % {"dept": department.replace("_", " ").title()}
-                    )
-                vals["stage_id"] = default_stage.id
 
             client_id = vals.get("client_id")
+            engagement_id = vals.get("engagement_id")
+            if engagement_id:
+                engagement = self.env["qlk.engagement.letter"].browse(engagement_id)
+                if not client_id and engagement.partner_id:
+                    client_id = engagement.partner_id.id
+                    vals["client_id"] = client_id
+                if engagement.client_capacity and not vals.get("client_capacity"):
+                    vals["client_capacity"] = engagement.client_capacity
             if client_id and not vals.get("case_sequence"):
                 vals["case_sequence"] = self._next_case_sequence(client_id, vals.get("department"))
 
             res.append(vals)
 
         projects = super().create(res)
-        projects._init_stage_logs()
         projects._sync_case_project_link()
         projects._post_create_notifications()
         return projects
 
     def write(self, vals):
-        tracked_stage = "stage_id" in vals
-        # capture original stages before write
-        previous_stage = {project.id: project.stage_id for project in self} if tracked_stage else {}
         case_fields = tuple(self._department_case_field_map.values())
         old_corporate_cases = {project.id: project.corporate_case_id for project in self}
         old_arbitration_cases = {project.id: project.arbitration_case_id for project in self}
@@ -319,12 +300,6 @@ class QlkProject(models.Model):
                 self._validate_case_vals(vals, department, is_create=False)
 
         result = super().write(vals)
-        if tracked_stage:
-            new_stage_id = vals.get("stage_id")
-            new_stage = self.env["qlk.project.stage"].browse(new_stage_id) if new_stage_id else False
-            for project in self:
-                if previous_stage.get(project.id) != project.stage_id:
-                    project._handle_stage_transition(previous_stage.get(project.id), project.stage_id)
         if "assigned_employee_ids" in vals:
             self._notify_assignment_changes()
 
@@ -396,41 +371,6 @@ class QlkProject(models.Model):
         latest = self.search(domain, order="case_sequence desc", limit=1)
         return (latest.case_sequence or 0) + 1
 
-    def _init_stage_logs(self):
-        StageLog = self.env["qlk.project.stage.log"]
-        now = fields.Datetime.now()
-        for project in self:
-            StageLog.create(
-                {
-                    "project_id": project.id,
-                    "stage_id": project.stage_id.id,
-                    "date_start": now,
-                }
-            )
-            project.stage_started_on = now
-
-    def _handle_stage_transition(self, previous_stage, new_stage):
-        StageLog = self.env["qlk.project.stage.log"]
-        now = fields.Datetime.now()
-        if previous_stage:
-            log = StageLog.search(
-                [("project_id", "=", self.id), ("stage_id", "=", previous_stage.id), ("date_end", "=", False)],
-                limit=1,
-            )
-            if log:
-                log.write({"date_end": now, "completed_by": self.env.user.id})
-        StageLog.create(
-            {
-                "project_id": self.id,
-                "stage_id": new_stage.id,
-                "date_start": now,
-            }
-        )
-        self.stage_started_on = now
-        self.stage_completed_on = False
-        self.transfer_ready = False
-        self._notify_stage_change(previous_stage, new_stage)
-
     def _post_create_notifications(self):
         for project in self:
             if project.assigned_employee_ids:
@@ -451,21 +391,6 @@ class QlkProject(models.Model):
                     body=_("Project team updated."),
                     partner_ids=partners.ids,
                 )
-
-    def _notify_stage_change(self, previous_stage, new_stage):
-        if not self.assigned_employee_ids:
-            return
-        partners = self.assigned_employee_ids.mapped("user_id.partner_id")
-        if not partners:
-            return
-        previous_name = previous_stage.name if previous_stage else _("New")
-        body = _(
-            "Project %(code)s moved from %(previous)s to %(current)s.",
-            code=self.code,
-            previous=previous_name,
-            current=new_stage.name,
-        )
-        self.message_post(body=body, partner_ids=partners.ids)
 
     def action_request_poa(self):
         for project in self:
@@ -494,15 +419,23 @@ class QlkProject(models.Model):
             if state == "uploaded":
                 project.message_post(body=_("POA documents uploaded."))
 
-    def action_view_stage_logs(self):
+    def action_open_log_hours(self):
         self.ensure_one()
+        default_employee = (
+            self.assigned_employee_ids[:1].id
+            if self.assigned_employee_ids
+            else self.env.user.employee_id.id
+        )
         return {
             "type": "ir.actions.act_window",
-            "name": _("Stage History"),
-            "res_model": "qlk.project.stage.log",
-            "view_mode": "list,form",
-            "domain": [("project_id", "=", self.id)],
-            "context": {"default_project_id": self.id},
+            "res_model": "qlk.project.log.hours",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_project_id": self.id,
+                "default_department": self.department,
+                "default_employee_id": default_employee,
+            },
         }
 
     def action_view_tasks(self):
@@ -611,10 +544,13 @@ class QlkProject(models.Model):
                 return result
         raise UserError(_("No related case is linked to this project."))
 
-    def action_transfer_to_litigation(self):
+    def _action_open_transfer_wizard(self, flow):
         self.ensure_one()
         if self.department != "litigation":
             raise UserError(_("Only litigation projects can be transferred to a court case."))
+        if self.case_id:
+            raise UserError(_("This project is already linked to a litigation case."))
+        self._ensure_client_documents_ready()
         return {
             "type": "ir.actions.act_window",
             "res_model": "qlk.project.transfer.litigation",
@@ -624,38 +560,53 @@ class QlkProject(models.Model):
                 "default_project_id": self.id,
                 "default_client_id": self.client_id.id,
                 "default_assigned_employee_id": self.assigned_employee_ids[:1].id if self.assigned_employee_ids else False,
+                "default_litigation_flow": flow,
             },
         }
 
-    def action_mark_stage_completed(self):
-        for project in self:
-            project.stage_completed_on = fields.Datetime.now()
-            project.message_post(body=_("Stage %(stage)s marked completed.", stage=project.stage_id.name))
+    def action_transfer_to_litigation(self):
+        return self._action_open_transfer_wizard(flow="litigation")
 
-    def action_next_stage(self):
-        for project in self:
-            next_stage = self.env["qlk.project.stage"].search(
-                [
-                    ("stage_type", "=", project.stage_type_code),
-                    ("sequence", ">", project.stage_id.sequence),
-                ],
-                order="sequence asc",
-                limit=1,
-            )
-            if not next_stage:
-                raise UserError(_("No further stages configured for this project."))
-            project.stage_id = next_stage.id
+    def action_transfer_to_pre_litigation(self):
+        return self._action_open_transfer_wizard(flow="pre_litigation")
 
-    def action_previous_stage(self):
-        for project in self:
-            previous_stage = self.env["qlk.project.stage"].search(
-                [
-                    ("stage_type", "=", project.stage_type_code),
-                    ("sequence", "<", project.stage_id.sequence),
-                ],
-                order="sequence desc",
-                limit=1,
-            )
-            if not previous_stage:
-                raise UserError(_("Already at the first stage."))
-            project.stage_id = previous_stage.id
+    def action_transfer_to_corporate(self):
+        self.ensure_one()
+        if self.department != "corporate":
+            raise UserError(_("Only corporate projects can be transferred to a corporate case."))
+        if self.corporate_case_id:
+            raise UserError(_("This project is already linked to a corporate case."))
+        self._ensure_client_documents_ready()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "qlk.project.transfer.corporate",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_project_id": self.id,
+                "default_client_id": self.client_id.id,
+                "default_case_name": self.name,
+                "default_assigned_employee_id": self.assigned_employee_ids[:1].id if self.assigned_employee_ids else False,
+            },
+        }
+
+    def action_transfer_to_arbitration(self):
+        self.ensure_one()
+        if self.department != "arbitration":
+            raise UserError(_("Only arbitration projects can be transferred to an arbitration case."))
+        if self.arbitration_case_id:
+            raise UserError(_("This project is already linked to an arbitration case."))
+        self._ensure_client_documents_ready()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "qlk.project.transfer.arbitration",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_project_id": self.id,
+                "default_client_id": self.client_id.id,
+                "default_case_name": self.name,
+                "default_claimant_id": self.client_id.id,
+                "default_assigned_employee_id": self.assigned_employee_ids[:1].id if self.assigned_employee_ids else False,
+            },
+        }

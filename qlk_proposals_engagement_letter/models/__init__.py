@@ -1,6 +1,7 @@
 from . import engagement_letter
 from . import res_company
 from . import res_partner
+from . import client_document
 from . import engagement_proposal
 from . import pricing_table
 from . import proposal_initiation

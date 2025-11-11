@@ -40,8 +40,7 @@
                         <button name="action_create_proposal"
                                 string="Create Proposal"
                                 type="object"
-                                class="btn-primary"
-                                groups="qlk_proposals_engagement_letter.group_legal_employee,qlk_proposals_engagement_letter.group_legal_manager"/>
+                                class="btn-primary"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">

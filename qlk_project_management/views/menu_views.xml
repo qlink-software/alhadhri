@@ -4,62 +4,53 @@
 
         <menuitem id="menu_qlk_project_root"
                   name="Project Management"
-                  sequence="1"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+                  sequence="1"/>
 
         <menuitem id="menu_qlk_project_workspace_root"
                   name="Workspace"
                   parent="menu_qlk_project_root"
-                  sequence="1"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+                  sequence="1"/>
 
         <menuitem id="menu_qlk_project_analytics_root"
                   name="Analytics"
                   parent="menu_qlk_project_root"
-                  sequence="2"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+                  sequence="2"/>
 
         <menuitem id="menu_qlk_project_dashboard"
                   name="Dashboard"
                   parent="menu_qlk_project_workspace_root"
                   action="qlk_project_management.action_project_dashboard"
-                  sequence="5"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_viewer"/>
+                  sequence="5"/>
 
         <menuitem id="menu_qlk_project_projects"
                   name="Projects"
                   parent="menu_qlk_project_workspace_root"
                   action="qlk_project_management.action_qlk_project"
-                  sequence="10"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+                  sequence="10"/>
 
         <menuitem id="menu_qlk_project_tasks"
                   name="Tasks"
                   parent="qlk_proposals_engagement_letter.menu_management_root"
                   action="qlk_project_management.action_qlk_project_tasks"
-                  sequence="5"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+                  sequence="5"/>
 
         <menuitem id="menu_qlk_project_hours"
                   name="Hours"
                   parent="qlk_proposals_engagement_letter.menu_management_root"
                   action="qlk_project_management.action_qlk_project_hours"
-                  sequence="10"
-                  groups="qlk_law.group_qlk_law_manager"/>
+                  sequence="10"/>
 
         <menuitem id="menu_qlk_project_stages"
-                  name="Stages"
+                  name="Case Stages"
                   parent="menu_qlk_project_workspace_root"
                   action="qlk_project_management.action_qlk_project_stage"
-                  sequence="20"
-                  groups="qlk_law.group_qlk_law_manager"/>
+                  sequence="20"/>
 
         <menuitem id="menu_qlk_project_analytics_dashboard"
                   name="Analytics Dashboard"
                   parent="menu_qlk_project_analytics_root"
                   action="qlk_project_management.action_analysis_dashboard"
-                  sequence="1"
-                  groups="qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_lawyer"/>
+                  sequence="1"/>
 
     </data>
 </odoo>

@@ -150,7 +150,7 @@ class AnalysisDashboard extends Component {
                 actionKey: "hearings",
             },
             projectProgress: {
-                title: _t("Project Progress"),
+                title: _t("Projects by Department"),
                 dataset: this.series.project_progress || [],
                 color: this.palette.muted || "#0D3E7A",
                 type: "bar",

@@ -1,0 +1,5 @@
+<odoo>
+   <menuitem id="app_main_action_action_menu" 
+		web_icon="qlink_backend_theme,static/description/icon.png"/> 	
+
+</odoo>

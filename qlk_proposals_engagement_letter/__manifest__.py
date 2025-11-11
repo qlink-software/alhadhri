@@ -13,6 +13,8 @@
         "contacts",
         "account",
         "hr",
+        "contacts",
+        "crm",
         "qlk_law",
     ],
     "data": [
@@ -32,6 +34,7 @@
         "views/engagement_letter_views.xml",
         "views/engagement_proposal_views.xml",
         "views/cost_calculation_views.xml",
+        "views/client_document_views.xml",
         "views/engagement_letter_menu.xml",
         "report/business_proposal_report.xml",
         "report/engagement_letter_report.xml",

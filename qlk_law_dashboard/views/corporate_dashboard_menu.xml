@@ -12,8 +12,7 @@
                   name="Corporate Dashboard"
                   parent="qlk_corporate.menu_corporate_root"
                   sequence="0"
-                  action="action_corporate_dashboard_client"
-                  groups="qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_responsible,qlk_corporate.group_corporate_manager"/>
+                  action="action_corporate_dashboard_client"/>
 
     </data>
 </odoo>

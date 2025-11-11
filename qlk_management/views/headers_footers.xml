@@ -29,7 +29,6 @@
                                     class="btn btn-link"
                                     icon="fa-pencil"
                                     colspan="2"
-                                    groups="base.group_system,base.group_no_one"
                                 />
                             </div>
                             <field
@@ -40,16 +39,15 @@
                             <field name="is_proposal" invisible="1"/>
                         </group>
                     </group>
-                    <group string="Attached To" groups="base.group_no_one">
+                    <group string="Attached To">
                         <field
                             name="company_id"
-                            groups="base.group_multi_company"
                             options="{'no_create': True}"
                             class="oe_inline"
                         />
                         <field name="form_field_ids" widget="many2many_tags"/>
                     </group>
-                    <group string="History" groups="base.group_no_one" invisible="not create_date">
+                    <group string="History" invisible="not create_date">
                         <label for="create_uid" string="Creation"/>
                         <div name="creation_div">
                             <field name="create_uid" readonly="1" class="oe_inline"/> on
@@ -112,7 +110,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="document_type"/>
-                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="company_id" optional="show"/>
             </list>
         </field>
     </record>

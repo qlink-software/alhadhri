@@ -15,14 +15,21 @@
         "hr_holidays",
         "qlk_law",
         "qlk_law_police",
+        "qlk_project_management",
     ],
     "data": [
         "views/lawyer_dashboard_menu.xml",
+        "views/corporate_dashboard_menu.xml",
+        "views/arbitration_dashboard_menu.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "qlk_law_dashboard/static/src/js/lawyer_dashboard.js",
+            "qlk_law_dashboard/static/src/js/corporate_dashboard.js",
+            "qlk_law_dashboard/static/src/js/arbitration_dashboard.js",
             "qlk_law_dashboard/static/src/xml/lawyer_dashboard.xml",
+            "qlk_law_dashboard/static/src/xml/corporate_dashboard.xml",
+            "qlk_law_dashboard/static/src/xml/arbitration_dashboard.xml",
             "qlk_law_dashboard/static/src/scss/lawyer_dashboard.scss",
         ],
     },

@@ -12,8 +12,7 @@
                   name="Arbitration Dashboard"
                   parent="qlk_arbitration.menu_arbitration_root"
                   sequence="0"
-                  action="action_arbitration_dashboard_client"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitration_dashboard_client"/>
 
     </data>
 </odoo>

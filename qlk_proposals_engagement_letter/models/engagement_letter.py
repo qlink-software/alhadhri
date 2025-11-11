@@ -183,6 +183,17 @@ class EngagementLetter(models.Model):
         tracking=True,
         domain="[('parent_id', '=', False)]",
     )
+    client_capacity = fields.Char(string="Client Capacity/Title")
+    client_document_ids = fields.One2many(
+        related="partner_id.client_document_ids",
+        string="Client Documents",
+        readonly=True,
+    )
+    client_document_warning = fields.Html(
+        related="partner_id.document_warning_message",
+        string="Document Warning",
+        readonly=True,
+    )
     client_type = fields.Selection(
         selection=[("individual", "Individual Client"), ("company", "Company Client")],
         string="Client Type",
@@ -772,7 +783,7 @@ class EngagementLetter(models.Model):
         except ValueError:
             partners |= self.env.user.partner_id
         try:
-            partners |= self.env.ref("qlk_law.group_qlk_law_accountant").users.mapped("partner_id")
+            partners |= self.env.ref("qlk_law.group_qlk_law_manager").users.mapped("partner_id")
         except ValueError:
             partners |= self.env.user.partner_id
         return partners

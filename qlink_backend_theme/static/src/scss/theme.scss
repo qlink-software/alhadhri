@@ -1356,11 +1356,11 @@ div.o_boolean_toggle.custom-control.custom-checkbox > label.custom-control-label
 // Progress ends
 
 // Email marketing starts
-.o_domain_node.o_domain_list.o_domain_selector > .o_domain_debug_container {
+.o_domain_node.o_domain_tree.o_domain_selector > .o_domain_debug_container {
     background: rgba(85, 110, 230, 0.25);
     color: #000;
 }
-.o_domain_node.o_domain_list.o_domain_selector > .o_domain_debug_container > input {
+.o_domain_node.o_domain_tree.o_domain_selector > .o_domain_debug_container > input {
     background: rgba(85, 110, 230, 0.25);
 }
 .o_field_widget.o_field_domain.o_inline_mode.o_edit_mode > .o_field_domain_panel {

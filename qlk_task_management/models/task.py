@@ -41,6 +41,15 @@ class QlkTask(models.Model):
             "management": "set default",
         },
     )
+    litigation_flow = fields.Selection(
+        selection=[
+            ("pre_litigation", "Pre-Litigation"),
+            ("litigation", "Litigation"),
+        ],
+        string="Proceeding Type",
+        compute="_compute_litigation_flow",
+        help="Mirrors the related case proceeding type when available.",
+    )
     litigation_phase = fields.Selection(
         selection=LITIGATION_PHASE_SELECTION,
         string="Litigation Phase",
@@ -190,6 +199,14 @@ class QlkTask(models.Model):
         for task in self:
             if task.hours_spent <= 0:
                 raise ValidationError(_("Hours Spent must be strictly positive."))
+
+    @api.depends("case_id")
+    def _compute_litigation_flow(self):
+        for task in self:
+            if task.case_id and "litigation_flow" in task.case_id._fields:
+                task.litigation_flow = task.case_id.litigation_flow
+            else:
+                task.litigation_flow = False
 
     @api.constrains("date_start", "date_finished")
     def _check_dates(self):

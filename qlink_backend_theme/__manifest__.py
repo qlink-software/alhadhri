@@ -8,7 +8,7 @@
     'depends': ['web','mail'],
     'data': [
         # 'views/assets.xml',
-        # 'views/hide_main_navbar.xml',
+        # 'views/main_icon.xml',
 
     ],
     'assets': {
@@ -19,6 +19,7 @@
             'qlink_backend_theme/static/src/js/web_navbar_appmenu/webNavbarAppMenu.js'
         ],
     },
+    'images': ['static/description/icon.jpg'],
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

@@ -32,3 +32,5 @@
 "access_client_detail_employee","Engagement Client Detail Employee","model_qlk_engagement_client_detail","qlk_proposals_engagement_letter.group_legal_employee",1,1,1,0
 "access_client_detail_manager","Engagement Client Detail Manager","model_qlk_engagement_client_detail","qlk_proposals_engagement_letter.group_legal_manager",1,1,1,1
 "access_cost_calculation_accountant","Cost Calculation Accountant","model_cost_calculation","account.group_account_user",1,1,1,1
+"access_client_document_manager","Client Document Manager","model_qlk_client_document","qlk_law.group_qlk_law_manager",1,1,1,1
+"access_client_document_lawyer","Client Document Lawyer","model_qlk_client_document","qlk_law.group_qlk_law_lawyer",1,1,1,0

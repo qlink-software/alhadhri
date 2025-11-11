@@ -35,43 +35,37 @@
         <menuitem id="menu_arbitration_root"
                   name="Arbitration"
                   
-                  sequence="30"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  sequence="30"/>
 
         <menuitem id="menu_arbitration_case"
                   name="Arbitration Cases"
                   parent="menu_arbitration_root"
                   sequence="1"
-                  action="action_arbitration_case"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitration_case"/>
 
         <menuitem id="menu_arbitration_session"
                   name="Sessions"
                   parent="menu_arbitration_root"
                   sequence="5"
-                  action="action_arbitration_session"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitration_session"/>
 
         <menuitem id="menu_arbitration_memo"
                   name="Memos"
                   parent="menu_arbitration_root"
                   sequence="10"
-                  action="action_arbitration_memo"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitration_memo"/>
 
         <menuitem id="menu_arbitration_award"
                   name="Awards"
                   parent="menu_arbitration_root"
                   sequence="15"
-                  action="action_arbitration_award"
-                  groups="qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_responsible,qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitration_award"/>
 
         <menuitem id="menu_arbitrator_register"
                   name="Arbitrators"
                   parent="menu_arbitration_root"
                   sequence="20"
-                  action="action_arbitrator_register"
-                  groups="qlk_arbitration.group_arbitration_manager"/>
+                  action="action_arbitrator_register"/>
 
         <record id="view_arbitration_case_list" model="ir.ui.view">
             <field name="name">qlk.arbitration.case.list</field>

@@ -24,6 +24,15 @@ class ProjectTransferLitigation(models.TransientModel):
     )
     hearing_date = fields.Date(string="First Hearing Date")
     notes = fields.Text(string="Additional Notes")
+    litigation_flow = fields.Selection(
+        selection=[
+            ("pre_litigation", "Pre-Litigation"),
+            ("litigation", "Litigation"),
+        ],
+        string="Proceeding Type",
+        required=True,
+        default="litigation",
+    )
 
     def action_confirm(self):
         self.ensure_one()
@@ -41,9 +50,16 @@ class ProjectTransferLitigation(models.TransientModel):
         if not self.case_number.isdigit():
             raise UserError(_("Court case number should contain digits only."))
 
+        case_name = project.name
+        if project.client_id:
+            if project.client_capacity:
+                case_name = _("%(client)s - %(capacity)s", client=project.client_id.name, capacity=project.client_capacity)
+            else:
+                case_name = project.client_id.name
+
         case_vals = {
-            "name": project.name,
-            "name2": project.code or project.name,
+            "name": case_name,
+            "name2": project.code or case_name,
             "client_id": project.client_id.id,
             "case_number": int(self.case_number),
             "case_year": self.case_year,
@@ -56,6 +72,8 @@ class ProjectTransferLitigation(models.TransientModel):
             "opponent_id": self.opponent_id.id,
             "company_id": project.company_id.id,
             "description": project.description,
+            "client_capacity": project.client_capacity,
+            "litigation_flow": self.litigation_flow,
         }
         case = self.env["qlk.case"].create(case_vals)
 
@@ -70,15 +88,13 @@ class ProjectTransferLitigation(models.TransientModel):
             )
 
         # update project
-        first_stage = self.env.ref("qlk_project_management.qlk_project_stage_litigation_instance", raise_if_not_found=False)
-        write_vals = {
+        project.write(
+            {
             "case_id": case.id,
             "department": "litigation",
             "transfer_ready": False,
-        }
-        if first_stage:
-            write_vals["stage_id"] = first_stage.id
-        project.write(write_vals)
+            }
+        )
 
         project.message_post(
             body=_(

@@ -3,35 +3,30 @@
     <menuitem id="menu_task_management_root"
               name="Tasks &amp; Hours"
               parent="qlk_law.menu_qlk_case_root"
-              sequence="45"
-              groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_viewer"/>
+              sequence="45"/>
 
     <menuitem id="menu_task_management_litigation"
               name="Litigation Tasks"
               action="qlk_task_management.action_qlk_task_litigation"
               parent="menu_task_management_root"
-              sequence="10"
-              groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager"/>
+              sequence="10"/>
 
     <menuitem id="menu_task_management_corporate"
               name="Corporate Tasks"
               action="qlk_task_management.action_qlk_task_corporate"
               parent="menu_task_management_root"
-              sequence="20"
-              groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager,qlk_proposals_engagement_letter.group_engagement_manager,qlk_proposals_engagement_letter.group_engagement_user"/>
+              sequence="20"/>
 
     <menuitem id="menu_task_management_internal"
               name="Management Tasks"
               action="qlk_task_management.action_qlk_task_management"
               parent="menu_task_management_root"
-              sequence="30"
-              groups="hr.group_hr_user,qlk_law.group_qlk_law_manager"/>
+              sequence="30"/>
 
     <menuitem id="menu_task_management_all"
               name="All Tasks"
               action="qlk_task_management.action_qlk_task_all"
               parent="menu_task_management_root"
-              sequence="40"
-              groups="qlk_law.group_qlk_law_manager"/>
+              sequence="40"/>
 </odoo>
 

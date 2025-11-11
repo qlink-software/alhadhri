@@ -50,10 +50,6 @@ class ProjectDashboard extends Component {
         return this.totals.department_counts || [];
     }
 
-    get stageStats() {
-        return this.state.data?.stages || [];
-    }
-
     get projectCards() {
         return this.state.data?.projects?.items || [];
     }
@@ -95,20 +91,6 @@ class ProjectDashboard extends Component {
         return Number(value).toFixed(2);
     }
 
-    formatPercent(value) {
-        if (!value) {
-            return "0%";
-        }
-        return `${Math.round(value * 100)}%`;
-    }
-
-    progressWidth(value) {
-        if (!value) {
-            return "0%";
-        }
-        return `${Math.min(Math.round(value * 100), 100)}%`;
-    }
-
     openAction(actionMeta, context = {}) {
         if (!actionMeta?.id) {
             return;
@@ -128,10 +110,6 @@ class ProjectDashboard extends Component {
 
     openHours() {
         this.openAction(this.taskSummary.hours_action);
-    }
-
-    openStages() {
-        this.openAction(this.actions.stages);
     }
 
     openProject(project) {

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_partner_form_client_documents" model="ir.ui.view">
+            <field name="name">res.partner.form.client.documents</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Client Documents">
+                        <group>
+                            <field name="document_warning_message"
+                                   nolabel="1"
+                                   widget="html"
+                                   options="{'invisible': [('document_warning_required', '=', False)]}"/>
+                        </group>
+                        <field name="client_document_ids" context="{'default_partner_id': id}" domain="[('partner_id', '=', id)]">
+                            <list editable="bottom">
+                                <field name="doc_type"/>
+                                <field name="attachment_id"/>
+                                <field name="is_uploaded" readonly="1"/>
+                                <field name="poa_reference"/>
+                                <field name="poa_expiration_date"/>
+                                <field name="note"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_client_document_tree" model="ir.ui.view">
+            <field name="name">qlk.client.document.tree</field>
+            <field name="model">qlk.client.document</field>
+            <field name="arch" type="xml">
+                <list string="Client Documents">
+                    <field name="partner_id"/>
+                    <field name="doc_type"/>
+                    <field name="attachment_id"/>
+                    <field name="is_uploaded"/>
+                    <field name="poa_reference"/>
+                    <field name="poa_expiration_date"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_client_document_form" model="ir.ui.view">
+            <field name="name">qlk.client.document.form</field>
+            <field name="model">qlk.client.document</field>
+            <field name="arch" type="xml">
+                <form string="Client Document">
+                    <sheet>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="doc_type"/>
+                        </group>
+                        <group>
+                            <field name="attachment_id"/>
+                            <field name="is_uploaded" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="poa_reference"/>
+                            <field name="poa_expiration_date"/>
+                        </group>
+                        <group>
+                            <field name="note"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_client_documents" model="ir.actions.act_window">
+            <field name="name">Client Documents</field>
+            <field name="res_model">qlk.client.document</field>
+            <field name="view_mode">list,form</field>
+        </record>
+    </data>
+</odoo>

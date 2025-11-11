@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_transfer_arbitration_form" model="ir.ui.view">
+            <field name="name">qlk.project.transfer.arbitration.form</field>
+            <field name="model">qlk.project.transfer.arbitration</field>
+            <field name="arch" type="xml">
+                <form string="Create Arbitration Case" create="false" edit="false">
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="1"/>
+                            <field name="client_id" readonly="1"/>
+                            <field name="case_name"/>
+                            <field name="case_number"/>
+                            <field name="arbitration_center"/>
+                        </group>
+                        <group>
+                            <field name="assigned_employee_id"/>
+                            <field name="claimant_id"/>
+                            <field name="respondent_id"/>
+                            <field name="start_date"/>
+                        </group>
+                    </group>
+                    <field name="notes"/>
+                    <footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        <button string="Create Case" type="object" name="action_confirm" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

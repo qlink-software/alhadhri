@@ -6,17 +6,17 @@
             <t t-if="state.loading">
                 <div class="qlk-dashboard__loading">
                     <div class="spinner-border text-light" role="status">
-                        <span class="sr-only">جار التحميل...</span>
+                        <span class="sr-only">Loading...</span>
                     </div>
-                    <span>جار التحميل...</span>
+                    <span>Loading...</span>
                 </div>
             </t>
             <t t-else="">
                 <section class="qlk-dashboard__hero">
                     <div class="hero__info">
-                        <h1>لوحة المحامي</h1>
+                        <h1>Lawyer Dashboard</h1>
                         <p>
-                            مرحبًا،
+                            Welcome,
                             <strong t-esc="userInfo.name or ''"/>
                         </p>
                         <t t-if="userInfo.company">
@@ -25,11 +25,11 @@
                     </div>
                     <div class="hero__metrics">
                         <div class="metric-card">
-                            <span>إجمالي المهام</span>
+                            <span>Total Tasks</span>
                             <strong t-esc="tasks.count"/>
                         </div>
                         <div class="metric-card">
-                            <span>ساعات المهام</span>
+                            <span>Task Hours</span>
                             <strong t-esc="formatHours(tasks.hours)"/>
                         </div>
                     </div>
@@ -39,18 +39,18 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>القضايا المرتبطة بي</h2>
-                                <small t-esc="cases.count + ' عنصرًا'"/>
+                                <h2>My Cases</h2>
+                                <small t-esc="cases.count + ' items'"/>
                             </div>
                             <button t-if="cases.action"
                                     class="qlk-link"
                                     type="button"
                                     t-on-click="openCases">
-                                عرض الكل
+                                View All
                             </button>
                         </header>
                         <ul class="qlk-list">
-                            <li t-if="!cases.items.length" class="qlk-empty">لا توجد قضايا مرتبطة.</li>
+                            <li t-if="!cases.items.length" class="qlk-empty">No cases found.</li>
                             <t t-foreach="cases.items" t-as="item" t-key="item.id">
                                 <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                     <div class="item__title">
@@ -69,18 +69,18 @@
                     <article class="qlk-card accent">
                         <header>
                             <div>
-                                <h2>جلسات هذا الأسبوع</h2>
+                                <h2>Hearings This Week</h2>
                                 <small t-esc="hearingsWeek.date_range.start + ' - ' + hearingsWeek.date_range.end"/>
                             </div>
                             <button t-if="hearingsWeek.action"
                                     class="qlk-link"
                                     type="button"
                                     t-on-click="openHearingsWeek">
-                                عرض الكل
+                                View All
                             </button>
                         </header>
                         <ul class="qlk-list">
-                            <li t-if="!hearingsWeek.items.length" class="qlk-empty">لا توجد جلسات خلال هذا الأسبوع.</li>
+                            <li t-if="!hearingsWeek.items.length" class="qlk-empty">No hearings scheduled this week.</li>
                             <t t-foreach="hearingsWeek.items" t-as="item" t-key="item.id">
                                 <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                     <div class="item__title">
@@ -99,18 +99,18 @@
                     <article class="qlk-card muted">
                         <header>
                             <div>
-                                <h2>جلسات اليوم</h2>
+                                <h2>Hearings Today</h2>
                                 <small t-esc="hearingsToday.date"/>
                             </div>
                             <button t-if="hearingsToday.action"
                                     class="qlk-link"
                                     type="button"
                                     t-on-click="openHearingsToday">
-                                عرض الكل
+                                View All
                             </button>
                         </header>
                         <ul class="qlk-list">
-                            <li t-if="!hearingsToday.items.length" class="qlk-empty">لا توجد جلسات اليوم.</li>
+                            <li t-if="!hearingsToday.items.length" class="qlk-empty">No hearings scheduled today.</li>
                             <t t-foreach="hearingsToday.items" t-as="item" t-key="item.id">
                                 <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                     <div class="item__title">
@@ -129,18 +129,18 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>استشاراتي</h2>
-                                <small t-esc="consultations.count + ' عنصرًا'"/>
+                                <h2>My Consultations</h2>
+                                <small t-esc="consultations.count + ' items'"/>
                             </div>
                             <button t-if="consultations.action"
                                     class="qlk-link"
                                     type="button"
                                     t-on-click="openConsultations">
-                                عرض الكل
+                                View All
                             </button>
                         </header>
                         <ul class="qlk-list">
-                            <li t-if="!consultations.items.length" class="qlk-empty">لا توجد استشارات مسجلة.</li>
+                            <li t-if="!consultations.items.length" class="qlk-empty">No consultations recorded.</li>
                             <t t-foreach="consultations.items" t-as="item" t-key="item.id">
                                 <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                     <div class="item__title">
@@ -159,18 +159,18 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>بلاغات الشرطة</h2>
-                                <small t-esc="complaints.count + ' عنصرًا'"/>
+                                <h2>Police Reports</h2>
+                                <small t-esc="complaints.count + ' items'"/>
                             </div>
                             <button t-if="complaints.action"
                                     class="qlk-link"
                                     type="button"
                                     t-on-click="openComplaints">
-                                عرض الكل
+                                View All
                             </button>
                         </header>
                         <ul class="qlk-list">
-                            <li t-if="!complaints.items.length" class="qlk-empty">لا توجد بلاغات مسجلة.</li>
+                            <li t-if="!complaints.items.length" class="qlk-empty">No police reports recorded.</li>
                             <t t-foreach="complaints.items" t-as="item" t-key="item.id">
                                 <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                     <div class="item__title">
@@ -189,8 +189,8 @@
                     <article class="qlk-card hr-card">
                         <header>
                             <div>
-                                <h2>الموارد البشرية</h2>
-                                <small t-if="hr.is_manager and hr.total_employees" t-esc="'إجمالي الموظفين: ' + hr.total_employees"/>
+                                <h2>Human Resources</h2>
+                                <small t-if="hr.is_manager and hr.total_employees" t-esc="'Total Employees: ' + hr.total_employees"/>
                                 <small t-elif="hr.employee and hr.employee.job" t-esc="hr.employee.job"/>
                             </div>
                             <div class="hr-header-actions">
@@ -198,38 +198,38 @@
                                         class="qlk-link"
                                         type="button"
                                         t-on-click="openHrEmployees">
-                                    الموظفون
+                                    Employees
                                 </button>
                                 <button t-if="hr.actions.leaves"
                                         class="qlk-link"
                                         type="button"
                                         t-on-click="openHrLeaves">
-                                    الإجازات
+                                    Leave Requests
                                 </button>
                             </div>
                         </header>
                         <t t-if="!hr.available">
-                            <div class="qlk-empty">لا توجد بيانات متاحة.</div>
+                            <div class="qlk-empty">No data available.</div>
                         </t>
                         <t t-elif="hr.is_manager">
                             <div class="hr-metrics">
                                 <div class="metric-card mini">
-                                    <span>طلبات الإجازة المعلّقة</span>
+                                    <span>Pending Leave Requests</span>
                                     <strong t-esc="hr.pending_leave_requests"/>
                                 </div>
                                 <div class="metric-card mini">
-                                    <span>إجمالي الموظفين</span>
+                                    <span>Total Employees</span>
                                     <strong t-esc="hr.total_employees"/>
                                 </div>
                             </div>
                             <div class="hr-overview">
-                                <h3>أرصدة الإجازات</h3>
+                                <h3>Leave Balances</h3>
                                 <table class="hr-table">
                                     <thead>
                                         <tr>
-                                            <th>الموظف</th>
-                                            <th>المسمى الوظيفي</th>
-                                            <th>الرصيد</th>
+                                            <th>Employee</th>
+                                            <th>Job Title</th>
+                                            <th>Balance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -244,9 +244,9 @@
                                 </table>
                             </div>
                             <div class="hr-upcoming">
-                                <h3>أقرب الإجازات</h3>
+                                <h3>Upcoming Leave Requests</h3>
                                 <ul class="qlk-list slim">
-                                    <li t-if="!hr.upcoming_leaves.length" class="qlk-empty">لا توجد طلبات إجازة قادمة.</li>
+                                    <li t-if="!hr.upcoming_leaves.length" class="qlk-empty">No upcoming leave requests.</li>
                                     <t t-foreach="hr.upcoming_leaves" t-as="item" t-key="item.id">
                                         <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                             <div class="item__title">
@@ -270,11 +270,11 @@
                                 </div>
                                 <div class="hr-metrics">
                                     <div class="metric-card mini">
-                                        <span>رصيد الإجازات</span>
+                                        <span>Leave Balance</span>
                                         <strong t-esc="hr.employee.leave_balance"/>
                                     </div>
                                     <div class="metric-card mini">
-                                        <span>طلبات قيد الانتظار</span>
+                                        <span>Pending Requests</span>
                                         <strong t-esc="hr.pending_leave_requests"/>
                                     </div>
                                 </div>
@@ -288,9 +288,9 @@
                                 </div>
                             </div>
                             <div class="hr-upcoming">
-                                <h3>إجازاتي القادمة</h3>
+                                <h3>My Upcoming Leaves</h3>
                                 <ul class="qlk-list slim">
-                                    <li t-if="!hr.upcoming_leaves.length" class="qlk-empty">لا توجد طلبات إجازة قادمة.</li>
+                                    <li t-if="!hr.upcoming_leaves.length" class="qlk-empty">No upcoming leave requests.</li>
                                     <t t-foreach="hr.upcoming_leaves" t-as="item" t-key="item.id">
                                         <li class="qlk-list__item" t-on-click="() => openRecord(item.url)">
                                             <div class="item__title">

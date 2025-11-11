@@ -18,6 +18,20 @@ class CorporateCaseProject(models.Model):
     actual_hours_total = fields.Float(string="Approved Hours", compute="_compute_project_hours", store=False)
     actual_hours_month = fields.Float(string="Approved Hours (Month)", compute="_compute_project_hours", store=False)
     over_hours = fields.Boolean(string="Over Agreement Hours", compute="_compute_project_hours", store=False)
+    client_capacity = fields.Char(string="Client Capacity/Title")
+    client_document_ids = fields.One2many(
+        related="client_id.client_document_ids",
+        string="Client Documents",
+        readonly=True,
+    )
+    client_document_warning = fields.Html(
+        related="client_id.document_warning_message",
+        readonly=True,
+    )
+    client_document_warning_required = fields.Boolean(
+        related="client_id.document_warning_required",
+        readonly=True,
+    )
 
     @api.depends("project_id", "agreement_hours")
     def _compute_project_hours(self):

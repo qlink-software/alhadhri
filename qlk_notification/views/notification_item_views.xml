@@ -12,7 +12,7 @@
                 <field name="state"/>
                 <field name="reference_display_name" optional="show"/>
                 <field name="note" optional="hide"/>
-                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="company_id"/>
             </list>
         </field>
     </record>
@@ -44,7 +44,7 @@
                             <field name="reference_res_id" modifiers="{'readonly': [('reference_model_id','=',False)]}"/>
                             <field name="reference_display_name" readonly="1"/>
                             <field name="action_url"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="company_id"/>
                         </group>
                     </group>
                     <notebook>
@@ -74,7 +74,7 @@
                 <filter string="Handled" name="done" domain="[('state','=','done')]"/>
                 <group expand="0" string="Group By">
                     <filter string="By Type" name="group_by_type" context="{'group_by':'notification_type'}"/>
-                    <filter string="By Company" name="group_by_company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    <filter string="By Company" name="group_by_company" context="{'group_by':'company_id'}"/>
                 </group>
             </search>
         </field>

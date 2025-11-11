@@ -15,7 +15,7 @@
                 <section class="qlk-project-dashboard__hero">
                     <div class="hero__info">
                         <h1>Project portfolio overview</h1>
-                        <p>Monitor pipeline, stage progress, and task approval status in real time.</p>
+                        <p>Monitor pipeline, case linkage, and task approval status in real time.</p>
                     </div>
                     <div class="hero__metrics">
                         <div class="metric-card">
@@ -38,36 +38,6 @@
                 </section>
 
                 <section class="qlk-project-dashboard__grid">
-                    <article class="qlk-card wide">
-                        <header>
-                            <div>
-                                <h2>Pipeline stages</h2>
-                                <small>Most active stages across tracked projects</small>
-                            </div>
-                            <button t-if="actions.stages"
-                                    class="qlk-link"
-                                    type="button"
-                                    t-on-click="openStages">
-                                Manage stages
-                            </button>
-                        </header>
-                        <ul class="qlk-list">
-                            <t t-if="stageStats.length">
-                                <t t-foreach="stageStats" t-as="stage" t-key="stage.id">
-                                    <li class="qlk-list__item">
-                                        <span class="item__name">
-                                            <t t-esc="stage.name"/>
-                                        </span>
-                                        <span class="item__badge">
-                                            <t t-esc="formatNumber(stage.count)"/> active
-                                        </span>
-                                    </li>
-                                </t>
-                            </t>
-                            <li t-else="" class="qlk-empty">No stage activity recorded yet.</li>
-                        </ul>
-                    </article>
-
                     <article class="qlk-card">
                         <header>
                             <div>
@@ -143,7 +113,7 @@
                         <header>
                             <div>
                                 <h2>Recent projects</h2>
-                                <small>Latest updated projects with progress and workload</small>
+                                <small>Latest updated projects with workload insights</small>
                             </div>
                             <button t-if="projectAction"
                                     class="qlk-link"
@@ -171,20 +141,11 @@
                                                 <t t-esc="project.client || '-'"/>
                                             </span>
                                             <span>
-                                                Stage:
-                                                <t t-esc="project.stage || '-'"/>
+                                                Matter:
+                                                <t t-esc="project.case || '-'"/>
                                             </span>
                                             <span class="badge badge-success" t-if="project.has_case">
                                                 Linked case
-                                            </span>
-                                        </div>
-                                        <div class="project-card__progress">
-                                            <div class="progress-bar">
-                                                <div class="progress-bar__value"
-                                                     t-att-style="'width: ' + progressWidth(project.progress)"/>
-                                            </div>
-                                            <span>
-                                                <t t-esc="progressWidth(project.progress)"/>
                                             </span>
                                         </div>
                                         <div class="project-card__meta">
@@ -202,4 +163,3 @@
         </div>
     </t>
 </templates>
-

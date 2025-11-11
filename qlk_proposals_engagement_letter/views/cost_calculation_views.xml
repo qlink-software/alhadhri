@@ -69,8 +69,7 @@
                   name="Cost Calculations"
                   parent="account.menu_finance_configuration"
                   action="cost_calculation_action"
-                  sequence="90"
-                  groups="account.group_account_user"/>
+                  sequence="90"/>
 
     </data>
 </odoo>

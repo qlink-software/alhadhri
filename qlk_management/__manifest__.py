@@ -33,7 +33,7 @@
         'sale_crm',
         'hide_chatter',
         'project',
-        
+        'qlk_proposals_engagement_letter',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -53,7 +53,6 @@
         'views/sub_project.xml',
         
         'views/project.xml',
-        'views/cost_calculation.xml',
 
         # 'views/sound_notification_template.xml',
         # 'views/res_config_settings_views.xml',

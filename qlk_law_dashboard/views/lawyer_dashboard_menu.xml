@@ -3,17 +3,16 @@
     <data>
 
         <record id="action_lawyer_dashboard_client" model="ir.actions.client">
-            <field name="name">لوحة المحامي</field>
+            <field name="name">Lawyer Dashboard</field>
             <field name="tag">qlk.lawyer.dashboard</field>
             <field name="target">main</field>
         </record>
 
         <menuitem id="menu_lawyer_dashboard_root"
-                  name="لوحة المحامي"
+                  name="Lawyer Dashboard"
                   parent="qlk_law.menu_qlk_case_root"
                   sequence="0"
-                  action="action_lawyer_dashboard_client"
-                  groups="qlk_law.group_qlk_law_lawyer,qlk_law.group_qlk_law_manager,qlk_law.group_qlk_law_viewer"/>
+                  action="action_lawyer_dashboard_client"/>
 
     </data>
 </odoo>
