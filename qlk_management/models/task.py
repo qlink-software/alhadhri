@@ -24,7 +24,6 @@ class Tasks(models.Model):
         ('high', 'High'),('medium', 'Medium'),('low', 'Low'),
     ], string='Priority', tracking=True)
     sub_project_id = fields.Many2one('sub.project', string='Sub Project')
-    main_project_id = fields.Many2one('main.project', string='Main Project')
     attachment_ids = fields.Many2many(
         comodel_name='ir.attachment',
         string="Attachments",)
@@ -32,6 +31,12 @@ class Tasks(models.Model):
     agreement_id = fields.Many2one('managment.agreement', string='Agreement')   
     crm_id = fields.Many2one('crm.lead', string='Crm')  
     partner_id = fields.Many2one('res.partner', string='Contact') 
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        default=lambda self: self.env.company.id,
+        index=True,
+    )
     
     work_hours = fields.Float(string="Work Hours", help="Please Enter Your Hours ", required=True)  
     work_hours_display = fields.Char(

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_form_cost_calc" model="ir.ui.view">
+        <field name="name">project.project.form.cost.calc</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Cost Calculation">
+                    <group>
+                        <group>
+                            <field name="lawyer_id"/>
+                            <field name="lawyer_hour_cost" readonly="1"/>
+                            <field name="lawyer_hours"/>
+                        </group>
+                        <group>
+                            <field name="lawyer_total_cost" readonly="1"/>
+                            <field name="additional_project_cost"/>
+                            <field name="total_cost_all" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="cost_calculation_id"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

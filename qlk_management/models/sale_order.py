@@ -52,6 +52,21 @@ class SaleOrder(models.Model):
     count_agreement = fields.Char(compute='_compute_agreement', string='Count Agreement')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     cost_calculation_id = fields.Many2one('cost.calculation', string='Cost Calculation',store=True)
+    lawyer_id = fields.Many2one('hr.employee', string='Lawyer')
+    lawyer_hour_cost = fields.Float(string='Lawyer Hour Cost', compute='_compute_lawyer_costs', store=True)
+    lawyer_hours = fields.Float(string='Lawyer Hours')
+    lawyer_total_cost = fields.Float(string='Lawyer Total Cost', compute='_compute_total_costs', store=True)
+    additional_project_cost = fields.Float(string='Additional Project Cost')
+    total_cost_all = fields.Float(string='Total Cost', compute='_compute_total_costs', store=True)
+    client_document_ids = fields.One2many(
+        "qlk.client.document", string="Client Documents", related="partner_id.client_document_ids", readonly=True
+    )
+    client_document_warning = fields.Html(
+        string="Document Warning", related="partner_id.document_warning_message", readonly=True
+    )
+    client_document_warning_required = fields.Boolean(
+        related="partner_id.document_warning_required", readonly=True
+    )
     mactech = fields.Float('Mactech',store=True)
     email_charge = fields.Float('Email Charge',store=True)
     office_rent = fields.Float('Office Rent',store=True)
@@ -94,6 +109,18 @@ class SaleOrder(models.Model):
             self._update_cost_calculation()
         return res
     
+    @api.depends('lawyer_id')
+    def _compute_lawyer_costs(self):
+        for order in self:
+            order.lawyer_hour_cost = order.lawyer_id.lawyer_hour_cost or 0.0
+
+    @api.depends('lawyer_hour_cost', 'lawyer_hours', 'additional_project_cost')
+    def _compute_total_costs(self):
+        for order in self:
+            total = (order.lawyer_hour_cost or 0.0) * (order.lawyer_hours or 0.0)
+            order.lawyer_total_cost = total
+            order.total_cost_all = total + (order.additional_project_cost or 0.0)
+    
 
 
     def _update_cost_calculation(self):
@@ -135,16 +162,15 @@ class SaleOrder(models.Model):
         return {
             'name': 'name',
             'type': 'ir.actions.act_window',
-            'view_mode': 'list',
-            'views': [(False, 'list')],
+            'view_mode': 'list,form',
+            'views': [(False, 'list'), (False, 'form')],
             'res_model': 'managment.agreement',
             'target': 'current',
-            'views': [[False, 'list'], [False, 'form']],
-                'domain': [('proposal_id', '=', self.id)],
-                'context': {
-                    'create': False,
-                    'edit': False,
-                },
+            'domain': [('proposal_id', '=', self.id)],
+            'context': {
+                'create': False,
+                'edit': False,
+            },
             
         }
 

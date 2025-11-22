@@ -225,7 +225,11 @@
                 <field name="partner_credit_warning"/>
             </div>
           
-            <sheet>
+                <sheet>
+                    <div class="alert alert-warning"
+                         invisible="not client_document_warning_required">
+                        <field name="client_document_warning" widget="html" nolabel="1"/>
+                    </div>
                 <div class="oe_button_box" name="button_box">
                     <button name="action_view_invoice"
                         type="object"
@@ -268,11 +272,13 @@
                         <field name="partner_invoice_id"
                               options="{'no_quick_create': True}"
                               context="{'default_type':'invoice', 'show_address': False, 'show_vat': False, 'default_parent_id': partner_id}"
-                              readonly="state == 'cancel' or locked"/>
+                              readonly="state == 'cancel' or locked"
+                              invisible="1"/>
                         <field name="partner_shipping_id"
                               options="{'no_quick_create': True}"
                               context="{'default_type':'delivery', 'show_address': False, 'show_vat': False, 'default_parent_id': partner_id}"
-                              readonly="state == 'cancel' or locked"/>
+                              readonly="state == 'cancel' or locked"
+                              invisible="1"/>
                               
                     </group>
                     <group name="order_details">
@@ -307,7 +313,7 @@
                         <field name="pricelist_id" invisible="1" readonly="state in ['cancel', 'sale']"/>
                         <field name="tax_country_id" invisible="1"/>
                         <field name="tax_calculation_rounding_method" invisible="1"/>
-                        <field name="payment_term_id" placeholder="Immediate" options="{'no_open': True, 'no_create': True}"/>
+                        <field name="payment_term_id" placeholder="Immediate" options="{'no_open': True, 'no_create': True}" invisible="1"/>
                         <!-- <field name="display_name" readonly="1"/> -->
                         <field name="reject_reason" />
                     </group>
@@ -689,8 +695,24 @@
                     <page string="Working Hours">
                         <field name="task_ids" />
                     </page>
-                    <page string="Employee Cost Calculation">
+                    <page string="Client Documents">
+                        <field name="client_document_ids"
+                               readonly="1"
+                               widget="one2many_list"
+                               options="{'no_create': True, 'no_edit': True, 'no_open': True}"/>
+                    </page>
+                    <page string="Cost Calculation">
                         <group>
+                            <group>
+                                <field name="lawyer_id"/>
+                                <field name="lawyer_hour_cost" readonly="1"/>
+                                <field name="lawyer_hours"/>
+                            </group>
+                            <group>
+                                <field name="lawyer_total_cost" readonly="1"/>
+                                <field name="additional_project_cost"/>
+                                <field name="total_cost_all" readonly="1"/>
+                            </group>
                             <group>
                                 <field name="employee_id" />
                                 <field name="cost_calculation_id" readonly="1"/>

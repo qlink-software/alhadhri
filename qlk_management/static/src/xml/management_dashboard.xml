@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_management.ManagementDashboard" owl="1">
+        <div class="qlk-management-dashboard"
+             t-att-style="'--mg-primary: ' + (palette.primary || '#0c2d48') + '; --mg-accent: ' + (palette.accent || '#7fa2c3') + '; --mg-muted: ' + (palette.muted || '#091a2c') + '; --mg-success: ' + (palette.success || '#2EA091') + ';'">
+            <t t-if="state.loading">
+                <div class="mg-loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading…</span>
+                    </div>
+                    <span>Loading dashboard…</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="mg-hero">
+                    <article class="hero-card">
+                        <span>Clients</span>
+                        <strong t-esc="formatNumber(hero.clients)"/>
+                    </article>
+                    <article class="hero-card">
+                        <span>Total Proposals</span>
+                        <strong t-esc="formatNumber(hero.proposals)"/>
+                    </article>
+                    <article class="hero-card">
+                        <span>Approved Proposals</span>
+                        <strong t-esc="formatNumber(hero.approved_proposals)"/>
+                    </article>
+                    <article class="hero-card">
+                        <span>Engagement Letters</span>
+                        <strong t-esc="formatNumber(hero.engagements)"/>
+                    </article>
+                    <article class="hero-card">
+                        <span>Client Documents</span>
+                        <strong t-esc="formatNumber(hero.documents)"/>
+                    </article>
+                </section>
+
+                <section class="mg-grid">
+                    <article class="mg-card wide">
+                        <header>
+                            <div>
+                                <h2>Proposal Performance</h2>
+                                <small>Monitoring totals, approvals and financials</small>
+                            </div>
+                            <button t-if="proposals.action" class="mg-link" type="button"
+                                    t-on-click="openAction(proposals.action)">
+                                View proposals
+                            </button>
+                        </header>
+                        <div class="stat-line">
+                            <span>Approved</span>
+                            <strong t-esc="formatNumber(proposals.approved)"/>
+                        </div>
+                        <div class="stat-line">
+                            <span>Waiting Approval</span>
+                            <strong t-esc="formatNumber(proposals.waiting)"/>
+                        </div>
+                        <div class="stat-grid">
+                            <div>
+                                <span>Billable (Total)</span>
+                                <strong t-esc="formatCurrency(proposals.billable)"/>
+                            </div>
+                            <div>
+                                <span>Collected Amount</span>
+                                <strong t-esc="formatCurrency(proposals.collected)"/>
+                            </div>
+                            <div>
+                                <span>Pending Payments</span>
+                                <strong t-esc="formatCurrency(proposals.pending)"/>
+                            </div>
+                        </div>
+                        <t t-if="proposals.reports.length">
+                            <div class="mg-report-links">
+                                <button class="btn btn-link p-0" type="button"
+                                        t-foreach="proposals.reports" t-as="report" t-key="report.label"
+                                        t-on-click="openAction(report.action)">
+                                    <t t-esc="report.label"/>
+                                </button>
+                            </div>
+                        </t>
+                    </article>
+
+                    <article class="mg-card">
+                        <header>
+                            <div>
+                                <h2>Engagement Letters</h2>
+                                <small>By contract category</small>
+                            </div>
+                            <button t-if="engagements.action" class="mg-link" type="button"
+                                    t-on-click="openAction(engagements.action)">
+                                Manage EL
+                            </button>
+                        </header>
+                        <div class="stat-line">
+                            <span>Waiting Approval</span>
+                            <strong t-esc="formatNumber(engagements.waiting)"/>
+                        </div>
+                        <t t-if="engagements.types.length">
+                            <ul class="stage-list compact">
+                                <t t-foreach="engagements.types" t-as="etype" t-key="etype.type">
+                                    <li>
+                                        <div>
+                                            <span t-esc="etype.type"/>
+                                            <small>By type</small>
+                                        </div>
+                                        <span t-esc="formatNumber(etype.count)"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <div t-else="" class="mg-empty">No engagement data.</div>
+                    </article>
+
+                    <article class="mg-card">
+                        <header>
+                            <div>
+                                <h2>Client Coverage</h2>
+                                <small>Document readiness &amp; POA</small>
+                            </div>
+                            <button t-if="clients.action" class="mg-link" type="button"
+                                    t-on-click="openAction(clients.action)">
+                                Open Client Data
+                            </button>
+                        </header>
+                        <div class="stat-line">
+                            <span>Clients with POA</span>
+                            <strong t-esc="formatNumber(clients.with_documents)"/>
+                        </div>
+                        <div class="stat-line">
+                            <span>Total Documents</span>
+                            <strong t-esc="formatNumber(clients.documents_total)"/>
+                        </div>
+                        <button t-if="clients.documents_action" class="btn btn-link p-0" type="button"
+                                t-on-click="openAction(clients.documents_action)">
+                            Manage POA Records
+                        </button>
+                    </article>
+
+                    <article class="mg-card">
+                        <header>
+                            <div>
+                                <h2>CRM Pipeline</h2>
+                                <small>Opportunities linked to BD</small>
+                            </div>
+                            <button t-if="pipeline.action" class="mg-link" type="button"
+                                    t-on-click="openAction(pipeline.action)">
+                                Open Pipeline
+                            </button>
+                        </header>
+                        <div class="stat-line">
+                            <span>Total Pipeline</span>
+                            <strong t-esc="formatNumber(pipeline.total)"/>
+                        </div>
+                        <div class="stat-grid">
+                            <div>
+                                <span>Open</span>
+                                <strong t-esc="formatNumber(pipeline.open)"/>
+                            </div>
+                            <div>
+                                <span>Won</span>
+                                <strong t-esc="formatNumber(pipeline.won)"/>
+                            </div>
+                        </div>
+                        <t t-if="pipeline.stages.length">
+                            <ul class="stage-list compact">
+                                <t t-foreach="pipeline.stages" t-as="stage" t-key="stage.stage">
+                                    <li>
+                                        <div>
+                                            <span t-esc="stage.stage"/>
+                                            <small>Stage</small>
+                                        </div>
+                                        <span t-esc="formatNumber(stage.count)"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                    </article>
+
+                    <t t-if="alerts.expiring.length">
+                        <article class="mg-card wide">
+                            <header>
+                                <div>
+                                    <h2>Upcoming POA Expirations</h2>
+                                    <small>Next 30 days</small>
+                                </div>
+                                <button t-if="clients.documents_action" class="mg-link" type="button"
+                                        t-on-click="openAction(clients.documents_action)">
+                                    Manage Documents
+                                </button>
+                            </header>
+                            <table class="mg-table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Document</th>
+                                        <th>Expiry</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="alerts.expiring" t-as="doc" t-key="doc.id">
+                                        <tr t-on-click="() => openRecord(doc.url)">
+                                            <td><strong t-esc="doc.partner or '-'"/></td>
+                                            <td t-esc="doc.doc_type"/>
+                                            <td t-esc="doc.expires_on or '-'"/>
+                                            <td><span t-att-class="'status-chip ' + (doc.status_class or '')"
+                                                     t-esc="doc.status"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </article>
+                    </t>
+
+                    <t t-if="alerts.missing.length">
+                        <article class="mg-card wide">
+                            <header>
+                                <div>
+                                    <h2>Missing Documents</h2>
+                                    <small>Clients requiring action</small>
+                                </div>
+                            </header>
+                            <ul class="alert-list">
+                                <t t-foreach="alerts.missing" t-as="missing" t-key="missing.partner">
+                                    <li>
+                                        <strong t-esc="missing.partner"/>
+                                        <div t-raw="missing.message"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </article>
+                    </t>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

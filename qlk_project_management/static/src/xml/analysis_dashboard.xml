@@ -82,39 +82,37 @@
                         </div>
                     </article>
 
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Consultations</h2>
-                            </div>
-                            <button t-if="state.data.actions.consultations" class="qlk-link" t-on-click="() => openAction(state.data.actions.consultations)">
-                                View Consultations
-                            </button>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.consultations and series.consultations.length">
+                    <t t-if="series.consultations and series.consultations.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Consultations</h2>
+                                </div>
+                                <button t-if="state.data.actions.consultations" class="qlk-link" t-on-click="() => openAction(state.data.actions.consultations)">
+                                    View Consultations
+                                </button>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="consultationsCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No consultation data available.</div>
-                        </div>
-                    </article>
-
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Police Complaints</h2>
                             </div>
-                            <button t-if="state.data.actions.complaints" class="qlk-link" t-on-click="() => openAction(state.data.actions.complaints)">
-                                View Complaints
-                            </button>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.complaints and series.complaints.length">
+                        </article>
+                    </t>
+
+                    <t t-if="series.complaints and series.complaints.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Police Complaints</h2>
+                                </div>
+                                <button t-if="state.data.actions.complaints" class="qlk-link" t-on-click="() => openAction(state.data.actions.complaints)">
+                                    View Complaints
+                                </button>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="complaintsCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No complaint data available.</div>
-                        </div>
-                    </article>
+                            </div>
+                        </article>
+                    </t>
 
                     <article class="qlk-card">
                         <header>
@@ -144,61 +142,57 @@
                         </div>
                     </article>
 
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Case Status Distribution</h2>
-                            </div>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.case_status and series.case_status.length">
+                    <t t-if="series.case_status and series.case_status.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Case Status Distribution</h2>
+                                </div>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="caseStatusCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No case data available.</div>
-                        </div>
-                    </article>
-
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Hearing Status</h2>
                             </div>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.hearing_stage and series.hearing_stage.length">
+                        </article>
+                    </t>
+
+                    <t t-if="series.hearing_stage and series.hearing_stage.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Hearing Status</h2>
+                                </div>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="hearingStageCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No data available.</div>
-                        </div>
-                    </article>
-
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Projects by Department</h2>
                             </div>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.project_progress and series.project_progress.length">
+                        </article>
+                    </t>
+
+                    <t t-if="series.project_progress and series.project_progress.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Projects by Department</h2>
+                                </div>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="projectProgressCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No project data available.</div>
-                        </div>
-                    </article>
-
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Tasks by Department</h2>
                             </div>
-                        </header>
-                        <div class="chart-wrapper">
-                            <t t-if="series.task_department and series.task_department.length">
+                        </article>
+                    </t>
+
+                    <t t-if="series.task_department and series.task_department.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Tasks by Department</h2>
+                                </div>
+                            </header>
+                            <div class="chart-wrapper">
                                 <canvas t-ref="taskDepartmentCanvas"></canvas>
-                            </t>
-                            <div t-else="" class="qlk-empty">No data available.</div>
-                        </div>
-                    </article>
+                            </div>
+                        </article>
+                    </t>
                 </section>
             </t>
         </div>

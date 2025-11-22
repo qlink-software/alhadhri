@@ -3,6 +3,17 @@ from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval
 from odoo.exceptions import UserError, ValidationError
 
+LITIGATION_WORKFLOW_TEMPLATE = [
+    {"key": "translation", "name": "Translation of Documents", "sequence": 5},
+    {"key": "draft_memo", "name": "Drafting the Memo", "sequence": 10},
+    {"key": "approval_draft", "name": "Approval of the Draft", "sequence": 20},
+    {"key": "client_portal", "name": "Client Approval via Portal", "sequence": 30},
+    {"key": "signature_stamp", "name": "Signature & Stamp", "sequence": 40},
+    {"key": "registration", "name": "Registration", "sequence": 50},
+    {"key": "claim_correction", "name": "Claim Correction", "sequence": 60},
+    {"key": "fee_payment", "name": "Fee Payment", "sequence": 70},
+]
+
 
 class QlkProject(models.Model):
     _name = "qlk.project"
@@ -29,6 +40,33 @@ class QlkProject(models.Model):
         default="litigation",
         tracking=True,
     )
+    # ------------------------------------------------------------------------------
+    # نوع المشروع: تقاضي / تحكيم / شركات لتحديد المنطق التلقائي والمراحل المرتبطة.
+    # ------------------------------------------------------------------------------
+    project_type = fields.Selection(
+        selection=[
+            ("litigation", "Litigation Case"),
+            ("arbitration", "Arbitration Case"),
+            ("corporate", "Corporate Matter"),
+        ],
+        string="Project Type",
+        required=True,
+        default="litigation",
+        tracking=True,
+    )
+    # ------------------------------------------------------------------------------
+    # إذا اختار المستخدم project_type = 'litigation' يجب أن نحدد ما إذا كان Pre أو Case.
+    # ------------------------------------------------------------------------------
+    litigation_stage = fields.Selection(
+        selection=[
+            ("pre", "Pre-Litigation"),
+            ("court", "Litigation Case"),
+        ],
+        string="Litigation Stage",
+        default="court",
+        tracking=True,
+        help="حدد ما إذا كان المشروع قبل رفع الدعوى أو مرتبط بدعوى فعلية.",
+    )
     case_sequence = fields.Integer(
         string="Matter Index",
         copy=False,
@@ -43,8 +81,34 @@ class QlkProject(models.Model):
         domain="[('customer', '=', True), ('parent_id', '=', False)]",
     )
     client_capacity = fields.Char(string="Client Capacity", tracking=True)
-    engagement_id = fields.Many2one("qlk.engagement.letter", string="Engagement Letter", tracking=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
+    # ------------------------------------------------------------------------------
+    # كود القضية (Litigation Project Code)
+    # الصيغة: ClientCode/Lxxx-Stage/Code
+    # أمثلة:
+    # 256/L001/F
+    # 256/L001-1/A
+    # ------------------------------------------------------------------------------
+    litigation_case_number = fields.Integer(string="Case Number", copy=False, tracking=True)
+    litigation_stage_code = fields.Selection(
+        selection=[
+            ("F", "First Instance"),
+            ("A", "Appeal"),
+            ("CA", "Cassation"),
+            ("E", "Enforcement"),
+        ],
+        string="Stage Code",
+        default="F",
+        tracking=True,
+        help="Stage label appended to the litigation project code (F/A/CA/E).",
+    )
+    litigation_stage_iteration = fields.Integer(
+        string="Stage Iteration",
+        default=0,
+        copy=False,
+        tracking=True,
+        help="Sequential index for repeated stages (e.g., re-opened appeals).",
+    )
     client_code = fields.Char(string="Client Code", compute="_compute_client_code", store=True)
     company_id = fields.Many2one(
         "res.company",
@@ -63,6 +127,7 @@ class QlkProject(models.Model):
     )
     owner_id = fields.Many2one("res.users", string="Project Owner", default=lambda self: self.env.user, tracking=True)
     description = fields.Html()
+    project_scope = fields.Text(string="Project Scope")
     poa_state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -82,6 +147,13 @@ class QlkProject(models.Model):
     active = fields.Boolean(default=True)
     notes = fields.Text()
     task_ids = fields.One2many("qlk.task", "project_id", string="Tasks")
+    translation_task_id = fields.Many2one(
+        "qlk.task",
+        string="Translation Subtask",
+        readonly=True,
+        copy=False,
+        help="Automatically created translation task for pre-litigation workflows.",
+    )
     task_hours_total = fields.Float(
         string="Approved Hours",
         compute="_compute_task_hours",
@@ -116,6 +188,11 @@ class QlkProject(models.Model):
         ondelete="set null",
     )
     related_case_display = fields.Char(string="Related Matter", compute="_compute_related_case_display")
+    stage_line_ids = fields.One2many(
+        "qlk.project.stage.line",
+        "project_id",
+        string="Workflow Stage Lines",
+    )
     client_document_ids = fields.One2many(
         related="client_id.client_document_ids",
         string="Client Documents",
@@ -152,35 +229,69 @@ class QlkProject(models.Model):
         for field_name in self._department_case_field_map.values():
             if field_name != allowed_field:
                 setattr(self, field_name, False)
+        if self.department and not self.project_type:
+            mapped_type = {
+                "litigation": "litigation",
+                "corporate": "corporate",
+                "arbitration": "arbitration",
+            }.get(self.department)
+            if mapped_type:
+                self.project_type = mapped_type
 
-    @api.onchange("engagement_id")
-    def _onchange_engagement_id(self):
-        if not self.engagement_id:
-            return
-        if not self.client_id:
-            self.client_id = self.engagement_id.partner_id
-        if self.engagement_id.client_capacity and not self.client_capacity:
-            self.client_capacity = self.engagement_id.client_capacity
+    @api.onchange("project_type")
+    def _onchange_project_type(self):
+        """Synchronize department and litigation stage whenever the type changes."""
+        for project in self:
+            project._apply_project_type_logic()
 
-    @api.depends("client_id", "engagement_id.client_unique_code")
+    @api.onchange("litigation_stage")
+    def _onchange_litigation_stage(self):
+        """Ensure the stage code/iteration follow the selected stage."""
+        for project in self:
+            if project.litigation_stage == "pre":
+                project.litigation_stage_code = False
+                project.litigation_stage_iteration = 0
+            elif project.litigation_stage == "court":
+                project.litigation_stage_code = project.litigation_stage_code or "F"
+
+    @api.depends("client_id")
     def _compute_client_code(self):
         for project in self:
-            code = project.engagement_id.client_unique_code
-            if not code and project.client_id:
+            code = ""
+            if project.client_id:
                 code = project.client_id.ref or f"{project.client_id.id:03d}"
             project.client_code = code or ""
 
-    @api.depends("case_sequence", "department", "client_code")
+    @api.depends(
+        "case_sequence",
+        "department",
+        "client_code",
+        "project_type",
+        "litigation_case_number",
+        "litigation_stage_code",
+        "litigation_stage_iteration",
+    )
     def _compute_code(self):
         for project in self:
-            client_code = project.client_code or "PRJ"
-            sequence = project.case_sequence or 1
-            department_prefix = {
-                "litigation": "L",
-                "corporate": "C",
-                "arbitration": "A",
-            }.get(project.department, "P")
-            project.code = f"{client_code}/{department_prefix}{sequence:03d}"
+            if project.project_type == "litigation":
+                client_code = project.client_code or "PRJ"
+                case_number = project.litigation_case_number or project.case_sequence or 1
+                sequence_chunk = f"L{case_number:03d}"
+                if project.litigation_stage_iteration:
+                    sequence_chunk += f"-{project.litigation_stage_iteration}"
+                code = f"{client_code}/{sequence_chunk}"
+                if project.litigation_stage_code:
+                    code = f"{code}/{project.litigation_stage_code}"
+                project.code = code
+            else:
+                client_code = project.client_code or "PRJ"
+                sequence = project.case_sequence or 1
+                department_prefix = {
+                    "litigation": "L",
+                    "corporate": "C",
+                    "arbitration": "A",
+                }.get(project.department, "P")
+                project.code = f"{client_code}/{department_prefix}{sequence:03d}"
 
     @api.depends("task_ids.approval_state", "task_ids.hours_spent", "task_ids.date_start")
     def _compute_task_hours(self):
@@ -210,6 +321,310 @@ class QlkProject(models.Model):
         if isinstance(department, str):
             return selection_dict.get(department, department.title())
         return selection_dict.get(department, department)
+
+    # ------------------------------------------------------------------------------
+    # تطبيق منطق نوع المشروع لضبط القسم ومرحلة التقاضي بحسب الاختيار.
+    # ------------------------------------------------------------------------------
+    def _apply_project_type_logic(self):
+        type_to_department = {
+            "litigation": "litigation",
+            "corporate": "corporate",
+            "arbitration": "arbitration",
+        }
+        for project in self:
+            project_type = project.project_type
+            if not project_type:
+                continue
+            if type_to_department.get(project_type):
+                project.department = type_to_department[project_type]
+            if project_type == "litigation":
+                project.litigation_stage = project.litigation_stage or "court"
+            else:
+                project.litigation_stage = False
+
+    # ------------------------------------------------------------------------------
+    # تجهيز القيم القادمة من الواجهة حسب نوع المشروع لضمان تماسك الحقول.
+    # ------------------------------------------------------------------------------
+    @api.model
+    def _prepare_project_type_values(self, vals):
+        vals = dict(vals)
+        project_type = vals.get("project_type")
+        if not project_type:
+            return vals
+        type_to_department = {
+            "litigation": "litigation",
+            "corporate": "corporate",
+            "arbitration": "arbitration",
+        }
+        vals.setdefault("department", type_to_department.get(project_type, "litigation"))
+        if project_type == "litigation":
+            vals.setdefault("litigation_stage", "court")
+            vals.setdefault("litigation_stage_code", "F")
+            vals.setdefault("litigation_stage_iteration", 0)
+        else:
+            vals["litigation_stage"] = False
+            vals["litigation_stage_code"] = False
+            vals["litigation_stage_iteration"] = 0
+        return vals
+
+    # ------------------------------------------------------------------------------
+    # تحديد رقم القضية التالي لكل عميل في مشاريع التقاضي.
+    # ------------------------------------------------------------------------------
+    def _next_litigation_case_number(self, client_id):
+        domain = [("client_id", "=", client_id), ("project_type", "=", "litigation")]
+        latest = self.search(domain, order="litigation_case_number desc", limit=1)
+        return (latest.litigation_case_number or 0) + 1
+
+    # ------------------------------------------------------------------------------
+    # يستخدم عند الكتابة للتأكد من أن المشاريع الجديدة حصلت على أرقام قضايا صحيحة.
+    # ------------------------------------------------------------------------------
+    def _assign_missing_litigation_numbers(self):
+        for project in self:
+            if project.project_type != "litigation" or not project.client_id:
+                continue
+            if not project.litigation_case_number:
+                next_number = self._next_litigation_case_number(project.client_id.id)
+                super(QlkProject, project).write(
+                    {
+                        "litigation_case_number": next_number,
+                        "case_sequence": project.case_sequence or next_number,
+                    }
+                )
+            elif not project.case_sequence:
+                super(QlkProject, project).write({"case_sequence": project.litigation_case_number})
+
+    # ------------------------------------------------------------------------------
+    # ضمان تجهيز مهام ومراحل التقاضي (Subtask + Workflow Stages).
+    # ------------------------------------------------------------------------------
+    def _ensure_litigation_workflow(self):
+        for project in self:
+            if project.project_type == "litigation":
+                project._ensure_litigation_stage_lines()
+                if project.litigation_stage == "pre":
+                    project._ensure_translation_subtask()
+            else:
+                if project.stage_line_ids:
+                    project.stage_line_ids.unlink()
+                if project.translation_task_id:
+                    project.translation_task_id = False
+
+    # ------------------------------------------------------------------------------
+    # إنشاء Subtask الترجمة تلقائياً مع الإشعارات.
+    # ------------------------------------------------------------------------------
+    def _ensure_translation_subtask(self):
+        self.ensure_one()
+        if self.translation_task_id:
+            return
+        if not self.assigned_employee_ids:
+            raise UserError(_("Assign at least one lawyer before generating the translation subtask."))
+        employee = self.assigned_employee_ids[:1]
+        company = self.company_id or self.env.company
+        Task = self.env["qlk.task"]
+        task_vals = {
+            "name": _("Translation of Documents"),
+            "description": _(
+                "Automatic translation subtask generated for project %(code)s.\n"
+                "- Upload documents that require translation.\n"
+                "- Notify the responsible lawyer after uploading."
+            )
+            % {"code": self.display_name},
+            "department": "litigation",
+            "litigation_phase": "pre",
+            "project_id": self.id,
+            "employee_id": employee.id,
+            "company_id": company.id,
+            "hours_spent": 1.0,
+            "date_start": fields.Date.context_today(self),
+            "approval_state": "draft",
+        }
+        task = Task.create(task_vals)
+        self.translation_task_id = task.id
+        partners = employee.mapped("user_id.partner_id")
+        if partners:
+            task.message_subscribe(partner_ids=partners.ids)
+        task.message_post(body=_("Translation task created automatically from %s.") % self.display_name)
+        self.message_post(
+            body=_("Translation task %(task)s created and assigned to %(user)s.")
+            % {"task": task.display_name, "user": employee.name}
+        )
+        stage_line = self.stage_line_ids.filtered(lambda line: line.stage_key == "translation")[:1]
+        if stage_line:
+            stage_line.task_id = task.id
+
+    # ------------------------------------------------------------------------------
+    # إنشاء مراحل العمل الافتراضية لمشاريع التقاضي.
+    # ------------------------------------------------------------------------------
+    def _ensure_litigation_stage_lines(self):
+        for project in self:
+            if project.project_type != "litigation":
+                continue
+            existing_keys = set(project.stage_line_ids.mapped("stage_key"))
+            commands = []
+            for template in LITIGATION_WORKFLOW_TEMPLATE:
+                if template["key"] in existing_keys:
+                    continue
+                commands.append(
+                    (
+                        0,
+                        0,
+                        {
+                            "name": template["name"],
+                            "stage_key": template["key"],
+                            "sequence": template["sequence"],
+                        },
+                    )
+                )
+            if commands:
+                project.stage_line_ids = commands
+
+    # ------------------------------------------------------------------------------
+    # إنشاء القضايا المرتبطة تلقائياً حسب نوع المشروع ومراحله.
+    # ------------------------------------------------------------------------------
+    def _auto_create_default_cases(self):
+        Case = self.env.get("qlk.case")
+        ArbitrationCase = self.env.get("qlk.arbitration.case")
+        CorporateCase = self.env.get("qlk.corporate.case")
+        for project in self:
+            if project.project_type == "litigation":
+                if project.litigation_stage == "court" and not project.case_id and Case:
+                    case_vals = project._prepare_litigation_case_vals()
+                    if case_vals:
+                        case = Case.create(case_vals)
+                        project.case_id = case.id
+            elif project.project_type == "arbitration":
+                if not project.arbitration_case_id and ArbitrationCase:
+                    case_vals = project._prepare_arbitration_case_vals()
+                    if case_vals:
+                        case = ArbitrationCase.create(case_vals)
+                        project.arbitration_case_id = case.id
+            elif project.project_type == "corporate":
+                if not project.corporate_case_id and CorporateCase:
+                    case_vals = project._prepare_corporate_case_vals()
+                    if case_vals:
+                        case = CorporateCase.create(case_vals)
+                        project.corporate_case_id = case.id
+
+    # ------------------------------------------------------------------------------
+    # تهيئة بيانات القضية الخاصة بالتقاضي بناءً على المشروع الحالي.
+    # ------------------------------------------------------------------------------
+    def _prepare_litigation_case_vals(self):
+        self.ensure_one()
+        if not self.client_id:
+            return False
+        lawyer = self._get_primary_employee()
+        currency = self.company_id.currency_id
+        case_name = self.client_id.display_name or self.name
+        return {
+            "name": case_name,
+            "name2": self.code or case_name,
+            "client_id": self.client_id.id,
+            "employee_id": lawyer.id if lawyer else False,
+            "company_id": self.company_id.id,
+            "description": self.description,
+            "client_capacity": self.client_capacity,
+            "currency_id": currency.id if currency else False,
+            "case_number": self.litigation_case_number,
+            "litigation_flow": "litigation" if self.litigation_stage == "court" else "pre_litigation",
+        }
+
+    # ------------------------------------------------------------------------------
+    # تهيئة بيانات قضية التحكيم.
+    # ------------------------------------------------------------------------------
+    def _prepare_arbitration_case_vals(self):
+        self.ensure_one()
+        if not self.client_id:
+            return False
+        lawyer = self._get_primary_employee()
+        if not lawyer:
+            return False
+        return {
+            "name": self.name,
+            "case_number": self.code,
+            "claimant_id": self.client_id.id,
+            "responsible_employee_id": lawyer.id if lawyer else False,
+            "project_id": self.id,
+        }
+
+    # ------------------------------------------------------------------------------
+    # تهيئة بيانات قضية الشركات.
+    # ------------------------------------------------------------------------------
+    def _prepare_corporate_case_vals(self):
+        self.ensure_one()
+        if not self.client_id:
+            return False
+        lawyer = self._get_primary_employee()
+        if not lawyer:
+            return False
+        return {
+            "name": self.name,
+            "client_id": self.client_id.id,
+            "responsible_employee_id": lawyer.id,
+            "project_id": self.id,
+        }
+
+    # ------------------------------------------------------------------------------
+    # اختيار الموظف الأساسي (إما من الفريق المعين أو مالك المشروع).
+    # ------------------------------------------------------------------------------
+    def _get_primary_employee(self):
+        self.ensure_one()
+        employee = self.assigned_employee_ids[:1]
+        if employee:
+            return employee
+        if self.owner_id:
+            return self.env["hr.employee"].search([("user_id", "=", self.owner_id.id)], limit=1)
+        return False
+
+    def init(self):
+        super().init()
+        self.env.cr.execute(
+            """
+            UPDATE qlk_project
+               SET project_type = department
+             WHERE project_type IS NULL
+            """
+        )
+        self.env.cr.execute(
+            """
+            UPDATE qlk_project
+               SET litigation_stage = 'court'
+             WHERE project_type = 'litigation' AND litigation_stage IS NULL
+            """
+        )
+        self.env.cr.execute(
+            """
+            UPDATE qlk_project
+               SET litigation_stage_code = 'F'
+             WHERE project_type = 'litigation' AND litigation_stage = 'court' AND litigation_stage_code IS NULL
+            """
+        )
+
+    def _prepare_project_type_values(self, vals):
+        project_type = vals.get("project_type")
+        if not project_type:
+            return vals
+        vals = dict(vals)
+        type_to_department = {
+            "litigation": "litigation",
+            "corporate": "corporate",
+            "arbitration": "arbitration",
+        }
+        vals.setdefault("department", type_to_department.get(project_type, "litigation"))
+        if project_type == "litigation":
+            vals.setdefault("litigation_stage", "court")
+        else:
+            vals["litigation_stage"] = False
+        return vals
+
+    @api.model
+    def create(self, vals):
+        prepared_vals = self._prepare_project_type_values(vals)
+        return super().create(prepared_vals)
+
+    def write(self, vals):
+        write_vals = vals
+        if "project_type" in vals:
+            write_vals = self._prepare_project_type_values(vals)
+        return super().write(write_vals)
 
     def _ensure_client_documents_ready(self):
         for project in self:
@@ -249,63 +664,67 @@ class QlkProject(models.Model):
     def create(self, vals_list):
         res = []
         for vals in vals_list:
-            department = vals.get("department") or "litigation"
-            self._validate_case_vals(vals, department, is_create=True)
-
-            client_id = vals.get("client_id")
-            engagement_id = vals.get("engagement_id")
-            if engagement_id:
-                engagement = self.env["qlk.engagement.letter"].browse(engagement_id)
-                if not client_id and engagement.partner_id:
-                    client_id = engagement.partner_id.id
-                    vals["client_id"] = client_id
-                if engagement.client_capacity and not vals.get("client_capacity"):
-                    vals["client_capacity"] = engagement.client_capacity
-            if client_id and not vals.get("case_sequence"):
-                vals["case_sequence"] = self._next_case_sequence(client_id, vals.get("department"))
-
-            res.append(vals)
+            prepared = self._prepare_project_type_values(vals)
+            department = prepared.get("department") or "litigation"
+            self._validate_case_vals(prepared, department, is_create=True)
+            client_id = prepared.get("client_id")
+            if prepared.get("project_type") == "litigation" and client_id:
+                if not prepared.get("litigation_case_number"):
+                    next_number = self._next_litigation_case_number(client_id)
+                    prepared["litigation_case_number"] = next_number
+                prepared.setdefault("case_sequence", prepared.get("litigation_case_number"))
+            elif client_id and not prepared.get("case_sequence"):
+                prepared["case_sequence"] = self._next_case_sequence(client_id, department)
+            res.append(prepared)
 
         projects = super().create(res)
+        projects._auto_create_default_cases()
         projects._sync_case_project_link()
         projects._post_create_notifications()
+        projects._ensure_litigation_workflow()
         return projects
 
     def write(self, vals):
+        prepared_vals = self._prepare_project_type_values(vals) if "project_type" in vals else vals
         case_fields = tuple(self._department_case_field_map.values())
         old_corporate_cases = {project.id: project.corporate_case_id for project in self}
         old_arbitration_cases = {project.id: project.arbitration_case_id for project in self}
 
-        if "department" in vals:
-            new_department = vals["department"]
+        if "department" in prepared_vals:
+            new_department = prepared_vals["department"]
             if new_department == "litigation":
-                if "corporate_case_id" not in vals:
-                    vals["corporate_case_id"] = False
-                if "arbitration_case_id" not in vals:
-                    vals["arbitration_case_id"] = False
+                if "corporate_case_id" not in prepared_vals:
+                    prepared_vals["corporate_case_id"] = False
+                if "arbitration_case_id" not in prepared_vals:
+                    prepared_vals["arbitration_case_id"] = False
             elif new_department == "corporate":
-                if "case_id" not in vals:
-                    vals["case_id"] = False
-                if "arbitration_case_id" not in vals:
-                    vals["arbitration_case_id"] = False
+                if "case_id" not in prepared_vals:
+                    prepared_vals["case_id"] = False
+                if "arbitration_case_id" not in prepared_vals:
+                    prepared_vals["arbitration_case_id"] = False
             elif new_department == "arbitration":
-                if "case_id" not in vals:
-                    vals["case_id"] = False
-                if "corporate_case_id" not in vals:
-                    vals["corporate_case_id"] = False
+                if "case_id" not in prepared_vals:
+                    prepared_vals["case_id"] = False
+                if "corporate_case_id" not in prepared_vals:
+                    prepared_vals["corporate_case_id"] = False
 
-        if any(field in vals for field in case_fields) or "department" in vals:
+        if any(field in prepared_vals for field in case_fields) or "department" in prepared_vals:
             for project in self:
-                department = vals.get("department", project.department)
-                self._validate_case_vals(vals, department, is_create=False)
+                department = prepared_vals.get("department", project.department)
+                self._validate_case_vals(prepared_vals, department, is_create=False)
 
-        result = super().write(vals)
-        if "assigned_employee_ids" in vals:
+        result = super().write(prepared_vals)
+        if "assigned_employee_ids" in prepared_vals:
             self._notify_assignment_changes()
 
-        if any(key in vals for key in (*case_fields, "department")):
+        self._assign_missing_litigation_numbers()
+
+        triggers = set(prepared_vals.keys())
+        if triggers.intersection(set(case_fields)) or "department" in triggers or "project_type" in triggers or "litigation_stage" in triggers:
+            self._auto_create_default_cases()
             self._clear_stale_case_links(old_corporate_cases, old_arbitration_cases)
             self._sync_case_project_link()
+            self._ensure_litigation_workflow()
         return result
 
     def _clear_stale_case_links(self, old_corporate_cases, old_arbitration_cases):
@@ -546,10 +965,12 @@ class QlkProject(models.Model):
 
     def _action_open_transfer_wizard(self, flow):
         self.ensure_one()
-        if self.department != "litigation":
+        if self.project_type != "litigation":
             raise UserError(_("Only litigation projects can be transferred to a court case."))
         if self.case_id:
             raise UserError(_("This project is already linked to a litigation case."))
+        if self.litigation_stage != "pre":
+            raise UserError(_("Transfer to litigation is available once the project is in the pre-litigation stage."))
         self._ensure_client_documents_ready()
         return {
             "type": "ir.actions.act_window",

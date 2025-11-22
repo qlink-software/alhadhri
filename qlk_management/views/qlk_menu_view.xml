@@ -1,264 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>
+<odoo noupdate="0">
 
-    <menuitem id="sale.sale_menu_root"
-        name="Managment"
-        web_icon="sale_management,static/description/icon.png"
-        sequence="30">
-
-        <menuitem id="sale.sale_order_menu"
-            name="Agreements"
-            sequence="10">
-
-            <menuitem id="menu_proposal"
-                name="Propopsals"
-                action="action_proposal"
-                sequence="10"/>
-
-            <menuitem id="menu_agreement"
-                name="Agreements"
-                action="managment_agreement_action"
-                sequence="20"/>
-
-            <menuitem id="sale.menu_sale_order"
-                name="Orders"
-                action="sale.action_orders"
-                active="False"
-                sequence="20"/>
-
-            <menuitem id="sale.report_sales_team"
-                name="Sales Teams"
-                action="sales_team.crm_team_action_sales"
-                active="False"
-                sequence="30"/>
-
-            <menuitem id="sale.res_partner_menu"
-                action="account.res_partner_action_customer"
-                name="Clients"
-                sequence="40"/>
-
-        </menuitem>
-
-        <menuitem id="sale.menu_sale_invoicing"
-            name="To Invoice"
-            active="False"
-            sequence="20">
-
-            <menuitem id="sale.menu_sale_order_invoice"
-                action="sale.action_orders_to_invoice"
-                active="False"
-                sequence="10"/>
-
-            <menuitem id="sale.menu_sale_order_upselling"
-                action="sale.action_orders_upselling"
-                active="False"
-                sequence="20"/>
-
-        </menuitem>
-
-        <menuitem id="sale.product_menu_catalog"
-            name="Services"
-            sequence="30">
-
-            <menuitem id="sale.menu_product_template_action"
-                action="sale.product_template_action"
-                sequence="10"/>
-            <menuitem id="sale.menu_products"
-                action="product.product_normal_action_sell"
-                name="Services"
-                sequence="20"/>
-            <menuitem id="sale.menu_product_pricelist_main"
-                name="Pricelists"
-                active="False"
-                action="product.product_pricelist_action2"
-                sequence="30"/>
-
-        </menuitem>
-
-        <menuitem id="sale.menu_sale_report"
-            name="Reporting"
-            active="False"
-            sequence="40">
-
-            <menuitem id="sale.menu_reporting_sales"
-                name="Sales"
-                active="False"
-                action="sale.action_order_report_all"
-                sequence="10"/>
-                
-            <menuitem id="sale.menu_reporting_salespeople"
-                name="Salespersons"
-                active="False"
-                action="sale.action_order_report_salesperson"
-                sequence="20"/>
-
-            <menuitem id="sale.menu_reporting_product"
-                name="Products"
-                active="False"
-                action="sale.action_order_report_products"
-                sequence="30"/>
-
-            <menuitem id="sale.menu_reporting_customer"
-                name="Customers"
-                active="False"
-                action="sale.action_order_report_customers"
-                sequence="40"/>
-
-        </menuitem>
-
-        <menuitem id="sale.menu_sale_config"
-            name="Configuration"
-            sequence="50">
-
-            <menuitem id="sale.menu_sale_general_settings"
-                name="Settings"
-                sequence="10"
-                action="sale.action_sale_config_settings"/>
-
-            <menuitem id="sale.sales_team_config"
-                name="Sales Teams"
-                active="False"
-                action="sales_team.crm_team_action_config"
-                sequence="20"/>
-
-            <menuitem id="sale.menu_sales_config"
-                sequence="30"
-                name="Agreements">
-
-                <menuitem id="sale.menu_tag_config"
-                    name="Tags"
-                    action="sales_team.sales_team_crm_tag_action"
-                    sequence="10"/>
-
-            </menuitem>
-
-            <menuitem id="sale.prod_config_main"
-                name="Services"
-                sequence="40">
-
-                <menuitem id="sale.menu_product_attribute_action"
-                    action="product.attribute_action"
-                    sequence="10"/>
-
-                <menuitem
-                    id="sale.menu_product_combos"
-                    name="Combo Choices"
-                    active="False"
-                    action="product.product_combo_action"
-                    sequence="15"
-                />
-
-                <menuitem id="sale.menu_product_categories"
-                    action="product.product_category_action_form"
-                    sequence="20"/>
-
-                <menuitem id="sale.menu_product_tags"
-                    action="product.product_tag_action"
-                    sequence="30"/>
-
-            </menuitem>
-
-            <menuitem id="sale.payment_menu"
-                      name="Online Payments"
-                      active="False"
-                      sequence="45"
-            >
-                <menuitem id="sale.payment_provider_menu"
-                        active="False"
-                          action="payment.action_payment_provider"
-                          sequence="10"
-                />
-                <menuitem id="sale.payment_method_menu"
-                          action="payment.action_payment_method"
-                          active="False"
-                          sequence="20"
-                />
-                <menuitem id="sale.payment_token_menu"
-                          action="payment.action_payment_token"
-                          active="False"
-                          sequence="30"
-                />
-                <menuitem id="sale.payment_transaction_menu"
-                          action="payment.action_payment_transaction"
-                          active="False"
-                          sequence="40"
-                />
-            </menuitem>
-
-            <menuitem id="sale.next_id_16"
-                name="Units of Measure"
-                active="False"
-                sequence="50">
-
-                <menuitem id="sale.menu_product_uom_form_action"
-                    action="uom.product_uom_form_action"
-                    active="False"
-                    sequence="10"/>
-
-                <menuitem id="sale.menu_product_uom_categ_form_action"
-                    action="uom.product_uom_categ_form_action"
-                    active="False"
-                    sequence="20"/>
-
-            </menuitem> 
-
-            <menuitem
-                id="sale.sale_menu_config_activities"
-                name="Activities"
-                active="False"
-                sequence="55">
-
-                <menuitem id="sale.ale_menu_config_activity_type"
-                    action="sale.mail_activity_type_action_config_sale"
-                    active="False"
-                    sequence="10"
-                    />
-
-                <menuitem id="sale.sale_menu_config_activity_plan"
-                    name="Activity Plans"
-                    action="sale.mail_activity_plan_action_sale_order"
-                    active="False"
-                    sequence="20"
-                    />
-
-            </menuitem>
-
-        </menuitem>
-    </menuitem>
-
-    <menuitem
-        id="sale_crm.sale_order_menu_quotations_crm"
-        name="My Quotations"
-        active="false"
-        action="sale.action_quotations"
-        parent="crm.crm_menu_sales"
-        sequence="2"/>
-
-    <record id="mail_activity_action" model="ir.actions.act_window">
-        <field name="name">All Activities</field>
-        <field name="res_model">mail.activity</field>
-        <field name="view_mode">list,kanban</field>
-        <field name="search_view_id" ref="mail.mail_activity_view_search"/>
-        
+    <record id="action_bd_management_dashboard" model="ir.actions.client">
+        <field name="name">BD Dashboard</field>
+        <field name="tag">qlk.management.dashboard</field>
+        <field name="target">main</field>
     </record>
-    <!-- activity new icon and menu -->
-    <!-- <menuitem id="main_activity_root_menu"
-        name="The Activity"
-        web_icon="qlk_management,static/description/activity.png"
-        />
-    
-    <menuitem id="all_activity_menu"
-        name="All Activity"
-        action="mail_activity_action"
-        parent="main_activity_root_menu"
-        sequence="1"
-        />
 
-    <menuitem id="my_activity_menu"
-        name="My Activity"
-        action="mail.mail_activity_action_my"
-        parent="main_activity_root_menu"
-        sequence="2"
-        /> -->
+    <record id="action_bd_client_data" model="ir.actions.act_window">
+        <field name="name">Client Data</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="context">{'search_default_customer': 1, 'default_customer_rank': 1, 'group_by': 'industry_id'}</field>
+    </record>
+
+    <menuitem id="qlk_bd_root_menu"
+              name="BD"
+              web_icon="sale_management,static/description/icon.png"
+              sequence="30"/>
+
+    <menuitem id="qlk_bd_menu_clients"
+              name="Client Data"
+              parent="qlk_bd_root_menu"
+              action="action_bd_client_data"
+              sequence="10"/>
+
+    <menuitem id="qlk_bd_menu_dashboard"
+              name="Dashboard"
+              parent="qlk_bd_root_menu"
+              action="action_bd_management_dashboard"
+              sequence="20"/>
+
+    <menuitem id="qlk_bd_menu_proposal"
+              name="Proposal"
+              parent="qlk_bd_root_menu"
+              action="action_bd_proposal"
+              sequence="30"/>
+
+    <menuitem id="qlk_bd_menu_engagement"
+              name="Engagement Letter"
+              parent="qlk_bd_root_menu"
+              action="action_bd_engagement_letter"
+              sequence="40"/>
+
+    <menuitem id="qlk_bd_menu_client_poa"
+              name="Client POA Management"
+              parent="qlk_bd_root_menu"
+              action="action_client_documents"
+              sequence="50"/>
 
 </odoo>

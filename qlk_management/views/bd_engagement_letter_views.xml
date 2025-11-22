@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bd_engagement_letter_tree" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.tree</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="arch" type="xml">
+            <list string="Engagement Letters">
+                <field name="name"/>
+                <field name="reference_number"/>
+                <field name="partner_id"/>
+                <field name="contract_type"/>
+                <field name="retainer_type"/>
+                <field name="date"/>
+                <field name="fee_total"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bd_engagement_letter_form" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.form</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="arch" type="xml">
+            <form string="Engagement Letter">
+                <header>
+                    <button name="action_send_for_approval" type="object" string="Send for Approval"
+                            class="btn-primary"
+                            modifiers="{'invisible': ['|', ('state', 'not in', ['draft', 'rejected']), ('state', '=', 'approved')]}"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
+                    <button name="action_reject" type="object" string="Reject" class="btn-danger"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            modifiers="{'invisible': [('state', '!=', 'rejected')]}"/>
+                    <button name="action_print_letter" type="object" string="Print EL" class="btn-secondary"
+                            modifiers="{'invisible': [('state', '!=', 'approved')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_approval,approved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="reference_number" readonly="1"/>
+                            <field name="company_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="contract_type"/>
+                            <field name="retainer_type"/>
+                            <field name="reviewer_id"/>
+                            <field name="currency_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Client Data">
+                            <field name="partner_id"/>
+                            <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="partner_qid" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
+                            <field name="partner_passport" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
+                            <field name="contact_details" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
+                        </group>
+                        <group string="Limits &amp; Hours">
+                            <field name="monthly_corporate_hours"/>
+                            <field name="yearly_hours" readonly="1"/>
+                            <field name="litigation_cases_limit"/>
+                            <field name="planned_hours"/>
+                            <field name="hourly_cost" readonly="1"/>
+                            <field name="additional_cost"/>
+                            <field name="total_estimated_cost" readonly="1"/>
+                            <field name="lawyer_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Legal Fees">
+                            <field name="fee_line_ids" nolabel="1" context="{'default_currency_id': currency_id, 'default_letter_id': id}">
+                                <list editable="bottom">
+                                    <field name="description"/>
+                                    <field name="amount"/>
+                                    <field name="due_date"/>
+                                </list>
+                            </field>
+                            <div class="oe_subtotal_footer oe_right">
+                                <label for="fee_total"/>
+                                <field name="fee_total" readonly="1"/>
+                            </div>
+                        </page>
+                        <page string="Comments">
+                            <field name="comments" nolabel="1"/>
+                        </page>
+                        <page string="Scope &amp; Services">
+                            <group>
+                                <field name="services_description"/>
+                                <field name="project_scope"/>
+                            </group>
+                        </page>
+                        <page string="Signed Copy">
+                            <group>
+                                <field name="signed_document_id"/>
+                                <field name="signed_on" readonly="1"/>
+                                <field name="client_code_generated" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bd_engagement_letter_search" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.search</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="reference_number"/>
+                <field name="partner_id"/>
+                <field name="contract_type"/>
+                <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_approval')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_contract" string="Contract Type" domain="[]" context="{'group_by': 'contract_type'}"/>
+                    <filter name="group_state" string="State" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_bd_engagement_letter_kanban" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.kanban</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" default_order="state">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong t-esc="record.name and record.name.value or ''"/>
+                                <span class="badge bg-primary" t-esc="record.contract_type and record.contract_type.value or ''"/>
+                            </div>
+                            <div class="text-muted">
+                                <span>Client:</span>
+                                <t t-esc="record.partner_id and record.partner_id.raw_value and record.partner_id.raw_value[1] or ''"/>
+                            </div>
+                            <div class="text-muted">
+                                <span>Reference:</span>
+                                <t t-esc="record.reference_number and record.reference_number.value or ''"/>
+                            </div>
+                            <div class="text-muted">
+                                <span>Fees:</span>
+                                <t t-esc="record.fee_total and record.fee_total.value or 0.0"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_bd_engagement_letter" model="ir.actions.act_window">
+        <field name="name">Engagement Letters</field>
+        <field name="res_model">bd.engagement.letter</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_bd_engagement_letter_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_bd_engagement_letter_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_bd_engagement_letter_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_bd_engagement_letter_form')})]"/>
+    </record>
+
+</odoo>

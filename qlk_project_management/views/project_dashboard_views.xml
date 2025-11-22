@@ -2,8 +2,14 @@
 <odoo>
     <data>
         <record id="action_project_dashboard" model="ir.actions.client">
-            <field name="name">Project Management Dashboard</field>
+            <field name="name">Performance Board</field>
             <field name="tag">qlk.project.dashboard</field>
+            <field name="target">main</field>
+        </record>
+
+        <record id="action_bd_dashboard" model="ir.actions.client">
+            <field name="name">BD Intelligence Hub</field>
+            <field name="tag">qlk.bd.dashboard</field>
             <field name="target">main</field>
         </record>
     </data>

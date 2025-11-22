@@ -61,12 +61,6 @@ class QlkTask(models.Model):
         ondelete="set null",
         tracking=True,
     )
-    engagement_id = fields.Many2one(
-        "qlk.engagement.letter",
-        string="Corporate Engagement",
-        ondelete="set null",
-        tracking=True,
-    )
     employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Employee",
@@ -214,7 +208,7 @@ class QlkTask(models.Model):
             if task.date_start and task.date_finished and task.date_finished < task.date_start:
                 raise ValidationError(_("Date Finished cannot be before Date Started."))
 
-    @api.constrains("department", "case_id", "engagement_id", "litigation_phase")
+    @api.constrains("department", "case_id", "litigation_phase")
     def _check_department_links(self):
         for task in self:
             if task.department == "litigation":
@@ -222,8 +216,6 @@ class QlkTask(models.Model):
                     raise ValidationError(_("Litigation tasks must be linked to a litigation case."))
                 if not task.litigation_phase:
                     raise ValidationError(_("Litigation tasks must specify whether they are Pre-Litigation or Post-Litigation."))
-            elif task.department == "corporate" and not task.engagement_id:
-                raise ValidationError(_("Corporate tasks must be linked to a corporate engagement letter."))
             elif task.department == "management" and task.case_id:
                 raise ValidationError(_("Management tasks cannot be linked to a litigation case."))
 
@@ -232,8 +224,6 @@ class QlkTask(models.Model):
         if self.department != "litigation":
             self.litigation_phase = False
             self.case_id = False
-        if self.department != "corporate":
-            self.engagement_id = False
 
     def action_open_related_record(self):
         self.ensure_one()
@@ -243,14 +233,6 @@ class QlkTask(models.Model):
                 "res_model": "qlk.case",
                 "view_mode": "form",
                 "res_id": self.case_id.id,
-                "target": "current",
-            }
-        if self.department == "corporate" and self.engagement_id:
-            return {
-                "type": "ir.actions.act_window",
-                "res_model": "qlk.engagement.letter",
-                "view_mode": "form",
-                "res_id": self.engagement_id.id,
                 "target": "current",
             }
         if self.department == "management" and self.employee_id:

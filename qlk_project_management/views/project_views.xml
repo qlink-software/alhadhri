@@ -13,7 +13,6 @@
                     <field name="department" widget="badge"/>
                     <field name="client_id"/>
                     <field name="related_case_display" string="Related Matter"/>
-                    <field name="engagement_id"/>
                     <field name="assigned_employee_ids"/>
                     <field name="task_hours_total"/>
                     <field name="poa_state" widget="badge"/>
@@ -35,12 +34,9 @@
                         <button name="action_mark_poa_uploaded" type="object" string="POA Uploaded" class="btn-success"
                                 invisible="department != 'litigation' or (poa_state != 'received' and poa_state != 'uploaded')"/>
                         <button name="action_open_log_hours" type="object" string="Log Hours" class="btn-primary"/>
-                        <button name="action_transfer_to_pre_litigation" type="object" string="Create Pre-Litigation Case"
-                                class="btn-secondary"
-                                invisible="department != 'litigation' or case_id"/>
-                        <button name="action_transfer_to_litigation" type="object" string="Create Litigation Case"
+                        <button name="action_transfer_to_litigation" type="object" string="Transfer to Litigation"
                                 class="btn-primary"
-                                invisible="department != 'litigation' or case_id"/>
+                                modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'pre'), ('case_id', '!=', False)]}"/>
                         <button name="action_transfer_to_corporate" type="object" string="Create Corporate Case"
                                 class="btn-primary"
                                 invisible="department != 'corporate' or corporate_case_id"/>
@@ -60,13 +56,13 @@
 
                         <div class="oe_button_box" name="button_box">
                             <button type="object" class="oe_stat_button" name="action_view_hours" icon="fa-clock-o">
-                            <field name="task_hours_total" string="Approved Hours"/>
-                        </button>
-                        <button type="object" class="oe_stat_button" name="action_view_tasks" icon="fa-tasks">
-                            <field name="task_count" string="Tasks"/>
-                        </button>
+                                <field name="task_hours_total" string="Approved Hours"/>
+                            </button>
+                            <button type="object" class="oe_stat_button" name="action_view_tasks" icon="fa-tasks">
+                                <field name="task_count" string="Tasks"/>
+                            </button>
                             <button type="object" class="oe_stat_button" name="action_open_related_case" icon="fa-external-link"
-                                    invisible="not related_case_display">
+                                    modifiers="{'invisible': [('related_case_display', '=', False)]}">
                                 <field name="related_case_display" string="Related Matter" readonly="1"/>
                             </button>
                         </div>
@@ -74,9 +70,14 @@
                         <group>
                         <group>
                                 <field name="department"/>
-                                <field name="client_id"/>
+                                <field name="project_type"/>
+                                <field name="litigation_stage" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
+                                <field name="litigation_stage_code" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
+                                <field name="litigation_stage_iteration" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
+                                <field name="client_id" string="Client Name"/>
                                 <field name="client_capacity"/>
-                                <field name="engagement_id"/>
+                                <field name="project_scope"/>
+                                <field name="litigation_case_number" modifiers="{'readonly': True, 'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="case_id" invisible="department != 'litigation'"/>
                                 <field name="corporate_case_id"
                                        invisible="department != 'corporate'"
@@ -137,6 +138,9 @@
                             </page>
                             <page string="Notes">
                                 <field name="notes"/>
+                            </page>
+                            <page string="Workflow Stages" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}">
+                                <field name="stage_line_ids" context="{'default_project_id': id}"/>
                             </page>
                         </notebook>
                     </sheet>

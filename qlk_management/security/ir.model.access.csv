@@ -1,11 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_managment_agreement,managment.agreement,model_managment_agreement,,1,1,1,1
-access_managment_dashboard,managment.dashboard,model_managment_dashboard,,1,0,0,0
 access_scope_work,scope.work,model_scope_work,,1,1,1,1
 access_legal_fees,legal.fees,model_legal_fees,,1,1,1,1
 access_term_condtion,term.condtion,model_term_condtion,,1,1,1,1
-access_main_project,main.project,model_main_project,,1,1,1,1
 access_sub_project,sub.project,model_sub_project,,1,1,1,1
 access_task,task,model_task,,1,1,1,1
 access_request_contact,request.contact,model_request_contact,,1,1,1,1
 access_contact_attachments,contact.attachments,model_contact_attachments,,1,1,1,1
+access_client_document_user,Client Document User,model_qlk_client_document,base.group_user,1,1,1,1
+access_cost_calculation_user,cost.calculation,model_cost_calculation,base.group_user,1,1,1,1
+access_bd_proposal_user,bd.proposal user,model_bd_proposal,base.group_user,1,1,1,1
+access_bd_engagement_letter_user,bd.engagement.letter user,model_bd_engagement_letter,base.group_user,1,1,1,1
+access_bd_engagement_letter_fee_user,bd.engagement.letter.fee user,model_bd_engagement_letter_fee,base.group_user,1,1,1,1

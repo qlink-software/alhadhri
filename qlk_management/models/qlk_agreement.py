@@ -44,6 +44,23 @@ class Managementgreement(models.Model):
         ('assistance', 'Assistance'),
     ], string='To Be Approve By')
 
+    cost_calculation_id = fields.Many2one('cost.calculation', string='Cost Calculation')
+    lawyer_id = fields.Many2one('hr.employee', string='Lawyer')
+    lawyer_hour_cost = fields.Float(string='Lawyer Hour Cost', compute='_compute_lawyer_costs', store=True)
+    lawyer_hours = fields.Float(string='Lawyer Hours')
+    lawyer_total_cost = fields.Float(string='Lawyer Total Cost', compute='_compute_total_costs', store=True)
+    additional_project_cost = fields.Float(string='Additional Project Cost')
+    total_cost_all = fields.Float(string='Total Cost', compute='_compute_total_costs', store=True)
+    client_document_ids = fields.One2many(
+        "qlk.client.document", string="Client Documents", related="client_id.client_document_ids", readonly=True
+    )
+    client_document_warning = fields.Html(
+        string="Document Warning", related="client_id.document_warning_message", readonly=True
+    )
+    client_document_warning_required = fields.Boolean(
+        related="client_id.document_warning_required", readonly=True
+    )
+
     task_ids = fields.One2many('task', 'agreement_id', string='Tasks')
     # agreement fields
     date = fields.Date("Date")
@@ -119,7 +136,17 @@ class Managementgreement(models.Model):
                 record.weekday_ar = ''
                 record.weekday_en = ''
     
+    @api.depends('lawyer_id')
+    def _compute_lawyer_costs(self):
+        for agreement in self:
+            agreement.lawyer_hour_cost = agreement.lawyer_id.lawyer_hour_cost or 0.0
 
+    @api.depends('lawyer_hour_cost', 'lawyer_hours', 'additional_project_cost')
+    def _compute_total_costs(self):
+        for agreement in self:
+            total = (agreement.lawyer_hour_cost or 0.0) * (agreement.lawyer_hours or 0.0)
+            agreement.lawyer_total_cost = total
+            agreement.total_cost_all = total + (agreement.additional_project_cost or 0.0)
 
     @api.depends('fees', 'expenses')
     def _compute_total_amount(self):

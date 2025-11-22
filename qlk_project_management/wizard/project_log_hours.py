@@ -73,10 +73,6 @@ class ProjectLogHours(models.TransientModel):
                     "litigation_phase": self.litigation_phase or "pre",
                 }
             )
-        elif values["department"] == "corporate":
-            if not project.engagement_id:
-                raise UserError(_("Corporate hours require an engagement letter linked to the project."))
-            values["engagement_id"] = project.engagement_id.id
         task = self.env["qlk.task"].create(values)
         project.message_post(
             body=_("Logged %(hours)s hours to task %(task)s.", hours=self.hours_spent, task=task.display_name)

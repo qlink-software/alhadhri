@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <report
+        id="report_bd_proposal"
+        model="bd.proposal"
+        string="BD Proposal"
+        report_type="qweb-pdf"
+        name="qlk_management.report_bd_proposal_document"
+        file="qlk_management.report_bd_proposal_document"
+    />
+
+    <report
+        id="report_bd_engagement_letter"
+        model="bd.engagement.letter"
+        string="Engagement Letter"
+        report_type="qweb-pdf"
+        name="qlk_management.report_bd_engagement_letter_document"
+        file="qlk_management.report_bd_engagement_letter_document"
+    />
+
+    <template id="report_bd_proposal_document" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page" t-foreach="docs" t-as="doc">
+                <h2 class="text-center">Business Proposal</h2>
+                <p>
+                    <strong>Name:</strong>
+                    <span t-esc="doc.name"/>
+                </p>
+                <p>
+                    <strong>Date:</strong>
+                    <span t-esc="doc.date"/>
+                </p>
+                <p>
+                    <strong>Client:</strong>
+                    <span t-esc="doc.client_name or (doc.partner_id and doc.partner_id.display_name)"/>
+                </p>
+                <p>
+                    <strong>Reference:</strong>
+                    <span t-esc="doc.reference"/>
+                </p>
+                <h3>Scope of Work</h3>
+                <div t-if="doc.scope_of_work" t-raw="doc.scope_of_work"/>
+                <h3>Terms &amp; Conditions</h3>
+                <div t-if="doc.terms_conditions" t-raw="doc.terms_conditions"/>
+                <h3>Financial Summary</h3>
+                <table class="table table-sm o_main_table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Legal Fees</td>
+                            <td class="text-end" t-esc="doc.legal_fees"/>
+                        </tr>
+                        <tr>
+                            <td>Collected Amount</td>
+                            <td class="text-end" t-esc="doc.collected_amount"/>
+                        </tr>
+                        <tr>
+                            <td>Remaining Amount</td>
+                            <td class="text-end" t-esc="doc.remaining_amount"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_bd_engagement_letter_document" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page" t-foreach="docs" t-as="doc">
+                <h2 class="text-center">Engagement Letter</h2>
+                <p>
+                    <strong>Reference:</strong>
+                    <span t-esc="doc.reference_number"/>
+                </p>
+                <p>
+                    <strong>Date:</strong>
+                    <span t-esc="doc.date"/>
+                </p>
+                <p>
+                    <strong>Client:</strong>
+                    <span t-esc="doc.partner_id.display_name"/>
+                </p>
+                <p>
+                    <strong>Contract Type:</strong>
+                    <span t-esc="doc.contract_type"/>
+                </p>
+                <p>
+                    <strong>Retainer Type:</strong>
+                    <span t-esc="doc.retainer_type"/>
+                </p>
+                <h3>Hours &amp; Limits</h3>
+                <ul>
+                    <li>
+                        Monthly Corporate Hours:
+                        <span t-esc="doc.monthly_corporate_hours"/>
+                    </li>
+                    <li>
+                        Yearly Hours:
+                        <span t-esc="doc.yearly_hours"/>
+                    </li>
+                    <li>
+                        Litigation Cases Limit:
+                        <span t-esc="doc.litigation_cases_limit"/>
+                    </li>
+                </ul>
+                <h3>Fee Schedule</h3>
+                <table class="table table-sm o_main_table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="doc.fee_line_ids" t-as="line">
+                            <td t-esc="line.description"/>
+                            <td t-esc="line.due_date"/>
+                            <td class="text-end" t-esc="line.amount"/>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="2" class="text-end">Total</th>
+                            <th class="text-end" t-esc="doc.fee_total"/>
+                        </tr>
+                    </tfoot>
+                </table>
+                <h3>Comments</h3>
+                <div t-esc="doc.comments or ''"/>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

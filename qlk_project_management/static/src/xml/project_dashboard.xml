@@ -38,15 +38,15 @@
                 </section>
 
                 <section class="qlk-project-dashboard__grid">
-                    <article class="qlk-card">
-                        <header>
-                            <div>
-                                <h2>Department mix</h2>
-                                <small>Projects grouped by operating department</small>
-                            </div>
-                        </header>
-                        <ul class="qlk-list">
-                            <t t-if="departmentStats.length">
+                    <t t-if="departmentStats.length">
+                        <article class="qlk-card">
+                            <header>
+                                <div>
+                                    <h2>Department mix</h2>
+                                    <small>Projects grouped by operating department</small>
+                                </div>
+                            </header>
+                            <ul class="qlk-list">
                                 <t t-foreach="departmentStats" t-as="dept" t-key="dept.key">
                                     <li class="qlk-list__item">
                                         <span class="item__name">
@@ -57,10 +57,9 @@
                                         </span>
                                     </li>
                                 </t>
-                            </t>
-                            <li t-else="" class="qlk-empty">No departments detected.</li>
-                        </ul>
-                    </article>
+                            </ul>
+                        </article>
+                    </t>
 
                     <article class="qlk-card">
                         <header>
@@ -109,21 +108,21 @@
                         </div>
                     </article>
 
-                    <article class="qlk-card wide">
-                        <header>
-                            <div>
-                                <h2>Recent projects</h2>
-                                <small>Latest updated projects with workload insights</small>
-                            </div>
-                            <button t-if="projectAction"
-                                    class="qlk-link"
-                                    type="button"
-                                    t-on-click="openProjects">
-                                Open all projects
-                            </button>
-                        </header>
-                        <ul class="qlk-card-list">
-                            <t t-if="projectCards.length">
+                    <t t-if="projectCards.length">
+                        <article class="qlk-card wide">
+                            <header>
+                                <div>
+                                    <h2>Recent projects</h2>
+                                    <small>Latest updated projects with workload insights</small>
+                                </div>
+                                <button t-if="projectAction"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="openProjects">
+                                    Open all projects
+                                </button>
+                            </header>
+                            <ul class="qlk-card-list">
                                 <t t-foreach="projectCards" t-as="project" t-key="project.id">
                                     <li class="project-card" t-on-click="() => openProject(project)">
                                         <div class="project-card__header">
@@ -154,10 +153,9 @@
                                         </div>
                                     </li>
                                 </t>
-                            </t>
-                            <li t-else="" class="qlk-empty">No projects available for your filters.</li>
-                        </ul>
-                    </article>
+                            </ul>
+                        </article>
+                    </t>
                 </section>
             </t>
         </div>

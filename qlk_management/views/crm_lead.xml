@@ -317,31 +317,4 @@
         active="false"
         sequence="25"/>
 
-    <menuitem
-        id="request_contact_menu"
-        name="Request contact"
-        action="request_contact_action"
-        active="false"
-        parent="qlk_management.client_data_menu"
-        sequence="1"/>
-
-    <menuitem id="contacts.res_partner_menu_contacts"
-        name="Contacts"
-        parent="qlk_management.client_data_menu"
-        sequence="2"/>
-
-    <menuitem id="menu_contacts"
-        name="Contact"
-        action="contacts.action_contacts"
-        parent="contacts.res_partner_menu_contacts"
-        sequence="1"/>
-
-    
-    <menuitem
-        id="crm.menu_crm_opportunities"
-        name="PD-Data"
-        parent="qlk_management.client_data_menu"
-        action="crm.action_your_pipeline"
-        sequence="3"/>
-
 </odoo>

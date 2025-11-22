@@ -29,7 +29,7 @@
                         </group>
                         <group>
                             <field name="priority" />
-                            <field name="main_project_id"/>
+                            <field name="sub_project_id"/>
                         </group>
                         <group>
                             <field name="work_hours" />
@@ -63,7 +63,7 @@
                     decoration-warning="priority == 'medium'"
                     decoration-success="priority == 'low'"
                     />
-                <!-- <field name="sub_project_id"/> -->
+                <field name="sub_project_id"/>
                 <field name="attachment_ids" />
                 <field name="work_hours" />
                 <!-- <field name="work_hours_display" /> -->
@@ -77,18 +77,5 @@
         <field name="domain">[]</field>
         <field name="context">{}</field>
     </record>
-
-    <menuitem
-        id="root_task_menu"
-        name="Working Hours"
-        web_icon="qlk_management,static/description/tasks.png"
-        sequence="10"/>
-
-    <menuitem
-        id="task_menu"
-        name="Working Hours"
-        action="task_action"
-        parent="qlk_management.root_task_menu"
-        sequence="1"/>
 
 </odoo>

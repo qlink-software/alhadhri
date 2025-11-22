@@ -1,65 +1,205 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
-from odoo import tools
+# ------------------------------------------------------------------------------
+# موديول لوحة تحكم BD
+# هذا الملف يوفر بيانات الداشبورد بما في ذلك الإحصائيات، التنبيهات،
+# حالة العروض، اتفاقيات الارتباط، الوثائق، والفرص في الـ CRM.
+# ------------------------------------------------------------------------------
+from datetime import timedelta
 
-class LawFirmDashboard(models.Model):
-    _name = 'managment.dashboard'
-    _description = 'Management Dashboard'
-    _auto = False
+from odoo import _, api, fields, models
+from odoo.tools.misc import format_date
 
-    name = fields.Char(string='Name', default='Dashboard')  
+
+class ManagementDashboard(models.AbstractModel):
+    _name = "qlk.management.dashboard"
+    _description = "Management Dashboard Service"
+
+    # ------------------------------------------------------------------------------
+    # دالة مساعدة لاسترجاع تعريف أي أكشن عبر XML-ID لاستخدامه في الواجهة.
+    # ------------------------------------------------------------------------------
+    def _action_payload(self, xmlid):
+        action = self.env.ref(xmlid, raise_if_not_found=False)
+        if action:
+            return {"id": action.id}
+        return None
+
+    # ------------------------------------------------------------------------------
+    # تنسيق التاريخ حسب لغة المستخدم الحالية لضمان مخرجات موحدة.
+    # ------------------------------------------------------------------------------
+    def _format_date(self, date_value, lang):
+        if not date_value:
+            return ""
+        return format_date(self.env, date_value, lang_code=lang)
+
+    # ------------------------------------------------------------------------------
+    # تحديد حالة انتهاء التوكيل بناءً على الفرق بين التاريخ الحالي وتاريخ الانتهاء.
+    # ------------------------------------------------------------------------------
+    def _poa_status(self, due_date):
+        if not due_date:
+            return {"label": _("No expiry"), "css": "chip-muted"}
+        today = fields.Date.context_today(self)
+        if isinstance(due_date, str):
+            due_date = fields.Date.from_string(due_date)
+        delta = (due_date - today).days
+        if delta < 0:
+            return {"label": _("Expired"), "css": "chip-danger"}
+        if delta <= 30:
+            return {"label": _("In %s days") % delta, "css": "chip-warning"}
+        return {"label": _("In %s days") % delta, "css": "chip-success"}
 
     @api.model
     def get_dashboard_data(self):
-        # Get real data from the database
-        pass
-    #     Proposal = self.env['sale.order']
-    #     Agreement = self.env['managment.agreement']
-        
-    #     total_proposals = Proposal.search_count([])
-    #     pending_approvals = Proposal.search_count([('state', '=', 'in_review')])
-    #     active_agreements = Agreement.search_count([('state', '=', 'active')])
-        
-    #     # Calculate conversion rate
-    #     approved_proposals = Proposal.search_count([('state', '=', 'approved')])
-    #     # conversion_rate = (active_agreements / approved_proposals * 100) if approved_proposals else 0
-        
-    #     # # Get proposals by status
-    #     # proposal_by_status = []
-    #     # states = Proposal._fields['state'].selection
-    #     # for state_key, state_name in states:
-    #     #     count = Proposal.search_count([('state', '=', state_key)])
-    #     #     percentage = (count / total_proposals * 100) if total_proposals else 0
-    #     #     proposal_by_status.append([
-    #     #         state_key, state_name, state_name, count, round(percentage, 1)
-    #     #     ])
-        
-    #     # # Get recent activities (simplified)
-    #     # recent_activities = [
-    #     #     [1, 'Proposal Approved', 'Client XYZ', '2 hours ago'],
-    #     #     [2, 'New Agreement Created', 'Client ABC', '5 hours ago'],
-    #     #     [3, 'Case Updated', 'Client DEF', '1 day ago'],
-    #     # ]
-        
-    #     return {
-    #         'total_proposals': total_proposals,
-    #         'pending_approvals': pending_approvals,
-    #         'active_agreements': active_agreements,
-    #         'approved_proposals': approved_proposals,
-    #         # 'conversion_rate': conversion_rate,
-    #         # 'proposal_by_status': proposal_by_status,
-    #         # 'recent_activities': recent_activities,
-    #     }
+        lang = self.env.user.lang or "en_US"
 
-    # # def init(self):
-    # #     # Create a view for the dashboard if needed
-    # #     tools.drop_view_if_exists(self.env.cr, self._table)
-    # #     self.env.cr.execute("""
-    # #         CREATE OR REPLACE VIEW %s AS (
-    # #             SELECT 
-    # #                 row_number() OVER () as id,
-    # #                 'Dashboard' as name
-    # #         )
-    # #     """ % self._table)
+        proposal_model = self.env.get("bd.proposal")
+        engagement_model = self.env.get("bd.engagement.letter")
+        partner_model = self.env["res.partner"]
+        document_model = self.env.get("qlk.client.document")
+        crm_model = self.env.get("crm.lead")
 
-        
+        proposals_total = proposals_waiting = proposals_approved = legal_total = collected_total = pending_total = 0.0
+        proposals_action = self._action_payload("qlk_management.action_bd_proposal")
+        if proposal_model:
+            proposals_total = proposal_model.search_count([])
+            proposals_waiting = proposal_model.search_count([("state", "=", "waiting_approval")])
+            proposals_approved = proposal_model.search_count([("state", "in", ("approved", "client_approved"))])
+            proposal_amount_group = proposal_model.read_group([], ["legal_fees", "collected_amount", "remaining_amount"], [])
+            if proposal_amount_group:
+                legal_total = proposal_amount_group[0].get("legal_fees") or 0.0
+                collected_total = proposal_amount_group[0].get("collected_amount") or 0.0
+                pending_total = proposal_amount_group[0].get("remaining_amount") or 0.0
+
+        proposal_reports = [
+            {"label": _("Total Proposals"), "action": self._action_payload("qlk_management.action_bd_proposal_report_total")},
+            {"label": _("Amount Collected"), "action": self._action_payload("qlk_management.action_bd_proposal_report_collected")},
+            {"label": _("Proposals by Status"), "action": self._action_payload("qlk_management.action_bd_proposal_report_status")},
+        ]
+
+        engagement_total = engagement_waiting = 0
+        engagement_action = self._action_payload("qlk_management.action_bd_engagement_letter")
+        engagement_types = []
+        if engagement_model:
+            engagement_total = engagement_model.search_count([])
+            engagement_waiting = engagement_model.search_count([("state", "=", "waiting_approval")])
+            engagement_type_groups = engagement_model.read_group(
+                [], ["retainer_type"], ["retainer_type"]
+            )
+            engagement_types = [
+                {
+                    "type": data["retainer_type"],
+                    "count": data["retainer_type_count"],
+                }
+                for data in engagement_type_groups
+                if data.get("retainer_type")
+            ]
+
+        client_domain = [("customer_rank", ">", 0)]
+        clients_total = partner_model.search_count(client_domain)
+        clients_action = self._action_payload("qlk_management.action_bd_client_data")
+
+        documents_total = 0
+        poa_expiring = []
+        clients_with_poa = 0
+        poa_documents_action = None
+        missing_documents = []
+
+        if document_model:
+            poa_documents_action = self._action_payload("qlk_management.action_client_documents")
+            documents_total = document_model.search_count([])
+            expiring_limit = fields.Date.context_today(self) + timedelta(days=30)
+            doc_labels = dict(document_model._fields["doc_type"].selection)
+            expiring_docs = document_model.search(
+                [("poa_expiration_date", "!=", False), ("poa_expiration_date", "<=", expiring_limit)],
+                order="poa_expiration_date asc",
+                limit=10,
+            )
+            for doc in expiring_docs:
+                status = self._poa_status(doc.poa_expiration_date)
+                poa_expiring.append(
+                    {
+                        "id": doc.id,
+                        "partner": doc.partner_id.display_name if doc.partner_id else "",
+                        "doc_type": doc_labels.get(doc.doc_type, doc.doc_type),
+                        "expires_on": self._format_date(doc.poa_expiration_date, lang),
+                        "status": status["label"],
+                        "status_class": status["css"],
+                        "url": {"res_model": "qlk.client.document", "res_id": doc.id},
+                    }
+                )
+            partners_with_docs = document_model.read_group([], ["partner_id"], ["partner_id"])
+            clients_with_poa = len(partners_with_docs)
+
+        partner_samples = partner_model.search(client_domain, limit=15, order="write_date desc")
+        for partner in partner_samples:
+            if partner.document_warning_required:
+                missing_documents.append(
+                    {
+                        "partner": partner.display_name,
+                        "message": partner.document_warning_message,
+                    }
+                )
+
+        pipeline_total = pipeline_open = pipeline_won = 0
+        pipeline_action = self._action_payload("crm.crm_lead_action_pipeline")
+        pipeline_stages = []
+        if crm_model:
+            pipeline_domain = [("type", "=", "opportunity"), ("active", "=", True)]
+            pipeline_total = crm_model.search_count(pipeline_domain)
+            pipeline_open = crm_model.search_count(pipeline_domain + [("probability", "<", 100)])
+            pipeline_won = crm_model.search_count(pipeline_domain + [("probability", "=", 100)])
+            stage_stats = crm_model.read_group(pipeline_domain, ["stage_id"], ["stage_id"])
+            pipeline_stages = [
+                {"stage": data["stage_id"][1], "count": data["stage_id_count"]}
+                for data in stage_stats
+                if data.get("stage_id")
+            ]
+
+        return {
+            "palette": {
+                "primary": "#0c2d48",
+                "accent": "#7fa2c3",
+                "muted": "#091a2c",
+                "success": "#2EA091",
+            },
+            "hero": {
+                "clients": clients_total,
+                "proposals": proposals_total,
+                "approved_proposals": proposals_approved,
+                "engagements": engagement_total,
+                "documents": documents_total,
+            },
+            "proposals": {
+                "total": proposals_total,
+                "approved": proposals_approved,
+                "waiting": proposals_waiting,
+                "billable": legal_total,
+                "collected": collected_total,
+                "pending": pending_total,
+                "action": proposals_action,
+                "reports": proposal_reports,
+            },
+            "engagements": {
+                "total": engagement_total,
+                "waiting": engagement_waiting,
+                "types": engagement_types,
+                "action": engagement_action,
+            },
+            "clients": {
+                "total": clients_total,
+                "with_documents": clients_with_poa,
+                "documents_total": documents_total,
+                "action": clients_action,
+                "documents_action": poa_documents_action,
+            },
+            "alerts": {
+                "expiring": poa_expiring,
+                "missing": missing_documents,
+            },
+            "pipeline": {
+                "total": pipeline_total,
+                "open": pipeline_open,
+                "won": pipeline_won,
+                "action": pipeline_action,
+                "stages": pipeline_stages,
+            },
+        }

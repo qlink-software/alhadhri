@@ -28,6 +28,10 @@
                         <label for="agrement_seq"/>
                         <h1><field name="agrement_seq" readonly="1" /></h1>
                     </div>
+                    <div class="alert alert-warning"
+                         invisible="not client_document_warning_required">
+                        <field name="client_document_warning" widget="html" nolabel="1"/>
+                    </div>
                     <group>
                         <group>
                             <field name="is_agreement" invisible="1"/>
@@ -87,7 +91,32 @@
                         </page>
                         <page string="Content">
                             <field name="content" />
-                        </page>        
+                        </page>
+                        <page string="Client Documents">
+                            <field name="client_document_ids"
+                                   nolabel="1"
+                                   readonly="1"
+                                   widget="one2many_list"
+                                   context="{'default_partner_id': client_id}"
+                                   options="{'no_create': True, 'no_edit': True, 'no_open': True}"/>
+                        </page>
+                        <page string="Cost Calculation">
+                            <group>
+                                <group>
+                                    <field name="lawyer_id"/>
+                                    <field name="lawyer_hour_cost" readonly="1"/>
+                                    <field name="lawyer_hours"/>
+                                </group>
+                                <group>
+                                    <field name="lawyer_total_cost" readonly="1"/>
+                                    <field name="additional_project_cost"/>
+                                    <field name="total_cost_all" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="cost_calculation_id"/>
+                                </group>
+                            </group>
+                        </page>
                     </notebook> 
                 </sheet>
             </form>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bd_proposal_tree" model="ir.ui.view">
+        <field name="name">bd.proposal.tree</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <list string="Proposals">
+                <field name="name"/>
+                <field name="client_name"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="legal_fees"/>
+                <field name="collected_amount"/>
+                <field name="remaining_amount"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bd_proposal_form" model="ir.ui.view">
+        <field name="name">bd.proposal.form</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <form string="Business Proposal" create="true" edit="true">
+                <header>
+                    <button name="action_send_for_approval" type="object" string="Send for Approval"
+                            class="btn-primary"
+                            modifiers="{'invisible': ['|', ('state', 'not in', ['draft', 'rejected']), ('state', '=', 'rejected_closed')]}"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
+                    <button name="action_reject" type="object" string="Reject" class="btn-danger"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
+                    <button name="action_client_approved" type="object" string="Client Approved"
+                            modifiers="{'invisible': [('state', '!=', 'approved')]}"/>
+                    <button name="action_close_rejected" type="object" string="Rejected &amp; Closed"
+                            modifiers="{'invisible': [('state', '!=', 'rejected')]}"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            modifiers="{'invisible': [('state', 'not in', ['rejected', 'rejected_closed', 'client_approved'])]}"/>
+                    <button name="action_create_engagement_letter" type="object" string="Create Engagement Letter"
+                            class="btn-secondary"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'client_approved'), ('engagement_letter_id', '!=', False)]}"/>
+                    <button name="action_create_engagement_letter" type="object" string="Open Engagement Letter"
+                            class="btn-secondary"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'client_approved'), ('engagement_letter_id', '=', False)]}"/>
+                    <button name="action_print_proposal" type="object" string="Print Proposal"
+                            class="btn-secondary"
+                            modifiers="{'invisible': [('state', '!=', 'approved')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_approval,approved,rejected,client_approved,rejected_closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="reference"/>
+                            <field name="date"/>
+                            <field name="state" modifiers="{'invisible': True}"/>
+                        </group>
+                        <group>
+                            <field name="client_name"/>
+                            <field name="partner_id"/>
+                            <field name="engagement_letter_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="reviewer_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="lawyer_id"/>
+                            <field name="hourly_cost" readonly="1"/>
+                            <field name="planned_hours"/>
+                            <field name="additional_cost"/>
+                            <field name="total_estimated_cost" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="legal_fees"/>
+                            <field name="collected_amount"/>
+                            <field name="remaining_amount" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Scope &amp; Services">
+                            <group>
+                                <field name="services_description"/>
+                                <field name="project_scope"/>
+                            </group>
+                        </page>
+                        <page string="Scope of Work">
+                            <field name="scope_of_work" nolabel="1"/>
+                        </page>
+                        <page string="Terms &amp; Conditions">
+                            <field name="terms_conditions" nolabel="1"/>
+                        </page>
+                        <page string="Comments">
+                            <field name="comments" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bd_proposal_search" model="ir.ui.view">
+        <field name="name">bd.proposal.search</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="client_name"/>
+                <field name="partner_id"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_approval')]"/>
+                <filter name="rejected" string="Rejected" domain="[('state','=','rejected')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="group_client" string="Client" domain="[]" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_bd_proposal_kanban" model="ir.ui.view">
+        <field name="name">bd.proposal.kanban</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" default_order="state">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-att-class="'oe_kanban_global_click card bg-light o_kanban_record ' + (record.state and record.state.raw_value or '')">
+                            <strong class="mb-2 d-block" t-esc="record.name and record.name.value or ''"/>
+                            <div class="o_kanban_primary_bottom">
+                                <div>
+                                    <span class="fw-bold" t-esc="record.client_name and record.client_name.value or ''"/>
+                                    <small t-esc="record.partner_id and record.partner_id.value and record.partner_id.value[1]"/>
+                                </div>
+                                <div class="text-muted">
+                                    <span>Fees:</span>
+                                    <t t-esc="record.legal_fees and record.legal_fees.value or 0.0"/>
+                                </div>
+                                <div class="text-muted">
+                                    <span>Status:</span>
+                                    <t t-esc="record.state and record.state.value or ''"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_bd_proposal_graph" model="ir.ui.view">
+        <field name="name">bd.proposal.graph</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <graph string="Proposal Totals" type="bar">
+                <field name="legal_fees" type="measure"/>
+                <field name="state" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_bd_proposal_pivot" model="ir.ui.view">
+        <field name="name">bd.proposal.pivot</field>
+        <field name="model">bd.proposal</field>
+        <field name="arch" type="xml">
+            <pivot string="Proposals by Status">
+                <field name="state" type="row"/>
+                <field name="legal_fees" type="measure"/>
+                <field name="collected_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_bd_proposal" model="ir.actions.act_window">
+        <field name="name">BD Proposals</field>
+        <field name="res_model">bd.proposal</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="search_view_id" ref="view_bd_proposal_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_bd_proposal_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_bd_proposal_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_bd_proposal_form')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_bd_proposal_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_bd_proposal_pivot')})]"/>
+    </record>
+
+    <record id="action_bd_proposal_report_total" model="ir.actions.act_window">
+        <field name="name">Total Proposals</field>
+        <field name="res_model">bd.proposal</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_bd_proposal_graph"/>
+    </record>
+
+    <record id="action_bd_proposal_report_collected" model="ir.actions.act_window">
+        <field name="name">Amount Collected</field>
+        <field name="res_model">bd.proposal</field>
+        <field name="view_mode">graph</field>
+        <field name="context">{'graph_measure': 'collected_amount'}</field>
+        <field name="view_id" ref="view_bd_proposal_graph"/>
+    </record>
+
+    <record id="action_bd_proposal_report_status" model="ir.actions.act_window">
+        <field name="name">Proposals by Status</field>
+        <field name="res_model">bd.proposal</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_bd_proposal_pivot"/>
+    </record>
+
+</odoo>

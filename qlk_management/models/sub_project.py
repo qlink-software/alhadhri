@@ -9,11 +9,6 @@ class subProject(models.Model):
     end_date = fields.Date('End Date')
     partner_id = fields.Many2one('res.partner', string='Client')
     description = fields.Html('description')
-    main_project_id = fields.Many2one(
-            "main.project",
-            string="Main Project",
-            ondelete="cascade"
-        )    
     attachment_ids = fields.Many2many(
         comodel_name='ir.attachment',
         string="Attachments",

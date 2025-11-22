@@ -14,15 +14,8 @@ body {
     font-family: 'Poppins', sans-serif !important;
     background-color: #f8f9fa !important; /* خلفية فاتحة ومريحة */
 }
-.bg-transparent {
-    color:#110f16;
-    font-size:1rem;
-    font-weight: bold;
-    border-bottom: 1px solid #e6e5e8;
-}
-.logo_img{
-    width:200px;
-}
+
+
 .sidebar-active {
     margin-left: 350px !important;
     width: calc(100% - 350px) !important;
@@ -30,7 +23,7 @@ body {
 }
 
 // شريط التنقل العلوي (Navbar)
-/* 🚀 3. تحديث وتحديث القائمة العلوية (Navbar) */
+/* 🚀 3.  وتحديث القائمة العلوية (Navbar) */
 html .o_web_client .o_main_navbar {
     margin-left: 0;
     border-top-right-radius: 12px;
@@ -43,7 +36,7 @@ html .o_web_client .o_main_navbar {
     padding-top: 0px;
     padding-bottom: 0px;
     border-bottom: 1px solid #5a4f7f;
-    font-size: 0.875rem;
+    font-size: 0.87rem;
 }
 /* ✅ حالة الفتح: تحريك الـ Navbar */
 .o_main_navbar.sidebar-active {
@@ -57,7 +50,7 @@ html .o_web_client .o_main_navbar {
     visibility: hidden !important;
 }
 
-/* 🔑 خلفية شريط التنقل العلوي: تدرج أفقي أزرق حيوي */
+/* 🔑 خلفية شريط التنقل العلوي:  أزرق حيوي */
 html .o_web_client .o_main_navbar,
 .o_main_navbar,
 .o_main_navbar .o_menu_brand,
@@ -109,6 +102,7 @@ html .o_web_client .o_main_navbar,
     box-shadow: none; 
     padding-top: 5px;
     padding-bottom: 5px;
+    font-size: 1rem;
 }
 .sidebar_sub_menu.open {
     max-height: 70vh;
@@ -133,6 +127,13 @@ html .o_web_client .o_main_navbar,
 .sidebar_sub_menu .text-900 {
     color: #1f0183;
     font-weight: bold;
+}
+//  this wher i have to work submenu with no action
+.bg-transparent {
+    color:#110f16;
+    font-size:1rem;
+    font-weight: bold;
+    border-bottom: 1px solid #e0e0e1;
 }
 
 /* 🚀 2. لوحة السايدبار الرئيسية والحركة (تحسين العمق) */
@@ -165,7 +166,7 @@ html .o_web_client .o_main_navbar,
     /* ✅ تصحيح: لون النص الافتراضي */
     color: #042273; 
     font-weight: 500; /* متوسط بدلاً من سميك */
-    font-size:1rem;
+    font-size:1.2rem;
 
     /* ✅ تحسين مظهر البطاقة (Pill) */
     display: flex; 
@@ -199,12 +200,12 @@ html .o_web_client .o_main_navbar,
     color: #ffffff !important;
     transform: scale(1.01);
 }
-.arrow-indicator {
-    transition: transform 0.3s ease-in-out;
-}
-.sidebar_sub_menu.open + .sidebar_main_menu .arrow-indicator {
-    transform: rotate(90deg);
-}
+// .arrow-indicator {
+//     transition: transform 0.3s ease-in-out;
+// }
+// .sidebar_sub_menu.open + .sidebar_main_menu .arrow-indicator {
+//     transform: rotate(90deg);
+// }
 .sidebar_panel .sidebar_logo, .sidebar_panel .sidebar_close, .sidebar_panel .sidebar_head {
     /* (إبقاء باقي تنسيقات العناصر داخل السايدبار كما هي) */
 }
@@ -212,6 +213,9 @@ html .o_web_client .o_main_navbar,
 .o_form_view .o_form_sheet {
     border-radius: 8px;
     border:2px solid #042273;
+    font-size: 1rem;
+    // height:1000px;
+    width: 100%;
 }
 // التفاعل والأزرار (Buttons & Interactions)
 /* 🚀 الأزرار الرئيسية */
@@ -259,7 +263,7 @@ html .o_web_client .o_main_navbar,
 }
 .o-form-buttonbox .o_pie_value, .o-form-buttonbox .oe_stat_button .o_stat_info .o_stat_value, .o-form-buttonbox .oe_stat_button > span .o_stat_value, .o-form-buttonbox .oe_stat_button .o_field_statinfo .o_stat_value {
     color: #ffffff;
-    font-size: 0.75rem;
+    font-size: 1rem;
 }
 .o-form-buttonbox .oe_stat_button .o_stat_text{
     color: #ffffff;
@@ -314,12 +318,12 @@ a:hover {
 
 /* 1. استهداف فئة الصورة مباشرة لزيادة الحجم والوضوح */
 .logo_img {
-    width: 90% !important; 
+    width: 95% !important; 
     max-width: 300px; 
     height: auto;
-    object-fit: contain; 
-    transition: all 0.5s ease-in-out; 
-    image-rendering: -webkit-optimize-contrast; 
+    // object-fit: contain; 
+    // transition: all 0.5s ease-in-out; 
+    // image-rendering: -webkit-optimize-contrast; 
 }
 
 
@@ -335,14 +339,27 @@ a:hover {
     max-width: none !important; 
     max-height: none !important;
 }
-// html .o_web_client > .o_action_manager {
-//     direction: ltr;
-//     -webkit-box-flex: 1;
-//     -webkit-flex: 1 1 auto;
-//     flex: 1 1 auto;
-//     height: 100%;
-//     background-color: #1350b5;
-//     overflow: hidden;
+
+
+
+/* إخفاء القوائم الفرعية افتراضياً */
+.sidebar_sub_menu ul.list-unstyled {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out; /* لإضافة تأثير انتقالي سلس */
+}
+
+/* إظهار القوائم الفرعية عند إضافة الفئة 'open' إلى العنصر الأب (li) */
+.sidebar_sub_menu li.open > ul.list-unstyled {
+    display: block;
+    max-height: 500px; /* قيمة كبيرة كافية لاحتواء المحتوى */
+}
+
+// .sidebar_sub_menu_no_children {
+//     display: block !important;
+//    color: #042273;
+//     padding-top: 5px;
+//     padding-bottom: 5px;
+//     font-size: 1rem;
 // }
-
-

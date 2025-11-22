@@ -35,12 +35,15 @@ class ProjectTransferLitigation(models.TransientModel):
     )
 
     def action_confirm(self):
+        """Create the court case and switch the project from pre-litigation to litigation."""
         self.ensure_one()
         project = self.project_id
-        if project.department != "litigation":
-            raise UserError(_("Only litigation projects can be transferred."))
+        if project.project_type != "litigation":
+            raise UserError(_("Only litigation projects can be transferred to the court pipeline."))
         if project.case_id:
             raise UserError(_("This project is already linked to a litigation case."))
+        if project.litigation_stage != "pre":
+            raise UserError(_("Transfer to Litigation is available only for pre-litigation projects."))
 
         lawyer = self.assigned_employee_id or project.assigned_employee_ids[:1]
         if not lawyer:
@@ -88,13 +91,29 @@ class ProjectTransferLitigation(models.TransientModel):
             )
 
         # update project
-        project.write(
-            {
+        values = {
             "case_id": case.id,
             "department": "litigation",
+            "project_type": "litigation",
+            "litigation_stage": "court",
+            "litigation_stage_code": project.litigation_stage_code or "F",
+            "litigation_stage_iteration": 0,
             "transfer_ready": False,
-            }
-        )
+        }
+        if not project.litigation_case_number and project.client_id:
+            next_number = project._next_litigation_case_number(project.client_id.id)
+            values["litigation_case_number"] = next_number
+            values.setdefault("case_sequence", next_number)
+        project.write(values)
+        project._ensure_litigation_workflow()
+        translation_line = project.stage_line_ids.filtered(lambda line: line.stage_key == "translation")[:1]
+        if translation_line:
+            translation_line.write(
+                {
+                    "progress": 100.0,
+                    "comment": _("Completed automatically when the project was transferred to litigation."),
+                }
+            )
 
         project.message_post(
             body=_(
