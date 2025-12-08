@@ -20,21 +20,15 @@
     </record>
 
     <menuitem id="menu_management_root"
-              name="BD"
+              name="Management"
               web_icon="sale_management,static/description/icon.png"
               sequence="30"/>
 
-    <!-- <menuitem id="menu_management_dashboard"
+    <menuitem id="menu_management_dashboard"
               name="Dashboard"
-              parent=""
+              parent="menu_management_root"
               action="action_management_dashboard"
-              sequence="10"/> -->
-
-    <menuitem id="menu_bd_dashboard_entry"
-                  name="BD Dashboard"
-                  parent="menu_management_root"
-                  action="qlk_project_management.action_bd_dashboard"
-                  sequence="10"/>
+              sequence="10"/>
 
     <menuitem id="menu_management_pipeline"
               name="Pipeline"
