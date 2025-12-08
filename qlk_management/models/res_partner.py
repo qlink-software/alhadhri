@@ -64,6 +64,15 @@ class ResPartner(models.Model):
                 partner.document_warning_required = False
                 partner.document_warning_message = False
 
+    def get_missing_document_labels(self):
+        """Return a list of missing required document labels for the partner."""
+        self.ensure_one()
+        doc_model = self.env["qlk.client.document"]
+        doc_labels = dict(doc_model._fields["doc_type"].selection)
+        required = self._get_required_document_types()
+        available = {doc.doc_type for doc in self.client_document_ids if doc.is_uploaded}
+        return [doc_labels.get(doc_type, doc_type) for doc_type in required if doc_type not in available]
+
     # ------------------------------------------------------------------------------
     # دالة تحسب أقرب تاريخ لانتهاء POA وتصيغ رسالة تذكير للواجهة.
     # ------------------------------------------------------------------------------

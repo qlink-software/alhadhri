@@ -341,9 +341,7 @@ class DynamicAnalysisDashboard(models.AbstractModel):
         labels, values = self._chart_coordinates(series.get("task_hours"))
 
         user = self.env.user
-        allow_all = user.has_group("qlk_law.group_qlk_law_manager") or user.has_group(
-            "base.group_system"
-        )
+        allow_all = True
         employee_ids = user.employee_ids.ids
         status_counts = {"approved": 0, "waiting": 0, "draft": 0, "rejected": 0}
         total_tasks = 0
@@ -399,9 +397,7 @@ class DynamicAnalysisDashboard(models.AbstractModel):
         today = fields.Date.context_today(self)
         user = self.env.user
         employee_ids = user.employee_ids.ids
-        is_manager = user.has_group("qlk_law.group_qlk_law_manager") or user.has_group(
-            "base.group_system"
-        )
+        is_manager = True
         lang = user.lang or "en_US"
 
         if "qlk.hearing" in self.env:

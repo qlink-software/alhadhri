@@ -28,57 +28,57 @@
         <record id="arbitration_case_rule_user" model="ir.rule">
             <field name="name">Arbitration Cases - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_arbitration_case"/>
-            <field name="domain_force">[('responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_user')),(4, ref('qlk_arbitration.group_arbitration_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_case_rule_manager" model="ir.rule">
             <field name="name">Arbitration Cases - Manager</field>
             <field name="model_id" ref="model_qlk_arbitration_case"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_session_rule_user" model="ir.rule">
             <field name="name">Arbitration Sessions - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_arbitration_session"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_user')),(4, ref('qlk_arbitration.group_arbitration_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_session_rule_manager" model="ir.rule">
             <field name="name">Arbitration Sessions - Manager</field>
             <field name="model_id" ref="model_qlk_arbitration_session"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_memo_rule_user" model="ir.rule">
             <field name="name">Arbitration Memos - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_arbitration_memo"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_user')),(4, ref('qlk_arbitration.group_arbitration_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_memo_rule_manager" model="ir.rule">
             <field name="name">Arbitration Memos - Manager</field>
             <field name="model_id" ref="model_qlk_arbitration_memo"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_award_rule_user" model="ir.rule">
             <field name="name">Arbitration Awards - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_arbitration_award"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_user')),(4, ref('qlk_arbitration.group_arbitration_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="arbitration_award_rule_manager" model="ir.rule">
             <field name="name">Arbitration Awards - Manager</field>
             <field name="model_id" ref="model_qlk_arbitration_award"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_arbitration.group_arbitration_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
     </data>

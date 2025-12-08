@@ -31,51 +31,64 @@ class BusinessDevelopmentDashboard extends Component {
         return this.state.data?.palette || {};
     }
 
-    get summaryCards() {
-        return this.state.data?.summary || [];
-    }
-
-    get pipeline() {
+    get hero() {
         return (
-            this.state.data?.pipeline || {
-                records: [],
-                action: null,
-                domain: [],
-                title: _t("Pipeline Watch"),
+            this.state.data?.hero || {
+                clients: 0,
+                proposals: 0,
+                approved_proposals: 0,
+                engagements: 0,
+                documents: 0,
+                expiring: 0,
             }
         );
     }
 
-    get agreements() {
+    get clients() {
+        return this.state.data?.clients || { action: null, records: [] };
+    }
+
+    get proposals() {
         return (
-            this.state.data?.agreements || {
-                records: [],
+            this.state.data?.proposals || {
                 action: null,
-                title: _t("Recently Signed"),
+                states: [],
+                records: [],
+                total: 0,
+                pipeline_amount: "0",
+                open_count: 0,
             }
         );
+    }
+
+    get engagements() {
+        return this.state.data?.engagements || { action: null, states: [], records: [] };
     }
 
     get documents() {
         return (
             this.state.data?.documents || {
-                records: [],
                 action: null,
+                types: [],
+                expiring: [],
                 domain: [],
-                title: _t("Document Alerts"),
             }
         );
     }
 
+    get pipeline() {
+        return this.state.data?.pipeline || { action: null, records: [], domain: [] };
+    }
+
     get followups() {
-        return (
-            this.state.data?.followups || {
-                items: [],
-                action: null,
-                domain: [],
-                title: _t("Follow-ups"),
-            }
-        );
+        return this.state.data?.followups || { action: null, items: [], domain: [] };
+    }
+
+    formatNumber(value) {
+        if (value === undefined || value === null) {
+            return "0";
+        }
+        return Intl.NumberFormat().format(value);
     }
 
     openAction(actionMeta, domain = null) {

@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-noto_notification_item_user_access,Notification item user,model_noto_notification_item,base.group_user,1,1,1,0
-noto_notification_item_manager_access,Notification item manager,model_noto_notification_item,base.group_system,1,1,1,1

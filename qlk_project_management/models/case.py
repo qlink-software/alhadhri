@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from psycopg2.errors import UndefinedTable
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import sql
 
 COMPLETION_SECTIONS = {
     "completion_identification": [
@@ -95,18 +97,24 @@ class QlkCase(models.Model):
     @api.model
     def _default_case_stage(self, flow):
         Stage = self.env["qlk.project.stage"]
-        default_stage = Stage.search(
-            [("stage_type", "=", flow), ("is_default", "=", True)],
-            order="sequence asc",
-            limit=1,
-        )
-        if not default_stage:
+        if not sql.table_exists(self.env.cr, Stage._table):
+            return Stage.browse()
+
+        try:
             default_stage = Stage.search(
-                [("stage_type", "=", flow)],
+                [("stage_type", "=", flow), ("is_default", "=", True)],
                 order="sequence asc",
                 limit=1,
             )
-        if not default_stage:
+            if not default_stage:
+                default_stage = Stage.search(
+                    [("stage_type", "=", flow)],
+                    order="sequence asc",
+                    limit=1,
+                )
+        except UndefinedTable:
+            return Stage.browse()
+        if not default_stage and not self.env.context.get("install_mode"):
             raise UserError(
                 _("No stages configured for the %(flow)s pipeline.") % {
                     "flow": dict(self._fields["litigation_flow"].selection).get(flow, flow.replace("_", " ").title()),
@@ -132,7 +140,9 @@ class QlkCase(models.Model):
         for vals in vals_list:
             flow = vals.get("litigation_flow") or "pre_litigation"
             if not vals.get("stage_id"):
-                vals["stage_id"] = self._default_case_stage(flow).id
+                stage = self._default_case_stage(flow)
+                if stage:
+                    vals["stage_id"] = stage.id
             res.append(vals)
         records = super().create(res)
         records._init_stage_logs()
@@ -144,7 +154,9 @@ class QlkCase(models.Model):
 
         if "litigation_flow" in vals and "stage_id" not in vals:
             flow = vals["litigation_flow"]
-            vals["stage_id"] = self._default_case_stage(flow).id
+            stage = self._default_case_stage(flow)
+            if stage:
+                vals["stage_id"] = stage.id
 
         result = super().write(vals)
 

@@ -1,2 +1,2 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
-"access_qlk_task_user","qlk.task user","model_qlk_task","base.group_user",1,1,1,1
+"access_qlk_task_user","qlk.task user","model_qlk_task","",1,1,1,1

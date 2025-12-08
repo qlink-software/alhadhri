@@ -277,9 +277,7 @@ class LawyerDashboard(models.AbstractModel):
         end_week = start_week + timedelta(days=6)
 
         employee_ids = user.employee_ids.ids
-        is_manager = user.has_group("qlk_law.group_qlk_law_manager") or user.has_group(
-            "base.group_system"
-        )
+        is_manager = True
         case_domain = self._lawyer_domain(
             employee_ids, user.id, ["employee_id", "employee_ids"], allow_all=is_manager
         )

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo noupdate="0">
 
-    <record id="action_bd_management_dashboard" model="ir.actions.client">
-        <field name="name">BD Dashboard</field>
-        <field name="tag">qlk.management.dashboard</field>
+    <delete id="action_bd_management_dashboard" model="ir.actions.client"/>
+    <delete id="qlk_bd_menu_dashboard" model="ir.ui.menu"/>
+    <delete id="qlk_bd_root_menu" model="ir.ui.menu"/>
+
+    <record id="action_management_dashboard" model="ir.actions.client">
+        <field name="name">Management Dashboard</field>
+        <field name="tag">qlk_management_dashboard</field>
         <field name="target">main</field>
     </record>
 
@@ -15,39 +19,51 @@
         <field name="context">{'search_default_customer': 1, 'default_customer_rank': 1, 'group_by': 'industry_id'}</field>
     </record>
 
-    <menuitem id="qlk_bd_root_menu"
+    <menuitem id="menu_management_root"
               name="BD"
               web_icon="sale_management,static/description/icon.png"
               sequence="30"/>
 
+    <!-- <menuitem id="menu_management_dashboard"
+              name="Dashboard"
+              parent=""
+              action="action_management_dashboard"
+              sequence="10"/> -->
+
+    <menuitem id="menu_bd_dashboard_entry"
+                  name="BD Dashboard"
+                  parent="menu_management_root"
+                  action="qlk_project_management.action_bd_dashboard"
+                  sequence="10"/>
+
+    <menuitem id="menu_management_pipeline"
+              name="Pipeline"
+              parent="menu_management_root"
+              action="crm.crm_lead_action_pipeline"
+              sequence="20"/>
+
     <menuitem id="qlk_bd_menu_clients"
               name="Client Data"
-              parent="qlk_bd_root_menu"
+              parent="menu_management_root"
               action="action_bd_client_data"
-              sequence="10"/>
-
-    <menuitem id="qlk_bd_menu_dashboard"
-              name="Dashboard"
-              parent="qlk_bd_root_menu"
-              action="action_bd_management_dashboard"
-              sequence="20"/>
+              sequence="30"/>
 
     <menuitem id="qlk_bd_menu_proposal"
               name="Proposal"
-              parent="qlk_bd_root_menu"
+              parent="menu_management_root"
               action="action_bd_proposal"
-              sequence="30"/>
+              sequence="40"/>
 
     <menuitem id="qlk_bd_menu_engagement"
               name="Engagement Letter"
-              parent="qlk_bd_root_menu"
+              parent="menu_management_root"
               action="action_bd_engagement_letter"
-              sequence="40"/>
+              sequence="50"/>
 
     <menuitem id="qlk_bd_menu_client_poa"
               name="Client POA Management"
-              parent="qlk_bd_root_menu"
+              parent="menu_management_root"
               action="action_client_documents"
-              sequence="50"/>
+              sequence="60"/>
 
 </odoo>

@@ -177,15 +177,11 @@ class QlkTask(models.Model):
         current_user = self.env.user
         for task in self:
             task.is_reviewer = bool(task.reviewer_id and task.reviewer_id == current_user)
-            can_approve = task.approval_state == "waiting" and (
-                task.is_reviewer
-                or current_user.has_group("qlk_law.group_qlk_law_manager")
-            )
+            can_approve = task.approval_state == "waiting" and task.is_reviewer
             task.can_approve = can_approve
             task.can_submit = task.approval_state in ("draft", "rejected") and (
                 current_user == task.assigned_user_id
                 or current_user == task.create_uid
-                or current_user.has_group("qlk_law.group_qlk_law_manager")
             )
 
     @api.constrains("hours_spent")
@@ -280,10 +276,7 @@ class QlkTask(models.Model):
         for task in self:
             if task.approval_state != "waiting":
                 raise UserError(_("Only tasks waiting for approval can be approved."))
-            if not (
-                current_user == task.reviewer_id
-                or current_user.has_group("qlk_law.group_qlk_law_manager")
-            ):
+            if current_user != task.reviewer_id:
                 raise UserError(_("You are not permitted to approve this task."))
             task.write(
                 {
@@ -308,10 +301,7 @@ class QlkTask(models.Model):
         for task in self:
             if task.approval_state != "waiting":
                 raise UserError(_("Only tasks waiting for approval can be rejected."))
-            if not (
-                current_user == task.reviewer_id
-                or current_user.has_group("qlk_law.group_qlk_law_manager")
-            ):
+            if current_user != task.reviewer_id:
                 raise UserError(_("You are not permitted to reject this task."))
             comment = reason or task.approval_comment
             if not comment:
@@ -336,9 +326,6 @@ class QlkTask(models.Model):
             )
 
     def unlink(self):
-        for task in self:
-            if task.approval_state == "approved" and not self.env.user.has_group("qlk_law.group_qlk_law_manager"):
-                raise UserError(_("Only managers can delete approved tasks."))
         return super().unlink()
 
     @api.model

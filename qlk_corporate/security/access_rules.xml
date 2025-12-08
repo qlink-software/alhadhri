@@ -25,76 +25,74 @@
             <field name="implied_ids" eval="[(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
         </record>
 
-        <!-- Corporate Cases -->
         <record id="corporate_case_rule_user" model="ir.rule">
             <field name="name">Corporate Cases - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_corporate_case"/>
-            <field name="domain_force">[('responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_user')),(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_case_rule_manager" model="ir.rule">
             <field name="name">Corporate Cases - Manager</field>
             <field name="model_id" ref="model_qlk_corporate_case"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
-        <!-- Child models inherit case visibility -->
         <record id="corporate_contract_rule_user" model="ir.rule">
             <field name="name">Corporate Contracts - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_corporate_contract"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_user')),(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_contract_rule_manager" model="ir.rule">
             <field name="name">Corporate Contracts - Manager</field>
             <field name="model_id" ref="model_qlk_corporate_contract"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_memo_rule_user" model="ir.rule">
             <field name="name">Corporate Memos - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_corporate_memo"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_user')),(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_memo_rule_manager" model="ir.rule">
             <field name="name">Corporate Memos - Manager</field>
             <field name="model_id" ref="model_qlk_corporate_memo"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_consultation_rule_user" model="ir.rule">
             <field name="name">Corporate Consultations - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_corporate_consultation"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_user')),(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_consultation_rule_manager" model="ir.rule">
             <field name="name">Corporate Consultations - Manager</field>
             <field name="model_id" ref="model_qlk_corporate_consultation"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_document_rule_user" model="ir.rule">
             <field name="name">Corporate Documents - Assigned Lawyer</field>
             <field name="model_id" ref="model_qlk_corporate_document"/>
-            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_user')),(4, ref('qlk_corporate.group_corporate_responsible'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
         <record id="corporate_document_rule_manager" model="ir.rule">
             <field name="name">Corporate Documents - Manager</field>
             <field name="model_id" ref="model_qlk_corporate_document"/>
-            <field name="domain_force">[]</field>
-            <field name="groups" eval="[(4, ref('qlk_corporate.group_corporate_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [])]"/>
         </record>
 
     </data>

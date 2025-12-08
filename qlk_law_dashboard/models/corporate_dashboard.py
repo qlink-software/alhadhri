@@ -22,7 +22,7 @@ class CorporateDashboard(models.AbstractModel):
         }
 
     def _is_manager(self, user):
-        return user.has_group("qlk_law.group_qlk_law_manager") or user.has_group("base.group_system")
+        return True
 
     def _corporate_user_domain(self, user):
         if self._is_manager(user):

@@ -7,8 +7,9 @@ access_sub_project,sub.project,model_sub_project,,1,1,1,1
 access_task,task,model_task,,1,1,1,1
 access_request_contact,request.contact,model_request_contact,,1,1,1,1
 access_contact_attachments,contact.attachments,model_contact_attachments,,1,1,1,1
-access_client_document_user,Client Document User,model_qlk_client_document,base.group_user,1,1,1,1
-access_cost_calculation_user,cost.calculation,model_cost_calculation,base.group_user,1,1,1,1
-access_bd_proposal_user,bd.proposal user,model_bd_proposal,base.group_user,1,1,1,1
-access_bd_engagement_letter_user,bd.engagement.letter user,model_bd_engagement_letter,base.group_user,1,1,1,1
-access_bd_engagement_letter_fee_user,bd.engagement.letter.fee user,model_bd_engagement_letter_fee,base.group_user,1,1,1,1
+access_management_dashboard_user,management.dashboard,model_qlk_management_dashboard,,1,0,0,0
+access_client_document_user,Client Document User,model_qlk_client_document,,1,1,1,1
+access_cost_calculation_user,cost.calculation,model_cost_calculation,,1,1,1,1
+access_bd_proposal_user,bd.proposal user,model_bd_proposal,,1,1,1,1
+access_bd_engagement_letter_user,bd.engagement.letter user,model_bd_engagement_letter,,1,1,1,1
+access_bd_engagement_letter_fee_user,bd.engagement.letter.fee user,model_bd_engagement_letter_fee,,1,1,1,1

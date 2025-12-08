@@ -193,11 +193,23 @@ class QlkProject(models.Model):
         "project_id",
         string="Workflow Stage Lines",
     )
+    stage_id = fields.Many2one(
+        "qlk.project.stage",
+        string="Workflow Stage",
+        compute="_compute_stage_id",
+        store=False,
+        help="Virtual field exposing the first workflow stage line (if any) for dashboards.",
+    )
     client_document_ids = fields.One2many(
         related="client_id.client_document_ids",
         string="Client Documents",
         readonly=True,
     )
+
+    def _compute_stage_id(self):
+        for project in self:
+            stage_line = project.stage_line_ids[:1]
+            project.stage_id = stage_line.stage_id if stage_line else False
     client_document_warning = fields.Html(
         related="client_id.document_warning_message",
         string="Document Warning",

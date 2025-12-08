@@ -148,4 +148,4 @@ class ManagementDashboard extends Component {
 
 ManagementDashboard.template = "qlk_management.ManagementDashboard";
 
-registry.category("actions").add("qlk.management.dashboard", ManagementDashboard);
+registry.category("actions").add("qlk_management_dashboard", ManagementDashboard);

@@ -4,7 +4,7 @@
 
         <menuitem id="menu_qlk_project_projects"
                   name="Projects"
-                  parent="qlk_management.qlk_bd_root_menu"
+                  parent="qlk_management.menu_management_root"
                   sequence="60"/>
 
         <menuitem id="menu_qlk_project_projects_list"
@@ -37,17 +37,24 @@
                   action="qlk_project_management.action_qlk_project_stage"
                   sequence="50"/>
 
+        <menuitem id="menu_qlk_project_dashboards_root"
+                  name="Dashboards"
+                  parent="qlk_management.menu_management_root"
+                  sequence="55"/>
+
+        
+
+        <menuitem id="menu_project_dashboard_entry"
+                  name="Project Dashboard"
+                  parent="menu_qlk_project_dashboards_root"
+                  action="qlk_project_management.action_project_dashboard"
+                  sequence="20"/>
+
         <menuitem id="menu_qlk_project_analytics_dashboard"
                   name="Analytics Dashboard"
-                  parent="qlk_management.qlk_bd_root_menu"
+                  parent="menu_qlk_project_dashboards_root"
                   action="qlk_project_management.action_analysis_dashboard"
-                  sequence="70"/>
-
-        <menuitem id="menu_bd_dashboard_entry"
-                  name="Project Dashboard"
-                  parent="qlk_management.qlk_bd_root_menu"
-                  action="qlk_project_management.action_bd_dashboard"
-                  sequence="80"/>
+                  sequence="30"/>
 
     </data>
 </odoo>

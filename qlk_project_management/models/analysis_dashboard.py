@@ -68,7 +68,7 @@ class QlkAnalysisDashboard(models.AbstractModel):
     @api.model
     def get_dashboard_data(self, months=6):
         user = self.env.user
-        allow_all = user.has_group("base.group_system")
+        allow_all = True
         employee_ids = user.employee_ids.ids
 
         try:

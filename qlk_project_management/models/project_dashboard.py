@@ -25,7 +25,7 @@ class QlkProjectDashboard(models.AbstractModel):
         user = self.env.user
         lang = user.lang or "en_US"
         employee_ids = user.employee_ids.ids
-        allow_all = user.has_group("base.group_system")
+        allow_all = True
 
         project_model = self.env["qlk.project"]
         project_domain = self._project_domain(employee_ids, user, allow_all)

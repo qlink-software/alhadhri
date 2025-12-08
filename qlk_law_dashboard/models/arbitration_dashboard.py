@@ -21,7 +21,7 @@ class ArbitrationDashboard(models.AbstractModel):
         }
 
     def _is_manager(self, user):
-        return user.has_group("qlk_arbitration.group_arbitration_manager") or user.has_group("base.group_system")
+        return True
 
     def _case_domain(self, user):
         if self._is_manager(user):
