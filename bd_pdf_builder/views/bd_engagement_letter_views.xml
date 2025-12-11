@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_bd_engagement_pdf_builder" model="ir.ui.view">
+            <field name="name">bd.engagement.letter.form.pdf.builder</field>
+            <field name="model">bd.engagement.letter</field>
+            <field name="inherit_id" ref="qlk_management.view_bd_engagement_letter_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header" position="inside">
+                    <button name="action_print_engagement_pdf"
+                            type="object"
+                            string="Print Engagement Letter PDF"
+                            class="btn-secondary"/>
+                    <button name="action_customize_engagement_pdf"
+                            type="object"
+                            string="Customize Engagement Letter PDF"
+                            class="btn-secondary"/>
+                </xpath>
+                <xpath expr="//form//notebook" position="inside">
+                    <page string="PDF Builder">
+                        <group>
+                            <group>
+                                <field name="engagement_pdf_template_id"/>
+                                <field name="engagement_pdf_layout"/>
+                            </group>
+                            <group>
+                                <field name="engagement_pdf_header_html"/>
+                                <field name="engagement_pdf_footer_html"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

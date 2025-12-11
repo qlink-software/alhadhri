@@ -20,15 +20,15 @@
     </record>
 
     <menuitem id="menu_management_root"
-              name="Management"
-              web_icon="sale_management,static/description/icon.png"
+              name="BD"
+              web_icon="crm,static/description/icon.png"
               sequence="30"/>
 
-    <menuitem id="menu_management_dashboard"
+    <!-- <menuitem id="menu_management_dashboard"
               name="Dashboard"
               parent="menu_management_root"
               action="action_management_dashboard"
-              sequence="10"/>
+              sequence="10"/> -->
 
     <menuitem id="menu_management_pipeline"
               name="Pipeline"

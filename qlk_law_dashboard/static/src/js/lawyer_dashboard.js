@@ -18,7 +18,7 @@ class LawyerDashboard extends Component {
 
         onWillStart(async () => {
             try {
-                const payload = await this.orm.call("qlk.lawyer.dashboard", "get_dashboard_data", []);
+                const payload = await this.orm.call("qlk.lawyer.dashboard.alhadri", "get_dashboard_data", []);
                 this.state.data = payload;
             } catch (error) {
                 console.error("Failed to load lawyer dashboard", error);
@@ -189,4 +189,4 @@ class LawyerDashboard extends Component {
 
 LawyerDashboard.template = "qlk_law_dashboard.LawyerDashboard";
 
-registry.category("actions").add("qlk.lawyer.dashboard", LawyerDashboard);
+registry.category("actions").add("qlk.lawyer.dashboard.alhadri", LawyerDashboard);

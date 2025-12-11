@@ -5,3 +5,5 @@
 "access_qlk_case_stage_log_lawyer","qlk.case.stage.log lawyer","model_qlk_case_stage_log","",1,0,0,0
 "access_qlk_case_stage_log_manager","qlk.case.stage.log manager","model_qlk_case_stage_log","",1,1,1,1
 "access_qlk_project_stage_line","qlk.project.stage.line user","model_qlk_project_stage_line","",1,1,1,0
+"access_pre_litigation_user","qlk.pre.litigation user","model_qlk_pre_litigation","base.group_user",1,1,1,1
+"access_pre_litigation_translation_user","qlk.pre.litigation.translation user","model_qlk_pre_litigation_translation","base.group_user",1,1,1,1

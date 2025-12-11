@@ -27,7 +27,7 @@ class Tasks(models.Model):
     attachment_ids = fields.Many2many(
         comodel_name='ir.attachment',
         string="Attachments",)
-    proposal_id = fields.Many2one('sale.order', string='Proposal')   
+    proposal_id = fields.Many2one('bd.proposal', string='Proposal')   
     agreement_id = fields.Many2one('managment.agreement', string='Agreement')   
     crm_id = fields.Many2one('crm.lead', string='Crm')  
     partner_id = fields.Many2one('res.partner', string='Contact') 

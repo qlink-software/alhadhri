@@ -28,9 +28,6 @@ class ResPartner(models.Model):
         string="Client POA Expiry Reminder", compute="_compute_poa_expiration_info", store=True
     )
     bd_client_code = fields.Char(string="Client Code", copy=False, readonly=True)
-    bd_qid = fields.Char(string="QID / ID")
-    bd_passport = fields.Char(string="Passport")
-    bd_contact_details = fields.Text(string="Contact Details")
 
     # ------------------------------------------------------------------------------
     # دالة تحدد المستندات المطلوبة حسب نوع العميل (شركة أو فرد).

@@ -87,6 +87,11 @@ class QlkCase(models.Model):
         related="client_id.document_warning_required",
         readonly=True,
     )
+    pre_litigation_id = fields.Many2one(
+        "qlk.pre.litigation",
+        string="Pre-Litigation Workflow",
+        tracking=True,
+    )
     completion_identification = fields.Float(string="Identification", compute="_compute_completion_metrics", store=False)
     completion_timeline = fields.Float(string="Timeline", compute="_compute_completion_metrics", store=False)
     completion_parties = fields.Float(string="Parties", compute="_compute_completion_metrics", store=False)
@@ -165,6 +170,42 @@ class QlkCase(models.Model):
                 if previous_stage.get(record.id) != record.stage_id:
                     record._handle_stage_transition(previous_stage.get(record.id), record.stage_id)
         return result
+
+    def action_open_pre_litigation(self):
+        self.ensure_one()
+        action = self.env.ref("qlk_project_management.action_pre_litigation", raise_if_not_found=False)
+        if not action:
+            return False
+        action_vals = action.read()[0]
+        form_view = self.env.ref("qlk_project_management.view_pre_litigation_form")
+        context = action_vals.get("context") or {}
+        project = self.env["qlk.project"].search([("case_id", "=", self.id)], limit=1)
+        defaults = {
+            "default_case_id": self.id,
+            "default_client_id": self.client_id.id if self.client_id else False,
+            "default_project_id": project.id if project else False,
+            "default_lawyer_employee_id": self.employee_id.id if "employee_id" in self._fields and self.employee_id else False,
+        }
+        context = {**context, **{k: v for k, v in defaults.items() if v}}
+        if self.pre_litigation_id:
+            action_vals.update(
+                {
+                    "res_id": self.pre_litigation_id.id,
+                    "view_mode": "form",
+                    "views": [(form_view.id, "form")],
+                    "context": context,
+                }
+            )
+            return action_vals
+        action_vals.pop("res_id", None)
+        action_vals.update(
+            {
+                "context": context,
+                "view_mode": "form",
+                "views": [(form_view.id, "form")],
+            }
+        )
+        return action_vals
 
     def _init_stage_logs(self):
         StageLog = self.env["qlk.case.stage.log"]

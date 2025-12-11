@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_pre_litigation_tree" model="ir.ui.view">
+            <field name="name">qlk.pre.litigation.tree</field>
+            <field name="model">qlk.pre.litigation</field>
+            <field name="arch" type="xml">
+                <list string="Pre-Litigation Cases">
+                    <field name="name"/>
+                    <field name="client_id"/>
+                    <field name="project_id"/>
+                    <field name="lawyer_employee_id"/>
+                    <field name="state"/>
+                    <field name="case_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_pre_litigation_form" model="ir.ui.view">
+            <field name="name">qlk.pre.litigation.form</field>
+            <field name="model">qlk.pre.litigation</field>
+            <field name="arch" type="xml">
+                <form string="Pre-Litigation">
+                    <header>
+                        <button name="action_create_litigation_case"
+                                string="Create Litigation Case"
+                                class="oe_highlight"
+                                type="object"
+                                modifiers="{'invisible': ['|', ('state', '!=', 'fee_payment'), ('case_id', '!=', False)]}"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,translation,memo,review,client_approval,office_sign,registration,correction,fee_payment,done"
+                               statusbar_clickable="1"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="client_id"/>
+                                <field name="opponent_id"/>
+                                <field name="subject"/>
+                                <field name="project_id"/>
+                                <field name="case_id" readonly="1" context="{'default_pre_litigation_id': id}"/>
+                            </group>
+                            <group>
+                                <field name="lawyer_employee_id"/>
+                                <field name="office_manager_id"/>
+                                <field name="company_id" readonly="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                        <notebook>
+                            <page string="Workflow">
+                                <group>
+                                    <group>
+                                        <field name="translation_notes" placeholder="Translation Notes..."/>
+                                        <field name="memo_notes" placeholder="Drafting Notes..."/>
+                                        <field name="review_notes" placeholder="Reviewer Notes..."/>
+                                        <field name="client_approval_notes" placeholder="Client Approval Notes..."/>
+                                    </group>
+                                    <group>
+                                        <field name="office_sign_notes" placeholder="Office Signature Notes..."/>
+                                        <field name="registration_details" placeholder="Registration Notes..."/>
+                                        <field name="correction_notes" placeholder="Correction Notes..."/>
+                                        <field name="fee_payment_note" placeholder="Fee Payment Notes..."/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Client Documents">
+                                <field name="client_document_ids" widget="many2many_binary" nolabel="1"/>
+                            </page>
+                            <page string="Lawyer Notes">
+                                <field name="lawyer_note"/>
+                            </page>
+                            <page string="Translation Subtasks">
+                                <field name="translation_line_ids" context="{'default_pre_litigation_id': id}" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="responsible_id"/>
+                                        <field name="deadline"/>
+                                        <field name="state"/>
+                                        <field name="request_attachment_ids" widget="many2many_binary"/>
+                                        <field name="translated_attachment_ids" widget="many2many_binary"/>
+                                        <field name="note"/>
+                                    </list>
+                                    <form string="Translation Subtask">
+                                        <sheet>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="responsible_id"/>
+                                                <field name="deadline"/>
+                                                <field name="state"/>
+                                            </group>
+                                            <group>
+                                                <field name="request_attachment_ids" widget="many2many_binary"/>
+                                                <field name="translated_attachment_ids" widget="many2many_binary"/>
+                                            </group>
+                                            <group>
+                                                <field name="note"/>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </page>
+                            <page string="Translated Documents">
+                                <group>
+                                    <field name="translated_document_ids" widget="many2many_binary" nolabel="1" readonly="1"/>
+                                    <label for="translated_count" string="Total Documents:" class="oe_inline"/>
+                                    <div class="oe_inline">
+                                        <field name="translated_count" readonly="1"/>
+                                    </div>
+                                </group>
+                            </page>
+                            <page string="Approvals">
+                                <field name="approval_note"/>
+                            </page>
+                            <page string="Registration">
+                                <group>
+                                    <field name="registration_details"/>
+                                </group>
+                            </page>
+                            <page string="Fee Payment">
+                                <group>
+                                    <group>
+                                        <field name="fee_payment_amount"/>
+                                    </group>
+                                    <group>
+                                        <field name="fee_payment_reference"/>
+                                        <field name="fee_payment_note"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_pre_litigation" model="ir.actions.act_window">
+            <field name="name">Pre-Litigation Cases</field>
+            <field name="res_model">qlk.pre.litigation</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create the first pre-litigation workflow
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="menu_pre_litigation_cases"
+                  name="Pre-Litigation Cases"
+                  parent="qlk_law.menu_qlk_case_root"
+                  sequence="3"
+                  action="action_pre_litigation"/>
+    </data>
+</odoo>

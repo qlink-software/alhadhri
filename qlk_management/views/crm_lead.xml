@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="action_create_proposal_form" model="ir.actions.act_window">
-        <field name="name">Proposals</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">form,list</field>
-        <field name="target">current</field>
-        <field name="view_id" ref="proposal_agreement_form"/>
-        <field name="context">{'default_is_proposal':True,}</field>
-    </record>
-
     <record id="inherit_view_id_crm_lead" model="ir.ui.view">
         <field name="name">crm.lead.view.form.inherit</field>
         <field name="model">crm.lead</field>
@@ -21,12 +12,11 @@
                     <button string="Not Interested" name="action_not_interested" type="object" class="oe_highlight" invisible="state != 'interested'"/>
                     <button string="Follow Up" name="action_follow_up" type="object" class="oe_highlight" invisible="state != 'not_interested'"/>
                     <button string="Send Proposal" name="action_send" type="object" class="oe_highlight" invisible="state != 'follow_up'"/>
-                    <button string="New Proposal"
-                        name="action_create_proposal"
-                        type="object"
-                        class="oe_highlight"
-                        invisible="state != 'send'"/>
                     <button string="Reset To New" name="action_reset_to_new" type="object" invisible="state == 'new'"/>
+                    <button string="Create BD Proposal"
+                        name="action_create_bd_proposal"
+                        type="object"
+                        class="btn-primary"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,interested,not_interested,follow_up,send"/>
                 </header>
             </xpath>
@@ -64,10 +54,10 @@
                     <field name="task_ids" />
                 </page>
             </xpath>
-            <xpath expr="//button[@name='action_view_sale_quotation']" position="replace">
+            <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" type="object"
                     name="action_open_proposal" icon="fa-pencil-square-o">
-                    <field name="proposal_count" widget="statinfo" string="Proposals"/>
+                    <field name="proposal_count" widget="statinfo" string="BD Proposals"/>
                 </button>
             </xpath>
         </field>
@@ -184,17 +174,6 @@
             </xpath>     
         </field>
     </record>
-    <record id="inherit_view_id_crm_lead_sale_crm" model="ir.ui.view">
-        <field name="name">crm.lead.sale.crm.view.form.inherit</field>
-        <field name="model">crm.lead</field>
-        <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
-        <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_sale_quotations_new']" position="replace">
-                
-            </xpath>
-        </field>
-    </record>
-
     <!-- <record id="opportunity_type_view_form" model="ir.ui.view">
         <field name="name">opportunity.type.view.form</field>
         <field name="model">opportunity.type</field>
@@ -299,15 +278,6 @@
         <field name="context">{}</field>
     </record>
     
-
-    <!-- hide my quotations menu in crm -->
-    <menuitem
-        id="sale_crm.sale_order_menu_quotations_crm"
-        name="My Quotations"
-        action="sale.action_quotations"
-        parent="crm.crm_menu_sales"
-        active="false"
-        sequence="2"/>
 
     <!-- hide my CRM menu -->
     <menuitem

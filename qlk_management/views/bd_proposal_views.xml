@@ -8,6 +8,7 @@
             <list string="Proposals">
                 <field name="name"/>
                 <field name="client_name"/>
+                <field name="lead_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
                 <field name="legal_fees"/>
@@ -59,6 +60,7 @@
                         <group>
                             <field name="client_name"/>
                             <field name="partner_id"/>
+                            <field name="lead_id" options="{'no_create': True}"/>
                             <field name="engagement_letter_id" readonly="1" options="{'no_create': True}"/>
                             <field name="reviewer_id"/>
                         </group>
@@ -110,6 +112,7 @@
             <search>
                 <field name="name"/>
                 <field name="client_name"/>
+                <field name="lead_id"/>
                 <field name="partner_id"/>
                 <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
                 <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_approval')]"/>

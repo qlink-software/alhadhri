@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_bd_proposal_form_pdf_builder" model="ir.ui.view">
+            <field name="name">bd.proposal.form.pdf.builder</field>
+            <field name="model">bd.proposal</field>
+            <field name="inherit_id" ref="qlk_management.view_bd_proposal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header" position="inside">
+                    <button name="action_print_proposal_pdf"
+                            type="object"
+                            string="Print Proposal PDF"
+                            class="btn-secondary"/>
+                    <button name="action_customize_proposal_pdf"
+                            type="object"
+                            string="Customize Proposal PDF"
+                            class="btn-secondary"/>
+                </xpath>
+                <xpath expr="//form//notebook" position="inside">
+                    <page string="PDF Builder">
+                        <group>
+                            <group>
+                                <field name="proposal_pdf_template_id"/>
+                                <field name="proposal_pdf_layout"/>
+                            </group>
+                            <group>
+                                <field name="proposal_pdf_header_html"/>
+                                <field name="proposal_pdf_footer_html"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -12,6 +12,30 @@ class ProjectProject(models.Model):
     lawyer_total_cost = fields.Float(string="Lawyer Total Cost", compute="_compute_totals", store=True)
     additional_project_cost = fields.Float(string="Additional Project Cost")
     total_cost_all = fields.Float(string="Total Cost", compute="_compute_totals", store=True)
+    engagement_letter_id = fields.Many2one("bd.engagement.letter", string="Engagement Letter", index=True)
+    billing_type = fields.Selection(
+        [("free", "Free"), ("paid", "Paid")],
+        string="Billing Type",
+    )
+    invoice_id = fields.Many2one("account.move", string="Invoice", readonly=True)
+    payment_state = fields.Selection(
+        selection=[
+            ("not_paid", "Not Paid"),
+            ("in_payment", "In Payment"),
+            ("paid", "Paid"),
+            ("partial", "Partially Paid"),
+            ("reversed", "Reversed"),
+        ],
+        string="Invoice Payment State",
+    )
+    company_currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        related="company_id.currency_id",
+        store=True,
+        readonly=True,
+    )
+    amount_total = fields.Monetary(string="Service Amount", currency_field="company_currency_id")
 
     @api.depends("lawyer_id")
     def _compute_lawyer_costs(self):

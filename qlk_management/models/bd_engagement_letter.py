@@ -14,7 +14,7 @@ class BDEngagementLetter(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
-    name = fields.Char(string="Title", required=True, tracking=True)
+    name = fields.Char(string="Title", tracking=True)
     date = fields.Date(string="Date", required=True, default=fields.Date.context_today, tracking=True)
     reference_number = fields.Char(string="Reference Number", readonly=True, copy=False)
     contract_type = fields.Selection(
@@ -93,6 +93,21 @@ class BDEngagementLetter(models.Model):
     total_estimated_cost = fields.Float(string="Total Estimated Cost")
     services_description = fields.Text(string="Services Description")
     project_scope = fields.Text(string="Project Scope")
+    description = fields.Text(string="Project Description")
+    billing_type = fields.Selection(
+        [("free", "Free"), ("paid", "Paid")],
+        string="Billing Type",
+        required=True,
+        default="paid",
+        tracking=True,
+    )
+    amount_total = fields.Monetary(string="Service Amount", currency_field="currency_id")
+    invoice_id = fields.Many2one("account.move", string="Invoice", readonly=True, copy=False)
+    invoice_state = fields.Selection(
+        related="invoice_id.payment_state", string="Invoice Payment Status", store=True, readonly=True
+    )
+    project_id = fields.Many2one("project.project", string="Project", readonly=True, copy=False)
+    can_create_project = fields.Boolean(string="Can Create Project", compute="_compute_can_create_project")
 
     # ------------------------------------------------------------------------------
     # دالة تحسب الساعات السنوية بناءً على الإدخال الشهري.
@@ -230,18 +245,18 @@ class BDEngagementLetter(models.Model):
             partner = letter.partner_id
             if not partner:
                 continue
+            contact_details = partner._display_address() or ""
             if partner.company_type == "person":
-                details = partner.bd_contact_details or partner._display_address()
-                letter.partner_qid = partner.bd_qid or partner.ref or ""
-                letter.partner_passport = partner.bd_passport or ""
-                letter.contact_details = details or ""
+                letter.partner_qid = partner.ref or ""
+                letter.partner_passport = partner.ref or ""
+                letter.contact_details = contact_details
             else:
-                if not letter.partner_qid and partner.bd_qid:
-                    letter.partner_qid = partner.bd_qid
-                if not letter.partner_passport and partner.bd_passport:
-                    letter.partner_passport = partner.bd_passport
-                if not letter.contact_details and partner.bd_contact_details:
-                    letter.contact_details = partner.bd_contact_details
+                if not letter.partner_qid:
+                    letter.partner_qid = partner.ref or ""
+                if not letter.partner_passport:
+                    letter.partner_passport = partner.ref or ""
+                if not letter.contact_details:
+                    letter.contact_details = contact_details
 
     # ------------------------------------------------------------------------------
     # زر إنشاء مشروع بعد موافقة العميل يقوم بإنشاء qlk.project وربطه بالاتفاقية.
@@ -265,6 +280,111 @@ class BDEngagementLetter(models.Model):
             letter.client_code_generated = True
             letter.signed_on = fields.Datetime.now()
             letter.message_post(body=_("Client code %s generated for %s") % (code, letter.partner_id.display_name))
+
+    @api.depends("billing_type", "invoice_state", "invoice_id", "project_id")
+    def _compute_can_create_project(self):
+        for letter in self:
+            eligible = letter.billing_type == "free" or (
+                letter.billing_type == "paid"
+                and letter.invoice_id
+                and letter.invoice_state == "paid"
+            )
+            letter.can_create_project = bool(eligible and not letter.project_id)
+
+    def action_create_invoice(self):
+        self.ensure_one()
+        if self.billing_type != "paid":
+            raise UserError(_("Invoices are only required for paid engagements."))
+        if self.invoice_id:
+            raise UserError(_("An invoice has already been created for this engagement letter."))
+        if not self.partner_id:
+            raise UserError(_("Please select a client before creating the invoice."))
+        if not self.amount_total:
+            raise UserError(_("Please set the service amount before creating the invoice."))
+
+        journal = self.env["account.journal"].search(
+            [("type", "=", "sale"), ("company_id", "=", self.company_id.id)], limit=1
+        )
+        if not journal:
+            raise UserError(_("Please configure a sales journal for the company."))
+
+        income_account = self.env["account.account"].search(
+            [
+                ("company_ids", "in", self.company_id.id),
+                ("account_type", "in", ("income", "income_other")),
+            ],
+            limit=1,
+        )
+        if not income_account:
+            raise UserError(_("Please configure a sales account to create invoices."))
+
+        move_vals = {
+            "move_type": "out_invoice",
+            "partner_id": self.partner_id.id,
+            "currency_id": self.currency_id.id,
+            "company_id": self.company_id.id,
+            "invoice_origin": self.reference_number or self.name,
+            "invoice_line_ids": [
+                (
+                    0,
+                    0,
+                    {
+                        "name": _("Engagement Letter Services"),
+                        "quantity": 1.0,
+                        "price_unit": self.amount_total,
+                        "account_id": income_account.id,
+                    },
+                )
+            ],
+            "journal_id": journal.id,
+        }
+
+        invoice = self.env["account.move"].create(move_vals)
+        self.invoice_id = invoice.id
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Invoice"),
+            "res_model": "account.move",
+            "res_id": invoice.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_create_project(self):
+        Project = self.env["project.project"]
+        result_action = None
+        for letter in self:
+            if letter.project_id:
+                raise UserError(_("A project has already been created for this engagement letter."))
+            if letter.billing_type == "paid":
+                if not letter.invoice_id:
+                    raise UserError(_("You must create an invoice before creating the project."))
+                if letter.invoice_state != "paid":
+                    raise UserError(_("The invoice must be fully paid before creating the project."))
+
+            project_vals = {
+                "name": letter.name,
+                "partner_id": letter.partner_id.id,
+                "engagement_letter_id": letter.id,
+                "amount_total": letter.amount_total if letter.billing_type == "paid" else 0.0,
+                "billing_type": letter.billing_type,
+                "invoice_id": letter.invoice_id.id,
+                "payment_state": letter.invoice_state,
+                "description": letter.description or letter.services_description or letter.project_scope,
+                "company_id": letter.company_id.id,
+            }
+            project = Project.create(project_vals)
+            letter.project_id = project.id
+            result_action = {
+                "type": "ir.actions.act_window",
+                "name": _("Project"),
+                "res_model": "project.project",
+                "res_id": project.id,
+                "view_mode": "form",
+                "target": "current",
+            }
+        return result_action
 
 
 class BDEngagementLetterFee(models.Model):

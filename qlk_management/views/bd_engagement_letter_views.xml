@@ -40,7 +40,6 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="name"/>
                             <field name="date"/>
                             <field name="reference_number" readonly="1"/>
                             <field name="company_id" readonly="1"/>
@@ -71,6 +70,26 @@
                             <field name="lawyer_id"/>
                         </group>
                     </group>
+                    <group string="Billing Information">
+                        <group>
+                            <field name="billing_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="amount_total"
+                                   modifiers="{'required': [('billing_type', '=', 'paid')], 'invisible': [('billing_type', '=', 'free')]}"/>
+                            <field name="invoice_id" options="{'no_create': True}"
+                                   modifiers="{'invisible': [('billing_type', '=', 'free')]}"/>
+                            <field name="invoice_state" readonly="1"
+                                   modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('invoice_id', '=', False)]}"/>
+                        </group>
+                        <group>
+                            <field name="project_id" readonly="1" options="{'no_create': True}"/>
+                            <button name="action_create_invoice" type="object" string="Create Invoice"
+                                    class="btn-secondary"
+                                    modifiers="{'invisible': ['|', ('billing_type', '!=', 'paid'), ('invoice_id', '!=', False)]}"/>
+                            <button name="action_create_project" type="object" string="Create Project"
+                                    class="btn-primary"
+                                    modifiers="{'invisible': ['|', '&', ('billing_type', '=', 'paid'), '|', ('invoice_id', '=', False), ('invoice_state', '!=', 'paid'), ('can_create_project', '=', False)]}"/>
+                        </group>
+                    </group>
                     <notebook>
                         <page string="Legal Fees">
                             <field name="fee_line_ids" nolabel="1" context="{'default_currency_id': currency_id, 'default_letter_id': id}">
@@ -92,6 +111,7 @@
                             <group>
                                 <field name="services_description"/>
                                 <field name="project_scope"/>
+                                <field name="description"/>
                             </group>
                         </page>
                         <page string="Signed Copy">

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_bd_pdf_builder_wizard" model="ir.ui.view">
+            <field name="name">bd.pdf.builder.wizard.form</field>
+            <field name="model">bd.pdf.builder.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Customize PDF">
+                    <group>
+                        <group>
+                            <field name="template_id"/>
+                            <field name="layout"/>
+                        </group>
+                        <group>
+                            <field name="header_html"/>
+                            <field name="footer_html"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_generate_pdf" type="object" class="btn-primary" string="Generate PDF"/>
+                        <button special="cancel" string="Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -25,6 +25,12 @@ class BDProposal(models.Model):
     partner_id = fields.Many2one(
         "res.partner", string="Related Client", index=True, tracking=True
     )
+    lead_id = fields.Many2one(
+        "crm.lead",
+        string="Opportunity",
+        index=True,
+        tracking=True,
+    )
     date = fields.Date(
         string="Proposal Date",
         required=True,
@@ -114,6 +120,17 @@ class BDProposal(models.Model):
     # ------------------------------------------------------------------------------
     # عند اختيار المحامي يتم جلب تكلفة الساعة من cost.calculation تلقائياً.
     # ------------------------------------------------------------------------------
+    @api.onchange("lead_id")
+    def _onchange_lead_id(self):
+        for record in self:
+            if not record.lead_id:
+                continue
+            lead_client = record._prepare_lead_defaults(record.lead_id)
+            if lead_client.get("partner_id"):
+                record.partner_id = lead_client["partner_id"]
+            if lead_client.get("client_name"):
+                record.client_name = lead_client["client_name"]
+
     @api.onchange("lawyer_id")
     def _onchange_lawyer_id(self):
         for record in self:
@@ -172,17 +189,44 @@ class BDProposal(models.Model):
                 vals["name"] = seq_model.next_by_code("proposal.sequence")
             if vals.get("lawyer_id"):
                 vals["hourly_cost"] = self._get_lawyer_cost(vals["lawyer_id"])
+            lead_vals = vals.get("lead_id") and self._prepare_lead_defaults(vals["lead_id"]) or {}
+            if lead_vals:
+                vals.setdefault("client_name", lead_vals.get("client_name"))
+                if lead_vals.get("partner_id") and not vals.get("partner_id"):
+                    vals["partner_id"] = lead_vals["partner_id"]
         records = super().create(vals_list)
         return records
 
     def write(self, vals):
         if "lawyer_id" in vals and vals["lawyer_id"]:
             vals["hourly_cost"] = self._get_lawyer_cost(vals["lawyer_id"])
+        if vals.get("lead_id"):
+            lead_vals = self._prepare_lead_defaults(vals["lead_id"])
+            if lead_vals:
+                vals.setdefault("client_name", lead_vals.get("client_name"))
+                if lead_vals.get("partner_id") and not vals.get("partner_id"):
+                    vals["partner_id"] = lead_vals["partner_id"]
         return super().write(vals)
 
     def _get_lawyer_cost(self, lawyer_id):
         cost = self.env["cost.calculation"].search([("employee_id", "=", lawyer_id)], limit=1)
         return cost.cost_per_hour if cost else 0.0
+
+    def _prepare_lead_defaults(self, lead):
+        lead_record = lead if isinstance(lead, models.BaseModel) else self.env["crm.lead"].browse(lead)
+        lead_record = lead_record if lead_record.exists() else False
+        if not lead_record:
+            return {}
+        client_name = (
+            lead_record.partner_id.display_name
+            or lead_record.partner_name
+            or lead_record.contact_name
+            or lead_record.name
+        )
+        return {
+            "client_name": client_name,
+            "partner_id": lead_record.partner_id.id,
+        }
 
     # ------------------------------------------------------------------------------
     # عند الرفض:

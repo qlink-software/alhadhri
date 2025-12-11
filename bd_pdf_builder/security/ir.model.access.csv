@@ -1,0 +1,3 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_bd_pdf_builder_template","bd.pdf.builder.template user","model_bd_pdf_builder_template","base.group_user",1,1,1,1
+"access_bd_pdf_builder_wizard","bd.pdf.builder.wizard user","model_bd_pdf_builder_wizard","base.group_user",1,1,1,1

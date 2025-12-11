@@ -12,11 +12,17 @@
                     <button name="action_case_mark_stage_completed" type="object" string="Mark Stage Complete" class="btn-light"
                             options="{'invisible': [('stage_id', '=', False)]}"/>
                     <field name="stage_id" widget="statusbar" options="{'readonly': [('id', '!=', False)]}"/>
+                    <button name="action_open_pre_litigation"
+                            type="object"
+                            string="Create Pre-Litigation"
+                            class="btn-primary"
+                            modifiers="{'invisible': [('litigation_flow', '!=', 'pre_litigation')]}"/>
                 </xpath>
 
                 <xpath expr="//sheet/group[1]" position="before">
                     <group>
                         <field name="litigation_flow"/>
+                        <field name="pre_litigation_id" readonly="1" context="{'default_case_id': id}"/>
                     </group>
                 </xpath>
 

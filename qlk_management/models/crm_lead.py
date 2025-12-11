@@ -20,8 +20,8 @@ class Crm(models.Model):
 
 
     def _compute_proposal(self):
-        for res in self:
-            res.proposal_count = self.env['sale.order'].search_count([('is_proposal','=', True),('opportunity_id', '=', self.id)])
+        for lead in self:
+            lead.proposal_count = self.env['bd.proposal'].search_count([('lead_id', '=', lead.id)])
 
 
     def action_interested(self):
@@ -45,31 +45,49 @@ class Crm(models.Model):
             rec.state = 'new'
 
 
-    def action_create_proposal(self):
-        """Open Sale Order form as a proposal linked to this lead"""
+    def action_create_bd_proposal(self):
+        """Open the BD Proposal form with defaults taken from the lead"""
         self.ensure_one()
-        action = self.env.ref('qlk_management.action_create_proposal_form').read()[0]
-        action['context'] = {
-            'default_is_proposal': True,
+        form_view = self.env.ref('qlk_management.view_bd_proposal_form')
+        default_client = self.partner_id.display_name or self.partner_name or self.contact_name or self.name
+        context = {
+            'default_lead_id': self.id,
             'default_partner_id': self.partner_id.id,
-            'default_opportunity_id': self.id,
+            'default_client_name': default_client,
+            'default_reference': self.name,
         }
-        return action
+        return {
+            'name': _('Create Proposal'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'bd.proposal',
+            'view_mode': 'form',
+            'view_id': form_view.id,
+            'target': 'current',
+            'context': context,
+        }
 
 
     def action_open_proposal(self):
         """Open all proposals linked to this lead"""
         self.ensure_one()
-        form_view = self.env.ref('qlk_management.proposal_agreement_form')
-        kanban_view = self.env.ref('qlk_management.view_proposal_kanban')
+        form_view = self.env.ref('qlk_management.view_bd_proposal_form')
+        kanban_view = self.env.ref('qlk_management.view_bd_proposal_kanban')
+        tree_view = self.env.ref('qlk_management.view_bd_proposal_tree')
         return {
             'name': _('Proposals'),
             'type': 'ir.actions.act_window',
-            'res_model': 'sale.order',
-            'view_mode': 'list,form',
-            'views': [(kanban_view.id, 'kanban'), (form_view.id, 'form')],
-            'domain': [('is_proposal', '=', True), ('opportunity_id', '=', self.id)],
-            'context': {'create': False, 'edit': False},
+            'res_model': 'bd.proposal',
+            'view_mode': 'kanban,list,form',
+            'views': [
+                (kanban_view.id, 'kanban'),
+                (tree_view.id, 'list'),
+                (form_view.id, 'form'),
+            ],
+            'domain': [('lead_id', '=', self.id)],
+            'context': {
+                'default_lead_id': self.id,
+                'default_partner_id': self.partner_id.id,
+            },
             'target': 'current',
         }
 
@@ -116,8 +134,4 @@ class Crm(models.Model):
 #     _name = "opportunity.type"
 
 #     name = fields.Char('Name')
-
-
-
-
 

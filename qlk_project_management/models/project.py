@@ -109,6 +109,12 @@ class QlkProject(models.Model):
         tracking=True,
         help="Sequential index for repeated stages (e.g., re-opened appeals).",
     )
+    litigation_court_id = fields.Many2one(
+        "qlk.casegroup", string="Court", tracking=True, help="Court handling the litigation."
+    )
+    litigation_case_type_id = fields.Many2one(
+        "qlk.secondcategory", string="Case Type", tracking=True, help="Type/category of the lawsuit."
+    )
     client_code = fields.Char(string="Client Code", compute="_compute_client_code", store=True)
     company_id = fields.Many2one(
         "res.company",
@@ -193,6 +199,11 @@ class QlkProject(models.Model):
         "project_id",
         string="Workflow Stage Lines",
     )
+    pre_litigation_id = fields.Many2one(
+        "qlk.pre.litigation",
+        string="Pre-Litigation Workflow",
+        tracking=True,
+    )
     stage_id = fields.Many2one(
         "qlk.project.stage",
         string="Workflow Stage",
@@ -265,6 +276,20 @@ class QlkProject(models.Model):
                 project.litigation_stage_iteration = 0
             elif project.litigation_stage == "court":
                 project.litigation_stage_code = project.litigation_stage_code or "F"
+                project.litigation_stage_iteration = project.litigation_stage_iteration or 0
+
+    @api.onchange("case_id")
+    def _onchange_case_details(self):
+        for project in self:
+            case = project.case_id
+            if not case:
+                continue
+            if not project.litigation_court_id:
+                project.litigation_court_id = case.case_group
+            if not project.litigation_case_type_id:
+                project.litigation_case_type_id = case.second_category
+            if project.project_type == "litigation" and not project.litigation_stage_code:
+                project.litigation_stage_code = "F"
 
     @api.depends("client_id")
     def _compute_client_code(self):
@@ -537,6 +562,8 @@ class QlkProject(models.Model):
             "currency_id": currency.id if currency else False,
             "case_number": self.litigation_case_number,
             "litigation_flow": "litigation" if self.litigation_stage == "court" else "pre_litigation",
+            "case_group": self.litigation_court_id.id if self.litigation_court_id else False,
+            "second_category": self.litigation_case_type_id.id if self.litigation_case_type_id else False,
         }
 
     # ------------------------------------------------------------------------------
@@ -630,13 +657,18 @@ class QlkProject(models.Model):
     @api.model
     def create(self, vals):
         prepared_vals = self._prepare_project_type_values(vals)
-        return super().create(prepared_vals)
+        project = super().create(prepared_vals)
+        project._sync_case_metadata_from_case()
+        return project
 
     def write(self, vals):
         write_vals = vals
         if "project_type" in vals:
             write_vals = self._prepare_project_type_values(vals)
-        return super().write(write_vals)
+        res = super().write(write_vals)
+        if "case_id" in vals and not self.env.context.get("skip_case_sync"):
+            self._sync_case_metadata_from_case()
+        return res
 
     def _ensure_client_documents_ready(self):
         for project in self:
@@ -692,6 +724,7 @@ class QlkProject(models.Model):
         projects = super().create(res)
         projects._auto_create_default_cases()
         projects._sync_case_project_link()
+        projects._sync_case_metadata_from_case()
         projects._post_create_notifications()
         projects._ensure_litigation_workflow()
         return projects
@@ -737,7 +770,21 @@ class QlkProject(models.Model):
             self._clear_stale_case_links(old_corporate_cases, old_arbitration_cases)
             self._sync_case_project_link()
             self._ensure_litigation_workflow()
+            self._sync_case_metadata_from_case()
         return result
+
+    def _sync_case_metadata_from_case(self):
+        for project in self:
+            case = project.case_id
+            if not case:
+                continue
+            updates = {}
+            if case.case_group and project.litigation_court_id != case.case_group:
+                updates["litigation_court_id"] = case.case_group.id
+            if case.second_category and project.litigation_case_type_id != case.second_category:
+                updates["litigation_case_type_id"] = case.second_category.id
+            if updates:
+                project.with_context(skip_case_sync=True).write(updates)
 
     def _clear_stale_case_links(self, old_corporate_cases, old_arbitration_cases):
         for project in self:

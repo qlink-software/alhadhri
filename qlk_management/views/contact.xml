@@ -112,19 +112,8 @@
                 </group>
             </xpath>
 
-            <xpath expr="//sheet//field[@name='country_id']" position="after">
-                <group string="Identity Information" class="o_bd_identity_group">
-                    <group>
-                        <field name="bd_qid"/>
-                        <field name="bd_passport"/>
-                    </group>
-                    <group colspan="2">
-                        <field name="bd_contact_details"/>
-                    </group>
-                </group>
-                <group string="Industry">
-                    <field name="industry_id"/>
-                </group>
+            <xpath expr="//sheet//field[@name='ref']" position="after">
+                <field name="industry_id"/>
             </xpath>
 
             <!-- <xpath expr="//field[@name='function']" position="attributes">
@@ -189,9 +178,6 @@
                         </form>
                     </field>
                 </page>
-            </xpath>
-            <xpath expr="//field[@name='phone']" position="attributes">
-                <attribute name="required">1</attribute>
             </xpath>
             <xpath expr="//field[@name='mobile']" position="attributes">
                 <attribute name="required">1</attribute>

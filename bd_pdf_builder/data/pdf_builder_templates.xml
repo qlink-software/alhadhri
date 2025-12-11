@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="bd_pdf_template_proposal_modern" model="bd.pdf.builder.template">
+            <field name="name">Modern Proposal Template</field>
+            <field name="model">bd.proposal</field>
+            <field name="template_key">bd_pdf_builder.proposal_template_modern</field>
+            <field name="default_layout">modern</field>
+            <field name="default_header_html">
+                <![CDATA[
+                <h2>Business Proposal</h2>
+                <p>Confidential document prepared for the client.</p>
+                ]]>
+            </field>
+            <field name="default_footer_html">
+                <![CDATA[
+                <p>© Powered by QLK Management System</p>
+                ]]>
+            </field>
+        </record>
+
+        <record id="bd_pdf_template_engagement_classic" model="bd.pdf.builder.template">
+            <field name="name">Classic Engagement Template</field>
+            <field name="model">bd.engagement.letter</field>
+            <field name="template_key">bd_pdf_builder.engagement_letter_template_classic</field>
+            <field name="default_layout">classic</field>
+            <field name="default_header_html">
+                <![CDATA[
+                <h2>Engagement Letter</h2>
+                <p>Formal contract prepared for the client.</p>
+                ]]>
+            </field>
+            <field name="default_footer_html">
+                <![CDATA[
+                <p>Thank you for trusting our firm.</p>
+                ]]>
+            </field>
+        </record>
+    </data>
+</odoo>

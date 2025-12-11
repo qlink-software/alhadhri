@@ -72,8 +72,10 @@
                                 <field name="department"/>
                                 <field name="project_type"/>
                                 <field name="litigation_stage" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
-                                <field name="litigation_stage_code" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
+                                <field name="litigation_stage_code" string="Litigation Degree" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="litigation_stage_iteration" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
+                                <field name="litigation_court_id" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
+                                <field name="litigation_case_type_id" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="client_id" string="Client Name"/>
                                 <field name="client_capacity"/>
                                 <field name="project_scope"/>

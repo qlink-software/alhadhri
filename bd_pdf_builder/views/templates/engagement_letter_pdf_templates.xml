@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_engagement_letter_pdf">
+        <t t-name="bd_pdf_builder.report_engagement_letter_pdf">
+            <t t-set="template_key" t-value="ctx.get('builder_template') or 'bd_pdf_builder.engagement_letter_template_classic'"/>
+            <t t-call="template_key"/>
+        </t>
+    </template>
+
+    <template id="engagement_letter_template_classic" name="Engagement Letter Template Classic">
+        <t t-name="bd_pdf_builder.engagement_letter_template_classic">
+            <t t-set="layout" t-value="ctx.get('builder_layout', 'classic')"/>
+            <t t-foreach="docs" t-as="doc">
+                <div t-att-class="'bd-pdf bd-pdf--%s' % (layout or 'classic',)">
+                    <div class="bd-pdf__header" t-if="ctx.get('builder_header_html')">
+                        <t t-raw="ctx.get('builder_header_html')"/>
+                    </div>
+                    <div class="bd-pdf__info">
+                        <div>
+                            <strong>Engagement Letter</strong>
+                            <p>
+                                <span>Name:</span> <t t-esc="doc.name"/>
+                                <br/>
+                                <span>Date:</span> <t t-esc="doc.date"/>
+                                <br/>
+                                <span>Reference:</span> <t t-esc="doc.reference_number or '-'"/>
+                            </p>
+                        </div>
+                        <div>
+                            <strong>Client</strong>
+                            <p>
+                                <span>Name:</span> <t t-esc="doc.partner_id.display_name"/>
+                                <br/>
+                                <span>Contract Type:</span> <t t-esc="doc.contract_type"/>
+                                <br/>
+                                <span>Retainer Type:</span> <t t-esc="doc.retainer_type"/>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="bd-pdf__body">
+                        <h3>Services Description</h3>
+                        <p t-esc="doc.services_description or '-'"/>
+                        <h3>Project Scope</h3>
+                        <p t-esc="doc.project_scope or '-'"/>
+                        <h3>Fee Breakdown</h3>
+                        <table class="w-100">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.fee_line_ids" t-as="line">
+                                    <td><t t-esc="line.description"/></td>
+                                    <td class="text-end">
+                                        <t t-esc="line.amount"/>
+                                        <t t-esc="doc.currency_id.symbol"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td class="text-end">
+                                        <strong>
+                                            <t t-esc="doc.fee_total"/>
+                                            <t t-esc="doc.currency_id.symbol"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h3>Additional Notes</h3>
+                        <p t-esc="doc.comments or '-'"/>
+                    </div>
+                    <div class="bd-pdf__signatures">
+                        <div>
+                            <strong>Firm Representative</strong>
+                            <p t-esc="doc.reviewer_id.display_name or doc.lawyer_id.name or ''"/>
+                            <p>Date: ____________________</p>
+                        </div>
+                        <div>
+                            <strong>Client Representative</strong>
+                            <p>Name: ____________________</p>
+                            <p>Signature: ____________________</p>
+                        </div>
+                    </div>
+                    <div class="bd-pdf__footer" t-if="ctx.get('builder_footer_html')">
+                        <t t-raw="ctx.get('builder_footer_html')"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

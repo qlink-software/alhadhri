@@ -1,8 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_managment_agreement,managment.agreement,model_managment_agreement,,1,1,1,1
-access_scope_work,scope.work,model_scope_work,,1,1,1,1
-access_legal_fees,legal.fees,model_legal_fees,,1,1,1,1
-access_term_condtion,term.condtion,model_term_condtion,,1,1,1,1
 access_sub_project,sub.project,model_sub_project,,1,1,1,1
 access_task,task,model_task,,1,1,1,1
 access_request_contact,request.contact,model_request_contact,,1,1,1,1

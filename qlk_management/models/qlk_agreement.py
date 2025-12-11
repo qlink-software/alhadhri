@@ -12,7 +12,7 @@ class Managementgreement(models.Model):
     is_agreement = fields.Boolean('Is Agreement',default=False)
     agrement_seq = fields.Char('Agreemnet Name',  default=lambda self: _('New Agreement'))
     client_id = fields.Many2one('res.partner', string='Client', required=True)
-    proposal_id = fields.Many2one('sale.order', string='Linked Proposal')
+    proposal_id = fields.Many2one('bd.proposal', string='Linked Proposal')
     agreement_date = fields.Date(string='Date', default=fields.Date.today)
     start_date = fields.Date(string='Start Date', required=True)
     end_date = fields.Date(string='End Date')

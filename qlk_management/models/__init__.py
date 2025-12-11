@@ -4,7 +4,6 @@
 # from . import qlk_proposal
 from . import qlk_agreement
 from . import qlk_dashboard
-from . import sale_order
 from . import res_partner
 from . import sub_project
 from . import task

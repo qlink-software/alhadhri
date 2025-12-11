@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            id="action_engagement_letter_pdf"
+            model="bd.engagement.letter"
+            string="Engagement Letter PDF"
+            report_type="qweb-pdf"
+            name="bd_pdf_builder.report_engagement_letter_pdf"
+            file="bd_pdf_builder.report_engagement_letter_pdf"
+            print_report_name="'Engagement Letter - %s' % (object.name or object.id)"
+        />
+    </data>
+</odoo>

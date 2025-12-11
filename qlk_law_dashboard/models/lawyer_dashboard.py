@@ -9,7 +9,7 @@ from odoo.tools.misc import format_date
 
 
 class LawyerDashboard(models.AbstractModel):
-    _name = "qlk.lawyer.dashboard"
+    _name = "qlk.lawyer.dashboard.alhadri"
     _description = "Lawyer Dashboard Service"
 
     @api.model

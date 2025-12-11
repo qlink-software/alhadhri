@@ -4,7 +4,7 @@
 
         <record id="action_lawyer_dashboard_client" model="ir.actions.client">
             <field name="name">Lawyer Dashboard</field>
-            <field name="tag">qlk.lawyer.dashboard</field>
+            <field name="tag">qlk.lawyer.dashboard.alhadri</field>
             <field name="target">main</field>
         </record>
 

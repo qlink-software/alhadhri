@@ -20,8 +20,6 @@
                     name="%(qlk_management.customer_agreements_alhadhri_action)d" 
                     type="action" class="oe_highlight" 
                     invisible="agreement_state not in ['age_approve','ag_sale']"/>  
-                    <button id="create_invoice" name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
-                    type="action" class="btn-primary" data-hotkey="q"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
