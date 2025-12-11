@@ -87,7 +87,7 @@
                                     modifiers="{'invisible': ['|', ('billing_type', '!=', 'paid'), ('invoice_id', '!=', False)]}"/>
                             <button name="action_create_project" type="object" string="Create Project"
                                     class="btn-primary"
-                                    modifiers="{'invisible': ['|', '&', ('billing_type', '=', 'paid'), '|', ('invoice_id', '=', False), ('invoice_state', '!=', 'paid'), ('can_create_project', '=', False)]}"/>
+                                    modifiers="{'invisible': ['|', '&amp;', ('billing_type', '=', 'paid'), '|', ('invoice_id', '=', False), ('invoice_state', '!=', 'paid'), ('can_create_project', '=', False)]}"/>
                         </group>
                     </group>
                     <notebook>
