@@ -128,14 +128,14 @@
             <xpath expr="//page[@name='accounting']//field[@name='bank_ids']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
-            <xpath expr="//div[@name='button_box']" position="inside">
+            <!-- <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_create_bd_proposal"
                         type="object"
                         string="Create Proposal"
                         class="oe_stat_button"
                         icon="fa-file-text-o"
                         modifiers="{'invisible': [('id', '=', False)]}"/>
-            </xpath>
+            </xpath> -->
             <!-- <xpath expr="//button[@name='get_client_case']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
