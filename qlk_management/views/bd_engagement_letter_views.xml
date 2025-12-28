@@ -8,7 +8,9 @@
         <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
         <field name="active" eval="False"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes"/>
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">bd_engagement_letter_noop</attribute>
+            </xpath>
         </field>
     </record>
     <record id="view_bd_engagement_letter_form_buttons_visibility" model="ir.ui.view">
@@ -17,7 +19,9 @@
         <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
         <field name="active" eval="False"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes"/>
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">bd_engagement_letter_noop</attribute>
+            </xpath>
         </field>
     </record>
     <record id="view_bd_engagement_letter_form_approval_role_header" model="ir.ui.view">
@@ -26,7 +30,9 @@
         <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
         <field name="active" eval="False"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes"/>
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">bd_engagement_letter_noop</attribute>
+            </xpath>
         </field>
     </record>
 
