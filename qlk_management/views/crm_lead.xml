@@ -50,9 +50,30 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//page[@name='internal_notes']" position="after">
-                <page string="Working Hours">
-                    <field name="task_ids" />
+                <page string="Tasks / Hours">
+                    <field name="qlk_task_ids" context="{'default_lead_id': id, 'default_department': 'management'}">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="department"/>
+                            <field name="hours_spent"/>
+                            <field name="date_start"/>
+                            <field name="employee_id"/>
+                        </list>
+                        <form string="Task">
+                            <sheet>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="hours_spent"/>
+                                    <field name="date_start"/>
+                                    <field name="employee_id"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
                 </page>
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="after">
+                <field name="total_task_hours" readonly="1"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" type="object"

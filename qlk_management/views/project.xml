@@ -22,5 +22,103 @@
         <field name="name">Planner</field>
     </record>
 
+    <record id="project_project_form_inherit_engagement" model="ir.ui.view">
+        <field name="name">project.project.form.engagement</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_assign_lawyer"
+                        type="object"
+                        string="Assign Lawyer"
+                        class="btn-secondary"
+                        modifiers="{'invisible': ['|','|','|',('is_mini_project','=',False),('is_mp_user','=',False),('mini_state','=','done'),('lawyer_id','=',False)]}"/>
+                <button name="action_complete_mini_project"
+                        type="object"
+                        string="Complete Mini Project"
+                        class="btn-primary"
+                        modifiers="{'invisible': ['|','|','|',('is_mini_project','=',False),('is_mp_user','=',False),('mini_state','=','done'),('lawyer_assigned','=',False)]}"/>
+            </xpath>
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <div class="o_row mb-2">
+                    <span class="badge bg-secondary me-2" modifiers="{'invisible': [('code', '=', False)]}">
+                        <span>Project Code:</span>
+                        <field name="code" readonly="1" nolabel="1"/>
+                    </span>
+                    <span class="badge bg-light text-muted" modifiers="{'invisible': [('client_code', '=', False)]}">
+                        <span>Client Code:</span>
+                        <field name="client_code" readonly="1" nolabel="1"/>
+                    </span>
+                </div>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_client_attachments"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-paperclip"
+                            string="Client Documents"
+                            modifiers="{'invisible': [('partner_id', '=', False)]}">
+                        <div class="o_stat_info">
+                            <span class="o_stat_text">Client Documents</span>
+                        </div>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Engagement Info">
+                    <group>
+                        <group>
+                            <field name="project_type"/>
+                            <field name="retainer_type"/>
+                            <field name="fee_structure"/>
+                            <field name="payment_terms"/>
+                        </group>
+                        <group>
+                            <field name="client_code" readonly="1"/>
+                            <field name="legal_fee_amount" readonly="1"/>
+                            <field name="engagement_reference" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="project_scope_note"/>
+                    </group>
+                </page>
+                <page string="Mini Project">
+                    <group>
+                        <group>
+                            <field name="is_mini_project"/>
+                            <field name="mini_state" readonly="1"/>
+                            <field name="mp_id" options="{'no_create': True}" modifiers="{'invisible': [('is_mini_project', '=', False)]}"/>
+                            <field name="bd_user_id" options="{'no_create': True}" modifiers="{'invisible': [('is_mini_project', '=', False)]}"/>
+                        </group>
+                        <group modifiers="{'invisible': [('is_mini_project', '=', False)]}">
+                            <field name="needs_translation"/>
+                            <field name="translation_requested" readonly="1"/>
+                            <field name="lawyer_assigned" readonly="1"/>
+                        </group>
+                    </group>
+                    <group modifiers="{'invisible': [('is_mini_project', '=', False)]}">
+                        <field name="lawyer_id"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="project_project_tree_inherit_engagement" model="ir.ui.view">
+        <field name="name">project.project.tree.engagement</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='display_name']" position="before">
+                <field name="code" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="before">
+                <field name="client_code" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
 
 </odoo>

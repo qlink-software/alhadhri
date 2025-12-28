@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="web.NavBar" t-inherit-mode="extension" owl="1"> 
+        <xpath expr="//nav[hasclass('o_main_navbar')]" position="before">
+            <div class="o_floating_sidebar_toggle_container">
+                <a id="openSidebar" 
+                   t-ref="openSidebar" 
+                   t-on-click="openSidebar"
+                   class="o_modern_sidebar_toggle"> 
+                    <i class="fa fa-bars fa-lg"/>
+                </a>
+            </div>
+        </xpath>
+        <xpath expr="//nav[hasclass('o_main_navbar')]" position="replace">
+       
+            <nav class="o_main_navbar d-flex justify-content-between sidebar-movable"
+                 t-ref="o_main_navbar"
+                 t-on-dropdown-item-selected="onNavBarDropdownItemSelection"
+                 data-command-category="navbar">
+
+                <DropdownItem
+                    t-if="!env.isSmall and currentApp"
+                    t-esc="currentApp.name"
+                    class="'o_menu_brand d-flex d-none'"
+                    onSelected="() => this.onNavBarDropdownItemSelection(currentApp)"
+                    attrs="{ href: getMenuItemHref(currentApp), 'data-menu-xmlid': currentApp.xmlid, 'data-section': currentApp.id }"
+                />
+
+                <div class="o_navbar_breadcrumbs d-contents"/>
+
+                <div class="o_menu_systray d-flex flex-shrink-0 ms-auto" role="menu">
+                  <t t-foreach="systrayItems" t-as="item" t-key="item.key">
+                    <div t-att-data-index="item.index"/>
+                    <ErrorHandler onError="error => this.handleItemError(error, item)">
+                        <t t-component="item.Component" t-props="item.props"/>
+                    </ErrorHandler>
+                  </t>
+                  </div>
+            </nav>
+
+            <div class="sidebar_panel" id="sidebar_panel">
+                <div class="sidebar">
+                    <!-- to close the sidbar menu -->
+                    <div class="sidebar_close">
+                        <a id="closeSidebar" t-ref="closeSidebar" style="cursor:pointer;">
+                            <i class="fa fa-times fa-lg"/> 
+                        </a>
+                    </div>
+                    <!-- the system logo -->
+                    <div class="sidebar_logo">
+                        <img src="/qlink_backend_theme_alhadhri/static/description/test3.png" class="logo_img"/>
+                    </div>
+                    <!-- dropdown menus -->
+                    <ul class="sidebar_menu" t-ref="sidebarLinks">
+                        <t t-foreach="menuService.getApps()" t-as="app" t-key="app_index">
+                            <li data-toggle="tooltip" data-placement="right"
+                                t-att-title="app.name"
+                                t-att-data-app-id="app.id"
+                                t-att-class="{'active': currentApp === app}">
+                                
+                                <a role="menuitem"
+                                    t-attf-href="#menu_id={{app.id}}"
+                                    t-att-data-id="app.id"
+                                    t-att-data-xmlid="app.xmlid"
+                                    t-att-data-action-id="app.actionID">
+
+                                        <!-- to get app icon -->
+                                        <!-- <img style="height: 2em;"
+                                         t-if="app.webIconData"
+                                         class="o_app_icon me-2"
+                                         t-attf-src="{{app.webIconData}}"/> -->
+
+                                        <span><t t-esc="app.name"/></span>
+                                        <!-- <span class="arrow-indicator" style="float:right;">&#9658;</span>  -->
+                                </a>
+                                
+                                <!-- to get the submenu for any app -->
+                                <ul class="sidebar_sub_menu list-unstyled" style="cursor:pointer;">
+                                    <t t-set="sections" t-value="menuService.getMenuAsTree(app.id).childrenTree" />
+                                    <t t-foreach="sections" t-as="section" t-key="section.id">
+                                        <!-- if the child has childern  -->
+                                        <t t-if="section.childrenTree.length">
+                                            <li class="px-3" >
+                                                <div class="bg-transparent o_menu_toggle"
+                                                    role="button"
+                                                    t-att-class="{
+                                                        'fw-bolder text-900 pt-3 pb-2': !isNested,
+                                                        'border-top': !isNested &amp;&amp; subMenu_index != 0,
+                                                        'py-2': isNested,
+                                                    }"
+                                                    t-att-data-menu-xmlid="section.xmlid"
+                                                    t-esc="section.name"
+                                                />
+                                                <ul class="list-unstyled ps-0"> 
+                                                    <t t-foreach="section.childrenTree" t-as="subSection" t-key="subSection_index">
+                                                    
+                                                        <t t-call="web.SectionMenu">
+                                                            <t t-set="section" t-value="subSection"/>
+                                                            <t t-set="isNested" t-value="true"/>
+                                                        </t>
+                                                    </t>
+                                                </ul>
+                                            </li>
+                                        </t>
+                                        <!-- if the child has action (no childern) -->
+                                        <t t-else="">
+                                            <ul class="ps-0"> 
+                                                <t t-call="web.SectionMenu">
+                                                    <t t-set="section" t-value="section"/>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                        
+                                    </t>
+                                </ul>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </div>
+        </xpath>
+    </t>
+    <!-- inherit the "web.SectionMenu" to handel the grandchildren -->
+    <t t-inherit="web.SectionMenu" t-inherit-mode="extension" owl="1">
+        <xpath expr="//li[hasclass('px-3')]" position="replace">
+            <li class="px-3" t-if="section.childrenTree.length">
+                <div class="bg-transparent o_menu_toggle"
+                    role="button"
+                    t-att-class="{
+                        'fw-bolder text-900 pt-3 pb-2': !isNested,
+                        'border-top': !isNested &amp;&amp; subMenu_index != 0,
+                        'py-2': isNested,
+                    }"
+                    t-att-data-menu-xmlid="section.xmlid"
+                    t-esc="section.name"
+                />
+                <ul class="list-unstyled ps-0">
+                    <t t-foreach="section.childrenTree" t-as="subSection" t-key="subSection_index">
+                        <t t-call="web.SectionMenu">
+                            <t t-set="section" t-value="subSection"/>
+                            <t t-set="isNested" t-value="true"/>
+                        </t>
+                    </t>
+                </ul>
+            </li> 
+        </xpath>
+    </t>
+</templates>

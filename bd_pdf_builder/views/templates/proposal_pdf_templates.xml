@@ -29,7 +29,7 @@
                         <div>
                             <strong>Client</strong>
                             <p>
-                                <span>Name:</span> <t t-esc="doc.client_name or '-'"/>
+                                <span>Name:</span> <t t-esc="doc.partner_id and doc.partner_id.display_name or '-'"/>
                                 <br/>
                                 <span>Company:</span> <t t-esc="doc.partner_id.display_name if doc.partner_id else '-'"/>
                                 <br/>

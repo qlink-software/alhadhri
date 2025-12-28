@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_management.BDDashboard" owl="1">
+        <div class="qlk-bd-dashboard"
+             t-att-style="'--qlk-primary: ' + (palette.primary || '#0F5CA8') + '; --qlk-accent: ' + (palette.accent || '#22B6C8') + '; --qlk-muted: ' + (palette.muted || '#0D3E7A') + '; --qlk-success: ' + (palette.success || '#27AE60') + ';'">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading…</span>
+                    </div>
+                    <span>Loading BD dashboard…</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="qlk-project-dashboard__hero">
+                    <div class="hero__info">
+                        <h1>BD performance overview</h1>
+                        <p>Track clients, proposals, engagement letters, and document expirations at a glance.</p>
+                    </div>
+                    <div class="hero__metrics">
+                        <div class="metric-card">
+                            <span>Clients</span>
+                            <strong t-esc="formatNumber(hero.clients)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Proposals</span>
+                            <strong t-esc="formatNumber(hero.proposals)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Approved</span>
+                            <strong t-esc="formatNumber(hero.approved_proposals)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Engagement Letters</span>
+                            <strong t-esc="formatNumber(hero.engagements)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Client Docs</span>
+                            <strong t-esc="formatNumber(hero.documents)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Expiring soon</span>
+                            <strong t-esc="formatNumber(hero.expiring)"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="qlk-project-dashboard__grid">
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Client coverage</h2>
+                                <small>Latest customers with POA renewal information</small>
+                            </div>
+                            <button t-if="clients.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(clients.action)">
+                                Open clients
+                            </button>
+                        </header>
+                        <t t-if="clients.records.length">
+                            <ul class="qlk-card-list bd-client-list">
+                                <t t-foreach="clients.records" t-as="client" t-key="client.id">
+                                    <li class="bd-client-card" t-on-click="() => openRecord(client.url)">
+                                        <div class="bd-client-card__header">
+                                            <div>
+                                                <strong t-esc="client.name"/>
+                                                <span class="bd-client-card__code" t-esc="client.code or '-'"/>
+                                            </div>
+                                            <span class="bd-status" t-att-class="'bd-status ' + client.status_class">
+                                                <t t-esc="client.status"/>
+                                            </span>
+                                        </div>
+                                        <div class="bd-client-card__meta">
+                                            <span>Next expiry: <strong t-esc="client.expiry or '-'"/></span>
+                                            <span class="bd-chip" t-if="client.type == 'company'">Company</span>
+                                            <span class="bd-chip" t-else="">Individual</span>
+                                        </div>
+                                        <t t-if="client.documents.length">
+                                            <div class="bd-doc-chips">
+                                                <t t-foreach="client.documents" t-as="doc" t-key="doc.label + doc.expires">
+                                                    <span class="bd-doc-chip" t-att-class="doc.uploaded ? 'bd-doc-chip uploaded' : 'bd-doc-chip'">
+                                                        <strong t-esc="doc.label"/>
+                                                        <small t-esc="doc.expires or '-'"/>
+                                                    </span>
+                                                </t>
+                                            </div>
+                                        </t>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No client data to display.</div>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Proposals by status</h2>
+                                <small>Quick breakdown with drill-down</small>
+                            </div>
+                            <button t-if="proposals.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(proposals.action)">
+                                View proposals
+                            </button>
+                        </header>
+                        <t t-if="proposals.states.length">
+                            <ul class="qlk-list">
+                                <t t-foreach="proposals.states" t-as="state" t-key="state.key">
+                                    <li class="qlk-list__item"
+                                        t-on-click="() => openAction(proposals.action, state.domain)">
+                                        <span class="item__name" t-esc="state.label"/>
+                                        <span class="item__badge" t-esc="formatNumber(state.count)"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No proposal data found.</div>
+                        </t>
+                        <div class="bd-card-note">
+                            <small>Total proposals: <t t-esc="formatNumber(proposals.total)"/></small><br/>
+                            <small>Open pipeline: <t t-esc="proposals.pipeline_amount"/> · <t t-esc="formatNumber(proposals.open_count)"/> deals</small>
+                        </div>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Engagement Letters</h2>
+                                <small>Status distribution</small>
+                            </div>
+                            <button t-if="engagements.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(engagements.action)">
+                                Manage letters
+                            </button>
+                        </header>
+                        <t t-if="engagements.states.length">
+                            <ul class="qlk-list">
+                                <t t-foreach="engagements.states" t-as="state" t-key="state.key">
+                                    <li class="qlk-list__item"
+                                        t-on-click="() => openAction(engagements.action, state.domain)">
+                                        <span class="item__name" t-esc="state.label"/>
+                                        <span class="item__badge" t-esc="formatNumber(state.count)"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No engagement letters recorded.</div>
+                        </t>
+                        <t t-if="engagements.records.length">
+                            <ul class="bd-mini-list">
+                                <t t-foreach="engagements.records" t-as="letter" t-key="letter.id">
+                                    <li t-on-click="() => openRecord(letter.url)">
+                                        <div>
+                                            <strong t-esc="letter.title"/>
+                                            <span t-esc="letter.client"/>
+                                        </div>
+                                        <span class="bd-chip" t-esc="letter.state"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Client documents</h2>
+                                <small>Uploaded types &amp; expiry</small>
+                            </div>
+                            <button t-if="documents.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(documents.action)">
+                                Manage documents
+                            </button>
+                        </header>
+                        <t t-if="documents.types.length">
+                            <ul class="qlk-list">
+                                <t t-foreach="documents.types" t-as="doc" t-key="doc.type">
+                                    <li class="qlk-list__item">
+                                        <div>
+                                            <span class="item__name" t-esc="doc.label"/>
+                                            <small>Next expiry: <t t-esc="doc.next_expiry or '-'"/></small>
+                                        </div>
+                                        <span class="item__badge" t-esc="formatNumber(doc.count)"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No document records yet.</div>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Recent proposals</h2>
+                                <small>Latest updates with value</small>
+                            </div>
+                        </header>
+                        <t t-if="proposals.records.length">
+                            <ul class="qlk-card-list">
+                                <t t-foreach="proposals.records" t-as="proposal" t-key="proposal.id">
+                                    <li class="project-card" t-on-click="() => openRecord(proposal.url)">
+                                        <div class="project-card__header">
+                                            <div>
+                                                <span class="project-card__code" t-esc="proposal.title"/>
+                                                <span class="project-card__name" t-esc="proposal.client"/>
+                                            </div>
+                                            <span class="project-card__badge" t-esc="proposal.state"/>
+                                        </div>
+                                        <div class="project-card__meta">
+                                            <span>Value: <t t-esc="proposal.amount"/></span>
+                                        </div>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No proposals to show.</div>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Expiring documents</h2>
+                                <small>Next 45 days</small>
+                            </div>
+                            <button t-if="documents.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(documents.action, documents.domain)">
+                                Review records
+                            </button>
+                        </header>
+                        <t t-if="documents.expiring.length">
+                            <table class="bd-table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Document</th>
+                                        <th>Expiry</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="documents.expiring" t-as="doc" t-key="doc.id">
+                                        <tr t-on-click="() => openRecord(doc.url)">
+                                            <td class="bd-table__title" t-esc="doc.partner"/>
+                                            <td t-esc="doc.doc_type"/>
+                                            <td t-esc="doc.expires"/>
+                                            <td>
+                                                <span class="bd-status" t-att-class="'bd-status ' + doc.status_class" t-esc="doc.status"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">No expirations detected.</div>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card wide">
+                        <header>
+                            <div>
+                                <h2>Active pipeline</h2>
+                                <small>Open proposals awaiting action</small>
+                            </div>
+                            <button t-if="pipeline.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(pipeline.action, pipeline.domain)">
+                                Open pipeline
+                            </button>
+                        </header>
+                        <t t-if="pipeline.records.length">
+                            <table class="bd-table">
+                                <thead>
+                                    <tr>
+                                        <th>Proposal</th>
+                                        <th>Client</th>
+                                        <th>Stage</th>
+                                        <th>Value</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="pipeline.records" t-as="record" t-key="record.id">
+                                        <tr t-on-click="() => openRecord(record.url)">
+                                            <td class="bd-table__title" t-esc="record.name"/>
+                                            <td t-esc="record.client"/>
+                                            <td><span class="bd-chip" t-esc="record.stage"/></td>
+                                            <td t-esc="record.amount_display"/>
+                                            <td t-esc="record.date"/>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">Pipeline is clear.</div>
+                        </t>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>Follow-ups</h2>
+                                <small>Waiting approval or client confirmation</small>
+                            </div>
+                            <button t-if="followups.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => openAction(followups.action, followups.domain)">
+                                View queue
+                            </button>
+                        </header>
+                        <t t-if="followups.items.length">
+                            <ul class="bd-followups">
+                                <t t-foreach="followups.items" t-as="item" t-key="item.id">
+                                    <li t-on-click="() => openRecord(item.url)">
+                                        <div>
+                                            <strong t-esc="item.title"/>
+                                            <span t-esc="item.client"/>
+                                        </div>
+                                        <span class="bd-chip" t-esc="item.stage"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                        <t t-else="">
+                            <div class="qlk-empty">Nothing pending right now.</div>
+                        </t>
+                    </article>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

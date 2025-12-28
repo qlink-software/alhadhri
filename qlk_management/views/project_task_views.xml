@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_task_search_remove_user_skill_ids" model="ir.ui.view">
+        <field name="name">project.task.search.remove.user.skill.ids</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project_hr_skills.view_task_search_form_project_fsm_base_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_skill_ids']" position="replace"/>
+        </field>
+    </record>
+</odoo>

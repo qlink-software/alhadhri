@@ -207,13 +207,13 @@ class QlkTask(models.Model):
     @api.constrains("department", "case_id", "litigation_phase")
     def _check_department_links(self):
         for task in self:
-            if task.department == "litigation":
-                if not task.case_id:
-                    raise ValidationError(_("Litigation tasks must be linked to a litigation case."))
-                if not task.litigation_phase:
-                    raise ValidationError(_("Litigation tasks must specify whether they are Pre-Litigation or Post-Litigation."))
-            elif task.department == "management" and task.case_id:
-                raise ValidationError(_("Management tasks cannot be linked to a litigation case."))
+            if task.department == "litigation" and not task.case_id:
+                self.env.user.notify_warning(
+                    message=_(
+                        "⚠️ لم يتم ربط هذه المهمة بقضية حتى الآن\n"
+                        "⚠️ Warning: This task is not linked to any case yet."
+                    )
+                )
 
     @api.onchange("department")
     def _onchange_department(self):

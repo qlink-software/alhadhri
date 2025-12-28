@@ -15,7 +15,7 @@
         "hr_holidays",
         "qlk_law",
         "qlk_law_police",
-        "qlk_project_management",
+        "qlk_management",
     ],
     "data": [
         "views/lawyer_dashboard_menu.xml",

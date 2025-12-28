@@ -259,7 +259,7 @@ class LawyerDashboard(models.AbstractModel):
             "employees": "hr.open_view_employee_list",
             "leaves": "hr_holidays.hr_leave_action_my_department",
             "task": "qlk_task_management.action_qlk_task_all",
-            "project": "qlk_project_management.action_qlk_project",
+            "project": "qlk_management.action_qlk_project",
         }
         data = {}
         for key, xml_id in refs.items():

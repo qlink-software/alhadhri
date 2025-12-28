@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem id="menu_qlk_project_projects"
+                  name="Projects"
+                  parent="qlk_management.menu_management_root"
+                  sequence="60"/>
+
+        <menuitem id="menu_qlk_project_projects_list"
+                  name="All Projects"
+                  parent="menu_qlk_project_projects"
+                  action="qlk_management.action_qlk_project"
+                  sequence="10"/>
+
+        <menuitem id="menu_qlk_project_working_hours"
+                  name="Working Hours"
+                  parent="menu_qlk_project_projects"
+                  action="qlk_management.task_action"
+                  sequence="20"/>
+
+        <menuitem id="menu_qlk_project_tasks"
+                  name="Tasks"
+                  parent="menu_qlk_project_projects"
+                  action="qlk_management.action_qlk_project_tasks"
+                  sequence="30"/>
+
+        <menuitem id="menu_qlk_project_hours"
+                  name="Hours"
+                  parent="menu_qlk_project_projects"
+                  action="qlk_management.action_qlk_project_hours"
+                  sequence="40"/>
+
+        <menuitem id="menu_qlk_project_stages"
+                  name="Case Stages"
+                  parent="menu_qlk_project_projects"
+                  action="qlk_management.action_qlk_project_stage"
+                  sequence="50"/>
+
+        <menuitem id="menu_qlk_project_dashboards_root"
+                  name="Dashboards"
+                  parent="qlk_management.menu_management_root"
+                  sequence="55"/>
+
+        
+
+        <menuitem id="menu_project_dashboard_entry"
+                  name="Project Dashboard"
+                  parent="menu_qlk_project_dashboards_root"
+                  action="qlk_management.action_project_dashboard"
+                  sequence="20"/>
+
+        <menuitem id="menu_qlk_project_analytics_dashboard"
+                  name="Analytics Dashboard"
+                  parent="menu_qlk_project_dashboards_root"
+                  action="qlk_management.action_analysis_dashboard"
+                  sequence="30"/>
+
+    </data>
+</odoo>

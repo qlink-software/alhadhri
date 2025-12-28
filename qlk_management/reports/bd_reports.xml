@@ -35,7 +35,7 @@
                         </p>
                         <p>
                             <strong>Client:</strong>
-                            <span t-esc="doc.client_name or (doc.partner_id and doc.partner_id.display_name)"/>
+                            <span t-esc="doc.partner_id and doc.partner_id.display_name"/>
                         </p>
                         <p t-if="doc.lead_id">
                             <strong>Opportunity:</strong>

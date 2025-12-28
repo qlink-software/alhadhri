@@ -1,18 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Disable legacy inherited views early to avoid xpath conflicts -->
+    <record id="view_bd_engagement_letter_form_uiux" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.form.uiux</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes"/>
+        </field>
+    </record>
+    <record id="view_bd_engagement_letter_form_buttons_visibility" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.form.buttons.visibility</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes"/>
+        </field>
+    </record>
+    <record id="view_bd_engagement_letter_form_approval_role_header" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.form.approval.role.header</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="view_bd_engagement_letter_form"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes"/>
+        </field>
+    </record>
+
     <record id="view_bd_engagement_letter_tree" model="ir.ui.view">
         <field name="name">bd.engagement.letter.tree</field>
         <field name="model">bd.engagement.letter</field>
         <field name="arch" type="xml">
             <list string="Engagement Letters">
+                <field name="code"/>
+                <field name="client_code"/>
                 <field name="name"/>
                 <field name="reference_number"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <field name="retainer_type"/>
+                <field name="project_type"/>
                 <field name="date"/>
-                <field name="fee_total"/>
+                <field name="total_amount"/>
                 <field name="state"/>
             </list>
         </field>
@@ -24,90 +55,84 @@
         <field name="arch" type="xml">
             <form string="Engagement Letter">
                 <header>
-                    <button name="action_send_for_approval" type="object" string="Send for Approval"
+                    <button name="action_send_for_approval" type="object" string="Submit for Approval"
                             class="btn-primary"
-                            modifiers="{'invisible': ['|', ('state', 'not in', ['draft', 'rejected']), ('state', '=', 'approved')]}"/>
+                            modifiers="{'invisible': [('state', '!=', 'draft')]}"/>
                     <button name="action_approve" type="object" string="Approve" class="btn-success"
-                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
-                    <button name="action_reject" type="object" string="Reject" class="btn-danger"
-                            modifiers="{'invisible': [('state', '!=', 'waiting_approval')]}"/>
+                            groups="qlk_management.bd_manager_group"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'manager')]}"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+                            groups="qlk_management.bd_assistant_manager_group"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'assistant_manager')]}"/>
+                    <button name="action_reject" type="object" string="Reject with Reason" class="btn-danger"
+                            groups="qlk_management.bd_manager_group"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'manager')]}"/>
+                    <button name="action_reject" type="object" string="Reject with Reason" class="btn-danger"
+                            groups="qlk_management.bd_assistant_manager_group"
+                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'assistant_manager')]}"/>
+                    <button name="action_client_approve" type="object" string="Client Approve" class="btn-success"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_client_approval')]}"/>
+                    <button name="action_client_reject" type="object" string="Client Reject with Reason" class="btn-danger"
+                            modifiers="{'invisible': [('state', '!=', 'waiting_client_approval')]}"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
-                            modifiers="{'invisible': [('state', '!=', 'rejected')]}"/>
-                    <button name="action_print_letter" type="object" string="Print EL" class="btn-secondary"
-                            modifiers="{'invisible': [('state', '!=', 'approved')]}"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_approval,approved,rejected"/>
+                            modifiers="{'invisible': [('state', 'not in', ['rejected', 'cancelled'])]}"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>
                 <sheet>
-                    <group>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_client_attachments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-paperclip"
+                                string="Client Documents"
+                                modifiers="{'invisible': [('partner_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Client Documents</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group string="Document Details">
                         <group>
+                            <field name="name" readonly="1"/>
                             <field name="date"/>
+                            <field name="approval_role"/>
                             <field name="reference_number" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="code" readonly="1"/>
+                            <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
+                            <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="opportunity_id" modifiers="{'invisible': [('opportunity_id', '=', False)]}"/>
+                            <field name="reviewer_id"/>
                             <field name="company_id" readonly="1"/>
                         </group>
-                        <group>
-                            <field name="contract_type"/>
-                            <field name="retainer_type"/>
-                            <field name="reviewer_id"/>
-                            <field name="currency_id" readonly="1"/>
-                        </group>
                     </group>
-                    <group>
-                        <group string="Client Data">
-                            <field name="partner_id"/>
-                            <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
-                            <field name="partner_qid" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
-                            <field name="partner_passport" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
-                            <field name="contact_details" modifiers="{'readonly': [('partner_id.company_type', '=', 'person')]}"/>
-                        </group>
-                        <group string="Limits &amp; Hours">
-                            <field name="monthly_corporate_hours"/>
-                            <field name="yearly_hours" readonly="1"/>
-                            <field name="litigation_cases_limit"/>
-                            <field name="planned_hours"/>
-                            <field name="hourly_cost" readonly="1"/>
-                            <field name="additional_cost"/>
-                            <field name="total_estimated_cost" readonly="1"/>
-                            <field name="lawyer_id"/>
-                        </group>
+                    <group string="Client &amp; General Info">
+                        <field name="client_id" required="1"/>
+                        <field name="lawyer_id"/>
+                        <field name="lawyer_cost_hour" readonly="1"/>
                     </group>
-                    <group string="Billing Information">
-                        <group>
-                            <field name="billing_type" widget="radio" options="{'horizontal': true}"/>
-                            <field name="amount_total"
-                                   modifiers="{'required': [('billing_type', '=', 'paid')], 'invisible': [('billing_type', '=', 'free')]}"/>
-                            <field name="invoice_id" options="{'no_create': True}"
-                                   modifiers="{'invisible': [('billing_type', '=', 'free')]}"/>
-                            <field name="invoice_state" readonly="1"
-                                   modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('invoice_id', '=', False)]}"/>
-                        </group>
-                        <group>
-                            <field name="project_id" readonly="1" options="{'no_create': True}"/>
-                            <button name="action_create_invoice" type="object" string="Create Invoice"
-                                    class="btn-secondary"
-                                    modifiers="{'invisible': ['|', ('billing_type', '!=', 'paid'), ('invoice_id', '!=', False)]}"/>
-                            <button name="action_create_project" type="object" string="Create Project"
-                                    class="btn-primary"
-                                    modifiers="{'invisible': ['|', '&amp;', ('billing_type', '=', 'paid'), '|', ('invoice_id', '=', False), ('invoice_state', '!=', 'paid'), ('can_create_project', '=', False)]}"/>
-                        </group>
+                    <group string="Internal Roles &amp; Approval Flow">
+                        <field name="manager_id"/>
+                        <field name="assistant_manager_id"/>
                     </group>
                     <notebook>
-                        <page string="Legal Fees">
-                            <field name="fee_line_ids" nolabel="1" context="{'default_currency_id': currency_id, 'default_letter_id': id}">
+                        <page string="Scope / Legal Fees">
+                            <field name="legal_fees_lines" nolabel="1"
+                                   context="{'default_currency_id': currency_id, 'default_letter_id': id}">
                                 <list editable="bottom">
                                     <field name="description"/>
                                     <field name="amount"/>
                                     <field name="due_date"/>
                                 </list>
                             </field>
-                            <div class="oe_subtotal_footer oe_right">
-                                <label for="fee_total"/>
-                                <field name="fee_total" readonly="1"/>
-                            </div>
+                            <group>
+                                <field name="collected_amount" readonly="1"/>
+                                <field name="remaining_amount" readonly="1"/>
+                            </group>
                         </page>
-                        <page string="Comments">
-                            <field name="comments" nolabel="1"/>
-                        </page>
-                        <page string="Scope &amp; Services">
+                        <page string="Details">
                             <group>
                                 <field name="services_description"/>
                                 <field name="project_scope"/>
@@ -121,7 +146,58 @@
                                 <field name="client_code_generated" readonly="1"/>
                             </group>
                         </page>
+                        <page string="Rejection Reason">
+                            <field name="rejection_reason" nolabel="1"/>
+                        </page>
+                        <page string="Tasks / Hours">
+                            <field name="time_entry_ids" context="{'default_engagement_id': id, 'default_department': 'management'}">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="department"/>
+                                    <field name="employee_id"/>
+                                    <field name="hours_spent"/>
+                                    <field name="date_start"/>
+                                </list>
+                                <form string="Task / Hours">
+                                    <sheet>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="employee_id"/>
+                                            <field name="department"/>
+                                            <field name="hours_spent"/>
+                                            <field name="date_start"/>
+                                            <field name="description"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
                     </notebook>
+                    <group string="Financial &amp; Billing Info">
+                        <field name="currency_id"/>
+                        <field name="total_amount" readonly="1"/>
+                        <field name="payment_status" readonly="1"/>
+                        <group>
+                            <field name="billing_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="amount_total"
+                                   modifiers="{'required': [('billing_type', '=', 'paid')], 'invisible': [('billing_type', '=', 'free')]}"/>
+                            <field name="invoice_id" options="{'no_create': True}"
+                                   modifiers="{'invisible': [('billing_type', '=', 'free')]}"/>
+                            <field name="invoice_state" readonly="1"
+                                   modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('invoice_id', '=', False)]}"/>
+                        </group>
+                        <group>
+                            <field name="qlk_project_id" readonly="1" options="{'no_create': True}"/>
+                            <button name="action_create_invoice" type="object" string="Create Invoice"
+                                    class="btn-secondary"
+                                    modifiers="{'invisible': ['|', ('billing_type', '!=', 'paid'), ('invoice_id', '!=', False)]}"/>
+                            <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
+                                    modifiers="{'invisible': ['|', ('state', '!=', 'approved_client'), ('qlk_project_id', '!=', False)]}"/>
+                            <button name="action_open_project" type="object" string="Open Project" class="btn-secondary"
+                                    modifiers="{'invisible': ['|', ('state', '!=', 'approved_client'), ('qlk_project_id', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <field name="can_approve" invisible="1"/>
                 </sheet>
             </form>
         </field>
@@ -132,12 +208,15 @@
         <field name="model">bd.engagement.letter</field>
         <field name="arch" type="xml">
             <search>
+                <field name="code"/>
+                <field name="client_code"/>
                 <field name="name"/>
                 <field name="reference_number"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_approval')]"/>
-                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <field name="project_type"/>
+                <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_manager_approval')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved_client')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_contract" string="Contract Type" domain="[]" context="{'group_by': 'contract_type'}"/>
                     <filter name="group_state" string="State" domain="[]" context="{'group_by': 'state'}"/>
@@ -167,8 +246,8 @@
                                 <t t-esc="record.reference_number and record.reference_number.value or ''"/>
                             </div>
                             <div class="text-muted">
-                                <span>Fees:</span>
-                                <t t-esc="record.fee_total and record.fee_total.value or 0.0"/>
+                                <span>Total:</span>
+                                <t t-esc="record.total_amount and record.total_amount.value or 0.0"/>
                             </div>
                         </div>
                     </t>

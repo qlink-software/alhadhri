@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bd_manager_group" model="res.groups">
+        <field name="name">BD Manager</field>
+    </record>
+    <record id="bd_assistant_manager_group" model="res.groups">
+        <field name="name">BD Assistant Manager</field>
+    </record>
+</odoo>

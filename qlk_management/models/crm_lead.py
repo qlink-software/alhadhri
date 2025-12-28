@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 class Crm(models.Model):
     _inherit = "crm.lead"
@@ -16,12 +17,39 @@ class Crm(models.Model):
         ('litigation', 'Litigation'),('corporate','Corporate'),('arbitration','Arbitration'),
     ], default="litigation", string='Opportunity Type')
     task_ids = fields.One2many('task', 'crm_id', string='Tasks')
+    qlk_task_ids = fields.One2many("qlk.task", "lead_id", string="Tasks / Hours")
+    hours_logged_ok = fields.Boolean(
+        string="Hours Logged?",
+        compute="_compute_hours_logged_ok",
+        store=True,
+        default=False,
+        help="Automatically toggled based on logging tasks/hours",
+    )
+    total_task_hours = fields.Float(
+        string="Total Hours",
+        compute="_compute_total_task_hours",
+    )
     proposal_count = fields.Integer(compute='_compute_proposal', string="Number of Proposals")
 
 
     def _compute_proposal(self):
         for lead in self:
             lead.proposal_count = self.env['bd.proposal'].search_count([('lead_id', '=', lead.id)])
+
+    @api.depends("qlk_task_ids.hours_spent")
+    def _compute_total_task_hours(self):
+        for lead in self:
+            lead.total_task_hours = sum(lead.qlk_task_ids.mapped("hours_spent"))
+
+    @api.depends("qlk_task_ids")
+    def _compute_hours_logged_ok(self):
+        for lead in self:
+            lead.hours_logged_ok = bool(lead.qlk_task_ids)
+
+    @api.onchange("qlk_task_ids")
+    def _onchange_qlk_task_ids(self):
+        for lead in self:
+            lead.hours_logged_ok = bool(lead.qlk_task_ids)
 
 
     def action_interested(self):
@@ -49,11 +77,10 @@ class Crm(models.Model):
         """Open the BD Proposal form with defaults taken from the lead"""
         self.ensure_one()
         form_view = self.env.ref('qlk_management.view_bd_proposal_form')
-        default_client = self.partner_id.display_name or self.partner_name or self.contact_name or self.name
         context = {
             'default_lead_id': self.id,
             'default_partner_id': self.partner_id.id,
-            'default_client_name': default_client,
+            'default_client_id': self.partner_id.id,
             'default_reference': self.name,
         }
         return {
@@ -87,9 +114,59 @@ class Crm(models.Model):
             'context': {
                 'default_lead_id': self.id,
                 'default_partner_id': self.partner_id.id,
+                'default_client_id': self.partner_id.id,
             },
             'target': 'current',
         }
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
+        # records._check_hours_logged()
+        return records
+
+    def write(self, vals):
+        # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
+        # if self._has_new_task_command(vals.get("qlk_task_ids")):
+        #     return super().write(vals)
+        # if self._requires_new_task_on_write(vals):
+        #     self._raise_missing_hours_error()
+        res = super().write(vals)
+        # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
+        # self._check_hours_logged()
+        return res
+
+    def _raise_missing_hours_error(self):
+        model_label = self._description or self._name
+        raise UserError(
+            _(
+                "⚠️ يجب إدخال الساعات قبل حفظ السجل في %(model)s.\n"
+                "⚠️ Hours must be logged before saving this %(model)s."
+            )
+            % {"model": model_label}
+        )
+
+    def _check_hours_logged(self):
+        # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
+        # Task = self.env["qlk.task"]
+        # for record in self:
+        #     if not Task.search_count([("lead_id", "=", record.id)]):
+        #         record._raise_missing_hours_error()
+        return True
+
+    def _requires_new_task_on_write(self, vals):
+        fields_changed = set(vals) - {"qlk_task_ids"}
+        if not fields_changed:
+            return False
+        return not self._has_new_task_command(vals.get("qlk_task_ids"))
+
+    @staticmethod
+    def _has_new_task_command(commands):
+        for command in commands or []:
+            if isinstance(command, (list, tuple)) and command and command[0] == 0:
+                return True
+        return False
 
 
 
@@ -134,4 +211,3 @@ class Crm(models.Model):
 #     _name = "opportunity.type"
 
 #     name = fields.Char('Name')
-

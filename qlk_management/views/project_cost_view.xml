@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet/notebook" position="inside">
-                <page string="Cost Calculation">
+                <page string="Cost Calculation" modifiers="{'invisible': True}">
                     <group>
                         <group>
                             <field name="lawyer_id"/>

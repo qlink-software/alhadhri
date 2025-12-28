@@ -15,7 +15,7 @@ through static charts, responsive layouts, and curated insights for partners.
         "base",
         "web",
         "qlk_law",
-        "qlk_project_management",
+        "qlk_management",
         "qlk_task_management",
     ],
     "data": [

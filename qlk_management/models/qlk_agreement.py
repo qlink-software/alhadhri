@@ -51,15 +51,6 @@ class Managementgreement(models.Model):
     lawyer_total_cost = fields.Float(string='Lawyer Total Cost', compute='_compute_total_costs', store=True)
     additional_project_cost = fields.Float(string='Additional Project Cost')
     total_cost_all = fields.Float(string='Total Cost', compute='_compute_total_costs', store=True)
-    client_document_ids = fields.One2many(
-        "qlk.client.document", string="Client Documents", related="client_id.client_document_ids", readonly=True
-    )
-    client_document_warning = fields.Html(
-        string="Document Warning", related="client_id.document_warning_message", readonly=True
-    )
-    client_document_warning_required = fields.Boolean(
-        related="client_id.document_warning_required", readonly=True
-    )
 
     task_ids = fields.One2many('task', 'agreement_id', string='Tasks')
     # agreement fields

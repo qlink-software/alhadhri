@@ -33,7 +33,7 @@
         <field name="arch" type="xml">
             <list editable="bottom">
                 <field name="doc_type"/>
-                <field name="attachment_id"/>
+                <!-- <field name="attachment_id"/> -->
                 <field name="poa_reference"/>
                 <field name="poa_expiration_date"/>
                 <field name="is_uploaded"/>
@@ -50,7 +50,7 @@
                     <group>
                         <field name="partner_id"/>
                         <field name="doc_type"/>
-                        <field name="attachment_id"/>
+                        <!-- <field name="attachment_id"/> -->
                         <field name="poa_reference"/>
                         <field name="poa_expiration_date"/>
                         <field name="note"/>
@@ -73,19 +73,50 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_client_document_tree"/>
     </record>
+
+    <!-- <record id="view_partner_hide_financial_audit_page" model="ir.ui.view">
+        <field name="name">res.partner.form.hide.financial.audit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="qlk_law.base_res_partner_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='Financial Audit Company']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record> -->
     
     <record id="inherit_view_id_res_partner" model="ir.ui.view">
         <field name="name">res.partner.view.form.inherit</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='industry_id']" position="replace">
-            </xpath>
-            <!-- <xpath expr="//field[@name='category_id']" position="after">
+            <!-- <xpath expr="//field[@name='industry_id']" position="replace">
+            </xpath> -->
+            <xpath expr="//field[@name='category_id']" position="after">
                 <field name="industry_id" />
                 <field name="create_date" />
-            </xpath> -->
+            </xpath>
+            <!-- Add a header button area in the form, before the sheet -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_create_bd_proposal"
+                            type="object"
+                            string="Create Proposal"
+                            class="btn-primary"
+                            modifiers="{'invisible': [('id', '=', False)]}"/>
+                </header>
+            </xpath>
             <xpath expr="//page[@name='sales_purchases']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Hide contact image/avatar upload -->
+            <xpath expr="//field[@name='image_1920']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- <xpath expr="//page[@name='invoicing']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath> -->
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//page[@name='accounting']//group[@id='invoice_send_settings']" position="attributes">
@@ -97,8 +128,33 @@
             <xpath expr="//page[@name='accounting']//field[@name='bank_ids']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
-            <xpath expr="//div[@name='button_box']" position="replace"/>
-            <xpath expr="//sheet" position="inside">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_create_bd_proposal"
+                        type="object"
+                        string="Create Proposal"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        modifiers="{'invisible': [('id', '=', False)]}"/>
+            </xpath>
+            <!-- <xpath expr="//button[@name='get_client_case']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath> -->
+            <xpath expr="//field[@name='street']/ancestor::group[1]" position="attributes">
+                <attribute name="modifiers">{}</attribute>
+            </xpath>
+            <!-- <xpath expr="//field[@name='delivery_type']" position="attributes">
+                <attribute name="modifiers">{'invisible': [('is_company','=', False)]}</attribute>
+            </xpath> -->
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[@class='o_address_format']/ancestor::group[1]" position="after">
+                <group string="Client Identifiers" class="o_inner_group" col="4">
+                    <field name="code" readonly="1"/>
+                    <field name="client_year"/>
+                </group>
+            </xpath>
+            <!-- <xpath expr="//sheet" position="inside">
                 <div class="alert alert-info o_bd_poa_reminder" modifiers="{'invisible': [('poa_expiry_reminder', '=', False)]}">
                     <span class="fw-bold">Client POA Expiry Reminder:</span>
                     <field name="poa_expiry_reminder" readonly="1" nolabel="1"/>
@@ -110,11 +166,23 @@
                 <group>
                     <field name="poa_next_expiration_date" readonly="1"/>
                 </group>
-            </xpath>
+            </xpath> -->
 
             <xpath expr="//sheet//field[@name='ref']" position="after">
                 <field name="industry_id"/>
             </xpath>
+            <!-- <xpath expr="//group[.//field[@name='phone']]" position="after">
+                <group string="Customer Type" class="o_inner_group" col="4">
+                    <field name="customer"/>
+                    <field name="is_opponent"/>
+                    <field name="is_targeted_person" modifiers="{'invisible': [('is_opponent', '=', False)]}"/> -->
+                    <!-- <field name="is_adviser"/> -->
+                    <!-- <field name="is_lawyer"/> -->
+                    <!-- <field name="is_employee"/> -->
+                    <!-- <field name="is_expert"/> -->
+                    <!-- <field name="is_other"/>
+                </group>
+            </xpath> -->
 
             <!-- <xpath expr="//field[@name='function']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -128,31 +196,24 @@
             <xpath expr="//field[@name='website']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
-            <xpath expr="//sheet/notebook/page" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//sheet/notebook" position="inside">
+            <xpath expr="//sheet/notebook" position="after">
+                <notebook>
                 <page string="Client Documents">
-                    <div invisible="not document_warning_required" class="mb-3">
-                        <field name="document_warning_message" widget="html" nolabel="1"/>
-                    </div>
                     <field name="client_document_ids" nolabel="1" context="{'default_partner_id': id}">
                         <list editable="bottom">
                             <field name="doc_type"/>
-                            <field name="attachment_id"/>
                             <field name="poa_reference"/>
                             <field name="poa_expiration_date"/>
-                            <field name="is_uploaded" readonly="1"/>
+                            <field name="is_uploaded"/>
                             <field name="note"/>
                         </list>
                         <form string="Client Document">
                             <sheet>
                                 <group>
                                     <field name="doc_type"/>
-                                    <field name="attachment_id"/>
                                     <field name="poa_reference"/>
                                     <field name="poa_expiration_date"/>
-                                    <field name="is_uploaded" readonly="1"/>
+                                    <field name="is_uploaded"/>
                                     <field name="note"/>
                                 </group>
                             </sheet>
@@ -160,24 +221,34 @@
                     </field>
                 </page>
                 <page string="Client Attachments">
-                    <field name="client_attachment_ids" nolabel="1">
+                    <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </page>
+                <page string="Tasks / Hours">
+                    <field name="qlk_task_ids" context="{'default_partner_id': id, 'default_department': 'management'}">
                         <list editable="bottom">
                             <field name="name"/>
-                            <field name="qatar_id"/>
-                            <field name="commercial_register"/>
+                            <field name="department"/>
+                            <field name="employee_id"/>
+                            <field name="hours_spent"/>
+                            <field name="date_start"/>
                         </list>
-                        <form string="Client Attachment">
+                        <form string="Task / Hours">
                             <sheet>
                                 <group>
                                     <field name="name"/>
-                                    <field name="qatar_id"/>
-                                    <field name="commercial_register"/>
-                                    <field name="blue_image" widget="image"/>
+                                    <field name="employee_id"/>
+                                    <field name="department"/>
+                                    <field name="hours_spent"/>
+                                    <field name="date_start"/>
+                                </group>
+                                <group>
+                                    <field name="description"/>
                                 </group>
                             </sheet>
                         </form>
                     </field>
                 </page>
+                </notebook>
             </xpath>
             <xpath expr="//field[@name='mobile']" position="attributes">
                 <attribute name="required">1</attribute>
@@ -218,6 +289,15 @@
             <xpath expr="//field[@name='website']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='parent_id']" position="replace">
+                <field name="parent_id" modifiers="{'invisible': True}"/>
+            </xpath>
+            <!-- <xpath expr="//div[contains(@class,'o_AttachmentBox')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath> -->
+            <!-- <xpath expr="//button[contains(@class,'o_AttachmentButton')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath> -->
         </field>
     </record>
     

@@ -61,8 +61,10 @@ class ManagementDashboard(models.AbstractModel):
         proposals_action = self._action_payload("qlk_management.action_bd_proposal")
         if proposal_model:
             proposals_total = proposal_model.search_count([])
-            proposals_waiting = proposal_model.search_count([("state", "=", "waiting_approval")])
-            proposals_approved = proposal_model.search_count([("state", "in", ("approved", "client_approved"))])
+            proposals_waiting = proposal_model.search_count(
+                [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
+            )
+            proposals_approved = proposal_model.search_count([("state", "=", "approved_client")])
             proposal_amount_group = proposal_model.read_group([], ["legal_fees", "collected_amount", "remaining_amount"], [])
             if proposal_amount_group:
                 legal_total = proposal_amount_group[0].get("legal_fees") or 0.0
@@ -80,7 +82,9 @@ class ManagementDashboard(models.AbstractModel):
         engagement_types = []
         if engagement_model:
             engagement_total = engagement_model.search_count([])
-            engagement_waiting = engagement_model.search_count([("state", "=", "waiting_approval")])
+            engagement_waiting = engagement_model.search_count(
+                [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
+            )
             engagement_type_groups = engagement_model.read_group(
                 [], ["retainer_type"], ["retainer_type"]
             )
@@ -101,8 +105,6 @@ class ManagementDashboard(models.AbstractModel):
         poa_expiring = []
         clients_with_poa = 0
         poa_documents_action = None
-        missing_documents = []
-
         if document_model:
             poa_documents_action = self._action_payload("qlk_management.action_client_documents")
             documents_total = document_model.search_count([])
@@ -128,16 +130,6 @@ class ManagementDashboard(models.AbstractModel):
                 )
             partners_with_docs = document_model.read_group([], ["partner_id"], ["partner_id"])
             clients_with_poa = len(partners_with_docs)
-
-        partner_samples = partner_model.search(client_domain, limit=15, order="write_date desc")
-        for partner in partner_samples:
-            if partner.document_warning_required:
-                missing_documents.append(
-                    {
-                        "partner": partner.display_name,
-                        "message": partner.document_warning_message,
-                    }
-                )
 
         pipeline_total = pipeline_open = pipeline_won = 0
         pipeline_action = self._action_payload("crm.crm_lead_action_pipeline")
@@ -193,7 +185,6 @@ class ManagementDashboard(models.AbstractModel):
             },
             "alerts": {
                 "expiring": poa_expiring,
-                "missing": missing_documents,
             },
             "pipeline": {
                 "total": pipeline_total,

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="proposal_template_modern_inherit" inherit_id="bd_pdf_builder.proposal_template_modern">
+        <xpath expr="//div[@class='bd-pdf__info']/div[1]/p" position="inside">
+            <t t-set="proposal_type_label" t-value="dict(doc._fields['proposal_type'].selection).get(doc.proposal_type)"/>
+            <br/>
+            <span>Document Type:</span>
+            <t t-esc="proposal_type_label or '-'"/>
+            <br/>
+            <span>Engagement Letter Number:</span>
+            <t t-esc="doc.engagement_letter_id and doc.engagement_letter_id.code or '-'"/>
+        </xpath>
+
+        <xpath expr="//div[@class='bd-pdf__body']" position="replace">
+            <div class="bd-pdf__body">
+                <h3>Document Details</h3>
+                <table class="w-100">
+                    <tr>
+                        <th>Proposal Number</th>
+                        <td><t t-esc="doc.name or '-'"/></td>
+                    </tr>
+                    <tr>
+                        <th>Reference</th>
+                        <td><t t-esc="doc.reference or '-'"/></td>
+                    </tr>
+                    <tr>
+                        <th>Client Code</th>
+                        <td><t t-esc="doc.client_code or '-'"/></td>
+                    </tr>
+                </table>
+
+                <h3>Financial Overview</h3>
+                <table class="w-100">
+                    <tr>
+                        <th>Legal Fees</th>
+                        <td>
+                            <t t-esc="doc.legal_fees or 0.0"/>
+                            <t t-esc="doc.currency_id.symbol"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Collected Amount</th>
+                        <td>
+                            <t t-esc="doc.collected_amount or 0.0"/>
+                            <t t-esc="doc.currency_id.symbol"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Remaining Amount</th>
+                        <td>
+                            <t t-esc="doc.remaining_amount or 0.0"/>
+                            <t t-esc="doc.currency_id.symbol"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@class='bd-pdf__summary']" position="replace">
+            <t t-raw="''"/>
+        </xpath>
+    </template>
+</odoo>

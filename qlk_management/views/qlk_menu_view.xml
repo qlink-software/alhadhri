@@ -25,22 +25,22 @@
               sequence="30"/>
 
     <!-- <menuitem id="menu_management_dashboard"
-              name="Dashboard"
-              parent="menu_management_root"
+              name="Client Data"
+              parent="contacts.menu_contacts"
               action="action_management_dashboard"
               sequence="10"/> -->
+
+    <menuitem id="res_partner_management_contacts"
+        name="Client Data"
+        action="contacts.action_contacts"
+        parent="menu_management_root"
+        sequence="2"/>
 
     <menuitem id="menu_management_pipeline"
               name="Pipeline"
               parent="menu_management_root"
               action="crm.crm_lead_action_pipeline"
               sequence="20"/>
-
-    <menuitem id="qlk_bd_menu_clients"
-              name="Client Data"
-              parent="menu_management_root"
-              action="action_bd_client_data"
-              sequence="30"/>
 
     <menuitem id="qlk_bd_menu_proposal"
               name="Proposal"
@@ -54,10 +54,10 @@
               action="action_bd_engagement_letter"
               sequence="50"/>
 
-    <menuitem id="qlk_bd_menu_client_poa"
+    <!-- <menuitem id="qlk_bd_menu_client_poa"
               name="Client POA Management"
               parent="menu_management_root"
               action="action_client_documents"
-              sequence="60"/>
+              sequence="60"/> -->
 
 </odoo>
