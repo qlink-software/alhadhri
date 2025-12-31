@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 from odoo.tools.misc import format_amount
 
 
@@ -15,13 +16,27 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
         currency = self.env.company.currency_id
         return format_amount(self.env, amount or 0.0, currency)
 
+    def _safe_count(self, model, domain):
+        try:
+            model.check_access_rights("read")
+            return model.search_count(domain)
+        except AccessError:
+            return 0
+
+    def _safe_read_group(self, model, domain, fields, groupby):
+        try:
+            model.check_access_rights("read")
+            return model.read_group(domain, fields, groupby, lazy=False)
+        except AccessError:
+            return []
+
     def _build_group_cards(self, model, groups, base_domain=None):
         base_domain = base_domain or []
-        total = model.search_count(base_domain)
+        total = self._safe_count(model, base_domain)
         cards = []
         for group in groups:
             domain = base_domain + group["domain"]
-            count = model.search_count(domain)
+            count = self._safe_count(model, domain)
             percent = round((count / total) * 100) if total else 0
             cards.append(
                 {
@@ -61,10 +76,10 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
 
     def _opportunity_state_groups(self, opportunity_model):
         domain = [("type", "=", "opportunity")]
-        state_groups = opportunity_model.read_group(domain, ["state"], ["state"], lazy=False)
+        state_groups = self._safe_read_group(opportunity_model, domain, ["state"], ["state"])
         state_labels = dict(opportunity_model._fields["state"].selection or [])
         cards = []
-        total = opportunity_model.search_count(domain)
+        total = self._safe_count(opportunity_model, domain)
         for group in state_groups:
             state_value = group.get("state")
             if not state_value:
