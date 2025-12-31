@@ -22,3 +22,4 @@ access_qlk_project_fee_manager,qlk.project.fee manager,model_qlk_project_fee,,1,
 access_qlk_project_fee_user,qlk.project.fee user,model_qlk_project_fee,,1,1,1,0
 access_pre_litigation_user,qlk.pre.litigation user,model_qlk_pre_litigation,base.group_user,1,1,1,1
 access_pre_litigation_translation_user,qlk.pre.litigation.translation user,model_qlk_pre_litigation_translation,base.group_user,1,1,1,1
+access_bd_rejection_wizard_user,bd.rejection.wizard user,model_bd_rejection_wizard,,1,1,1,1

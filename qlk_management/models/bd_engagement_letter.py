@@ -33,10 +33,9 @@ class BDEngagementLetter(models.Model):
     _description = "Engagement Letter"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
+    _rec_name = "code"
 
-    name = fields.Char(string="Title", tracking=True)
     date = fields.Date(string="Date", required=True, default=fields.Date.context_today, tracking=True)
-    reference_number = fields.Char(string="Reference Number", readonly=True, copy=False)
     reference = fields.Char(string="Reference", tracking=True)
     code = fields.Char(string="Engagement Letter Code", default="/", copy=False, readonly=True)
     contract_type = fields.Selection(
@@ -107,6 +106,18 @@ class BDEngagementLetter(models.Model):
         default="corporate",
         tracking=True,
     )
+    billing_type = fields.Selection(
+        [("free", "Pro bono"), ("billable", "Paid")],
+        string="Billing Type",
+        default="billable",
+        tracking=True,
+    )
+    allow_project_without_payment = fields.Boolean(
+        string="Allow Project Before Payment",
+        default=False,
+        tracking=True,
+    )
+    estimated_hours = fields.Float(string="Estimated Hours")
     fee_structure = fields.Char(string="Fee Structure")
     payment_terms = fields.Char(string="Payment Terms")
     legal_note = fields.Text(string="Legal Notes")
@@ -151,13 +162,6 @@ class BDEngagementLetter(models.Model):
     hourly_cost = fields.Float(string="Cost Per Hour", readonly=True)
     planned_hours = fields.Float(string="Planned Hours")
     total_estimated_cost = fields.Float(string="Total Estimated Cost")
-    amount_total = fields.Monetary(string="Service Amount", currency_field="currency_id")
-    billing_type = fields.Selection(
-        [("paid", "Paid"), ("free", "Pro bono")],
-        string="Billing Type",
-        default="paid",
-        tracking=True,
-    )
     invoice_id = fields.Many2one(
         "account.move",
         string="Invoice",
@@ -201,10 +205,7 @@ class BDEngagementLetter(models.Model):
     project_scope = fields.Text(string="Project Scope")
     description = fields.Text(string="Project Description")
     payment_terms = fields.Char(string="Payment Terms")
-    collected_amount = fields.Float(string="Collected Amount", tracking=True, readonly=True)
-    remaining_amount = fields.Float(
-        string="Remaining Amount", compute="_compute_remaining_amount", store=True, readonly=True
-    )
+    
     time_entry_ids = fields.One2many(
         "qlk.task",
         "engagement_id",
@@ -296,32 +297,28 @@ class BDEngagementLetter(models.Model):
         for letter in self:
             letter.proposal_legal_fee = letter.proposal_id.legal_fees if letter.proposal_id else 0.0
 
-    @api.depends("legal_fees_lines.amount", "amount_total", "legal_fee_amount")
+    @api.depends("legal_fees_lines.amount", "legal_fee_amount", "billing_type")
     def _compute_total_amount(self):
         for letter in self:
+            if letter.billing_type == "free":
+                letter.total_amount = 0.0
+                continue
             lines_total = sum(letter.legal_fees_lines.mapped("amount"))
             if lines_total:
                 letter.total_amount = lines_total
             else:
-                letter.total_amount = letter.amount_total or letter.legal_fee_amount or 0.0
+                letter.total_amount = letter.legal_fee_amount or 0.0
 
-    @api.depends("total_amount", "collected_amount")
-    def _compute_remaining_amount(self):
-        for letter in self:
-            total = letter.total_amount or 0.0
-            collected = letter.collected_amount or 0.0
-            letter.remaining_amount = max(total - collected, 0.0)
-
-    @api.depends("collected_amount", "total_amount")
+    
+    @api.depends("invoice_id", "invoice_state")
     def _compute_payment_status(self):
         for letter in self:
-            total = letter.total_amount or 0.0
-            collected = letter.collected_amount or 0.0
-            if total <= 0.0:
+            if not letter.invoice_id:
                 letter.payment_status = "unpaid"
-            elif collected >= total:
+                continue
+            if letter.invoice_state == "paid":
                 letter.payment_status = "paid"
-            elif collected > 0.0:
+            elif letter.invoice_state == "partial":
                 letter.payment_status = "partial"
             else:
                 letter.payment_status = "unpaid"
@@ -383,31 +380,6 @@ class BDEngagementLetter(models.Model):
                 records.browse(bad_ids).write({name: False})
 
     # ------------------------------------------------------------------------------
-    # دالة داخلية لاستدعاء التسلسل المناسب بحسب نوع العقد.
-    # ------------------------------------------------------------------------------
-    def _get_reference_sequence(self):
-        mapping = {
-            "retainer": "bd.engagement.letter.retainer",
-            "lump_sum": "bd.engagement.letter.lump_sum",
-        }
-        return mapping.get(self.contract_type, "bd.engagement.letter.retainer")
-
-    # ------------------------------------------------------------------------------
-    # Reference Format:
-    # AH/EL/L/001/2025
-    # AH ثابت، EL ثابت، TYPE حسب نوع العقد، SERIAL يبدأ من 001 لكل سنة.
-    # ------------------------------------------------------------------------------
-    def _assign_reference_number(self):
-        for letter in self:
-            if letter.reference_number:
-                continue
-            sequence_code = letter._get_reference_sequence()
-            next_value = self.env["ir.sequence"].next_by_code(sequence_code)
-            if not next_value:
-                raise UserError(_("Sequence for engagement letter is not configured."))
-            letter.reference_number = next_value
-
-    # ------------------------------------------------------------------------------
     # التحقق من الحالات قبل تغييرها لضمان صحة دورة العمل.
     # ------------------------------------------------------------------------------
     def _ensure_state(self, allowed_states):
@@ -419,69 +391,127 @@ class BDEngagementLetter(models.Model):
                 )
 
     # ------------------------------------------------------------------------------
-    # زر إرسال للموافقة ينقل السجل إلى waiting_approval ويولد المرجع تلقائياً.
+    # إرسال للموافقة (Draft -> Waiting Manager Approval).
     # ------------------------------------------------------------------------------
-    def action_send_for_approval(self):
+    def action_send_manager_approval(self):
         self._ensure_state({"draft"})
         for letter in self:
-            letter._assign_reference_number()
-            letter.rejection_reason = False
-            letter.state = "waiting_manager_approval"
+            letter.write(
+                {
+                    "rejection_reason": False,
+                    "state": "waiting_manager_approval",
+                }
+            )
             if letter.reviewer_id:
                 letter.activity_schedule(
                     "mail.mail_activity_data_todo",
                     user_id=letter.reviewer_id.id,
-                    summary=_("Approve engagement letter %s") % (letter.name or letter.reference_number),
+                    summary=_("Approve engagement letter %s") % (letter.code or ""),
                 )
 
     # ------------------------------------------------------------------------------
-    # زر الموافقة يحول السجل إلى approved ويتيح الطباعة ورفع النسخة الموقعة.
+    # موافقة المدير (Waiting Manager Approval -> Approved by Manager).
     # ------------------------------------------------------------------------------
+    def action_manager_approve(self):
+        self._ensure_state({"waiting_manager_approval"})
+        for letter in self:
+            letter._check_approval_rights()
+            letter.write(
+                {
+                    "approved_by": self.env.user.id,
+                    "state": "approved_manager",
+                }
+            )
+            letter.message_post(body=_("Manager approved. Ready to send to client."))
+
+    # ------------------------------------------------------------------------------
+    # إرسال لموافقة العميل (Approved by Manager -> Waiting Client Approval).
+    # ------------------------------------------------------------------------------
+    def action_send_client_approval(self):
+        self._ensure_state({"approved_manager"})
+        for letter in self:
+            letter._check_approval_rights()
+            letter.write({"state": "waiting_client_approval"})
+            letter.message_post(body=_("Engagement letter sent for client approval."))
+
+    def action_send_for_approval(self):
+        return self.action_send_manager_approval()
+
     def action_approve(self):
-        self._ensure_state({"waiting_manager_approval"})
-        for letter in self:
-            letter._check_approval_rights()
-            letter.approved_by = self.env.user
-            letter.state = "approved_manager"
-            letter.message_post(body=_("Manager approved. Awaiting client approval."))
-            letter.state = "waiting_client_approval"
+        return self.action_manager_approve()
+
+    def _open_rejection_wizard(self, rejection_role):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Rejection Reason"),
+            "res_model": "bd.rejection.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref("qlk_management.view_bd_rejection_wizard_form").id,
+            "target": "new",
+            "context": {
+                "default_rejection_role": rejection_role,
+                "active_model": self._name,
+                "active_ids": self.ids,
+            },
+        }
 
     # ------------------------------------------------------------------------------
-    # زر الرفض يعيد السجل إلى حالة rejected مع تسجيل الملاحظات.
+    # رفض المدير (Waiting Manager Approval/Approved by Manager -> Rejected).
     # ------------------------------------------------------------------------------
+    def action_manager_reject(self):
+        self.ensure_one()
+        self._ensure_state({"waiting_manager_approval", "approved_manager"})
+        for letter in self:
+            letter._check_approval_rights()
+        return self._open_rejection_wizard("manager")
+
+    # ------------------------------------------------------------------------------
+    # رفض العميل (Waiting Client Approval -> Rejected).
+    # ------------------------------------------------------------------------------
+    def action_client_reject(self):
+        self.ensure_one()
+        self._ensure_state({"waiting_client_approval"})
+        for letter in self:
+            letter._check_approval_rights()
+        return self._open_rejection_wizard("client")
+
     def action_reject(self):
-        self._ensure_state({"waiting_manager_approval"})
+        return self.action_manager_reject()
+
+    def _apply_rejection_reason(self, reason, rejection_role):
+        reason = (reason or "").strip()
+        if not reason:
+            raise UserError(_("Please provide the rejection reason before rejecting."))
+        allowed = {"waiting_client_approval"} if rejection_role == "client" else {
+            "waiting_manager_approval",
+            "approved_manager",
+        }
+        self._ensure_state(allowed)
         for letter in self:
             letter._check_approval_rights()
-            if not letter.rejection_reason:
-                raise UserError(_("Please provide the rejection reason before rejecting."))
-            letter.state = "rejected"
-            letter.message_post(body=_("Engagement Letter rejected: %s") % letter.rejection_reason)
+            letter.write(
+                {
+                    "rejection_reason": reason,
+                    "state": "rejected",
+                }
+            )
+            letter.message_post(body=_("Engagement Letter rejected: %s") % reason)
 
+    # ------------------------------------------------------------------------------
+    # موافقة العميل (Waiting Client Approval -> Approved by Client).
+    # ------------------------------------------------------------------------------
     def action_client_approve(self):
         self._ensure_state({"waiting_client_approval"})
         for letter in self:
             letter._check_approval_rights()
-            project = letter.qlk_project_id
-            if not project:
-                project = letter._create_qlk_project_from_engagement()
             letter.with_context(skip_hours_check=True).write(
                 {
                     "approved_by": self.env.user.id,
                     "state": "approved_client",
-                    "qlk_project_id": project.id if project else False,
                 }
             )
             letter.message_post(body=_("Client approved the engagement letter."))
-
-    def action_client_reject(self):
-        self._ensure_state({"waiting_client_approval"})
-        for letter in self:
-            letter._check_approval_rights()
-            if not letter.rejection_reason:
-                raise UserError(_("Please provide the rejection reason before rejecting."))
-            letter.state = "rejected"
-            letter.message_post(body=_("Client rejected the engagement letter: %s") % letter.rejection_reason)
 
     # ------------------------------------------------------------------------------
     # زر لإرجاع السجل إلى المسودة بعد الرفض لمراجعة البيانات.
@@ -489,8 +519,12 @@ class BDEngagementLetter(models.Model):
     def action_reset_to_draft(self):
         self._ensure_state({"rejected", "cancelled"})
         for letter in self:
-            letter.rejection_reason = False
-            letter.state = "draft"
+            letter.write(
+                {
+                    "rejection_reason": False,
+                    "state": "draft",
+                }
+            )
 
     # ------------------------------------------------------------------------------
     # زر الطباعة يستخدم تقرير QWeb بعد التأكد من حالة الموافقة.
@@ -559,9 +593,7 @@ class BDEngagementLetter(models.Model):
             lawyer_cost = self._get_lawyer_cost(vals["lawyer_id"])
             vals["hourly_cost"] = lawyer_cost
             vals["lawyer_cost_hour"] = lawyer_cost
-        if vals.get("state") == "approved_manager":
-            vals["state"] = "waiting_client_approval"
-        if any(field in vals for field in ("legal_fees_lines", "amount_total", "currency_id", "billing_type")):
+        if any(field in vals for field in ("legal_fees_lines", "currency_id", "billing_type")):
             for letter in self:
                 if letter.state in {"approved_manager", "waiting_client_approval", "approved_client"}:
                     raise UserError(_("Financial fields are locked after approval."))
@@ -658,12 +690,11 @@ class BDEngagementLetter(models.Model):
             proposal = letter.proposal_id
             vals = {
                 "legal_fee_amount": proposal.legal_fees or 0.0,
-                "engagement_type": proposal.engagement_type,
-                "reference": proposal.reference,
                 "approval_role": proposal.approval_role,
                 "lawyer_id": proposal.lawyer_id.id if proposal.lawyer_id else False,
                 "lawyer_cost_hour": proposal.lawyer_cost_hour,
                 "hourly_cost": proposal.hourly_cost,
+                "billing_type": proposal.billing_type,
             }
             if proposal.legal_fees_lines:
                 vals["legal_fees_lines"] = [(5, 0, 0)] + [
@@ -744,26 +775,35 @@ class BDEngagementLetter(models.Model):
                 next_number = 1
         return f"{prefix}{next_number:03d}"
 
-    @api.depends("billing_type", "invoice_state", "invoice_id", "qlk_project_id", "state")
+    @api.depends(
+        "billing_type",
+        "invoice_state",
+        "invoice_id",
+        "qlk_project_id",
+        "state",
+        "allow_project_without_payment",
+    )
     def _compute_can_create_project(self):
         for letter in self:
             billing_ready = letter.billing_type == "free" or (
-                letter.billing_type == "paid"
-                and letter.invoice_id
-                and letter.invoice_state == "paid"
+                letter.billing_type == "billable"
+                and (
+                    letter.allow_project_without_payment
+                    or (letter.invoice_id and letter.invoice_state == "paid")
+                )
             )
             eligible = letter.state == "approved_client" and billing_ready
             letter.can_create_project = bool(eligible and not letter.qlk_project_id)
 
     def action_create_invoice(self):
         self.ensure_one()
-        if self.billing_type != "paid":
-            raise UserError(_("Invoices are only required for paid engagements."))
+        if self.billing_type != "billable":
+            raise UserError(_("Invoices are only required for billable engagements."))
         if self.invoice_id:
             raise UserError(_("An invoice has already been created for this engagement letter."))
         if not self.partner_id:
             raise UserError(_("Please select a client before creating the invoice."))
-        if not self.amount_total:
+        if not self.total_amount:
             raise UserError(_("Please set the service amount before creating the invoice."))
 
         journal = self.env["account.journal"].search(
@@ -782,24 +822,40 @@ class BDEngagementLetter(models.Model):
         if not income_account:
             raise UserError(_("Please configure a sales account to create invoices."))
 
-        move_vals = {
-            "move_type": "out_invoice",
-            "partner_id": self.partner_id.id,
-            "currency_id": self.currency_id.id,
-            "company_id": self.company_id.id,
-            "invoice_origin": self.reference_number or self.name,
-            "invoice_line_ids": [
+        invoice_lines = [
+            (
+                0,
+                0,
+                {
+                    "name": line.description or _("Legal Fees"),
+                    "quantity": 1.0,
+                    "price_unit": line.amount,
+                    "account_id": income_account.id,
+                },
+            )
+            for line in self.legal_fees_lines
+        ]
+        if not invoice_lines:
+            invoice_lines = [
                 (
                     0,
                     0,
                     {
                         "name": _("Engagement Letter Services"),
                         "quantity": 1.0,
-                        "price_unit": self.amount_total,
+                        "price_unit": self.total_amount,
                         "account_id": income_account.id,
                     },
                 )
-            ],
+            ]
+
+        move_vals = {
+            "move_type": "out_invoice",
+            "partner_id": self.partner_id.id,
+            "currency_id": self.currency_id.id,
+            "company_id": self.company_id.id,
+            "invoice_origin": self.code or "",
+            "invoice_line_ids": invoice_lines,
             "journal_id": journal.id,
         }
 
@@ -830,16 +886,24 @@ class BDEngagementLetter(models.Model):
             raise UserError(_("No project has been created for this engagement letter yet."))
         return self._get_project_action(self.qlk_project_id.id)
 
+    def action_allow_project_without_payment(self):
+        self.ensure_one()
+        if not self.env.user.has_group("qlk_management.bd_manager_group"):
+            raise UserError(_("Only Managers can allow project creation before payment."))
+        if self.state != "approved_client":
+            raise UserError(_("Only approved engagement letters can be exempted."))
+        self.write({"allow_project_without_payment": True})
+
     def _ensure_project_creation_ready(self):
         for letter in self:
             if letter.qlk_project_id:
                 raise UserError(_("A project has already been created for this engagement letter."))
             if letter.state != "approved_client":
                 raise UserError(_("Only approved engagement letters can create projects."))
-            if letter.billing_type == "paid":
+            if letter.billing_type == "billable":
                 if not letter.invoice_id:
                     raise UserError(_("You must create an invoice before creating the project."))
-                if letter.invoice_state != "paid":
+                if not letter.allow_project_without_payment and letter.invoice_state != "paid":
                     raise UserError(_("The invoice must be fully paid before creating the project."))
 
     def _prepare_project_vals(self):
@@ -851,8 +915,6 @@ class BDEngagementLetter(models.Model):
             "engagement_id": self.id,
             "lawyer_id": self.lawyer_id.id if self.lawyer_id else False,
             "lawyer_cost_hour": self.lawyer_cost_hour,
-            "collected_amount": self.collected_amount,
-            "remaining_amount": self.remaining_amount,
             "project_type": self.project_type or "corporate",
             "company_id": self.company_id.id,
             "description": scope_note,

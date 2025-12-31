@@ -8,8 +8,6 @@
             <list string="Engagement Letters">
                 <field name="code"/>
                 <field name="client_code"/>
-                <field name="name"/>
-                <field name="reference_number"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
                 <field name="project_type"/>
@@ -26,27 +24,37 @@
         <field name="arch" type="xml">
             <form string="Engagement Letter">
                 <header>
-                    <button name="action_send_for_approval" type="object" string="Submit for Approval"
+                    <button name="action_send_manager_approval" type="object" string="Send to Manager Approval"
                             class="btn-primary"
-                            modifiers="{'invisible': [('state', '!=', 'draft')]}"/>
-                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+                            invisible="state != 'draft'"/>
+                    <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
                             groups="qlk_management.bd_manager_group"
-                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'manager')]}"/>
-                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+                            invisible="state != 'waiting_manager_approval' or approval_role != 'manager'"/>
+                    <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
                             groups="qlk_management.bd_assistant_manager_group"
-                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'assistant_manager')]}"/>
-                    <button name="action_reject" type="object" string="Reject with Reason" class="btn-danger"
+                            invisible="state != 'waiting_manager_approval' or approval_role != 'assistant_manager'"/>
+                    <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
                             groups="qlk_management.bd_manager_group"
-                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'manager')]}"/>
-                    <button name="action_reject" type="object" string="Reject with Reason" class="btn-danger"
+                            invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'manager'"/>
+                    <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
                             groups="qlk_management.bd_assistant_manager_group"
-                            modifiers="{'invisible': ['|', ('state', '!=', 'waiting_manager_approval'), ('approval_role', '!=', 'assistant_manager')]}"/>
+                            invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'assistant_manager'"/>
+                    <button name="action_send_client_approval" type="object" string="Send to Client Approval"
+                            class="btn-primary"
+                            invisible="state != 'approved_manager'"/>
                     <button name="action_client_approve" type="object" string="Client Approve" class="btn-success"
-                            modifiers="{'invisible': [('state', '!=', 'waiting_client_approval')]}"/>
-                    <button name="action_client_reject" type="object" string="Client Reject with Reason" class="btn-danger"
-                            modifiers="{'invisible': [('state', '!=', 'waiting_client_approval')]}"/>
+                            invisible="state != 'waiting_client_approval'"/>
+                    <button name="action_client_reject" type="object" string="Client Reject" class="btn-danger"
+                            invisible="state != 'waiting_client_approval'"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
-                            modifiers="{'invisible': [('state', 'not in', ['rejected', 'cancelled'])]}"/>
+                            invisible="state not in ('rejected', 'cancelled')"/>
+                    <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
+                            invisible="state != 'approved_client' or qlk_project_id or (billing_type == 'billable' and not allow_project_without_payment and invoice_state != 'paid')"/>
+                    <button name="action_allow_project_without_payment" type="object"
+                            string="Allow Project Before Payment"
+                            class="btn-secondary"
+                            groups="qlk_management.bd_manager_group"
+                            invisible="state != 'approved_client' or billing_type != 'billable' or allow_project_without_payment or invoice_state == 'paid'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>
@@ -63,33 +71,27 @@
                             </div>
                         </button>
                     </div>
-                    <group string="Document Details">
-                        <group>
-                            <field name="name" readonly="1"/>
-                            <field name="date"/>
-                            <field name="approval_role"/>
-                            <field name="reference_number" readonly="1"/>
-                        </group>
+                    <group string="Client &amp; General Info">
                         <group>
                             <field name="code" readonly="1"/>
+                            <field name="date"/>
+                            <field name="approval_role"/>
+                            <field name="client_id" required="1"/>
+                            <field name="billing_type"/>
+                            <field name="estimated_hours"
+                                   modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
+                        </group>
+                        <group>
+                            <field name="lawyer_id"/>
+                            <field name="lawyer_cost_hour" readonly="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
                             <field name="opportunity_id" modifiers="{'invisible': [('opportunity_id', '=', False)]}"/>
                             <field name="reviewer_id"/>
-                            <field name="company_id" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Client &amp; General Info">
-                        <field name="client_id" required="1"/>
-                        <field name="lawyer_id"/>
-                        <field name="lawyer_cost_hour" readonly="1"/>
-                    </group>
-                    <group string="Internal Roles &amp; Approval Flow">
-                        <field name="manager_id"/>
-                        <field name="assistant_manager_id"/>
-                    </group>
                     <notebook>
-                        <page string="Scope / Legal Fees">
+                        <page string="Scope / Legal Fees" modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                             <field name="legal_fees_lines" nolabel="1"
                                    context="{'default_currency_id': currency_id, 'default_letter_id': id}">
                                 <list editable="bottom">
@@ -98,10 +100,6 @@
                                     <field name="due_date"/>
                                 </list>
                             </field>
-                            <group>
-                                <field name="collected_amount" readonly="1"/>
-                                <field name="remaining_amount" readonly="1"/>
-                            </group>
                         </page>
                         <page string="Details">
                             <group>
@@ -144,15 +142,11 @@
                             </field>
                         </page>
                     </notebook>
-                    <group string="Financial &amp; Billing Info">
-                        <field name="currency_id"/>
-                        <field name="total_amount" readonly="1"/>
-                        <field name="payment_status" readonly="1"/>
+                    <group string="Financial &amp; Billing Info" modifiers="{'invisible': [('billing_type', '=', 'free')]}">
+                        <!-- <field name="total_amount" readonly="1"/>
+                        <field name="payment_status" readonly="1"/> -->
                         <group>
-                            <field name="billing_type" widget="radio" options="{'horizontal': true}"/>
-                            <field name="amount_total"
-                                   modifiers="{'required': [('billing_type', '=', 'paid')], 'invisible': [('billing_type', '=', 'free')]}"/>
-                            <field name="invoice_id" options="{'no_create': True}"
+                            <field name="invoice_id" options="{'no_create': True}" readonly="1"
                                    modifiers="{'invisible': [('billing_type', '=', 'free')]}"/>
                             <field name="invoice_state" readonly="1"
                                    modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('invoice_id', '=', False)]}"/>
@@ -161,9 +155,7 @@
                             <field name="qlk_project_id" readonly="1" options="{'no_create': True}"/>
                             <button name="action_create_invoice" type="object" string="Create Invoice"
                                     class="btn-secondary"
-                                    modifiers="{'invisible': ['|', ('billing_type', '!=', 'paid'), ('invoice_id', '!=', False)]}"/>
-                            <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
-                                    modifiers="{'invisible': ['|', ('state', '!=', 'approved_client'), ('qlk_project_id', '!=', False)]}"/>
+                                    modifiers="{'invisible': ['|', ('billing_type', '!=', 'billable'), ('invoice_id', '!=', False)]}"/>
                             <button name="action_open_project" type="object" string="Open Project" class="btn-secondary"
                                     modifiers="{'invisible': ['|', ('state', '!=', 'approved_client'), ('qlk_project_id', '=', False)]}"/>
                         </group>
@@ -181,8 +173,6 @@
             <search>
                 <field name="code"/>
                 <field name="client_code"/>
-                <field name="name"/>
-                <field name="reference_number"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
                 <field name="project_type"/>
@@ -205,7 +195,7 @@
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click card">
                             <div class="d-flex justify-content-between align-items-center">
-                                <strong t-esc="record.name and record.name.value or ''"/>
+                                <strong t-esc="record.code and record.code.value or ''"/>
                                 <span class="badge bg-primary" t-esc="record.contract_type and record.contract_type.value or ''"/>
                             </div>
                             <div class="text-muted">
@@ -214,7 +204,7 @@
                             </div>
                             <div class="text-muted">
                                 <span>Reference:</span>
-                                <t t-esc="record.reference_number and record.reference_number.value or ''"/>
+                                <t t-esc="record.reference and record.reference.value or ''"/>
                             </div>
                             <div class="text-muted">
                                 <span>Total:</span>

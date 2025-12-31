@@ -38,20 +38,7 @@
                             <t t-esc="doc.currency_id.symbol"/>
                         </td>
                     </tr>
-                    <tr>
-                        <th>Collected Amount</th>
-                        <td>
-                            <t t-esc="doc.collected_amount or 0.0"/>
-                            <t t-esc="doc.currency_id.symbol"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Remaining Amount</th>
-                        <td>
-                            <t t-esc="doc.remaining_amount or 0.0"/>
-                            <t t-esc="doc.currency_id.symbol"/>
-                        </td>
-                    </tr>
+                    
                 </table>
             </div>
         </xpath>

@@ -57,7 +57,6 @@ class ProjectProject(models.Model):
         store=True,
         readonly=True,
     )
-    amount_total = fields.Monetary(string="Service Amount", currency_field="company_currency_id")
     code = fields.Char(string="Project Code", default="/", copy=False, readonly=True)
     client_code = fields.Char(string="Client Code", copy=False, readonly=True)
     project_type = fields.Selection(

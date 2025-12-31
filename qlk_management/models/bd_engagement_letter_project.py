@@ -28,7 +28,7 @@ class BDEngagementLetter(models.Model):
                 "department": default_department,
                 "litigation_stage": "court" if proj_type == "litigation" else False,
                 "owner_id": self.reviewer_id.id or self.env.user.id,
-                "reference": self.reference_number,
+                "reference": self.code,
                 "project_scope": self.project_scope,
             }
         )

@@ -75,6 +75,7 @@
         'views/qlk_task_hours_wizard_view.xml',
         'views/project.xml',
         'wizard/project_log_hours_views.xml',
+        'wizard/bd_rejection_wizard_views.xml',
         'wizard/transfer_litigation_views.xml',
         'wizard/transfer_corporate_views.xml',
         'wizard/transfer_arbitration_views.xml',

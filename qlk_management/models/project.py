@@ -89,8 +89,6 @@ class QlkProject(models.Model):
     client_capacity = fields.Char(string="Client Capacity", tracking=True)
     lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer", tracking=True)
     lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
-    collected_amount = fields.Float(string="Collected Amount", readonly=True)
-    remaining_amount = fields.Float(string="Remaining Amount", readonly=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
     # ------------------------------------------------------------------------------
     # كود القضية (Litigation Project Code)

@@ -150,7 +150,7 @@
             </xpath>
             <xpath expr="//div[@class='o_address_format']/ancestor::group[1]" position="after">
                 <group string="Client Identifiers" class="o_inner_group" col="4">
-                    <field name="code" readonly="1"/>
+                    <!-- <field name="code" readonly="1"/> -->
                     <field name="client_year"/>
                 </group>
             </xpath>

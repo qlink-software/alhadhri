@@ -1,7 +1,7 @@
 /*
 | الألوان الأساسية:
 | - الأزرق الداكن (Primary/Corporate): #042273
-| - الأزرق الفيروزي (Accent/Hover): #94A3B8
+| - الأزرق الفيروزي (Accent/Hover): #5b99ef
 | - الخلفية العامة (Light Background): #f8f9fa
 */
 
@@ -77,7 +77,7 @@ html .o_web_client .o_main_navbar,
 .o_main_navbar .o_menu_sections .o_nav_entry.active,
 .o_main_navbar .o_menu_sections .dropdown-toggle.show {
     color: #042273 !important; 
-    background: #94A3B8 !important; 
+    background: #5b99ef !important; 
     font-weight: bold;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(38, 190, 202, 0.5); 
@@ -131,7 +131,7 @@ html .o_web_client .o_main_navbar,
 // }
 //  this wher i have to work submenu with no action
 .bg-transparent {
-    color:#94A3B8 !important; 
+    color:#5b99ef !important; 
     font-size:1rem;
     font-weight: bold;
     // border-bottom: 1px solid #e0e0e1;
@@ -160,10 +160,15 @@ html .o_web_client .o_main_navbar,
     display: block !important;
 }
 .sidebar_panel .sidebar {
-    padding-bottom: 20px;
-    padding-top: 5px;
-    max-height: 100vh;
-    overflow-y: auto;
+    height: 100vh;
+    overflow-y: scroll; /* السماح بالتمرير داخلياً فقط */
+    
+    /* إخفاء شريط التمرير للمتصفحات الحديثة */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    
+    padding-top: 80px !important; /* مساحة كافية للشعار وزر الإغلاق الثابت */
+    padding-bottom: 50px;
 }
 
 /* 1. الروابط الرئيسية: استرجاع شكل البطاقة (Pill-like) */
@@ -184,13 +189,13 @@ html .o_web_client .o_main_navbar,
 /* ⚡️ تأثير التمرير (Hover) على البطاقة */
 .sidebar_panel .sidebar .sidebar_menu li a:hover {
     background: rgba(38, 190, 202, 0.15) !important; /* خلفية فيروزية شفافة */
-    color: #94A3B8 !important;
+    color: #e67e22 !important;
     transform: scale(1.02); /* حركة بسيطة تعطي شعور بالتفاعل */
 }
 
 /* 🥇 حالة النشاط (Active State): استرجاع البطاقة الملونة */
 .sidebar_panel .sidebar .sidebar_menu li.active a {
-    background: #94A3B8 !important; /* استخدام الفيروزي للتمييز */
+    background: #5b99ef !important; /* استخدام الفيروزي للتمييز */
     color: #ffffff !important; 
     font-weight: 600; 
     box-shadow: 0 4px 12px rgba(38, 190, 202, 0.4);
@@ -201,6 +206,11 @@ html .o_web_client .o_main_navbar,
 .sidebar_sub_menu {
     background: rgba(255, 255, 255, 0.05) !important; /* تمييز بسيط لمنطقة القوائم الفرعية */
     margin: 5px 15px 10px 15px !important;
+    overflow-y: scroll; /* السماح بالتمرير داخلياً فقط */
+    
+    /* إخفاء شريط التمرير للمتصفحات الحديثة */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
     border-radius: 8px;
 }
 
@@ -216,10 +226,13 @@ html .o_web_client .o_main_navbar,
 
 /* تأثير التمرير على العناصر الفرعية */
 .sidebar_sub_menu li:hover {
-    color: #94A3B8 !important;
+    color: #e67e22 !important;
     padding-left: 50px !important;
     background: rgba(255, 255, 255, 0.03) !important;
 }
+
+
+// ###### logo
 .logo_img {
     display: block;
     /* 1. تصغير العرض لرقم منطقي يناسب القائمة الجانبية */
@@ -247,36 +260,91 @@ html .o_web_client .o_main_navbar,
         filter: drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.6)); 
     }
 }
-// form border
-.o_form_sheet_bg{
-    // border:2px solid #042273;
-    background-color: #e8e9ea;
-    
-    border-radius: 8px;
+/* 🏛️ تصميم واجهة الاستمارة للمحاماة - أودو 18 */
+
+/* 1. ورقة العمل (The Legal Sheet) */
+.o_form_sheet_bg {
+    background-color: #f0f2f5 !important; /* خلفية رمادية باردة لتقليل إجهاد العين */
+    padding: 15px !important;
 }
+
 .o_form_view .o_form_sheet {
-    border-radius: 20px;
-    // border:2px solid #042273;
-    box-shadow: 0 2px 8px #8d8d8e;;
-    font-size: 1.2rem;
-    // height:1000px;
-    max-width: 100% !important;
-    width: 100% !important;
+    border-radius: 12px !important; /* زوايا متوسطة تعطي انطباعاً عصرياً ورصيناً */
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; /* ظل خفيف جداً للعمق فقط */
+    max-width: 96% !important;
+    margin: 20px auto !important;
+    padding: 40px !important;
+    background-color: #ffffff !important;
+    min-height: auto !important;
 }
-// .o_form_statusbar{
-//   width: 100%;
-//   height: 300px;  
-//   border-radius: 10px;
-//   background-color: #ffffff;
-// }
-// .o_form_sheet_bg{
-//     background-color: #ffffff;
-// }
+
+/* 2. تسميات الحقول (Labels) - الوضوح هو الأولوية */
 .o_form_view .o_form_label {
-    font-size: 1rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color:#042273;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #4a5568 !important; /* رمادي داكن مريح للعين بدلاً من الأسود الحاد */
+    margin-bottom: 4px !important;
+}
+
+/* 3. مدخلات البيانات (Inputs) - سهولة القراءة والكتابة */
+.o_field_widget input.o_input, 
+.o_field_widget select.o_input, 
+.o_field_widget textarea.o_input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 10px 12px !important;
+    font-size: 1rem !important;
+    color: #1a202c !important;
+    transition: all 0.2s ease;
+    background-color: #fdfdfd !important;
+}
+
+.o_field_widget input.o_input:focus {
+    border-color: #042273 !important; /* لون هويتك الأساسي */
+    box-shadow: 0 0 0 3px rgba(4, 34, 115, 0.1) !important;
+    background-color: #ffffff !important;
+}
+.o_form_view {
+    .o_form_sheet_bg {
+        max-width: none;
+    }
+    .o_form_sheet {
+        max-width: $o-form-view-sheet-max-width;
+        width: 100%;
+        @include media-breakpoint-up(md) {
+            margin: $o-sheet-vpadding * 0.2 auto;
+        }
+    }
+}
+// ######
+
+
+/* 5. المجموعات (Groups) - تنظيم البيانات */
+.o_form_view .o_group {
+    margin-bottom: 20px !important;
+}
+
+.o_form_view .o_horizontal_separator {
+    color: #042273 !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    border-bottom: 2px solid #f0f2f5 !important;
+    margin-top: 25px !important;
+    padding-bottom: 8px !important;
+}
+
+/* 6. الأزرار الذكية (Stat Buttons) */
+.o-form-buttonbox .oe_stat_button {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+    transition: hover 0.2s;
+}
+
+.o-form-buttonbox .oe_stat_button:hover {
+    background-color: #f8fafc !important;
+    border-color: #042273 !important;
 }
 .btn-outline-primary {
     --btn-color: #042273;
@@ -303,12 +371,78 @@ html .o_web_client .o_main_navbar,
     --text-opacity: 1;
     color: rgba(187, 188, 188, 0.76) !important;
 }
+/* 🏛️ تنسيق شريط الحالة الاحترافي للمحاماة */
 
-// .text-900 {
-//     --color: #94A3B8 !important;
-//     color: #94A3B8 !important;
-//     font-size: large;
+/* 1. الحاوية الرئيسية لشريط الحالة */
+// .o_form_statusbar {
+//     background-color: #ffffff !important;
+//     border-bottom: 1px solid #e2e8f0 !important;
+//     border-radius: 12px 12px 0 0 !important;
+//     padding: 8px 15px !important;
+//     display: flex;
+//     align-items: center;
+//     min-height: 50px;
 // }
+
+/* 2. الأزرار (Arrows) - المراحل غير النشطة */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button {
+    height: 36px !important; /* ارتفاع أكثر رشاقة */
+    min-width: 130px !important;
+    max-width: 180px !important;
+    position: relative;
+    padding: 0 20px 0 30px !important;
+    margin-right: -12px !important; /* تداخل سلس */
+    clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%, 0% 0%);
+    
+    /* لون هادئ للمراحل القادمة لتقليل التشتت */
+    background-color: #e6e7e9 !important; 
+    color: #000000 !important;
+    
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* 3. تنسيق المرحلة النشطة (Current Stage) */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button.o_arrow_button_current {
+    background-color: #042273 !important; /* اللون الملكي الأساسي */
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    z-index: 2;
+    box-shadow: 4px 0 10px rgba(4, 34, 115, 0.15) !important;
+}
+
+/* 4. تأثير التمرير (Hover) */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button:hover:not(:disabled):not(.o_arrow_button_current) {
+    background-color: #e2e8f0 !important;
+    color: #e67e22 !important;
+    z-index: 3;
+}
+
+/* 5. معالجة الزر الأول والأخير */
+/* الزر الأول (البداية) */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button:first-child {
+    clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 0% 0%);
+    padding-left: 15px !important;
+    border-radius: 6px 0 0 6px !important;
+}
+
+/* الزر الأخير (النهاية) */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button:last-child {
+    margin-right: 0 !important;
+    clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 12px 50%, 0% 0%);
+    border-radius: 0 6px 6px 0 !important;
+}
+
+/* 6. حالة التعطيل أو الضغط (Active/Disabled State) */
+.o_field_statusbar > .o_statusbar_status > .o_arrow_button:not(.d-none).o_arrow_button_current:disabled {
+    opacity: 1 !important;
+    color: #ffffff !important;
+    background-color: #042273 !important;
+}
+
+
 
 .o_progressbar .o_progress {
     width: 200px;
@@ -320,7 +454,7 @@ html .o_web_client .o_main_navbar,
 // for progress bar
 .bg-primary {
     --background-color: RGBA(113, 99, 158, var(--bg-opacity, 1));
-    background-color: #94A3B8 !important;
+    background-color: #5b99ef !important;
 }
 // linke to another record
 .o_form_view .o_form_uri > span:first-child {
@@ -328,7 +462,7 @@ html .o_web_client .o_main_navbar,
 }
 .form-check-input:checked {
     background-color:  #4186ca !important;
-    border-color:  #94A3B8 !important;
+    border-color:  #5b99ef !important;
 }
 .o_form_view .o_horizontal_separator:not(:empty) {
     // box-shadow: 0 1px 0 #cacad2;
@@ -362,83 +496,124 @@ html .o_web_client .o_main_navbar,
 }
 // التفاعل والأزرار (Buttons & Interactions)
 /* 🚀 الأزرار الرئيسية */
-/* تنسيق الزر الرئيسي (موافق / إنشاء) */
-.btn-primary {
-    background-color: #042273 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
-    // padding: 12px 40px !important;
-    // font-size: 18px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 4px 15px rgba(4, 34, 115, 0.2) !important;
-}
-
-/* تنسيق زر الإلغاء (Secondary) ليكون ناعماً وغير مزعج */
-.btn-secondary {
-    background-color: #d1d2d4 !important;
-    color: #000000 !important;
-    border: 1px solid #ddd !important;
-    border-radius: 12px !important;
-    // padding: 12px 30px !important;
-    // font-size: 18px !important;
-    font-weight: bold;
+.btn-primary{
+    background-color: #042273;
+    color: white;
+    border-radius: 8px; 
+    // padding: 10px;
+    box-shadow: 0 4px 6px rgba(4, 34, 115, 0.2); 
+    transition: all 0.2s ease-in-out;
 }
 // .btn{
 //     padding:15px;
 // }
 .btn:hover{
-    background-color: #042273;
+    background-color: #e67e22;
     color: white;
 }
-// form name
-.text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 20px;
-}
+
 .breadcrumb-item + .breadcrumb-item {
     padding-left: var(--breadcrumb-item-padding-x);
     font-size: 20px;
 }
 .btn-primary:hover {
     color: #fff !important;
-    background-color: #94A3B8 !important;
+    background-color: #5b99ef !important;
     transform: translateY(-1px); 
     box-shadow: 0 6px 10px rgba(4, 34, 115, 0.3) !important; 
 }
-// .btn-secondary{
-//     background-color:  #94A3B8;
-//     color: white;
-// }
+.btn-secondary{
+    background-color:  #5b99ef;
+    color: white;
+}
 .btn-secondary:hover{
     background-color: #042273;
     color: white;
 }
+/* ⚖️ تنسيق أزرار التنقل والإنهاء لنظام المحاماة */
+
+/* 1. التنسيق العام للأزرار (قاعدة مشتركة) */
+[name="action_prev"], 
+[name="action_next"], 
+[name="action_summary"] {
+    min-width: 160px !important;
+    height: 50px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    margin: 10px 5px !important;
+}
+
+/* 2. زر "التالي" (Action Next) - لون أزرق ملكي متوهج */
+[name="action_next"] {
+    background: linear-gradient(135deg, #042273 0%, #0639bd 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(4, 34, 115, 0.25) !important;
+}
+
+[name="action_next"]:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(4, 34, 115, 0.4) !important;
+    background: linear-gradient(135deg, #0639bd 0%, #042273 100%) !important;
+}
+
+/* 3. زر "السابق" (Action Previous) - تصميم هادئ ووقور */
+[name="action_prev"] {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+[name="action_prev"]:hover {
+    background-color: #e2e8f0 !important;
+    color: #042273 !important;
+    transform: translateX(-3px);
+}
+
+/* 4. زر "إنهاء الاستشارة" (End Consultation) - تمييز ذهبي فخم */
+/* ملاحظة: استخدمت اللون الذهبي ليعطي شعوراً بالإنجاز عند إغلاق الملف */
+[name="action_summary"] {
+    background: linear-gradient(135deg, #b8860b 0%, #daa520 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3) !important;
+}
+
+[name="action_summary"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(184, 134, 11, 0.5) !important;
+}
+
+/* 5. إضافة أيقونات برمجية بجانب النص (اختياري عبر CSS) */
+[name="action_next"]::after {
+    content: " ➜";
+    margin-left: 10px;
+    font-size: 1.2rem;
+}
+
+[name="action_prev"]::before {
+    content: "⬅ ";
+    margin-right: 10px;
+}
+
+[name="action_summary"]::before {
+    content: "✓ ";
+    font-weight: bold;
+    margin-right: 8px;
+}
+
 html .o_web_client .o_main_navbar {
     margin-left: 0;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
     box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1);
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-// the active status
-.o_field_statusbar > .o_statusbar_status > .o_arrow_button:not(.d-none).o_arrow_button_current:disabled, 
-.o_field_statusbar_duration > .o_statusbar_status > .o_arrow_button:not(.d-none).o_arrow_button_current:disabled,
- .o_field_statusbar > .o_statusbar_status > .o_arrow_button:not(.d-none):active:not(.o_first),
-  .o_field_statusbar_duration > .o_statusbar_status > .o_arrow_button:not(.d-none):active:not(.o_first) {
-    color: #042273 !important;
-    background-color: #ffffff !important;
-}
-.o_arrow_button{
-    height:50px;
-    width:260px;
-    color: #ffffff !important;
-    background-color: #042273 !important;
-    font-size:1rem;
-    font-weight: bold;
-    // padding: 0px;
 }
 /* ✅ الأزرار الإحصائية (تحسين النيومورفيزم) */
 .o-form-buttonbox .oe_stat_button{
@@ -450,15 +625,56 @@ html .o_web_client .o_main_navbar {
     padding:30px;
     margin: 10px;
 }
-// // more button in status bar
-// .o_button_more{
-//     border-radius: 5px;
-//     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3), -5px -5px 15px rgba(255, 255, 255, 0.1);
-//     transition: all 0.3s ease-in-out;
-//     padding:30px;
-// }
+
+
+/* ⚖️ Class الأزرار الفاخرة لنظام المحاماة */
+.btn-law-pro {
+    /* الأبعاد والخط */
+    min-width: 150px !important;
+    height: 48px !important;
+    padding: 10px 25px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    border-radius: 10px !important; /* زوايا احترافية ناعمة */
+    
+    /* الألوان والخلفية (أزرق ملكي متدرج) */
+    background: linear-gradient(135deg, #042273 0%, #083680 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    
+    /* الظل والحركة */
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important; /* مسافة بين النص والأيقونة إن وجدت */
+}
+
+/* تأثير عند تمرير الماوس */
+.btn-law-pro:hover {
+    background: linear-gradient(135deg, #083680 0%, #042273 100%) !important;
+    transform: translateY(-3px) !important; /* حركة ارتفاع بسيطة */
+    box-shadow: 0 8px 20px rgba(4, 34, 115, 0.35) !important;
+    color: #ffffff !important;
+}
+
+/* تأثير عند الضغط */
+.btn-law-pro:active {
+    transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* حالة الزر عندما يكون غير مفعل */
+.btn-law-pro:disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
 .o-form-buttonbox .oe_stat_button:hover {
-    background-color: #94A3B8; /* الفيروزي عند التمرير */
+    background-color: #5b99ef; /* الفيروزي عند التمرير */
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(38, 190, 202, 0.6);
 }
@@ -480,7 +696,7 @@ a {
     transition: color 0.2s;
 }
 a:hover {
-    color: #94A3B8; 
+    color: #5b99ef; 
     text-decoration: underline;
 }
 .nav-link {
@@ -498,19 +714,73 @@ a:hover {
     border: 2px solid #042273;
 }
 
+// #########################
+
+
+/* Sidebar close container */
+/* 🚀 إصلاح وتنسيق زر إغلاق القائمة الجانبية (Sidebar Close Button) */
+
+.sidebar_close {
+    position: absolute;
+    top: 15px;
+    /* تحويل الزر ليكون في الزاوية المقابلة لجهة فتح القائمة (اليسار في حالتنا) */
+    left: 15px; 
+    z-index: 1100; /* لضمان ظهوره فوق الشعار والقائمة */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* تنسيق أيقونة الإغلاق نفسها (أيقونة X) */
+.sidebar_close i, 
+.sidebar_close svg {
+    font-size: 1.4rem !important;
+    color: rgba(255, 255, 255, 0.7) !important; /* لون أبيض شفاف قليلاً */
+    background: rgba(255, 255, 255, 0.1); /* خلفية دائرية خفيفة */
+    padding: 8px;
+    border-radius: 50%; /* جعل الزر دائرياً */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* تأثير التمرير (Hover) لزيادة وضوح التفاعل */
+.sidebar_close:hover i,
+.sidebar_close:hover svg {
+    color: #ffffff !important; /* أبيض ناصع عند التمرير */
+    background: rgba(255, 255, 255, 0.25); /* تفتيح الخلفية */
+    transform: rotate(90deg); /* حركة دوران بسيطة تعطي شعوراً بالحداثة */
+}
+
+/* تأثير عند الضغط (Active) */
+.sidebar_close:active {
+    transform: scale(0.9); /* تصغير بسيط عند الضغط لتعزيز شعور الزر الحقيقي */
+}
+
+
+// /* إصلاح التداخل مع الشعار (Logo) */
+// /* إذا كان الشعار قريباً جداً، سنقوم بإضافة مسافة علوية للقائمة */
+// .sidebar_panel .sidebar {
+//     padding-top: 60px !important; /* لضمان عدم غطرسة زر الإغلاق على الشعار */
+// }
+
+// #########################
 /* 🚀 4. زر فتح القائمة الجانبية (Sidebar Toggle) */
 .o_floating_sidebar_toggle_container {
     position: fixed;
-    top: 10px;
+    top: 5px;
     left: 35px;
     z-index: 1000;
 }
 .o_modern_sidebar_toggle {
     border-radius: 20%; 
-    background-color: #94A3B8; 
+    background-color: #5b99ef; 
     color: white !important;
     box-shadow: 0 4px 8px rgba(38, 190, 202, 0.4); 
     transition: all 0.2s ease-in-out;
+    font-size: 20px;   
 }
 .o_modern_sidebar_toggle:hover {
     background-color: #042273;
@@ -521,8 +791,8 @@ a:hover {
 
 /* 2. التأكد من أن حاوية الشعار في السايدبار تسمح بالصورة الكبيرة */
 .sidebar_panel .sidebar .sidebar_logo {
-    padding-top: 30px; 
-    padding-bottom: 30px;
+    // padding-top: 20px; 
+    // padding-bottom: 20px;
     text-align: center;
 }
 
@@ -548,32 +818,6 @@ a:hover {
     max-height: 2000px; /* قيمة كبيرة كافية لاحتواء المحتوى */
 }
 
-// .sidebar_sub_menu_no_children {
-//     display: block !important;
-//    color: #042273;
-//     padding-top: 5px;
-//     padding-bottom: 5px;
-//     font-size: 1rem;
-// }
-
-
-
-
-// to use control panel patern
-/* Style the buttons that are used to open and close the accordion panel */
-// .panel {
-//     /* Initially hide the panel */
-//     max-height: 0;
-//     overflow: hidden; 
-//     transition: max-height 0.2s ease-out; /* Add a smooth transition */
-//     padding: 0 18px; /* Optional: Adjust based on your design */
-//     background-color: #f7f7f7; /* Optional: Panel background */
-// }
-
-// /* Optional: Style to indicate the button is active/open */
-// .accordion.active {
-//     background-color: #ccc;
-// }
 
 
 /* 1. استهداف جميع المجموعات في ورقة النموذج (Sheet) */
@@ -687,7 +931,7 @@ a:hover {
 
 // .o_kanban_view .o_kanban_record:hover {
 //     transform: scale(1.02);
-//     border-color: #94A3B8 !important;
+//     border-color: #5b99ef !important;
 // }
 
 // /* 3. إصلاح عرض الصورة (دائرية وصغيرة) */
@@ -755,14 +999,14 @@ a:hover {
 .o_kanban_renderer.o_kanban_grouped .o_kanban_record {
     width: 100%;
     border-radius: 12px !important;
-    // border-left: 10px solid #94A3B8 !important;
+    // border-left: 10px solid #5b99ef !important;
     margin:10px;
 }
 
 
 .o_kanban_view .o_kanban_record:hover {
         transform: scale(1.02);
-        border-color: #94A3B8 !important;
+        border-color: #5b99ef !important;
     }
 
 
@@ -770,7 +1014,7 @@ a:hover {
     border: 1px solid #dee2e6;
     background-color: white;
     border-radius: 12px !important;
-    border-left: 10px solid #94A3B8 !important;
+    border-left: 10px solid #5b99ef !important;
     padding: var(--KanbanRecord-padding-v) var(--KanbanRecord-padding-h);
     width: 100%;
     height: 100%;
@@ -782,62 +1026,15 @@ a:hover {
     display: none !important;
 }
 
-/* استهداف نوافذ الخطأ والتنبيه فقط مع استثناء شاشات العرض والبيانات */
-.o_dialog_error .modal-content, 
-.o_dialog_warning .modal-content, 
-.o_error_dialog .modal-content {
-    /* التأكد من أننا لا نعدل الشاشات الكبيرة التي تحتوي على نماذج */
-    width: 650px !important; 
-    max-width: 95vw !important;
-    margin: auto !important;
-    border: none !important;
-    border-radius: 20px !important;
-    background-color: #ffffff !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
-    overflow: hidden !important;
-    border-top: 8px solid #042273 !important; 
-    position: relative !important;
-}
+// .modal-body{
+//     font-size: 25px;
+// }
 
-/* منع التأثير على أي نافذة تحمل كلاس modal-lg أو تحتوي على نموذج إدخال بيانات */
-.modal-lg .modal-content,
-.o_view_modal .modal-content,
-.modal-content:has(.o_form_view) {
-    width: auto !important; /* العودة للوضع الافتراضي للشاشات الكبيرة */
-    border-top: none !important;
-    box-shadow: none !important; /* أو الظل الافتراضي لأودو */
-    border-radius: var(--modal-border-radius, 6px) !important;
-}
-
-/* التدرج اللوني - يظهر فقط في نوافذ التنبيه */
-.o_dialog_error .modal-content::before,
-.o_dialog_warning .modal-content::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #042273, #a2c2e8);
-    opacity: 0.6;
-    z-index: 10;
-}
-
-/* تنسيق نص الرسالة (25px) لرسائل الخطأ فقط */
-.o_dialog_error .modal-body,
-.o_dialog_warning .modal-body {
-    padding: 3rem 2rem !important;
-    font-size: 25px !important; 
-    color: #34495E !important;
-    text-align: center !important;
-    line-height: 1.6 !important;
-}
-
-/* تنسيق زر "موافق" لرسائل التنبيه فقط */
-.o_dialog_error .modal-footer .btn-primary,
-.o_dialog_warning .modal-footer .btn-primary {
-    background-color: #042273 !important;
-    border-radius: 10px !important;
-    padding: 10px 35px !important;
-    font-size: 18px !important;
-}
+// @media (min-width: 476px) {
+//     .modal-dialog {
+//         max-width: var(--modal-width);
+//         margin-right: auto;
+//         margin-left: auto;
+//         border-radius: 20px;
+//     }
+// }

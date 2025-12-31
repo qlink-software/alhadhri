@@ -62,14 +62,7 @@
                                     <td>Legal Fees</td>
                                     <td class="text-end" t-esc="doc.legal_fees"/>
                                 </tr>
-                                <tr>
-                                    <td>Collected Amount</td>
-                                    <td class="text-end" t-esc="doc.collected_amount"/>
-                                </tr>
-                                <tr>
-                                    <td>Remaining Amount</td>
-                                    <td class="text-end" t-esc="doc.remaining_amount"/>
-                                </tr>
+                                
                             </tbody>
                         </table>
                     </div>
@@ -85,8 +78,8 @@
                     <div class="page">
                         <h2 class="text-center">Engagement Letter</h2>
                         <p>
-                            <strong>Reference:</strong>
-                            <span t-esc="doc.reference_number"/>
+                            <strong>Engagement Letter Code:</strong>
+                            <span t-esc="doc.code"/>
                         </p>
                         <p>
                             <strong>Date:</strong>

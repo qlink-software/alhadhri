@@ -4,6 +4,8 @@
 # يوفر هذا الملف جميع الحقول المساعدة للمرفقات وتحذيرات المستندات وتنبيهات
 # انتهاء صلاحية التوكيلات بالإضافة إلى كود العميل بعد توقيع اتفاقية EL.
 # ------------------------------------------------------------------------------
+from datetime import datetime
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -132,10 +134,48 @@ class ResPartner(models.Model):
             vals["client_year"] = client_year
             if not vals.get("code") or vals.get("code") == "/":
                 vals["code"] = self._generate_partner_code(client_year)
+            if self._should_generate_partner_ref(vals):
+                vals["ref"] = self._next_partner_ref()
         records = super().create(vals_list)
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # records._check_hours_logged()
         return records
+
+    @staticmethod
+    def _should_generate_partner_ref(vals):
+        if vals.get("ref"):
+            return False
+        if vals.get("is_company") is False:
+            return True
+        if vals.get("company_type") and vals.get("company_type") != "company":
+            return True
+        return vals.get("customer_rank", 0) > 0
+
+    def _next_partner_ref(self):
+        yy = datetime.now().strftime("%y")
+        sequence_code = self._create_sequence_for_current_year(yy)
+        return self.env["ir.sequence"].next_by_code(sequence_code)
+
+    def _create_sequence_for_current_year(self, yy):
+        sequence_code = f"res.partner.sequence.{yy}"
+        sequence_model = self.env["ir.sequence"].sudo()
+        company_id = self.env.company.id
+        sequence = sequence_model.search(
+            [("code", "=", sequence_code), ("company_id", "=", company_id)],
+            limit=1,
+        )
+        if not sequence:
+            sequence_model.create(
+                {
+                    "name": f"Partner Ref {yy}",
+                    "code": sequence_code,
+                    "prefix": f"{yy}/",
+                    "padding": 3,
+                    "implementation": "no_gap",
+                    "company_id": company_id,
+                }
+            )
+        return sequence_code
 
     def write(self, vals):
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.

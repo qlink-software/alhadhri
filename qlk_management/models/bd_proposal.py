@@ -7,20 +7,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-ENGAGEMENT_TYPE_SELECTION = [
-    ("cm", "CM"),
-    ("lm", "LM"),
-    ("lc", "LC"),
-    ("corporate", "Corporate"),
-    ("litigation", "Litigation"),
-    ("arbitration", "Arbitration"),
-]
-
-DOCUMENT_TYPE_SELECTION = [
-    ("proposal", "Proposal"),
-    ("engagement_letter", "Engagement Letter"),
-]
-
 PAYMENT_STATUS_SELECTION = [
     ("unpaid", "Unpaid"),
     ("partial", "Partially Paid"),
@@ -48,13 +34,6 @@ class BDProposal(models.Model):
         default="proposal",
         required=True,
         tracking=True,
-    )
-    document_type = fields.Selection(
-        selection=DOCUMENT_TYPE_SELECTION,
-        string="Document Type",
-        compute="_compute_document_type",
-        inverse="_inverse_document_type",
-        store=True,
     )
     client_code = fields.Char(string="Client Code", copy=False, readonly=True)
     client_sequence = fields.Integer(string="Client Sequence", copy=False, readonly=True)
@@ -88,10 +67,10 @@ class BDProposal(models.Model):
         default=fields.Date.context_today,
         tracking=True,
     )
-    reference = fields.Char(string="Reference", tracking=True)
-    engagement_type = fields.Selection(
-        selection=ENGAGEMENT_TYPE_SELECTION,
-        string="Engagement Type",
+    billing_type = fields.Selection(
+        [("free", "Pro bono"), ("billable", "Paid")],
+        string="Billing Type",
+        default="billable",
         tracking=True,
     )
     scope_of_work = fields.Html(string="Scope of Work", sanitize=False)
@@ -117,32 +96,14 @@ class BDProposal(models.Model):
         default="draft",
         tracking=True,
     )
-    collected_amount = fields.Float(
-        string="Collected Amount",
-        tracking=True,
-        readonly=True,
-        compute="_compute_engagement_totals",
-        store=True,
-    )
-    remaining_amount = fields.Float(
-        string="Remaining Amount",
-        compute="_compute_engagement_totals",
-        store=True,
-        readonly=True,
-    )
+    
     total_amount = fields.Monetary(
         string="Total Amount",
         currency_field="currency_id",
         compute="_compute_total_amount",
         store=True,
     )
-    payment_status = fields.Selection(
-        selection=PAYMENT_STATUS_SELECTION,
-        string="Payment Status",
-        compute="_compute_payment_status",
-        store=True,
-        readonly=True,
-    )
+    
     rejection_reason = fields.Text(string="Rejection Reason")
     comments = fields.Text(string="Comments / Rejection Reason")
     # ------------------------------------------------------------------------------
@@ -253,59 +214,22 @@ class BDProposal(models.Model):
                 {"partner_id": record.client_id.id}
             )
 
-    @api.depends("proposal_type")
-    def _compute_document_type(self):
-        for record in self:
-            record.document_type = "proposal" if record.proposal_type == "proposal" else "engagement_letter"
-
-    def _inverse_document_type(self):
-        for record in self:
-            record.proposal_type = "proposal" if record.document_type == "proposal" else "el"
-
     # ------------------------------------------------------------------------------
     # دالة تحسب المبلغ المتبقي ديناميكياً بناءً على المدفوعات ورسوم العرض.
     # ------------------------------------------------------------------------------
-    @api.depends("legal_fees_lines.amount", "legal_fees")
+    @api.depends("legal_fees_lines.amount", "legal_fees", "billing_type")
     def _compute_total_amount(self):
         for record in self:
+            if record.billing_type == "free":
+                record.total_amount = 0.0
+                continue
             lines_total = sum(record.legal_fees_lines.mapped("amount"))
             if lines_total:
                 record.total_amount = lines_total
             else:
                 record.total_amount = record.legal_fees or 0.0
 
-    @api.depends("engagement_letter_id", "engagement_letter_id.amount_total", "total_amount")
-    def _compute_engagement_totals(self):
-        for record in self:
-            letter = record.engagement_letter_id
-            if not letter:
-                record.collected_amount = 0.0
-                record.remaining_amount = record.total_amount
-                continue
-            if "collected_amount" in letter._fields:
-                record.collected_amount = letter.collected_amount or 0.0
-                if "remaining_amount" in letter._fields:
-                    record.remaining_amount = letter.remaining_amount
-                else:
-                    total = record.total_amount or 0.0
-                    record.remaining_amount = max(total - record.collected_amount, 0.0)
-            else:
-                record.collected_amount = 0.0
-                record.remaining_amount = record.total_amount
 
-    @api.depends("collected_amount", "total_amount")
-    def _compute_payment_status(self):
-        for record in self:
-            total = record.total_amount or 0.0
-            collected = record.collected_amount or 0.0
-            if total <= 0.0:
-                record.payment_status = "unpaid"
-            elif collected >= total:
-                record.payment_status = "paid"
-            elif collected > 0.0:
-                record.payment_status = "partial"
-            else:
-                record.payment_status = "unpaid"
 
     @api.depends("approval_role")
     def _compute_can_approve(self):
@@ -391,29 +315,49 @@ class BDProposal(models.Model):
                 )
 
     # ------------------------------------------------------------------------------
-    # عند الضغط على زر الإرسال للموافقة يتم تحويل الحالة إلى waiting_approval
-    # مع إرسال Notification للمراجع.
+    # إرسال العرض إلى موافقة المدير (Draft -> Waiting Manager Approval).
     # ------------------------------------------------------------------------------
-    def action_send_for_approval(self):
+    def action_send_manager_approval(self):
         self._ensure_state({"draft"})
         for proposal in self:
-            proposal.rejection_reason = False
-            proposal.state = "waiting_manager_approval"
+            proposal.write(
+                {
+                    "rejection_reason": False,
+                    "state": "waiting_manager_approval",
+                }
+            )
             proposal.message_post(body=_("Proposal submitted for manager approval."))
 
     # ------------------------------------------------------------------------------
-    # عند الموافقة:
-    # - تتغير الحالة إلى approved
-    # - يتم تفعيل زر الطباعة فقط بعد الموافقة
+    # موافقة المدير (Waiting Manager Approval -> Approved by Manager).
     # ------------------------------------------------------------------------------
-    def action_approve(self):
+    def action_manager_approve(self):
         self._ensure_state({"waiting_manager_approval"})
         for proposal in self:
             proposal._check_approval_rights()
-            proposal.approved_by = self.env.user
-            proposal.state = "approved_manager"
-            proposal.message_post(body=_("Manager approved. Awaiting client approval."))
-            proposal.state = "waiting_client_approval"
+            proposal.write(
+                {
+                    "approved_by": self.env.user.id,
+                    "state": "approved_manager",
+                }
+            )
+            proposal.message_post(body=_("Manager approved. Ready to send to client."))
+
+    # ------------------------------------------------------------------------------
+    # إرسال العرض لموافقة العميل (Approved by Manager -> Waiting Client Approval).
+    # ------------------------------------------------------------------------------
+    def action_send_client_approval(self):
+        self._ensure_state({"approved_manager"})
+        for proposal in self:
+            proposal._check_approval_rights()
+            proposal.write({"state": "waiting_client_approval"})
+            proposal.message_post(body=_("Proposal sent for client approval."))
+
+    def action_send_for_approval(self):
+        return self.action_send_manager_approval()
+
+    def action_approve(self):
+        return self.action_manager_approve()
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -457,9 +401,15 @@ class BDProposal(models.Model):
                 vals["client_id"] = vals["partner_id"]
             if vals.get("client_id") and not vals.get("partner_id"):
                 vals["partner_id"] = vals["client_id"]
-        if vals.get("state") == "approved_manager":
-            vals["state"] = "waiting_client_approval"
-        if any(field in vals for field in ("legal_fees_lines", "legal_fees", "currency_id")):
+        if any(
+            field in vals
+            for field in (
+                "legal_fees_lines",
+                "legal_fees",
+                "currency_id",
+                "billing_type",
+            )
+        ):
             for proposal in self:
                 if proposal.state in {"approved_manager", "waiting_client_approval", "approved_client"}:
                     raise UserError(_("Financial fields are locked after approval."))
@@ -470,7 +420,7 @@ class BDProposal(models.Model):
         if vals.get("lead_id"):
             lead_vals = self._prepare_lead_defaults(vals["lead_id"])
         res = super().write(vals)
-        if "legal_fees" in vals:
+        if any(field in vals for field in ("legal_fees", "billing_type")):
             self.mapped("engagement_letter_id")._sync_proposal_financials()
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # self._check_hours_logged()
@@ -602,39 +552,81 @@ class BDProposal(models.Model):
             "partner_id": lead_record.partner_id.id,
         }
 
+    def _open_rejection_wizard(self, rejection_role):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Rejection Reason"),
+            "res_model": "bd.rejection.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref("qlk_management.view_bd_rejection_wizard_form").id,
+            "target": "new",
+            "context": {
+                "default_rejection_role": rejection_role,
+                "active_model": self._name,
+                "active_ids": self.ids,
+            },
+        }
+
     # ------------------------------------------------------------------------------
-    # عند الرفض:
-    # - الحالة إلى rejected
-    # - يتم حفظ سبب الرفض في حقل comments
+    # رفض المدير (Waiting Manager Approval/Approved by Manager -> Rejected).
     # ------------------------------------------------------------------------------
-    def action_reject(self):
-        self._ensure_state({"waiting_manager_approval"})
+    def action_manager_reject(self):
+        self.ensure_one()
+        self._ensure_state({"waiting_manager_approval", "approved_manager"})
         for proposal in self:
             proposal._check_approval_rights()
-            if not proposal.rejection_reason:
-                raise UserError(_("Please provide the rejection reason before rejecting."))
-            proposal.state = "rejected"
-            proposal.message_post(body=_("Proposal rejected: %s") % proposal.rejection_reason)
+        return self._open_rejection_wizard("manager")
+
+    # ------------------------------------------------------------------------------
+    # رفض العميل (Waiting Client Approval -> Rejected).
+    # ------------------------------------------------------------------------------
+    def action_client_reject(self):
+        self.ensure_one()
+        self._ensure_state({"waiting_client_approval"})
+        for proposal in self:
+            proposal._check_approval_rights()
+        return self._open_rejection_wizard("client")
+
+    def action_reject(self):
+        return self.action_manager_reject()
+
+    def _apply_rejection_reason(self, reason, rejection_role):
+        reason = (reason or "").strip()
+        if not reason:
+            raise UserError(_("Please provide the rejection reason before rejecting."))
+        allowed = {"waiting_client_approval"} if rejection_role == "client" else {
+            "waiting_manager_approval",
+            "approved_manager",
+        }
+        self._ensure_state(allowed)
+        for proposal in self:
+            proposal._check_approval_rights()
+            proposal.write(
+                {
+                    "rejection_reason": reason,
+                    "state": "rejected",
+                }
+            )
+            proposal.message_post(body=_("Proposal rejected: %s") % reason)
 
     # ------------------------------------------------------------------------------
     # زر لتحديث حالة العرض عندما تتم الموافقة من العميل النهائي.
+    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    # موافقة العميل (Waiting Client Approval -> Approved by Client).
     # ------------------------------------------------------------------------------
     def action_client_approve(self):
         self._ensure_state({"waiting_client_approval"})
         for proposal in self:
             proposal._check_approval_rights()
-            proposal.approved_by = self.env.user
-            proposal.state = "approved_client"
+            proposal.write(
+                {
+                    "approved_by": self.env.user.id,
+                    "state": "approved_client",
+                }
+            )
             proposal.message_post(body=_("Client approved the proposal."))
-
-    def action_client_reject(self):
-        self._ensure_state({"waiting_client_approval"})
-        for proposal in self:
-            proposal._check_approval_rights()
-            if not proposal.rejection_reason:
-                raise UserError(_("Please provide the rejection reason before rejecting."))
-            proposal.state = "rejected"
-            proposal.message_post(body=_("Client rejected the proposal: %s") % proposal.rejection_reason)
 
     def action_client_approved(self):
         return self.action_client_approve()
@@ -645,7 +637,7 @@ class BDProposal(models.Model):
     def action_close_rejected(self):
         self._ensure_state({"rejected"})
         for proposal in self:
-            proposal.state = "cancelled"
+            proposal.write({"state": "cancelled"})
             proposal.message_post(body=_("Rejected proposal has been cancelled."))
 
     # ------------------------------------------------------------------------------
@@ -654,8 +646,12 @@ class BDProposal(models.Model):
     def action_reset_to_draft(self):
         self._ensure_state({"rejected", "cancelled"})
         for proposal in self:
-            proposal.rejection_reason = False
-            proposal.state = "draft"
+            proposal.write(
+                {
+                    "rejection_reason": False,
+                    "state": "draft",
+                }
+            )
 
     # ------------------------------------------------------------------------------
     # زر الطباعة يقوم باستدعاء الـ QWeb report بعد التأكد من حالة الموافقة.
@@ -701,23 +697,17 @@ class BDProposal(models.Model):
             for line in self.legal_fees_lines
         ]
         return {
-            "name": self.name or _("Engagement Letter"),
             "partner_id": partner.id,
             "client_id": partner.id,
             "client_code": partner_code,
             "date": fields.Date.context_today(self),
             "contract_type": "retainer",
             "legal_fee_amount": self.legal_fees,
-            "amount_total": self.total_amount,
             "total_amount": self.total_amount,
-            "collected_amount": self.collected_amount,
             "currency_id": self.currency_id.id,
             "payment_terms": self.payment_terms,
             "comments": self.comments,
             "proposal_id": self.id,
-            "reference": self.reference,
-            "document_type": "engagement_letter",
-            "engagement_type": self.engagement_type,
             "opportunity_id": self.lead_id.id,
             "legal_fees_lines": fee_lines,
             "approval_role": self.approval_role,
@@ -726,6 +716,7 @@ class BDProposal(models.Model):
             "lawyer_cost_hour": self.lawyer_cost_hour,
             "planned_hours": self.planned_hours,
             "total_estimated_cost": self.total_estimated_cost,
+            "billing_type": self.billing_type,
             "services_description": False,
             "project_scope": False,
             "description": self.comments or _("Legal engagement for client %s") % (partner.display_name,),

@@ -19,11 +19,11 @@
                         <div>
                             <strong>Engagement Letter</strong>
                             <p>
-                                <span>Name:</span> <t t-esc="doc.name"/>
+                                <span>Engagement Letter Code:</span> <t t-esc="doc.code"/>
                                 <br/>
                                 <span>Date:</span> <t t-esc="doc.date"/>
                                 <br/>
-                                <span>Reference:</span> <t t-esc="doc.reference_number or '-'"/>
+                                <span>Engagement Letter Code:</span> <t t-esc="doc.code or '-'"/>
                             </p>
                         </div>
                         <div>

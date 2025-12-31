@@ -22,7 +22,14 @@
     <menuitem id="menu_management_root"
               name="BD"
               web_icon="crm,static/description/icon.png"
+              action="action_bd_dashboard"
               sequence="30"/>
+
+    <menuitem id="menu_bd_dashboard"
+              name="Business Development Dashboard"
+              parent="menu_management_root"
+              action="action_bd_dashboard"
+              sequence="1"/>
 
     <!-- <menuitem id="menu_management_dashboard"
               name="Client Data"

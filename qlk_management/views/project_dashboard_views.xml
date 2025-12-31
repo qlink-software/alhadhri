@@ -8,7 +8,7 @@
         </record>
 
         <record id="action_bd_dashboard" model="ir.actions.client">
-            <field name="name">BD Intelligence Hub</field>
+            <field name="name">Business Development Dashboard</field>
             <field name="tag">qlk.bd.dashboard</field>
             <field name="target">main</field>
         </record>

@@ -65,11 +65,8 @@ class ManagementDashboard(models.AbstractModel):
                 [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
             )
             proposals_approved = proposal_model.search_count([("state", "=", "approved_client")])
-            proposal_amount_group = proposal_model.read_group([], ["legal_fees", "collected_amount", "remaining_amount"], [])
             if proposal_amount_group:
                 legal_total = proposal_amount_group[0].get("legal_fees") or 0.0
-                collected_total = proposal_amount_group[0].get("collected_amount") or 0.0
-                pending_total = proposal_amount_group[0].get("remaining_amount") or 0.0
 
         proposal_reports = [
             {"label": _("Total Proposals"), "action": self._action_payload("qlk_management.action_bd_proposal_report_total")},

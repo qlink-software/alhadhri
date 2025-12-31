@@ -11,6 +11,8 @@ class BusinessDevelopmentDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.state = useState({ loading: true, data: null });
+        this.openAction = this.openAction.bind(this);
+        this.openRecord = this.openRecord.bind(this);
 
         onWillStart(async () => {
             try {
@@ -31,57 +33,19 @@ class BusinessDevelopmentDashboard extends Component {
         return this.state.data?.palette || {};
     }
 
-    get hero() {
+    get kpis() {
         return (
-            this.state.data?.hero || {
-                clients: 0,
+            this.state.data?.kpis || {
+                opportunities: 0,
                 proposals: 0,
-                approved_proposals: 0,
                 engagements: 0,
-                documents: 0,
-                expiring: 0,
+                projects: 0,
             }
         );
     }
 
-    get clients() {
-        return this.state.data?.clients || { action: null, records: [] };
-    }
-
-    get proposals() {
-        return (
-            this.state.data?.proposals || {
-                action: null,
-                states: [],
-                records: [],
-                total: 0,
-                pipeline_amount: "0",
-                open_count: 0,
-            }
-        );
-    }
-
-    get engagements() {
-        return this.state.data?.engagements || { action: null, states: [], records: [] };
-    }
-
-    get documents() {
-        return (
-            this.state.data?.documents || {
-                action: null,
-                types: [],
-                expiring: [],
-                domain: [],
-            }
-        );
-    }
-
-    get pipeline() {
-        return this.state.data?.pipeline || { action: null, records: [], domain: [] };
-    }
-
-    get followups() {
-        return this.state.data?.followups || { action: null, items: [], domain: [] };
+    get sections() {
+        return this.state.data?.sections || [];
     }
 
     formatNumber(value) {
