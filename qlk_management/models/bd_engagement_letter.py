@@ -155,9 +155,24 @@ class BDEngagementLetter(models.Model):
         help="Upload the signed Engagement Letter after approval.",
         index=True,
     )
+    signed_document_ids = fields.Many2many(
+        "ir.attachment",
+        "bd_engagement_letter_signed_document_rel",
+        "letter_id",
+        "attachment_id",
+        string="Signed Copy",
+        help="Upload the signed Engagement Letter after approval.",
+    )
     signed_on = fields.Datetime(string="Signed On", readonly=True)
     client_code_generated = fields.Boolean(string="Client Code Generated", readonly=True, copy=False)
     lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer")
+    lawyer_employee_id = fields.Many2one(
+        "hr.employee",
+        string="Assigned Lawyer",
+        compute="_compute_lawyer_employee_id",
+        inverse="_inverse_lawyer_employee_id",
+        store=True,
+    )
     lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
     hourly_cost = fields.Float(string="Cost Per Hour", readonly=True)
     planned_hours = fields.Float(string="Planned Hours")
@@ -602,11 +617,11 @@ class BDEngagementLetter(models.Model):
             self._sync_partner_identity()
         if not self.env.context.get("skip_proposal_sync") and ("proposal_id" in vals or "legal_fee_amount" in vals):
             self._sync_proposal_financials()
-        if "signed_document_id" in vals or "state" in vals:
+        if any(field in vals for field in ("signed_document_id", "signed_document_ids", "state")):
             for letter in self:
                 if (
                     letter.state == "approved_client"
-                    and letter.signed_document_id
+                    and (letter.signed_document_ids or letter.signed_document_id)
                     and not letter.client_code_generated
                 ):
                     letter._generate_client_code()
@@ -732,6 +747,66 @@ class BDEngagementLetter(models.Model):
                 if cost:
                     return cost.cost_per_hour, True
         return 0.0, False
+
+    def _employee_from_partner(self, partner):
+        if not partner:
+            return self.env["hr.employee"]
+        employee_model = self.env["hr.employee"]
+        domain_parts = []
+        if "address_home_id" in employee_model._fields:
+            domain_parts.append(("address_home_id", "=", partner.id))
+        if "work_contact_id" in employee_model._fields:
+            domain_parts.append(("work_contact_id", "=", partner.id))
+        if "user_id" in employee_model._fields:
+            domain_parts.append(("user_id.partner_id", "=", partner.id))
+        if not domain_parts:
+            return employee_model.browse()
+        employee_domain = []
+        for part in domain_parts:
+            if employee_domain:
+                employee_domain = ["|"] + employee_domain + [part]
+            else:
+                employee_domain = [part]
+        return employee_model.search(employee_domain, limit=1)
+
+    def _partner_from_employee(self, employee):
+        if not employee:
+            return self.env["res.partner"]
+        if employee.user_id and employee.user_id.partner_id:
+            return employee.user_id.partner_id
+        if "work_contact_id" in employee._fields and employee.work_contact_id:
+            return employee.work_contact_id
+        if "address_home_id" in employee._fields and employee.address_home_id:
+            return employee.address_home_id
+        return self.env["res.partner"]
+
+    @api.depends("lawyer_id")
+    def _compute_lawyer_employee_id(self):
+        for record in self:
+            record.lawyer_employee_id = record._employee_from_partner(record.lawyer_id)
+
+    def _inverse_lawyer_employee_id(self):
+        for record in self:
+            partner = record._partner_from_employee(record.lawyer_employee_id)
+            record.lawyer_id = partner.id if partner else False
+
+    @api.onchange("lawyer_employee_id")
+    def _onchange_lawyer_employee_id(self):
+        for record in self:
+            partner = record._partner_from_employee(record.lawyer_employee_id)
+            record.lawyer_id = partner.id if partner else False
+            if not record.lawyer_id:
+                record.lawyer_cost_hour = 0.0
+                record.hourly_cost = 0.0
+                continue
+            cost, found = record._find_lawyer_cost(record.lawyer_id.id)
+            if found:
+                record.lawyer_cost_hour = cost
+                record.hourly_cost = cost
+            else:
+                record.lawyer_cost_hour = 0.0
+                record.hourly_cost = 0.0
+                raise UserError(_("Cost calculation missing for this lawyer!"))
 
     def _get_lawyer_cost(self, lawyer_id):
         cost, _found = self._find_lawyer_cost(lawyer_id)

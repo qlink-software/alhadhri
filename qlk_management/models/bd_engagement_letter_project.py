@@ -32,8 +32,8 @@ class BDEngagementLetter(models.Model):
                 "project_scope": self.project_scope,
             }
         )
-        primary_employee = False
-        if self.lawyer_id:
+        primary_employee = self.lawyer_employee_id
+        if not primary_employee and self.lawyer_id:
             primary_employee = self.env["hr.employee"].search(
                 [("user_id.partner_id", "=", self.lawyer_id.id)], limit=1
             )

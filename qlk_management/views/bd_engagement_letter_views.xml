@@ -82,11 +82,11 @@
                                    modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
                         </group>
                         <group>
-                            <field name="lawyer_id"/>
+                            <field name="lawyer_employee_id"/>
                             <field name="lawyer_cost_hour" readonly="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
-                            <field name="opportunity_id" modifiers="{'invisible': [('opportunity_id', '=', False)]}"/>
+                            <!-- <field name="opportunity_id" modifiers="{'invisible': [('opportunity_id', '=', False)]}"/> -->
                             <field name="reviewer_id"/>
                         </group>
                     </group>
@@ -101,16 +101,14 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Details">
+                        <page string="Project Scope">
                             <group>
-                                <field name="services_description"/>
                                 <field name="project_scope"/>
-                                <field name="description"/>
                             </group>
                         </page>
                         <page string="Signed Copy">
                             <group>
-                                <field name="signed_document_id"/>
+                                <field name="signed_document_ids" widget="many2many_binary"/>
                                 <field name="signed_on" readonly="1"/>
                                 <field name="client_code_generated" readonly="1"/>
                             </group>
