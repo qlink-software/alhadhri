@@ -22,6 +22,7 @@
                     invisible="agreement_state not in ['age_approve','ag_sale']"/>  
                 </header>
                 <sheet>
+                    <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                     <div class="oe_title">
                         <label for="agrement_seq"/>
                         <h1><field name="agrement_seq" readonly="1" /></h1>

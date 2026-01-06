@@ -128,6 +128,9 @@
             <xpath expr="//page[@name='accounting']//field[@name='bank_ids']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
+            </xpath>
             <!-- <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_create_bd_proposal"
                         type="object"
@@ -229,7 +232,7 @@
                             <field name="name"/>
                             <field name="department"/>
                             <field name="employee_id"/>
-                            <field name="hours_spent"/>
+                            <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                             <field name="date_start"/>
                         </list>
                         <form string="Task / Hours">
@@ -238,7 +241,7 @@
                                     <field name="name"/>
                                     <field name="employee_id"/>
                                     <field name="department"/>
-                                    <field name="hours_spent"/>
+                                    <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                 </group>
                                 <group>
@@ -257,6 +260,9 @@
                 <attribute name="required">1</attribute>
             </xpath>
             <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='street']" position="attributes">
@@ -292,12 +298,68 @@
             <xpath expr="//field[@name='parent_id']" position="replace">
                 <field name="parent_id" modifiers="{'invisible': True}"/>
             </xpath>
+            <xpath expr="//div[@name='button_box']" position="replace"/>
+            <xpath expr="//chatter" position="replace"/>
             <!-- <xpath expr="//div[contains(@class,'o_AttachmentBox')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
             <!-- <xpath expr="//button[contains(@class,'o_AttachmentButton')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
+        </field>
+    </record>
+
+    
+
+    <record id="inherit_view_partner_tree_hide_fields" model="ir.ui.view">
+        <field name="name">res.partner.list.hide.fields</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mobile']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='email']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='city']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="inherit_view_partner_hide_is_expert" model="ir.ui.view">
+        <field name="name">res.partner.form.hide.is_expert</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="qlk_law.base_res_partner_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_expert']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='is_adviser']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
         </field>
     </record>
     
@@ -325,6 +387,44 @@
                     <filter name="industuries" string="Industuries" domain="[]" context="{'group_by' : 'industry_id'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <record id="view_res_partner_filter_client_data" model="ir.ui.view">
+        <field name="name">res.partner.client.data.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search string="Search Partner">
+                <field name="name"
+                       filter_domain="['|', '|', '|', '|', ('complete_name', 'ilike', self), ('ref', 'ilike', self), ('email', 'ilike', self), ('vat', 'ilike', self), ('company_registry', 'ilike', self)]"/>
+                <field name="parent_id" domain="[('is_company', '=', True)]" operator="child_of"/>
+                <field name="email" filter_domain="[('email', 'ilike', self)]"/>
+                <field name="phone" filter_domain="['|', ('phone', 'ilike', self), ('mobile', 'ilike', self)]"/>
+                <field name="category_id" string="Tag" operator="child_of"/>
+                <field name="user_id"/>
+                <separator/>
+                <filter string="Individuals" name="type_person" domain="[('is_company', '=', False)]"/>
+                <filter string="Companies" name="type_company" domain="[('is_company', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <group expand="0" name="group_by" string="Group By">
+                    <filter name="salesperson" string="Salesperson" domain="[]" context="{'group_by' : 'user_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'parent_id'}"/>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="inherit_res_partner_kanban_order_by_client_year" model="ir.ui.view">
+        <field name="name">res.partner.kanban.order.client.year</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.res_partner_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="default_order">client_year desc</attribute>
+            </xpath>
         </field>
     </record>
     

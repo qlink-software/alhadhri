@@ -34,7 +34,7 @@
                             <field name="approval_state" readonly="1"/>
                             <field name="department"/>
                             <field name="case_id"/>
-                            <field name="hours_spent"/>
+                            <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                             <field name="date_start"/>
                             <field name="date_finished"/>
                             <field name="reviewer_id"/>
@@ -46,7 +46,7 @@
                                     <field name="department"/>
                                     <field name="litigation_phase" invisible="department != 'litigation'"/>
                                     <field name="case_id" readonly="department != 'litigation'"/>
-                                    <field name="hours_spent"/>
+                                    <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                     <field name="date_finished"/>
                                     <field name="reviewer_id"/>

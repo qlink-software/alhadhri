@@ -89,6 +89,7 @@
    
     'assets': {
         'web.assets_backend': [
+            'qlk_management/static/src/scss/hide_systray.scss',
             # 'qlk_management/static/src/css/dashboard.css',
             # 'qlk_management/static/src/js/dashboard.js',
             # 'qlk_management/static/src/xml/dashboard_template.xml',

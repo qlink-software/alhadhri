@@ -1,0 +1,17 @@
+.o_menu_systray .o-mail-DiscussSystray-class,
+.o_menu_systray .o-mail-MessagingMenu,
+.o_menu_systray .o-mail-ActivityMenu {
+    display: none !important;
+}
+
+.o_menu_systray button:has(i[aria-label="Messages"]),
+.o_menu_systray button:has(i[aria-label="Activities"]) {
+    display: none !important;
+}
+
+.o_menu_systray i[aria-label="Messages"],
+.o_menu_systray i[aria-label="Activities"],
+.o_menu_systray i[aria-label="Messages"] ~ span,
+.o_menu_systray i[aria-label="Activities"] ~ span {
+    display: none !important;
+}

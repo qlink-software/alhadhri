@@ -22,11 +22,56 @@
             <field name="arch" type="xml">
                 <form string="Pre-Litigation">
                     <header>
+                        <button name="action_reset_to_draft"
+                                string="Reset to Draft"
+                                class="btn-secondary"
+                                type="object"
+                                invisible="state == 'draft' or state == 'done'"/>
+                        <button name="action_to_translation"
+                                string="Send to Translation"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'draft'"/>
+                        <button name="action_to_memo"
+                                string="Send to Memo"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'translation'"/>
+                        <button name="action_to_review"
+                                string="Request Internal Approval"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'memo'"/>
+                        <button name="action_to_client_approval"
+                                string="Request Client Approval"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'review'"/>
+                        <button name="action_to_office_sign"
+                                string="Confirm Signature"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'client_approval'"/>
+                        <button name="action_to_registration"
+                                string="Register Case"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'office_sign'"/>
+                        <button name="action_to_correction"
+                                string="Request Correction"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'registration'"/>
+                        <button name="action_to_fee_payment"
+                                string="Confirm Fee Payment"
+                                class="btn-primary"
+                                type="object"
+                                invisible="state != 'correction'"/>
                         <button name="action_create_litigation_case"
                                 string="Create Litigation Case"
                                 class="oe_highlight"
                                 type="object"
-                                modifiers="{'invisible': ['|', ('state', '!=', 'fee_payment'), ('case_id', '!=', False)]}"/>
+                                invisible="state != 'fee_payment'"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="draft,translation,memo,review,client_approval,office_sign,registration,correction,fee_payment,done"
                                statusbar_clickable="1"/>
@@ -49,7 +94,6 @@
                             <group>
                                 <field name="lawyer_employee_id"/>
                                 <field name="office_manager_id"/>
-                                <field name="company_id" readonly="1"/>
                             </group>
                         </group>
                         <group>

@@ -20,6 +20,7 @@ class QlkProject(models.Model):
     _description = "Legal Project"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
+    _rec_name = "code"
 
     _department_case_field_map = {
         "litigation": "case_id",
@@ -685,7 +686,10 @@ class QlkProject(models.Model):
         for project in self:
             if not project.client_id:
                 continue
-            missing = project.client_id.get_missing_document_labels()
+            missing_method = getattr(project.client_id, "get_missing_document_labels", None)
+            if not missing_method:
+                continue
+            missing = missing_method()
             if missing:
                 raise UserError(
                     _(
@@ -1062,7 +1066,6 @@ class QlkProject(models.Model):
                 "default_project_id": self.id,
                 "default_client_id": self.client_id.id,
                 "default_assigned_employee_id": self.assigned_employee_ids[:1].id if self.assigned_employee_ids else False,
-                "default_litigation_flow": flow,
             },
         }
 
@@ -1071,6 +1074,61 @@ class QlkProject(models.Model):
 
     def action_transfer_to_pre_litigation(self):
         return self._action_open_transfer_wizard(flow="pre_litigation")
+
+    def action_create_pre_litigation_case(self):
+        self.ensure_one()
+        if self.project_type != "litigation":
+            raise UserError(_("Only litigation projects can create pre-litigation cases."))
+        if self.litigation_stage != "pre":
+            raise UserError(_("Pre-litigation cases can be created only in the Pre-Litigation stage."))
+        if self.pre_litigation_id:
+            action = self.env.ref("qlk_management.action_pre_litigation", raise_if_not_found=False)
+            if action:
+                result = action.read()[0]
+                result["res_id"] = self.pre_litigation_id.id
+                result["view_mode"] = "form"
+                result["views"] = [(False, "form")]
+                return result
+            return True
+        self._ensure_client_documents_ready()
+        lawyer = self._get_primary_employee()
+        pre_vals = {
+            "project_id": self.id,
+            "client_id": self.client_id.id,
+            "company_id": self.company_id.id,
+            "subject": self.name,
+            "description": self.description,
+            "lawyer_employee_id": lawyer.id if lawyer else False,
+            "currency_id": self.company_id.currency_id.id,
+        }
+        pre_case = self.env["qlk.pre.litigation"].create(pre_vals)
+        action = self.env.ref("qlk_management.action_pre_litigation", raise_if_not_found=False)
+        if action:
+            result = action.read()[0]
+            result["res_id"] = pre_case.id
+            result["view_mode"] = "form"
+            result["views"] = [(False, "form")]
+            return result
+        return True
+
+    def action_create_litigation_case(self):
+        self.ensure_one()
+        if self.project_type != "litigation":
+            raise UserError(_("Only litigation projects can create litigation cases."))
+        if self.litigation_stage != "court":
+            raise UserError(_("Litigation cases can be created only in the Litigation stage."))
+        if self.case_id:
+            return self.action_open_related_case()
+        self._ensure_client_documents_ready()
+        case_vals = self._prepare_litigation_case_vals()
+        if not case_vals:
+            raise UserError(_("Unable to prepare a litigation case from this project."))
+        case_vals.setdefault("state", "study")
+        case = self.env["qlk.case"].create(case_vals)
+        self.case_id = case.id
+        if self.pre_litigation_id and "pre_litigation_id" in case._fields:
+            case.pre_litigation_id = self.pre_litigation_id.id
+        return self.action_open_related_case()
 
     def action_transfer_to_corporate(self):
         self.ensure_one()

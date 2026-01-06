@@ -55,7 +55,7 @@
                         <list editable="bottom">
                             <field name="name"/>
                             <field name="department"/>
-                            <field name="hours_spent"/>
+                            <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                             <field name="date_start"/>
                             <field name="employee_id"/>
                         </list>
@@ -63,7 +63,7 @@
                             <sheet>
                                 <group>
                                     <field name="name"/>
-                                    <field name="hours_spent"/>
+                                    <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                     <field name="employee_id"/>
                                 </group>
@@ -72,15 +72,8 @@
                     </field>
                 </page>
             </xpath>
-            <xpath expr="//header/field[@name='state']" position="after">
-                <field name="total_task_hours" readonly="1"/>
-            </xpath>
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" type="object"
-                    name="action_open_proposal" icon="fa-pencil-square-o">
-                    <field name="proposal_count" widget="statinfo" string="BD Proposals"/>
-                </button>
-            </xpath>
+            <xpath expr="//header/field[@name='state']" position="after"/>
+            <xpath expr="//div[@name='button_box']" position="replace"/>
         </field>
     </record>
      <record id="crm.quick_create_opportunity_form" model="ir.ui.view">

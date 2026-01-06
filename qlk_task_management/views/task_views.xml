@@ -12,7 +12,7 @@
                 <field name="litigation_phase" invisible="department != 'litigation'"/>
                 <field name="case_id" invisible="department != 'litigation'"/>
                 <field name="employee_id"/>
-                <field name="hours_spent"/>
+                <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                 <field name="date_start"/>
                 <field name="date_finished"/>
                 <field name="reviewer_id"/>
@@ -67,7 +67,7 @@
                                required="department == 'litigation'"
                                invisible="department != 'litigation'"/>
                         <field name="employee_id"/>
-                        <field name="hours_spent"/>
+                        <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                         <field name="date_start"/>
                         <field name="date_finished"/>
                         <field name="reviewer_id"/>

@@ -24,15 +24,6 @@ class ProjectTransferLitigation(models.TransientModel):
     )
     hearing_date = fields.Date(string="First Hearing Date")
     notes = fields.Text(string="Additional Notes")
-    litigation_flow = fields.Selection(
-        selection=[
-            ("pre_litigation", "Pre-Litigation"),
-            ("litigation", "Litigation"),
-        ],
-        string="Proceeding Type",
-        required=True,
-        default="litigation",
-    )
 
     def action_confirm(self):
         """Create the court case and switch the project from pre-litigation to litigation."""
@@ -76,7 +67,6 @@ class ProjectTransferLitigation(models.TransientModel):
             "company_id": project.company_id.id,
             "description": project.description,
             "client_capacity": project.client_capacity,
-            "litigation_flow": self.litigation_flow,
         }
         case = self.env["qlk.case"].create(case_vals)
 

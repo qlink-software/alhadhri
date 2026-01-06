@@ -59,6 +59,7 @@
                            statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_client_attachments"
                                 type="object"
@@ -122,7 +123,7 @@
                                     <field name="name"/>
                                     <field name="department"/>
                                     <field name="employee_id"/>
-                                    <field name="hours_spent"/>
+                                    <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                 </list>
                                 <form string="Task / Hours">
@@ -131,7 +132,7 @@
                                             <field name="name"/>
                                             <field name="employee_id"/>
                                             <field name="department"/>
-                                            <field name="hours_spent"/>
+                                            <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                             <field name="date_start"/>
                                             <field name="description"/>
                                         </group>

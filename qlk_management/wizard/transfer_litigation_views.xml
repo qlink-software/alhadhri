@@ -12,7 +12,6 @@
                             <field name="project_id" readonly="1"/>
                             <field name="client_id" readonly="1"/>
                             <field name="assigned_employee_id"/>
-                            <field name="litigation_flow"/>
                             <field name="court_id"/>
                             <field name="case_main_category_id"/>
                             <field name="case_type_id"/>

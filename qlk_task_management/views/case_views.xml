@@ -6,14 +6,7 @@
         <field name="inherit_id" ref="qlk_law.view_qlk_case_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet/*[1]" position="before">
-                <div class="oe_button_box legacy_case_stat_box" name="case_action_hook">
-                    <button type="object"
-                            name="action_open_litigation_tasks"
-                            class="oe_stat_button"
-                            icon="fa-clock-o">
-                        <field name="task_hours_total" string="Task Hours"/>
-                    </button>
-                </div>
+                <div class="oe_button_box legacy_case_stat_box" name="case_action_hook"/>
             </xpath>
 
             <xpath expr="//sheet//notebook" position="inside">
@@ -36,7 +29,7 @@
                             <field name="name"/>
                             <field name="litigation_phase"/>
                             <field name="employee_id"/>
-                            <field name="hours_spent"/>
+                            <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                             <field name="date_start"/>
                             <field name="date_finished"/>
                         </list>
@@ -47,7 +40,7 @@
                                     <field name="department" readonly="1"/>
                                     <field name="litigation_phase"/>
                                     <field name="employee_id"/>
-                                    <field name="hours_spent"/>
+                                    <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                     <field name="date_finished"/>
                                     <field name="reviewer_id"/>

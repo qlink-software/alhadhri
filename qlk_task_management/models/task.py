@@ -187,8 +187,14 @@ class QlkTask(models.Model):
     @api.constrains("hours_spent")
     def _check_hours_positive(self):
         for task in self:
-            if task.hours_spent <= 0:
+            total_seconds = int(round((task.hours_spent or 0.0) * 3600))
+            if total_seconds <= 0:
                 raise ValidationError(_("Hours Spent must be strictly positive."))
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            if hours > 12 or minutes > 59 or seconds > 59:
+                raise ValidationError(_("Hours Spent must not exceed 12:59:59."))
 
     @api.depends("case_id")
     def _compute_litigation_flow(self):

@@ -37,25 +37,3 @@ class QlkProjectStage(models.Model):
     auto_task_name = fields.Char(string="Auto Task Name")
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company)
 
-
-class QlkCaseStageLog(models.Model):
-    _name = "qlk.case.stage.log"
-    _description = "Case Stage Log"
-    _order = "id desc"
-
-    case_id = fields.Many2one("qlk.case", required=True, ondelete="cascade")
-    stage_id = fields.Many2one("qlk.project.stage", required=True, ondelete="restrict")
-    date_start = fields.Datetime(default=fields.Datetime.now, required=True)
-    date_end = fields.Datetime()
-    duration_days = fields.Float(compute="_compute_duration", store=True)
-    completed_by = fields.Many2one("res.users")
-
-    @api.depends("date_start", "date_end")
-    def _compute_duration(self):
-        for record in self:
-            end = record.date_end or fields.Datetime.now()
-            if record.date_start:
-                delta = end - record.date_start
-                record.duration_days = delta.total_seconds() / 86400.0
-            else:
-                record.duration_days = 0.0

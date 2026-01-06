@@ -556,6 +556,8 @@ class BDEngagementLetter(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if not vals.get("partner_id") and vals.get("client_id"):
+                vals["partner_id"] = vals["client_id"]
             if vals.get("lawyer_id"):
                 lawyer_cost = self._get_lawyer_cost(vals["lawyer_id"])
                 vals["hourly_cost"] = lawyer_cost

@@ -15,7 +15,8 @@
         <field name="name">Client Data</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="search_view_id" ref="qlk_management.view_res_partner_filter_client_data"/>
+        <field name="domain">[('customer', '=', True)]</field>
         <field name="context">{'search_default_customer': 1, 'default_customer_rank': 1, 'group_by': 'industry_id'}</field>
     </record>
 
@@ -39,7 +40,7 @@
 
     <menuitem id="res_partner_management_contacts"
         name="Client Data"
-        action="contacts.action_contacts"
+        action="action_bd_client_data"
         parent="menu_management_root"
         sequence="2"/>
 

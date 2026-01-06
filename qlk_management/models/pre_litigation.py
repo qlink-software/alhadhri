@@ -74,6 +74,42 @@ class PreLitigation(models.Model):
         for record in self:
             record.translated_count = len(record.translated_document_ids)
 
+    def _set_pre_litigation_state(self, target_state, allowed_from):
+        self.ensure_one()
+        if self.state != allowed_from:
+            raise UserError(_("Invalid transition for the current pre-litigation stage."))
+        self.state = target_state
+
+    def action_to_translation(self):
+        self._set_pre_litigation_state("translation", "draft")
+
+    def action_to_memo(self):
+        self._set_pre_litigation_state("memo", "translation")
+
+    def action_to_review(self):
+        self._set_pre_litigation_state("review", "memo")
+
+    def action_to_client_approval(self):
+        self._set_pre_litigation_state("client_approval", "review")
+
+    def action_to_office_sign(self):
+        self._set_pre_litigation_state("office_sign", "client_approval")
+
+    def action_to_registration(self):
+        self._set_pre_litigation_state("registration", "office_sign")
+
+    def action_to_correction(self):
+        self._set_pre_litigation_state("correction", "registration")
+
+    def action_to_fee_payment(self):
+        self._set_pre_litigation_state("fee_payment", "correction")
+
+    def action_reset_to_draft(self):
+        self.ensure_one()
+        if self.state == "done":
+            raise UserError(_("You cannot reset a completed pre-litigation case."))
+        self.state = "draft"
+
     @api.model
     def create(self, vals):
         if not vals.get("name") or vals.get("name") == "New":
@@ -184,12 +220,17 @@ class PreLitigation(models.Model):
             "description": self.description,
             "company_id": self.company_id.id,
             "litigation_flow": "litigation",
+            "state": "study",
         }
         if self.project_id:
             vals.update(
                 {
                     "name2": self.project_id.code or self.project_id.name,
                     "client_capacity": self.project_id.client_capacity,
+                    "currency_id": self.project_id.company_id.currency_id.id,
+                    "case_number": self.project_id.litigation_case_number,
+                    "case_group": self.project_id.litigation_court_id.id if self.project_id.litigation_court_id else False,
+                    "second_category": self.project_id.litigation_case_type_id.id if self.project_id.litigation_case_type_id else False,
                 }
             )
         if self.lawyer_employee_id:
