@@ -4,8 +4,6 @@
 # هذا الملف يوفر بيانات الداشبورد بما في ذلك الإحصائيات، التنبيهات،
 # حالة العروض، اتفاقيات الارتباط، الوثائق، والفرص في الـ CRM.
 # ------------------------------------------------------------------------------
-from datetime import timedelta
-
 from odoo import _, api, fields, models
 from odoo.tools.misc import format_date
 
@@ -32,20 +30,14 @@ class ManagementDashboard(models.AbstractModel):
         return format_date(self.env, date_value, lang_code=lang)
 
     # ------------------------------------------------------------------------------
-    # تحديد حالة انتهاء التوكيل بناءً على الفرق بين التاريخ الحالي وتاريخ الانتهاء.
+    # تحديد حالة الترجمة بناءً على حالة الترجمة في المستند.
     # ------------------------------------------------------------------------------
-    def _poa_status(self, due_date):
-        if not due_date:
-            return {"label": _("No expiry"), "css": "chip-muted"}
-        today = fields.Date.context_today(self)
-        if isinstance(due_date, str):
-            due_date = fields.Date.from_string(due_date)
-        delta = (due_date - today).days
-        if delta < 0:
-            return {"label": _("Expired"), "css": "chip-danger"}
-        if delta <= 30:
-            return {"label": _("In %s days") % delta, "css": "chip-warning"}
-        return {"label": _("In %s days") % delta, "css": "chip-success"}
+    def _translation_status(self, needs_translation, is_translated):
+        if not needs_translation:
+            return {"label": _("No translation"), "css": "chip-muted"}
+        if is_translated:
+            return {"label": _("Translated"), "css": "chip-success"}
+        return {"label": _("Pending"), "css": "chip-danger"}
 
     @api.model
     def get_dashboard_data(self):
@@ -99,34 +91,34 @@ class ManagementDashboard(models.AbstractModel):
         clients_action = self._action_payload("qlk_management.action_bd_client_data")
 
         documents_total = 0
-        poa_expiring = []
-        clients_with_poa = 0
+        translation_pending = []
+        clients_with_docs = 0
         poa_documents_action = None
         if document_model:
             poa_documents_action = self._action_payload("qlk_management.action_client_documents")
             documents_total = document_model.search_count([])
-            expiring_limit = fields.Date.context_today(self) + timedelta(days=30)
-            doc_labels = dict(document_model._fields["doc_type"].selection)
-            expiring_docs = document_model.search(
-                [("poa_expiration_date", "!=", False), ("poa_expiration_date", "<=", expiring_limit)],
-                order="poa_expiration_date asc",
+            doc_labels = dict(document_model._fields["document_type"].selection)
+            pending_docs = document_model.search(
+                [("needs_translation", "=", True), ("is_translated", "=", False)],
+                order="create_date desc",
                 limit=10,
             )
-            for doc in expiring_docs:
-                status = self._poa_status(doc.poa_expiration_date)
-                poa_expiring.append(
+            for doc in pending_docs:
+                status = self._translation_status(doc.needs_translation, doc.is_translated)
+                created_on = fields.Datetime.to_date(doc.create_date) if doc.create_date else False
+                translation_pending.append(
                     {
                         "id": doc.id,
                         "partner": doc.partner_id.display_name if doc.partner_id else "",
-                        "doc_type": doc_labels.get(doc.doc_type, doc.doc_type),
-                        "expires_on": self._format_date(doc.poa_expiration_date, lang),
+                        "doc_type": doc_labels.get(doc.document_type, doc.document_type),
+                        "expires_on": self._format_date(created_on, lang),
                         "status": status["label"],
                         "status_class": status["css"],
                         "url": {"res_model": "qlk.client.document", "res_id": doc.id},
                     }
                 )
             partners_with_docs = document_model.read_group([], ["partner_id"], ["partner_id"])
-            clients_with_poa = len(partners_with_docs)
+            clients_with_docs = len(partners_with_docs)
 
         pipeline_total = pipeline_open = pipeline_won = 0
         pipeline_action = self._action_payload("crm.crm_lead_action_pipeline")
@@ -175,13 +167,13 @@ class ManagementDashboard(models.AbstractModel):
             },
             "clients": {
                 "total": clients_total,
-                "with_documents": clients_with_poa,
+                "with_documents": clients_with_docs,
                 "documents_total": documents_total,
                 "action": clients_action,
                 "documents_action": poa_documents_action,
             },
             "alerts": {
-                "expiring": poa_expiring,
+                "expiring": translation_pending,
             },
             "pipeline": {
                 "total": pipeline_total,

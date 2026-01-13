@@ -22,6 +22,10 @@
             <field name="arch" type="xml">
                 <form string="Pre-Litigation">
                     <header>
+                        <button name="action_open_approval_wizard"
+                                string="Approvals"
+                                class="btn-secondary"
+                                type="object"/>
                         <button name="action_reset_to_draft"
                                 string="Reset to Draft"
                                 class="btn-secondary"
@@ -31,47 +35,47 @@
                                 string="Send to Translation"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'draft'"/>
+                                invisible="state != 'draft' or approvals_blocked"/>
                         <button name="action_to_memo"
                                 string="Send to Memo"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'translation'"/>
+                                invisible="state != 'translation' or approvals_blocked"/>
                         <button name="action_to_review"
                                 string="Request Internal Approval"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'memo'"/>
+                                invisible="state != 'memo' or approvals_blocked"/>
                         <button name="action_to_client_approval"
                                 string="Request Client Approval"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'review'"/>
+                                invisible="state != 'review' or approvals_blocked"/>
                         <button name="action_to_office_sign"
                                 string="Confirm Signature"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'client_approval'"/>
+                                invisible="state != 'client_approval' or approvals_blocked"/>
                         <button name="action_to_registration"
                                 string="Register Case"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'office_sign'"/>
+                                invisible="state != 'office_sign' or approvals_blocked"/>
                         <button name="action_to_correction"
                                 string="Request Correction"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'registration'"/>
+                                invisible="state != 'registration' or approvals_blocked"/>
                         <button name="action_to_fee_payment"
                                 string="Confirm Fee Payment"
                                 class="btn-primary"
                                 type="object"
-                                invisible="state != 'correction'"/>
+                                invisible="state != 'correction' or approvals_blocked"/>
                         <button name="action_create_litigation_case"
                                 string="Create Litigation Case"
                                 class="oe_highlight"
                                 type="object"
-                                invisible="state != 'fee_payment'"/>
+                                invisible="state != 'fee_payment' or approvals_blocked"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="draft,translation,memo,review,client_approval,office_sign,registration,correction,fee_payment,done"
                                statusbar_clickable="1"/>
@@ -83,6 +87,11 @@
                                 <field name="name"/>
                             </h1>
                         </div>
+                        <field name="approvals_submitted" invisible="1"/>
+                        <field name="approvals_required" invisible="1"/>
+                        <field name="approvals_completed" invisible="1"/>
+                        <field name="approvals_rejected" invisible="1"/>
+                        <field name="approvals_blocked" invisible="1"/>
                         <group>
                             <group>
                                 <field name="client_id"/>
@@ -103,21 +112,34 @@
                             <page string="Workflow">
                                 <group>
                                     <group>
-                                        <field name="translation_notes" placeholder="Translation Notes..."/>
-                                        <field name="memo_notes" placeholder="Drafting Notes..."/>
-                                        <field name="review_notes" placeholder="Reviewer Notes..."/>
-                                        <field name="client_approval_notes" placeholder="Client Approval Notes..."/>
+                                        <field name="translation_notes"
+                                               placeholder="Translation Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'translation')], 'invisible': ['&amp;', ('state', '!=', 'translation'), ('translation_notes', '=', False)]}"/>
+                                        <field name="memo_notes"
+                                               placeholder="Drafting Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'memo')], 'invisible': ['&amp;', ('state', '!=', 'memo'), ('memo_notes', '=', False)]}"/>
+                                        <field name="review_notes"
+                                               placeholder="Reviewer Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'review')], 'invisible': ['&amp;', ('state', '!=', 'review'), ('review_notes', '=', False)]}"/>
+                                        <field name="client_approval_notes"
+                                               placeholder="Client Approval Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'client_approval')], 'invisible': ['&amp;', ('state', '!=', 'client_approval'), ('client_approval_notes', '=', False)]}"/>
                                     </group>
                                     <group>
-                                        <field name="office_sign_notes" placeholder="Office Signature Notes..."/>
-                                        <field name="registration_details" placeholder="Registration Notes..."/>
-                                        <field name="correction_notes" placeholder="Correction Notes..."/>
-                                        <field name="fee_payment_note" placeholder="Fee Payment Notes..."/>
+                                        <field name="office_sign_notes"
+                                               placeholder="Office Signature Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'office_sign')], 'invisible': ['&amp;', ('state', '!=', 'office_sign'), ('office_sign_notes', '=', False)]}"/>
+                                        <field name="registration_details"
+                                               placeholder="Registration Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'registration')], 'invisible': ['&amp;', ('state', '!=', 'registration'), ('registration_details', '=', False)]}"/>
+                                        <field name="correction_notes"
+                                               placeholder="Correction Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'correction')], 'invisible': ['&amp;', ('state', '!=', 'correction'), ('correction_notes', '=', False)]}"/>
+                                        <field name="fee_payment_note"
+                                               placeholder="Fee Payment Notes..."
+                                               modifiers="{'readonly': [('state', '!=', 'fee_payment')], 'invisible': ['&amp;', ('state', '!=', 'fee_payment'), ('fee_payment_note', '=', False)]}"/>
                                     </group>
                                 </group>
-                            </page>
-                            <page string="Client Documents">
-                                <field name="client_document_ids" widget="many2many_binary" nolabel="1"/>
                             </page>
                             <page string="Lawyer Notes">
                                 <field name="lawyer_note"/>
@@ -129,8 +151,12 @@
                                         <field name="responsible_id"/>
                                         <field name="deadline"/>
                                         <field name="state"/>
-                                        <field name="request_attachment_ids" widget="many2many_binary"/>
-                                        <field name="translated_attachment_ids" widget="many2many_binary"/>
+                                        <field name="request_attachment_ids"
+                                               widget="many2many_kanban"
+                                               context="{'default_res_model': 'qlk.pre.litigation.translation', 'default_res_id': id}"/>
+                                        <field name="translated_attachment_ids"
+                                               widget="many2many_kanban"
+                                               context="{'default_res_model': 'qlk.pre.litigation.translation', 'default_res_id': id}"/>
                                         <field name="note"/>
                                     </list>
                                     <form string="Translation Subtask">
@@ -142,8 +168,12 @@
                                                 <field name="state"/>
                                             </group>
                                             <group>
-                                                <field name="request_attachment_ids" widget="many2many_binary"/>
-                                                <field name="translated_attachment_ids" widget="many2many_binary"/>
+                                                <field name="request_attachment_ids"
+                                                       widget="many2many_kanban"
+                                                       context="{'default_res_model': 'qlk.pre.litigation.translation', 'default_res_id': id}"/>
+                                                <field name="translated_attachment_ids"
+                                                       widget="many2many_kanban"
+                                                       context="{'default_res_model': 'qlk.pre.litigation.translation', 'default_res_id': id}"/>
                                             </group>
                                             <group>
                                                 <field name="note"/>
@@ -152,21 +182,50 @@
                                     </form>
                                 </field>
                             </page>
-                            <page string="Translated Documents">
-                                <group>
-                                    <field name="translated_document_ids" widget="many2many_binary" nolabel="1" readonly="1"/>
-                                    <label for="translated_count" string="Total Documents:" class="oe_inline"/>
-                                    <div class="oe_inline">
-                                        <field name="translated_count" readonly="1"/>
-                                    </div>
-                                </group>
-                            </page>
                             <page string="Approvals">
-                                <field name="approval_note"/>
+                                <group>
+                                    <group>
+                                        <field name="approvals_submitted" readonly="1"/>
+                                        <field name="approvals_completed" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="approvals_rejected" readonly="1"/>
+                                    </group>
+                                </group>
+                                <field name="approval_line_ids" nolabel="1">
+                                    <list create="0" edit="0">
+                                        <field name="sequence"/>
+                                        <field name="user_id"/>
+                                        <field name="state" widget="badge"/>
+                                        <field name="approval_date"/>
+                                        <field name="note"/>
+                                        <field name="can_approve" invisible="1"/>
+                                        <button name="action_approve" string="Approve" type="object"
+                                                class="btn-primary"
+                                                modifiers="{'invisible': [('can_approve', '=', False)]}"/>
+                                        <button name="action_reject" string="Reject" type="object"
+                                                class="btn-secondary"
+                                                modifiers="{'invisible': [('can_approve', '=', False)]}"/>
+                                    </list>
+                                    <form string="Approval">
+                                        <sheet>
+                                            <group>
+                                                <field name="sequence"/>
+                                                <field name="user_id"/>
+                                                <field name="state"/>
+                                                <field name="approval_date"/>
+                                            </group>
+                                            <group>
+                                                <field name="note"/>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
                             </page>
                             <page string="Registration">
                                 <group>
-                                    <field name="registration_details"/>
+                                    <field name="registration_details"
+                                           modifiers="{'readonly': [('state', '!=', 'registration')], 'invisible': ['&amp;', ('state', '!=', 'registration'), ('registration_details', '=', False)]}"/>
                                 </group>
                             </page>
                             <page string="Fee Payment">
@@ -176,12 +235,18 @@
                                     </group>
                                     <group>
                                         <field name="fee_payment_reference"/>
-                                        <field name="fee_payment_note"/>
+                                        <field name="fee_payment_note"
+                                               modifiers="{'readonly': [('state', '!=', 'fee_payment')], 'invisible': ['&amp;', ('state', '!=', 'fee_payment'), ('fee_payment_note', '=', False)]}"/>
                                     </group>
                                 </group>
                             </page>
                         </notebook>
                     </sheet>
+                <chatter>
+                <field name="message_ids"
+                    options="{'log': False}"/>
+                </chatter>
+
                 </form>
             </field>
         </record>

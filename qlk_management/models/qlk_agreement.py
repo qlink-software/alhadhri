@@ -6,6 +6,7 @@ from odoo.exceptions import ValidationError
 class Managementgreement(models.Model):
     _name = 'managment.agreement'
     _description = 'Agreement'
+_inherit = ['mail.thread', 'mail.activity.mixin', 'qlk.notification.mixin']
     _rec_name="agrement_seq"
 
 
@@ -13,6 +14,19 @@ class Managementgreement(models.Model):
     agrement_seq = fields.Char('Agreemnet Name',  default=lambda self: _('New Agreement'))
     client_id = fields.Many2one('res.partner', string='Client', required=True)
     proposal_id = fields.Many2one('bd.proposal', string='Linked Proposal')
+    retainer_type = fields.Selection(
+        [
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("litigation_corporate", "Litigation + Corporate"),
+            ("litigation_arbitration", "Litigation + Arbitration"),
+            ("corporate_arbitration", "Corporate + Arbitration"),
+            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+        ],
+        string="Retainer Type",
+        tracking=True,
+    )
     agreement_date = fields.Date(string='Date', default=fields.Date.today)
     start_date = fields.Date(string='Start Date', required=True)
     end_date = fields.Date(string='End Date')
@@ -46,6 +60,13 @@ class Managementgreement(models.Model):
 
     cost_calculation_id = fields.Many2one('cost.calculation', string='Cost Calculation')
     lawyer_id = fields.Many2one('hr.employee', string='Lawyer')
+    lawyer_ids = fields.Many2many(
+        "hr.employee",
+        "managment_agreement_lawyer_rel",
+        "agreement_id",
+        "employee_id",
+        string="Assigned Lawyers",
+    )
     lawyer_hour_cost = fields.Float(string='Lawyer Hour Cost', compute='_compute_lawyer_costs', store=True)
     lawyer_hours = fields.Float(string='Lawyer Hours')
     lawyer_total_cost = fields.Float(string='Lawyer Total Cost', compute='_compute_total_costs', store=True)
@@ -87,8 +108,6 @@ class Managementgreement(models.Model):
     second_party_phone_en = fields.Char('Tel(S-P)', tracking=True)
     second_party_email_en = fields.Char('Email(S-P)', tracking=True)
 
-    scope_of_work = fields.Char('Scope of Work', tracking=True)
-    scope_of_work_ar = fields.Char('نطاق الاعمال الموكله من قبلكم', tracking=True)
     fees = fields.Char('Fees', tracking=True)
     fees_details = fields.Char('Fees Details', tracking=True)
     terms_conditions = fields.Char('Terms and Conditions', tracking=True)
@@ -149,12 +168,55 @@ class Managementgreement(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
         # create agreement sequence
+            proposal_id = vals.get("proposal_id")
+            if proposal_id:
+                proposal = self.env["bd.proposal"].browse(proposal_id)
+                if proposal.exists():
+                    vals.setdefault("client_id", proposal.client_id.id or proposal.partner_id.id)
+                    vals.setdefault("retainer_type", proposal.retainer_type)
+                    if proposal.lawyer_employee_id:
+                        vals.setdefault("lawyer_id", proposal.lawyer_employee_id.id)
+                    if proposal.lawyer_ids:
+                        vals.setdefault("lawyer_ids", [(6, 0, proposal.lawyer_ids.ids)])
+                    if proposal.legal_fees and not vals.get("fees"):
+                        vals["fees"] = str(proposal.legal_fees)
             if vals.get('agrement_seq', _("New Agreement")) == _("New Agreement"):
                 
                 vals['agrement_seq'] = self.env['ir.sequence'].with_company(
                     vals.get('company_id')
                 ).next_by_code('agreement.sequence') or _("New")
             return super().create(vals_list)
+
+    def write(self, vals):
+        proposal_id = vals.get("proposal_id")
+        if proposal_id:
+            proposal = self.env["bd.proposal"].browse(proposal_id)
+            if proposal.exists():
+                vals.setdefault("retainer_type", proposal.retainer_type)
+                if proposal.lawyer_employee_id:
+                    vals.setdefault("lawyer_id", proposal.lawyer_employee_id.id)
+                if proposal.lawyer_ids:
+                    vals.setdefault("lawyer_ids", [(6, 0, proposal.lawyer_ids.ids)])
+                if proposal.legal_fees and not vals.get("fees"):
+                    vals["fees"] = str(proposal.legal_fees)
+        return super().write(vals)
+
+    @api.onchange("proposal_id")
+    def _onchange_proposal_id(self):
+        for agreement in self:
+            proposal = agreement.proposal_id
+            if not proposal:
+                continue
+            if not agreement.client_id:
+                agreement.client_id = proposal.client_id or proposal.partner_id
+            if not agreement.retainer_type:
+                agreement.retainer_type = proposal.retainer_type
+            if proposal.lawyer_employee_id and not agreement.lawyer_id:
+                agreement.lawyer_id = proposal.lawyer_employee_id
+            if proposal.lawyer_ids and not agreement.lawyer_ids:
+                agreement.lawyer_ids = [(6, 0, proposal.lawyer_ids.ids)]
+            if not agreement.fees and proposal.legal_fees:
+                agreement.fees = str(proposal.legal_fees)
 
 
     # agreement  buttons

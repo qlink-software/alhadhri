@@ -316,34 +316,96 @@ class ContactAttachments(models.Model):
 class QlkClientDocument(models.Model):
     _name = "qlk.client.document"
     _description = "Client Document"
-    _order = "partner_id, doc_type"
+    _order = "create_date desc, id desc"
 
-    DOC_SELECTION = [
-        ("company_commercial_register", "Commercial Registration"),
-        ("company_trade_license", "Trade License"),
-        ("company_poa", "Company Power of Attorney"),
-        ("company_owner_id", "Owner ID Copy"),
-        ("individual_id", "Personal ID"),
-        ("individual_poa", "Personal Power of Attorney"),
+    DOCUMENT_SELECTION = [
+        ("contract", "Contract"),
+        ("proposal", "Proposal"),
+        ("id", "ID"),
+        ("court_document", "Court Document"),
+        ("power_of_attorney", "Power of Attorney"),
+        ("translation", "Translation"),
+        ("other", "Other"),
     ]
 
+    name = fields.Char(string="Title", required=True)
     partner_id = fields.Many2one(
         "res.partner", string="Client", required=True, ondelete="cascade", index=True
     )
-    doc_type = fields.Selection(selection=DOC_SELECTION, string="Document Type", required=True, index=True)
-    # attachment_id = fields.Many2one("ir.attachment", string="Attachment", ondelete="set null", index=True)
-    is_uploaded = fields.Boolean(string="Uploaded")
-    poa_expiration_date = fields.Date(string="POA Expiration Date")
-    poa_reference = fields.Char(string="Reference / Number")
-    note = fields.Text(string="Notes")
+    attachment_id = fields.Many2one(
+        "ir.attachment",
+        string="Attachment",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    document_type = fields.Selection(
+        selection=DOCUMENT_SELECTION, string="Document Type", required=True, index=True
+    )
+    needs_translation = fields.Boolean(string="Needs Translation")
+    is_translated = fields.Boolean(string="Translated")
+    related_model = fields.Char(string="Related Model", readonly=True, copy=False)
+    related_res_id = fields.Integer(string="Related Record ID", readonly=True, copy=False)
+    notes = fields.Text(string="Notes")
+    active = fields.Boolean(default=True)
+    preview_url = fields.Char(string="Preview URL", compute="_compute_preview")
+    preview_html = fields.Html(string="Preview", compute="_compute_preview", sanitize=False)
 
-    _sql_constraints = [
-        ("partner_doc_unique", "unique(partner_id, doc_type)", "Each document type can only be added once per client.")
-    ]
+    @api.depends("attachment_id", "attachment_id.mimetype")
+    def _compute_preview(self):
+        for doc in self:
+            doc.preview_url = False
+            doc.preview_html = False
+            attachment = doc.attachment_id
+            if not attachment:
+                continue
+            url = f"/web/content/{attachment.id}?download=0"
+            doc.preview_url = url
+            mimetype = attachment.mimetype or ""
+            if mimetype.startswith("image/"):
+                doc.preview_html = (
+                    f'<img src="{url}" style="max-width: 100%; height: auto;" />'
+                )
+            else:
+                doc.preview_html = (
+                    f'<iframe src="{url}" style="width: 100%; min-height: 480px; border: 0;"></iframe>'
+                )
 
-    # ------------------------------------------------------------------------------
-    # دالة تحدد إذا ما كان هناك مرفق فعلي لكل مستند لتسهيل التنبيهات.
-    # ------------------------------------------------------------------------------
+    @api.model_create_multi
+    def create(self, vals_list):
+        Attachment = self.env["ir.attachment"].sudo()
+        for vals in vals_list:
+            if not vals.get("name") and vals.get("attachment_id"):
+                attachment = Attachment.browse(vals["attachment_id"])
+                vals["name"] = attachment.name or _("Client Document")
+        records = super().create(vals_list)
+        records._sync_attachment()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "attachment_id" in vals or "partner_id" in vals:
+            self._sync_attachment()
+        return res
+
+    def _sync_attachment(self):
+        for doc in self:
+            if not doc.attachment_id:
+                continue
+            vals = {"public": False}
+            if doc.partner_id:
+                vals.update({"res_model": "res.partner", "res_id": doc.partner_id.id})
+            doc.attachment_id.sudo().write(vals)
+
+    def action_preview(self):
+        self.ensure_one()
+        if not self.attachment_id:
+            return False
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{self.attachment_id.id}?download=0",
+            "target": "new",
+        }
 
 
 class RequestContact(models.Model):

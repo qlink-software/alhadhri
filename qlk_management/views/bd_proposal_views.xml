@@ -10,9 +10,9 @@
                 <field name="name"/>
                 <field name="proposal_type"/>
                 <field name="client_code"/>
-                <field name="lead_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
+                            <field name="notify_datetime"/>
                 <field name="legal_fees"/>
                 <field name="state"/>
             </list>
@@ -67,6 +67,7 @@
                                 class="oe_stat_button"
                                 icon="fa-paperclip"
                                 string="Client Documents"
+                                groups="qlk_management.group_legal_user"
                                 modifiers="{'invisible': [('partner_id', '=', False)]}">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Client Documents</span>
@@ -76,16 +77,17 @@
                     <group string="Client &amp; General Info">
                         <group>
                             <field name="proposal_type" invisible="1"/>
+                            <field name="retainer_type"/>
                             <field name="code" string="Proposal Number" readonly="1"
                                    modifiers="{'invisible': [('proposal_type', '=', 'el')]}"/>
                             <field name="date"/>
+                            <field name="notify_datetime"/>
                             <field name="approval_role"/>
                             <field name="client_id"/>
                         </group>
                         <group>
                             <field name="billing_type"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
-                            <field name="lead_id" options="{'no_create': True}"/>
                             <field name="engagement_letter_id" readonly="1" options="{'no_create': True}"/>
                             <field name="reviewer_id"/>
                         </group>
@@ -93,9 +95,10 @@
                     <group modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                         <group>
                             <field name="lawyer_employee_id"/>
-                            <field name="hourly_cost" readonly="1"/>
+                            <field name="lawyer_ids" widget="many2many_tags"/>
+                            <field name="hourly_cost" readonly="1" groups="account.group_account_user"/>
                             <field name="planned_hours"/>
-                            <field name="total_estimated_cost" readonly="1"/>
+                            <field name="total_estimated_cost" readonly="1" groups="account.group_account_user"/>
                         </group>
                     </group>
                     <notebook>
@@ -111,9 +114,6 @@
                                     </list>
                                 </field>
                             </group>
-                        </page>
-                        <page string="Scope of Work">
-                            <field name="scope_of_work" nolabel="1"/>
                         </page>
                         <page string="Terms &amp; Conditions">
                             <field name="terms_conditions" nolabel="1"/>
@@ -148,6 +148,46 @@
                                 </form>
                             </field>
                         </page>
+                        <page string="Client Documents" groups="qlk_management.group_legal_user">
+                            <field name="client_document_ids" nolabel="1">
+                                <list editable="bottom"
+                                      decoration-danger="needs_translation and not is_translated"
+                                      decoration-success="is_translated">
+                                    <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                                    <field name="name"/>
+                                    <field name="document_type"/>
+                                    <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                                    <field name="needs_translation"/>
+                                    <field name="is_translated"/>
+                                    <field name="related_model"/>
+                                    <field name="create_date"/>
+                                </list>
+                            </field>
+                        </page>
+                                            <page string="Notifications">
+                            <field name="notification_ids" context="{'default_model_name': 'bd.proposal', 'default_res_id': id, 'default_notification_type': 'general'}">
+                                <list string="Notifications">
+                                    <field name="name"/>
+                                    <field name="notification_type"/>
+                                    <field name="notify_datetime"/>
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="state"/>
+                                </list>
+                                <form string="Notification">
+                                    <sheet>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="notification_type"/>
+                                            <field name="notify_datetime"/>
+                                            <field name="user_ids" widget="many2many_tags"/>
+                                            <field name="state"/>
+                                            <field name="active"/>
+                                            <field name="description"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -161,7 +201,6 @@
             <search>
                 <field name="code"/>
                 <field name="name"/>
-                <field name="lead_id"/>
                 <field name="partner_id"/>
                 <field name="client_code"/>
                 <filter name="el_type" string="Engagement Letters" domain="[('proposal_type', '=', 'el')]"/>

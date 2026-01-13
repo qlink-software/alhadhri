@@ -31,13 +31,17 @@
         <field name="name">qlk.client.document.tree</field>
         <field name="model">qlk.client.document</field>
         <field name="arch" type="xml">
-            <list editable="bottom">
-                <field name="doc_type"/>
-                <!-- <field name="attachment_id"/> -->
-                <field name="poa_reference"/>
-                <field name="poa_expiration_date"/>
-                <field name="is_uploaded"/>
-                <field name="note"/>
+            <list decoration-danger="needs_translation and not is_translated"
+                  decoration-success="is_translated">
+                <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="document_type"/>
+                <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                <field name="needs_translation"/>
+                <field name="is_translated"/>
+                <field name="related_model"/>
+                <field name="create_date"/>
             </list>
         </field>
     </record>
@@ -48,12 +52,38 @@
             <form string="Client Document">
                 <sheet>
                     <group>
-                        <field name="partner_id"/>
-                        <field name="doc_type"/>
-                        <!-- <field name="attachment_id"/> -->
-                        <field name="poa_reference"/>
-                        <field name="poa_expiration_date"/>
-                        <field name="note"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="document_type"/>
+                            <field name="attachment_id"
+                                   context="{'default_res_model': 'res.partner', 'default_res_id': partner_id, 'default_public': False}"
+                                   domain="[('res_model', '=', 'res.partner'), ('res_id', '=', partner_id)]"/>
+                        </group>
+                        <group>
+                            <field name="needs_translation"/>
+                            <field name="is_translated"/>
+                            <field name="related_model" readonly="1"/>
+                            <field name="related_res_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <div class="oe_inline">
+                            <span class="badge text-bg-danger"
+                                  modifiers="{'invisible': ['|', ('needs_translation', '=', False), ('is_translated', '=', True)]}">
+                                Needs Translation
+                            </span>
+                            <span class="badge text-bg-success"
+                                  modifiers="{'invisible': [('is_translated', '=', False)]}">
+                                Translated
+                            </span>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                    <group string="Preview">
+                        <field name="preview_html" nolabel="1" readonly="1"/>
                     </group>
                 </sheet>
             </form>
@@ -201,23 +231,41 @@
             </xpath> -->
             <xpath expr="//sheet/notebook" position="after">
                 <notebook>
-                <page string="Client Documents">
-                    <field name="client_document_ids" nolabel="1" context="{'default_partner_id': id}">
-                        <list editable="bottom">
-                            <field name="doc_type"/>
-                            <field name="poa_reference"/>
-                            <field name="poa_expiration_date"/>
-                            <field name="is_uploaded"/>
-                            <field name="note"/>
+                <page string="Client Documents" groups="qlk_management.group_legal_user">
+                    <field name="client_document_ids" nolabel="1"
+                           context="{'default_partner_id': id, 'default_related_model': 'res.partner', 'default_related_res_id': id}">
+                        <list editable="bottom"
+                              decoration-danger="needs_translation and not is_translated"
+                              decoration-success="is_translated">
+                            <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                            <field name="name"/>
+                            <field name="document_type"/>
+                            <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                            <field name="needs_translation"/>
+                            <field name="is_translated"/>
+                            <field name="related_model"/>
+                            <field name="create_date"/>
                         </list>
                         <form string="Client Document">
                             <sheet>
                                 <group>
-                                    <field name="doc_type"/>
-                                    <field name="poa_reference"/>
-                                    <field name="poa_expiration_date"/>
-                                    <field name="is_uploaded"/>
-                                    <field name="note"/>
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="document_type"/>
+                                        <field name="attachment_id"
+                                               context="{'default_res_model': 'res.partner', 'default_res_id': partner_id, 'default_public': False}"
+                                               domain="[('res_model', '=', 'res.partner'), ('res_id', '=', partner_id)]"/>
+                                    </group>
+                                    <group>
+                                        <field name="needs_translation"/>
+                                        <field name="is_translated"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <field name="notes"/>
+                                </group>
+                                <group string="Preview">
+                                    <field name="preview_html" nolabel="1" readonly="1"/>
                                 </group>
                             </sheet>
                         </form>
@@ -298,7 +346,6 @@
             <xpath expr="//field[@name='parent_id']" position="replace">
                 <field name="parent_id" modifiers="{'invisible': True}"/>
             </xpath>
-            <xpath expr="//div[@name='button_box']" position="replace"/>
             <xpath expr="//chatter" position="replace"/>
             <!-- <xpath expr="//div[contains(@class,'o_AttachmentBox')]" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -371,7 +418,7 @@
             <search>
                 <group expand="0" name="group_by" string="Group By">
                     <filter name="date" string="Date" domain="[]" context="{'group_by' : 'indust_date'}"/>
-                    <filter name="industuries" string="Industuries" domain="[]" context="{'group_by' : 'industry_id'}"/>
+                    <filter name="client_year" string="Client Year" domain="[]" context="{'group_by' : 'client_year'}"/>
                 </group>
             </search>
         </field>
@@ -381,10 +428,9 @@
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
             <search>
-                <filter name="industuries" string="Industuries" domain="[]" context="{'group_by' : 'industry_id'}"/>
                 <group expand="0" name="group_by" string="Group By">
                     <filter name="date" string="Date" domain="[]" context="{'group_by' : 'indust_date'}"/>
-                    <filter name="industuries" string="Industuries" domain="[]" context="{'group_by' : 'industry_id'}"/>
+                    <filter name="client_year" string="Client Year" domain="[]" context="{'group_by' : 'client_year'}"/>
                 </group>
             </search>
         </field>
@@ -412,6 +458,7 @@
                     <filter name="salesperson" string="Salesperson" domain="[]" context="{'group_by' : 'user_id'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'parent_id'}"/>
                     <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                    <filter name="client_year" string="Client Year" context="{'group_by': 'client_year'}"/>
                 </group>
             </search>
         </field>

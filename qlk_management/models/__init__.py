@@ -11,6 +11,7 @@ from . import crm_lead
 from . import cost_calculation
 from . import hr_employee
 from . import project_project
+from . import ir_attachment
 from . import ir_model
 from . import bd_proposal
 from . import bd_engagement_letter

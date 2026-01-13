@@ -59,11 +59,10 @@ class QlkCase(models.Model):
         tracking=True,
     )
     client_capacity = fields.Char(string="Client Capacity/Title")
-    # client_document_ids = fields.One2many(
-    #     related="client_id.client_document_ids",
-    #     string="Client Documents",
-    #     readonly=True,
-    # )
+    client_document_ids = fields.One2many(
+        related="client_id.client_document_ids",
+        string="Client Documents",
+    )
     pre_litigation_id = fields.Many2one(
         "qlk.pre.litigation",
         string="Pre-Litigation Workflow",

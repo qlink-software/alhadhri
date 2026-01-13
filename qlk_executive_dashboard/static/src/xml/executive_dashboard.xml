@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_executive_dashboard.ExecutiveDashboard" owl="1">
+        <div class="qlk-executive-dashboard" t-att-style="paletteStyle">
+            <t t-if="state.loading">
+                <div class="qlk-dashboard__loading">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <span>Building executive insights...</span>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="dashboard-hero">
+                    <div class="hero-text">
+                        <h1>Executive Command Center</h1>
+                        <p>Real-time management snapshot across litigation, finance, HR, and approvals.</p>
+                    </div>
+                </section>
+
+                <section class="dashboard-section" id="section-litigation">
+                    <header class="section-header">
+                        <div>
+                            <h2>Litigation &amp; Legal Operations</h2>
+                            <p>Active case load, court distribution, and session health.</p>
+                        </div>
+                    </header>
+                    <div class="kpi-grid">
+                        <t t-foreach="litigation.kpis || []" t-as="card" t-key="card.label">
+                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
+                                <span class="kpi-label"><t t-esc="card.label"/></span>
+                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
+                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="split-row">
+                        <article class="chart-card" t-if="litigation.charts and litigation.charts.cases_by_court">
+                            <header>
+                                <h3>Cases by Court Type</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="litigationCourtCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="list-card" t-if="litigation.cases_by_court and litigation.cases_by_court.length">
+                            <header>
+                                <h3>Cases by Court (Cards)</h3>
+                            </header>
+                            <div class="qlk-card-grid">
+                                <t t-foreach="litigation.cases_by_court" t-as="item" t-key="item.label">
+                                    <div class="qlk-mini-card">
+                                        <span class="label"><t t-esc="item.label"/></span>
+                                        <strong class="value"><t t-esc="item.value"/></strong>
+                                    </div>
+                                </t>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="litigation.charts and litigation.charts.cases_by_status">
+                            <header>
+                                <h3>Cases by Status</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="litigationStatusCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="list-card" t-if="litigation.case_status and litigation.case_status.length">
+                            <header>
+                                <h3>Total Cases by Status</h3>
+                            </header>
+                            <div class="qlk-card-grid">
+                                <t t-foreach="litigation.case_status" t-as="item" t-key="item.label">
+                                    <div class="qlk-mini-card">
+                                        <span class="label"><t t-esc="item.label"/></span>
+                                        <strong class="value"><t t-esc="item.value"/></strong>
+                                    </div>
+                                </t>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="litigation.charts and litigation.charts.sessions_timeline">
+                            <header>
+                                <h3>Upcoming Sessions (30 Days)</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="litigationSessionsCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="list-card" t-if="litigation.pre_litigation_vs_litigation and litigation.pre_litigation_vs_litigation.length">
+                            <header>
+                                <h3>Pre-Litigation vs Litigation</h3>
+                            </header>
+                            <div class="qlk-card-grid">
+                                <t t-foreach="litigation.pre_litigation_vs_litigation" t-as="item" t-key="item.label">
+                                    <div class="qlk-mini-card">
+                                        <span class="label"><t t-esc="item.label"/></span>
+                                        <strong class="value"><t t-esc="item.value"/></strong>
+                                    </div>
+                                </t>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dashboard-section" id="section-finance">
+                    <header class="section-header">
+                        <div>
+                            <h2>Accounting &amp; Finance</h2>
+                            <p>Receivables, payables, revenue flow, and legal fee recovery.</p>
+                        </div>
+                    </header>
+                    <div class="kpi-grid">
+                        <t t-foreach="finance.kpis || []" t-as="card" t-key="card.label">
+                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
+                                <span class="kpi-label"><t t-esc="card.label"/></span>
+                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
+                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="split-row">
+                        <article class="chart-card" t-if="finance.charts and finance.charts.revenue_by_month">
+                            <header>
+                                <h3>Revenue by Month</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="financeRevenueCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="finance.charts and finance.charts.fees_by_case">
+                            <header>
+                                <h3>Legal Fees by Case</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="financeFeesCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="finance.charts and finance.charts.paid_vs_unpaid">
+                            <header>
+                                <h3>Paid vs Unpaid Invoices</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="financePaidCanvas"></canvas>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dashboard-section" id="section-hr">
+                    <header class="section-header">
+                        <div>
+                            <h2>Human Resources</h2>
+                            <p>Headcount, attendance, leave pipeline, and payroll visibility.</p>
+                        </div>
+                    </header>
+                    <div class="kpi-grid">
+                        <t t-foreach="hr.kpis || []" t-as="card" t-key="card.label">
+                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
+                                <span class="kpi-label"><t t-esc="card.label"/></span>
+                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
+                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="split-row">
+                        <article class="chart-card" t-if="hr.charts and hr.charts.employees_by_department">
+                            <header>
+                                <h3>Employees by Department</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="hrDeptCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="hr.charts and hr.charts.employees_by_position">
+                            <header>
+                                <h3>Employees by Position</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="hrPositionCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="chart-card" t-if="hr.charts and hr.charts.leave_status">
+                            <header>
+                                <h3>Leaves Status</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="hrLeavesCanvas"></canvas>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dashboard-section" id="section-approvals">
+                    <header class="section-header">
+                        <div>
+                            <h2>Approvals Overview</h2>
+                            <p>Pending approvals, SLA adherence, and daily outcomes.</p>
+                        </div>
+                    </header>
+                    <div class="kpi-grid">
+                        <t t-foreach="approvals.kpis || []" t-as="card" t-key="card.label">
+                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
+                                <span class="kpi-label"><t t-esc="card.label"/></span>
+                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
+                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="split-row">
+                        <article class="chart-card" t-if="approvals.charts and approvals.charts.approvals_by_model">
+                            <header>
+                                <h3>Approvals by Model</h3>
+                            </header>
+                            <div class="chart-wrapper">
+                                <canvas t-ref="approvalsByModelCanvas"></canvas>
+                            </div>
+                        </article>
+                        <article class="list-card">
+                            <header>
+                                <h3>My Pending Approvals</h3>
+                            </header>
+                            <t t-if="approvals.lists and approvals.lists.pending and approvals.lists.pending.length">
+                                <div class="qlk-card-grid">
+                                    <t t-foreach="approvals.lists.pending" t-as="record" t-key="record.id">
+                                        <div class="qlk-mini-card is-clickable" t-on-click="() => openApproval(record)">
+                                            <span class="label"><t t-esc="record.name"/></span>
+                                            <span class="meta"><t t-esc="record.owner"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                            <div t-else="" class="qlk-empty">No pending approvals.</div>
+                        </article>
+                        <article class="list-card">
+                            <header>
+                                <h3>Delayed Approvals</h3>
+                            </header>
+                            <t t-if="approvals.lists and approvals.lists.delayed and approvals.lists.delayed.length">
+                                <div class="qlk-card-grid">
+                                    <t t-foreach="approvals.lists.delayed" t-as="record" t-key="record.id">
+                                        <div class="qlk-mini-card is-clickable" t-on-click="() => openApproval(record)">
+                                            <span class="label"><t t-esc="record.name"/></span>
+                                            <span class="meta"><t t-esc="record.owner"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                            <div t-else="" class="qlk-empty">No delayed approvals.</div>
+                        </article>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

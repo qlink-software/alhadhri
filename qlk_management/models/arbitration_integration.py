@@ -22,7 +22,6 @@ class ArbitrationCaseProject(models.Model):
     client_document_ids = fields.One2many(
         related="claimant_id.client_document_ids",
         string="Client Documents",
-        readonly=True,
     )
 
     @api.depends("project_id", "agreement_hours")

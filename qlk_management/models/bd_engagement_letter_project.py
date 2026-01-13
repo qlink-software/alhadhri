@@ -10,12 +10,13 @@ class BDEngagementLetter(models.Model):
 
     def _prepare_project_vals(self):
         vals = super()._prepare_project_vals()
-        proj_type_map = {
-            "litigation": "litigation",
-            "corporate": "corporate",
-            "both": "corporate",
-        }
-        proj_type = proj_type_map.get(self.retainer_type or "corporate", "corporate")
+        retainer = self.retainer_type or "corporate"
+        if "litigation" in retainer:
+            proj_type = "litigation"
+        elif "arbitration" in retainer and "corporate" not in retainer:
+            proj_type = "arbitration"
+        else:
+            proj_type = "corporate"
         department_map = {
             "litigation": "litigation",
             "corporate": "corporate",
@@ -29,9 +30,9 @@ class BDEngagementLetter(models.Model):
                 "litigation_stage": "court" if proj_type == "litigation" else False,
                 "owner_id": self.reviewer_id.id or self.env.user.id,
                 "reference": self.code,
-                "project_scope": self.project_scope,
             }
         )
+        employee_ids = self.lawyer_ids.ids if self.lawyer_ids else []
         primary_employee = self.lawyer_employee_id
         if not primary_employee and self.lawyer_id:
             primary_employee = self.env["hr.employee"].search(
@@ -39,6 +40,8 @@ class BDEngagementLetter(models.Model):
             )
         if not primary_employee and self.reviewer_id:
             primary_employee = self.env["hr.employee"].search([("user_id", "=", self.reviewer_id.id)], limit=1)
-        if primary_employee:
-            vals["assigned_employee_ids"] = [(6, 0, [primary_employee.id])]
+        if not employee_ids and primary_employee:
+            employee_ids = [primary_employee.id]
+        if employee_ids:
+            vals["assigned_employee_ids"] = [(6, 0, employee_ids)]
         return vals

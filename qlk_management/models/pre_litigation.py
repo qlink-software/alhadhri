@@ -39,6 +39,17 @@ class PreLitigation(models.Model):
     lawyer_user_id = fields.Many2one("res.users", related="lawyer_employee_id.user_id", store=True, readonly=True)
     office_manager_id = fields.Many2one("res.users", string="Office Manager", tracking=True)
     translation_line_ids = fields.One2many("qlk.pre.litigation.translation", "pre_litigation_id", string="Translation Subtasks")
+    approval_line_ids = fields.One2many(
+        "qlk.pre.litigation.approval",
+        "pre_litigation_id",
+        string="Approvals",
+        copy=False,
+    )
+    approvals_submitted = fields.Boolean(string="Approvals Submitted", default=False, tracking=True)
+    approvals_required = fields.Boolean(compute="_compute_approval_status", store=True)
+    approvals_completed = fields.Boolean(compute="_compute_approval_status", store=True)
+    approvals_rejected = fields.Boolean(compute="_compute_approval_status", store=True)
+    approvals_blocked = fields.Boolean(compute="_compute_approval_status", store=True)
     translated_document_ids = fields.Many2many(
         "ir.attachment",
         "qlk_pre_lit_translated_rel",
@@ -47,22 +58,19 @@ class PreLitigation(models.Model):
         string="Translated Documents",
         tracking=True,
     )
-    client_document_ids = fields.Many2many(
-        "ir.attachment",
-        "qlk_pre_lit_client_doc_rel",
-        "pre_litigation_id",
-        "attachment_id",
+    client_document_ids = fields.One2many(
+        related="client_id.client_document_ids",
         string="Client Documents",
     )
-    translation_notes = fields.Text(string="Translation Notes")
-    memo_notes = fields.Text(string="Memo Draft Notes")
-    review_notes = fields.Text(string="Review Notes")
-    client_approval_notes = fields.Text(string="Client Approval Notes")
-    office_sign_notes = fields.Text(string="Office Signature Notes")
-    registration_details = fields.Text(string="Registration Details")
-    correction_notes = fields.Text(string="Correction Notes")
-    approval_note = fields.Text(string="Approvals")
-    fee_payment_note = fields.Text(string="Fee Payment Notes")
+    translation_notes = fields.Text(string="Translation Notes", tracking=True)
+    memo_notes = fields.Text(string="Memo Draft Notes", tracking=True)
+    review_notes = fields.Text(string="Review Notes", tracking=True)
+    client_approval_notes = fields.Text(string="Client Approval Notes", tracking=True)
+    office_sign_notes = fields.Text(string="Office Signature Notes", tracking=True)
+    registration_details = fields.Text(string="Registration Details", tracking=True)
+    correction_notes = fields.Text(string="Correction Notes", tracking=True)
+    approval_note = fields.Text(string="Approvals", tracking=True)
+    fee_payment_note = fields.Text(string="Fee Payment Notes", tracking=True)
     fee_payment_amount = fields.Monetary(string="Fee Amount")
     fee_payment_reference = fields.Char(string="Fee Payment Reference")
     currency_id = fields.Many2one("res.currency", string="Currency", default=lambda self: self.env.company.currency_id)
@@ -74,10 +82,35 @@ class PreLitigation(models.Model):
         for record in self:
             record.translated_count = len(record.translated_document_ids)
 
+    @api.depends("approval_line_ids.state", "approvals_submitted")
+    def _compute_approval_status(self):
+        for record in self:
+            if not record.approvals_submitted or not record.approval_line_ids:
+                record.approvals_required = False
+                record.approvals_completed = False
+                record.approvals_rejected = False
+                record.approvals_blocked = False
+                continue
+            states = record.approval_line_ids.mapped("state")
+            record.approvals_required = True
+            record.approvals_rejected = "rejected" in states
+            record.approvals_completed = bool(states) and all(state == "approved" for state in states)
+            record.approvals_blocked = record.approvals_required and not record.approvals_completed
+
+    def _check_approvals_before_transition(self):
+        self.ensure_one()
+        if not self.approvals_required:
+            return
+        if self.approvals_rejected:
+            raise UserError(_("Approvals have been rejected. Please update the approval plan."))
+        if not self.approvals_completed:
+            raise UserError(_("Complete all approvals before moving to the next stage."))
+
     def _set_pre_litigation_state(self, target_state, allowed_from):
         self.ensure_one()
         if self.state != allowed_from:
             raise UserError(_("Invalid transition for the current pre-litigation stage."))
+        self._check_approvals_before_transition()
         self.state = target_state
 
     def action_to_translation(self):
@@ -109,6 +142,16 @@ class PreLitigation(models.Model):
         if self.state == "done":
             raise UserError(_("You cannot reset a completed pre-litigation case."))
         self.state = "draft"
+
+    def action_open_approval_wizard(self):
+        self.ensure_one()
+        action = self.env.ref(
+            "qlk_management.action_pre_litigation_approval_wizard",
+            raise_if_not_found=False,
+        )
+        if not action:
+            return False
+        return action.with_context(default_pre_litigation_id=self.id)
 
     @api.model
     def create(self, vals):
@@ -195,9 +238,11 @@ class PreLitigation(models.Model):
             raise UserError(_("The pre-litigation must reach the Fee Payment stage before creating a case."))
         case_vals = self._prepare_case_vals()
         case = self.env["qlk.case"].create(case_vals)
-        attachments = (self.client_document_ids | self.translated_document_ids).ids
+        attachments = self.env["ir.attachment"].search(
+            [("res_model", "=", self._name), ("res_id", "in", self.ids)]
+        ) | self.translated_document_ids
         if attachments:
-            case.attachment_ids = [(4, att) for att in attachments]
+            case.attachment_ids = [(4, att_id) for att_id in attachments.ids]
         self.case_id = case.id
         if "pre_litigation_id" in case._fields:
             case.pre_litigation_id = self.id
@@ -236,6 +281,78 @@ class PreLitigation(models.Model):
         if self.lawyer_employee_id:
             vals["employee_id"] = self.lawyer_employee_id.id
         return vals
+
+
+
+class PreLitigationApproval(models.Model):
+    _name = "qlk.pre.litigation.approval"
+    _description = "Pre-Litigation Approval"
+    _order = "sequence, id"
+    _inherit = ["mail.thread"]
+
+    pre_litigation_id = fields.Many2one(
+        "qlk.pre.litigation",
+        string="Pre-Litigation",
+        required=True,
+        ondelete="cascade",
+    )
+    user_id = fields.Many2one("res.users", string="Approver", required=True)
+    sequence = fields.Integer(string="Sequence", default=10)
+    state = fields.Selection(
+        selection=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
+        default="pending",
+        tracking=True,
+    )
+    approval_date = fields.Datetime(string="Approval Date", tracking=True)
+    note = fields.Text(string="Notes")
+    can_approve = fields.Boolean(compute="_compute_can_approve")
+
+    _sql_constraints = [
+        ("sequence_unique", "unique(pre_litigation_id, sequence)", "Sequence must be unique per pre-litigation case."),
+    ]
+
+    @api.depends(
+        "state",
+        "sequence",
+        "pre_litigation_id.approvals_submitted",
+        "pre_litigation_id.approval_line_ids.state",
+        "pre_litigation_id.approval_line_ids.sequence",
+        "pre_litigation_id.approval_line_ids.user_id",
+    )
+    def _compute_can_approve(self):
+        for record in self:
+            if record.state != "pending" or not record.pre_litigation_id.approvals_submitted:
+                record.can_approve = False
+                continue
+            previous_pending = record.pre_litigation_id.approval_line_ids.filtered(
+                lambda line: line.sequence < record.sequence and line.state != "approved"
+            )
+            record.can_approve = not previous_pending and record.user_id == self.env.user
+
+    def action_approve(self):
+        for record in self:
+            record._ensure_can_act()
+            record.write(
+                {
+                    "state": "approved",
+                    "approval_date": fields.Datetime.now(),
+                }
+            )
+
+    def action_reject(self):
+        for record in self:
+            record._ensure_can_act()
+            record.write(
+                {
+                    "state": "rejected",
+                    "approval_date": fields.Datetime.now(),
+                }
+            )
+
+    def _ensure_can_act(self):
+        self.ensure_one()
+        if not self.can_approve:
+            raise UserError(_("You cannot approve this step yet."))
 
 
 class PreLitigationTranslation(models.Model):

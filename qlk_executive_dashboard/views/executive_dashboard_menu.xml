@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_qlk_executive_dashboard_overview" model="ir.actions.client">
+            <field name="name">Executive Dashboard</field>
+            <field name="tag">qlk.executive.dashboard</field>
+            <field name="target">main</field>
+            <field name="context">{'executive_section': 'overview'}</field>
+        </record>
+
+        <record id="action_qlk_executive_dashboard_litigation" model="ir.actions.client">
+            <field name="name">Litigation Dashboard</field>
+            <field name="tag">qlk.executive.dashboard</field>
+            <field name="target">main</field>
+            <field name="context">{'executive_section': 'litigation'}</field>
+        </record>
+
+        <record id="action_qlk_executive_dashboard_finance" model="ir.actions.client">
+            <field name="name">Accounting Dashboard</field>
+            <field name="tag">qlk.executive.dashboard</field>
+            <field name="target">main</field>
+            <field name="context">{'executive_section': 'finance'}</field>
+        </record>
+
+        <record id="action_qlk_executive_dashboard_hr" model="ir.actions.client">
+            <field name="name">HR Dashboard</field>
+            <field name="tag">qlk.executive.dashboard</field>
+            <field name="target">main</field>
+            <field name="context">{'executive_section': 'hr'}</field>
+        </record>
+
+        <record id="action_qlk_executive_dashboard_approvals" model="ir.actions.client">
+            <field name="name">Approvals Dashboard</field>
+            <field name="tag">qlk.executive.dashboard</field>
+            <field name="target">main</field>
+            <field name="context">{'executive_section': 'approvals'}</field>
+        </record>
+
+        <menuitem id="menu_qlk_executive_dashboard_root"
+                  name="Executive Dashboard"
+                  sequence="10"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+
+        <menuitem id="menu_qlk_executive_dashboard_overview"
+                  name="Overview"
+                  parent="menu_qlk_executive_dashboard_root"
+                  action="action_qlk_executive_dashboard_overview"
+                  sequence="1"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+
+        <menuitem id="menu_qlk_executive_dashboard_litigation"
+                  name="Litigation"
+                  parent="menu_qlk_executive_dashboard_root"
+                  action="action_qlk_executive_dashboard_litigation"
+                  sequence="2"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+
+        <menuitem id="menu_qlk_executive_dashboard_finance"
+                  name="Accounting"
+                  parent="menu_qlk_executive_dashboard_root"
+                  action="action_qlk_executive_dashboard_finance"
+                  sequence="3"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+
+        <menuitem id="menu_qlk_executive_dashboard_hr"
+                  name="HR"
+                  parent="menu_qlk_executive_dashboard_root"
+                  action="action_qlk_executive_dashboard_hr"
+                  sequence="4"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+
+        <menuitem id="menu_qlk_executive_dashboard_approvals"
+                  name="Approvals"
+                  parent="menu_qlk_executive_dashboard_root"
+                  action="action_qlk_executive_dashboard_approvals"
+                  sequence="5"
+                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+    </data>
+</odoo>

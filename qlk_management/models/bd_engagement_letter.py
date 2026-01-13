@@ -31,7 +31,7 @@ PAYMENT_STATUS_SELECTION = [
 class BDEngagementLetter(models.Model):
     _name = "bd.engagement.letter"
     _description = "Engagement Letter"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin"]
     _order = "create_date desc"
     _rec_name = "code"
 
@@ -46,7 +46,15 @@ class BDEngagementLetter(models.Model):
         tracking=True,
     )
     retainer_type = fields.Selection(
-        [("corporate", "Corporate"), ("litigation", "Litigation"), ("both", "Both")],
+        [
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("litigation_corporate", "Litigation + Corporate"),
+            ("litigation_arbitration", "Litigation + Arbitration"),
+            ("corporate_arbitration", "Corporate + Arbitration"),
+            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+        ],
         string="Retainer Type",
         default="corporate",
         tracking=True,
@@ -58,6 +66,10 @@ class BDEngagementLetter(models.Model):
     litigation_cases_limit = fields.Integer(string="Litigation Cases Limit")
     partner_id = fields.Many2one(
         "res.partner", string="Client", required=True, index=True, tracking=True
+    )
+    client_document_ids = fields.One2many(
+        related="partner_id.client_document_ids",
+        string="Client Documents",
     )
     client_id = fields.Many2one(
         "res.partner",
@@ -141,14 +153,26 @@ class BDEngagementLetter(models.Model):
         string="Status",
         default="draft",
         tracking=True,
+        group_expand="_group_expand_states",
     )
+
+    @api.model
+    def _group_expand_states(self, states, domain, order=None):
+        return [
+            "draft",
+            "waiting_manager_approval",
+            "approved_manager",
+            "waiting_client_approval",
+            "approved_client",
+            "rejected",
+            "cancelled",
+        ]
     rejection_reason = fields.Text(string="Rejection Reason")
     comments = fields.Text(string="Reason")
     # ------------------------------------------------------------------------------
     # يحتفظ بمرجع العرض الذي أنشأ هذه الاتفاقية لتسهيل التتبع وإعادة الفتح.
     # ------------------------------------------------------------------------------
     proposal_id = fields.Many2one("bd.proposal", string="Source Proposal", copy=False)
-    opportunity_id = fields.Many2one("crm.lead", string="Opportunity", tracking=True)
     signed_document_id = fields.Many2one(
         "ir.attachment",
         string="Signed Copy",
@@ -166,6 +190,13 @@ class BDEngagementLetter(models.Model):
     signed_on = fields.Datetime(string="Signed On", readonly=True)
     client_code_generated = fields.Boolean(string="Client Code Generated", readonly=True, copy=False)
     lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer")
+    lawyer_ids = fields.Many2many(
+        "hr.employee",
+        "bd_engagement_letter_lawyer_rel",
+        "letter_id",
+        "employee_id",
+        string="Assigned Lawyers",
+    )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
@@ -217,7 +248,6 @@ class BDEngagementLetter(models.Model):
         readonly=True,
     )
     services_description = fields.Text(string="Services Description")
-    project_scope = fields.Text(string="Project Scope")
     description = fields.Text(string="Project Description")
     payment_terms = fields.Char(string="Payment Terms")
     
@@ -709,8 +739,13 @@ class BDEngagementLetter(models.Model):
                 "legal_fee_amount": proposal.legal_fees or 0.0,
                 "approval_role": proposal.approval_role,
                 "lawyer_id": proposal.lawyer_id.id if proposal.lawyer_id else False,
+                "lawyer_employee_id": proposal.lawyer_employee_id.id if proposal.lawyer_employee_id else False,
+                "lawyer_ids": [(6, 0, proposal.lawyer_ids.ids)] if proposal.lawyer_ids else False,
                 "lawyer_cost_hour": proposal.lawyer_cost_hour,
                 "hourly_cost": proposal.hourly_cost,
+                "planned_hours": proposal.planned_hours,
+                "estimated_hours": proposal.planned_hours,
+                "total_estimated_cost": proposal.total_estimated_cost,
                 "billing_type": proposal.billing_type,
             }
             if proposal.legal_fees_lines:
@@ -986,14 +1021,28 @@ class BDEngagementLetter(models.Model):
     def _prepare_project_vals(self):
         self.ensure_one()
         partner = self.partner_id
-        scope_note = self.project_scope or self.description or self.services_description
+        scope_note = self.description or self.services_description
+        primary_employee = self.lawyer_employee_id
+        if not primary_employee and self.lawyer_ids:
+            primary_employee = self.lawyer_ids[:1]
+        primary_partner = False
+        if primary_employee:
+            if primary_employee.user_id and primary_employee.user_id.partner_id:
+                primary_partner = primary_employee.user_id.partner_id
+            elif "work_contact_id" in primary_employee._fields and primary_employee.work_contact_id:
+                primary_partner = primary_employee.work_contact_id
+            elif "address_home_id" in primary_employee._fields and primary_employee.address_home_id:
+                primary_partner = primary_employee.address_home_id
         return {
             "client_id": partner.id if partner else False,
             "engagement_id": self.id,
-            "lawyer_id": self.lawyer_id.id if self.lawyer_id else False,
+            "lawyer_id": primary_partner.id if primary_partner else False,
+            "assigned_employee_ids": [(6, 0, self.lawyer_ids.ids)] if self.lawyer_ids else False,
             "lawyer_cost_hour": self.lawyer_cost_hour,
             "project_type": self.project_type or "corporate",
+            "retainer_type": self.retainer_type or False,
             "company_id": self.company_id.id,
+            "estimated_hours": self.planned_hours or self.estimated_hours or 0.0,
             "description": scope_note,
         }
 
@@ -1029,13 +1078,14 @@ class BDEngagementLetter(models.Model):
             raise UserError(_("Please select a client before opening attachments."))
         return {
             "type": "ir.actions.act_window",
-            "name": _("Client Attachments"),
-            "res_model": "ir.attachment",
+            "name": _("Client Documents"),
+            "res_model": "qlk.client.document",
             "view_mode": "tree,form",
-            "domain": [("res_model", "=", "res.partner"), ("res_id", "=", partner.id)],
+            "domain": [("partner_id", "=", partner.id)],
             "context": {
-                "default_res_model": "res.partner",
-                "default_res_id": partner.id,
+                "default_partner_id": partner.id,
+                "default_related_model": self._name,
+                "default_related_res_id": self.id,
             },
         }
     

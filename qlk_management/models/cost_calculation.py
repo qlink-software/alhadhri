@@ -17,8 +17,10 @@ class CostCalculation(models.Model):
     printer_rent = fields.Float(string="Printer Rent")
     telephone = fields.Float(string="Telephone")
     salary = fields.Float(string="Salary")
+    other_cost = fields.Float(string="Other")
     total = fields.Float(string="Total", compute="_compute_totals", store=True)
     profit_ratio  = fields.Float(string="Profit")
+    cost_per_hour_base = fields.Float(string="Cost Per Hour Base", compute="_compute_totals", store=True)
     cost_per_hour = fields.Float(string="Cost Per Hour", compute="_compute_totals", store=True)
 
     _sql_constraints = [
@@ -31,7 +33,7 @@ class CostCalculation(models.Model):
             if record.employee_id and record.name in (False, _("New")):
                 record.name = f"{record.employee_id.name} Cost"
 
-    @api.depends("mactech", "email_charge", "office_rent", "printer_rent", "telephone", "salary","profit_ratio", "lawyer_hour_cost")
+    @api.depends("mactech", "email_charge", "office_rent", "printer_rent", "telephone", "salary", "other_cost", "profit_ratio", "lawyer_hour_cost")
     def _compute_totals(self):
         for record in self:
             overhead = sum(
@@ -42,7 +44,13 @@ class CostCalculation(models.Model):
                     record.printer_rent,
                     record.telephone,
                     record.salary,
+                    record.other_cost,
                 ]
             )
             record.total = overhead + (record.lawyer_hour_cost or 0.0)
-            record.cost_per_hour = record.total / 180.0 * record.profit_ratio if record.total else 0.0
+            record.cost_per_hour_base = record.total / 180.0 if record.total else 0.0
+            record.cost_per_hour = (
+                record.cost_per_hour_base * record.profit_ratio
+                if record.cost_per_hour_base
+                else 0.0
+            )

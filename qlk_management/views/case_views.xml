@@ -13,16 +13,27 @@
                 </xpath>
 
                 <xpath expr="//sheet//notebook" position="inside">
-                    <page string="Client Documents">
+                    <page string="Client Documents" groups="qlk_management.group_legal_user">
                         <group>
                         <!-- <field name="client_document_warning"
                                nolabel="1"
                                widget="html"
                                options="{'invisible': [('client_document_warning_required', '=', False)]}"/> -->
                         </group>
-                        <group>
-                            <span class="text-muted">Client documents are available on the contact record.</span>
-                        </group>
+                        <field name="client_document_ids" nolabel="1">
+                            <list editable="bottom"
+                                  decoration-danger="needs_translation and not is_translated"
+                                  decoration-success="is_translated">
+                                <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                                <field name="name"/>
+                                <field name="document_type"/>
+                                <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                                <field name="needs_translation"/>
+                                <field name="is_translated"/>
+                                <field name="related_model"/>
+                                <field name="create_date"/>
+                            </list>
+                        </field>
                     </page>
                 </xpath>
 

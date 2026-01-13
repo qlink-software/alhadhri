@@ -12,10 +12,13 @@ PROJECT_TYPE_SELECTION = [
 ]
 
 RETAINER_TYPE_SELECTION = [
-    ("corporate", "Corporate"),
     ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
     ("arbitration", "Arbitration"),
-    ("both", "Both"),
+    ("litigation_corporate", "Litigation + Corporate"),
+    ("litigation_arbitration", "Litigation + Arbitration"),
+    ("corporate_arbitration", "Corporate + Arbitration"),
+    ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
 ]
 
 
@@ -23,6 +26,10 @@ class ProjectProject(models.Model):
     _inherit = "project.project"
 
     cost_calculation_id = fields.Many2one("cost.calculation", string="Cost Calculation")
+    client_document_ids = fields.One2many(
+        related="partner_id.client_document_ids",
+        string="Client Documents",
+    )
     lawyer_id = fields.Many2one("hr.employee", string="Lawyer")
     lawyer_hour_cost = fields.Float(string="Lawyer Hour Cost", compute="_compute_lawyer_costs", store=True)
     lawyer_hours = fields.Float(string="Lawyer Hours")
@@ -72,7 +79,6 @@ class ProjectProject(models.Model):
     payment_terms = fields.Char(string="Payment Terms")
     engagement_reference = fields.Char(string="Engagement Reference", readonly=True)
     legal_fee_amount = fields.Monetary(string="Legal Fees", currency_field="company_currency_id")
-    project_scope_note = fields.Text(string="Scope / Notes")
     is_mini_project = fields.Boolean(string="Mini Project")
     mini_state = fields.Selection(
         [
@@ -313,13 +319,14 @@ class ProjectProject(models.Model):
             raise UserError(_("Please select a client before opening attachments."))
         return {
             "type": "ir.actions.act_window",
-            "name": _("Client Attachments"),
-            "res_model": "ir.attachment",
+            "name": _("Client Documents"),
+            "res_model": "qlk.client.document",
             "view_mode": "tree,form",
-            "domain": [("res_model", "=", "res.partner"), ("res_id", "=", partner.id)],
+            "domain": [("partner_id", "=", partner.id)],
             "context": {
-                "default_res_model": "res.partner",
-                "default_res_id": partner.id,
+                "default_partner_id": partner.id,
+                "default_related_model": self._name,
+                "default_related_res_id": self.id,
             },
         }
 

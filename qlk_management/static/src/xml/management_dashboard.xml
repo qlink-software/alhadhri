@@ -180,8 +180,8 @@
                         <article class="mg-card wide">
                             <header>
                                 <div>
-                                    <h2>Upcoming POA Expirations</h2>
-                                    <small>Next 30 days</small>
+                                    <h2>Documents Pending Translation</h2>
+                                    <small>Needs translation</small>
                                 </div>
                                 <button t-if="clients.documents_action" class="mg-link" type="button"
                                         t-on-click="openAction(clients.documents_action)">
@@ -193,7 +193,7 @@
                                     <tr>
                                         <th>Client</th>
                                         <th>Document</th>
-                                        <th>Expiry</th>
+                                        <th>Created</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>

@@ -25,6 +25,7 @@
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="priority_selection" />
+                <field name="notify_datetime"/>
                 <field name="opportunity_type" />
             </xpath>
             <!-- hide those fields in crm form view -->
@@ -66,6 +67,32 @@
                                     <field name="hours_spent" widget="float_time" options="{'displaySeconds': True}"/>
                                     <field name="date_start"/>
                                     <field name="employee_id"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="Notifications">
+                    <field name="notification_ids" context="{'default_model_name': 'crm.lead', 'default_res_id': id, 'default_notification_type': 'general'}">
+                        <list string="Notifications">
+                            <field name="name"/>
+                            <field name="notification_type"/>
+                            <field name="notify_datetime"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="state"/>
+                        </list>
+                        <form string="Notification">
+                            <sheet>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="notification_type"/>
+                                    <field name="notify_datetime"/>
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="state"/>
+                                    <field name="active"/>
+                                    <field name="description"/>
                                 </group>
                             </sheet>
                         </form>

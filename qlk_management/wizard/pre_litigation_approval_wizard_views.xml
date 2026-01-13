@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_pre_litigation_approval_wizard_form" model="ir.ui.view">
+            <field name="name">qlk.pre.litigation.approval.wizard.form</field>
+            <field name="model">qlk.pre.litigation.approval.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Approvals">
+                    <group>
+                        <field name="pre_litigation_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="line_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="sequence"/>
+                                <field name="user_id"/>
+                            </list>
+                        </field>
+                    </group>
+                    <footer>
+                        <button name="action_save_draft" string="Save Draft" class="btn-secondary" type="object"/>
+                        <button name="action_submit" string="Submit" class="btn-primary" type="object"/>
+                        <button string="Cancel" class="btn-link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_pre_litigation_approval_wizard" model="ir.actions.act_window">
+            <field name="name">Approvals</field>
+            <field name="res_model">qlk.pre.litigation.approval.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

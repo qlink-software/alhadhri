@@ -3,7 +3,8 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 class Crm(models.Model):
-    _inherit = "crm.lead"
+    _name = "crm.lead"
+    _inherit = ["crm.lead", "qlk.notification.mixin"]
 
     state = fields.Selection([
         ('new', 'New'),('interested','Interested'),('not_interested','Not Interested'),('follow_up','Follow Up'),('send','Send Proposal'),

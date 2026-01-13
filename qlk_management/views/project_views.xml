@@ -75,6 +75,9 @@
                             <group>
                                 <field name="department" invisible="1"/>
                                 <field name="project_type"/>
+                                <field name="retainer_type"/>
+                                <field name="estimated_hours"/>
+                                <field name="notify_datetime"/>
                                 <field name="litigation_stage" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="litigation_stage_code" string="Litigation Degree" invisible="1"/>
                                 <field name="litigation_stage_iteration" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
@@ -83,9 +86,9 @@
                                 <field name="client_id" string="Client Name"/>
                                 <field name="engagement_id" readonly="1"/>
                                 <field name="lawyer_id"/>
+                                <field name="lawyer_ids" widget="many2many_tags"/>
                                 <field name="lawyer_cost_hour" readonly="1"/>
                                 <field name="client_capacity"/>
-                                <field name="project_scope"/>
                                 <field name="litigation_case_number" modifiers="{'readonly': True, 'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="case_id" invisible="department != 'litigation'"/>
                                 <field name="corporate_case_id"
@@ -138,28 +141,34 @@
                                     </list>
                                 </field>
                             </page>
-                            <page string="Client Documents">
+                            <page string="Client Documents" groups="qlk_management.group_legal_user">
                                 <group>
                                     <!-- <field name="client_document_warning"
                                            nolabel="1"
                                            widget="html"
                                            options="{'invisible': [('client_document_warning_required', '=', False)]}"/> -->
                                 </group>
-                                <field name="client_document_ids" nolabel="1" readonly="1">
-                                    <list>
-                                        <field name="doc_type"/>
-                                        <field name="is_uploaded"/>
-                                        <field name="poa_reference"/>
-                                        <field name="poa_expiration_date"/>
+                                <field name="client_document_ids" nolabel="1">
+                                    <list editable="bottom"
+                                          decoration-danger="needs_translation and not is_translated"
+                                          decoration-success="is_translated">
+                                        <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                                        <field name="name"/>
+                                        <field name="document_type"/>
+                                        <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                                        <field name="needs_translation"/>
+                                        <field name="is_translated"/>
+                                        <field name="related_model"/>
+                                        <field name="create_date"/>
                                     </list>
                                 </field>
                             </page>
                             <page string="Notes">
                                 <field name="notes"/>
                             </page>
-                            <page string="Workflow Stages" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}">
+                            <!-- <page string="Workflow Stages" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}">
                                 <field name="stage_line_ids" context="{'default_project_id': id}"/>
-                            </page>
+                            </page> -->
                         </notebook>
                     </sheet>
                 </form>

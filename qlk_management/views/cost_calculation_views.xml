@@ -31,9 +31,11 @@
                         <field name="printer_rent"/>
                         <field name="telephone"/>
                         <field name="salary"/>
+                        <field name="other_cost"/>
                     </group>
                     <group string="Summary">
                         <field name="total" readonly="1"/>
+                        <field name="cost_per_hour_base" readonly="1"/>
                         <field name="profit_ratio"/>
                         <field name="cost_per_hour" readonly="1"/>
                     </group>

@@ -66,6 +66,7 @@
                                 class="oe_stat_button"
                                 icon="fa-paperclip"
                                 string="Client Documents"
+                                groups="qlk_management.group_legal_user"
                                 modifiers="{'invisible': [('partner_id', '=', False)]}">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Client Documents</span>
@@ -76,18 +77,21 @@
                         <group>
                             <field name="code" readonly="1"/>
                             <field name="date"/>
+                            <field name="contract_type"/>
+                            <field name="retainer_type"/>
                             <field name="approval_role"/>
                             <field name="client_id" required="1"/>
                             <field name="billing_type"/>
+                            <field name="notify_datetime"/>
                             <field name="estimated_hours"
                                    modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
                         </group>
                         <group>
                             <field name="lawyer_employee_id"/>
+                            <field name="lawyer_ids" widget="many2many_tags"/>
                             <field name="lawyer_cost_hour" readonly="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
-                            <!-- <field name="opportunity_id" modifiers="{'invisible': [('opportunity_id', '=', False)]}"/> -->
                             <field name="reviewer_id"/>
                         </group>
                     </group>
@@ -101,11 +105,6 @@
                                     <field name="due_date"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="Project Scope">
-                            <group>
-                                <field name="project_scope"/>
-                            </group>
                         </page>
                         <page string="Signed Copy">
                             <group>
@@ -138,6 +137,22 @@
                                         </group>
                                     </sheet>
                                 </form>
+                            </field>
+                        </page>
+                        <page string="Client Documents" groups="qlk_management.group_legal_user">
+                            <field name="client_document_ids" nolabel="1">
+                                <list editable="bottom"
+                                      decoration-danger="needs_translation and not is_translated"
+                                      decoration-success="is_translated">
+                                    <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
+                                    <field name="name"/>
+                                    <field name="document_type"/>
+                                    <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
+                                    <field name="needs_translation"/>
+                                    <field name="is_translated"/>
+                                    <field name="related_model"/>
+                                    <field name="create_date"/>
+                                </list>
                             </field>
                         </page>
                     </notebook>

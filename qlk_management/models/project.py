@@ -18,7 +18,7 @@ LITIGATION_WORKFLOW_TEMPLATE = [
 class QlkProject(models.Model):
     _name = "qlk.project"
     _description = "Legal Project"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin"]
     _order = "create_date desc"
     _rec_name = "code"
 
@@ -55,6 +55,20 @@ class QlkProject(models.Model):
         default="litigation",
         tracking=True,
     )
+    estimated_hours = fields.Float(string="Estimated Hours", tracking=True)
+    retainer_type = fields.Selection(
+        selection=[
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("litigation_corporate", "Litigation + Corporate"),
+            ("litigation_arbitration", "Litigation + Arbitration"),
+            ("corporate_arbitration", "Corporate + Arbitration"),
+            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+        ],
+        string="Retainer Type",
+        tracking=True,
+    )
     # ------------------------------------------------------------------------------
     # إذا اختار المستخدم project_type = 'litigation' يجب أن نحدد ما إذا كان Pre أو Case.
     # ------------------------------------------------------------------------------
@@ -89,6 +103,14 @@ class QlkProject(models.Model):
     )
     client_capacity = fields.Char(string="Client Capacity", tracking=True)
     lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer", tracking=True)
+    lawyer_ids = fields.Many2many(
+        "hr.employee",
+        "qlk_project_lawyer_rel",
+        "project_id",
+        "employee_id",
+        string="Assigned Lawyers",
+        tracking=True,
+    )
     lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
     # ------------------------------------------------------------------------------
@@ -154,7 +176,6 @@ class QlkProject(models.Model):
     )
     owner_id = fields.Many2one("res.users", string="Project Owner", default=lambda self: self.env.user, tracking=True)
     description = fields.Html()
-    project_scope = fields.Text(string="Project Scope")
     poa_state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -235,7 +256,6 @@ class QlkProject(models.Model):
     client_document_ids = fields.One2many(
         related="client_id.client_document_ids",
         string="Client Documents",
-        readonly=True,
     )
 
     def _compute_stage_id(self):
