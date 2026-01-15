@@ -15,5 +15,15 @@
             <field name="name">Assistant Manager</field>
             <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
         </record>
+
+        <record id="group_qlk_exec" model="res.groups">
+            <field name="name">Executive</field>
+            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
+        </record>
+
+        <record id="group_qlk_lawyer" model="res.groups">
+            <field name="name">Lawyer</field>
+            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
+        </record>
     </data>
 </odoo>

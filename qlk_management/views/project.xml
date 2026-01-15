@@ -52,19 +52,7 @@
                 </div>
             </xpath>
             <xpath expr="//sheet" position="inside">
-                <div class="oe_button_box" name="button_box">
-                    <button name="action_view_client_attachments"
-                            type="object"
-                            class="oe_stat_button"
-                            icon="fa-paperclip"
-                            string="Client Documents"
-                            groups="qlk_management.group_legal_user"
-                            modifiers="{'invisible': [('partner_id', '=', False)]}">
-                        <div class="o_stat_info">
-                            <span class="o_stat_text">Client Documents</span>
-                        </div>
-                    </button>
-                </div>
+                <div class="oe_button_box" name="button_box"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Engagement Info">
@@ -99,22 +87,6 @@
                     <group modifiers="{'invisible': [('is_mini_project', '=', False)]}">
                         <field name="lawyer_id"/>
                     </group>
-                </page>
-                <page string="Client Documents" groups="qlk_management.group_legal_user">
-                    <field name="client_document_ids" nolabel="1">
-                        <list editable="bottom"
-                              decoration-danger="needs_translation and not is_translated"
-                              decoration-success="is_translated">
-                            <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
-                            <field name="name"/>
-                            <field name="document_type"/>
-                            <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
-                            <field name="needs_translation"/>
-                            <field name="is_translated"/>
-                            <field name="related_model"/>
-                            <field name="create_date"/>
-                        </list>
-                    </field>
                 </page>
             </xpath>
         </field>

@@ -143,6 +143,36 @@
             <xpath expr="//field[@name='image_1920']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_bd_proposals"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        modifiers="{'invisible': [('id', '=', False)]}">
+                    <field name="proposal_count" widget="statinfo" string="Proposals"/>
+                </button>
+                <button name="action_view_bd_engagements"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-signature"
+                        modifiers="{'invisible': [('id', '=', False)]}">
+                    <field name="engagement_count" widget="statinfo" string="Engagements"/>
+                </button>
+                <button name="action_view_partner_projects"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-briefcase"
+                        modifiers="{'invisible': [('id', '=', False)]}">
+                    <field name="project_count" widget="statinfo" string="Projects"/>
+                </button>
+                <button name="get_client_case"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-balance-scale"
+                        modifiers="{'invisible': [('id', '=', False)]}">
+                    <field name="case_count" widget="statinfo" string="Cases"/>
+                </button>
+            </xpath>
             <!-- <xpath expr="//page[@name='invoicing']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
@@ -231,46 +261,6 @@
             </xpath> -->
             <xpath expr="//sheet/notebook" position="after">
                 <notebook>
-                <page string="Client Documents" groups="qlk_management.group_legal_user">
-                    <field name="client_document_ids" nolabel="1"
-                           context="{'default_partner_id': id, 'default_related_model': 'res.partner', 'default_related_res_id': id}">
-                        <list editable="bottom"
-                              decoration-danger="needs_translation and not is_translated"
-                              decoration-success="is_translated">
-                            <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
-                            <field name="name"/>
-                            <field name="document_type"/>
-                            <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
-                            <field name="needs_translation"/>
-                            <field name="is_translated"/>
-                            <field name="related_model"/>
-                            <field name="create_date"/>
-                        </list>
-                        <form string="Client Document">
-                            <sheet>
-                                <group>
-                                    <group>
-                                        <field name="name"/>
-                                        <field name="document_type"/>
-                                        <field name="attachment_id"
-                                               context="{'default_res_model': 'res.partner', 'default_res_id': partner_id, 'default_public': False}"
-                                               domain="[('res_model', '=', 'res.partner'), ('res_id', '=', partner_id)]"/>
-                                    </group>
-                                    <group>
-                                        <field name="needs_translation"/>
-                                        <field name="is_translated"/>
-                                    </group>
-                                </group>
-                                <group>
-                                    <field name="notes"/>
-                                </group>
-                                <group string="Preview">
-                                    <field name="preview_html" nolabel="1" readonly="1"/>
-                                </group>
-                            </sheet>
-                        </form>
-                    </field>
-                </page>
                 <page string="Client Attachments">
                     <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
                 </page>
@@ -346,7 +336,9 @@
             <xpath expr="//field[@name='parent_id']" position="replace">
                 <field name="parent_id" modifiers="{'invisible': True}"/>
             </xpath>
-            <xpath expr="//chatter" position="replace"/>
+            <xpath expr="//chatter" position="replace">
+                <chatter/>
+            </xpath>
             <!-- <xpath expr="//div[contains(@class,'o_AttachmentBox')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->

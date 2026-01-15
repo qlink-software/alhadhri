@@ -62,11 +62,11 @@ class QlkProject(models.Model):
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
             ("litigation_corporate", "Litigation + Corporate"),
-            ("litigation_arbitration", "Litigation + Arbitration"),
-            ("corporate_arbitration", "Corporate + Arbitration"),
-            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
         ],
-        string="Retainer Type",
+        string="Services Type",
+        default="corporate",
         tracking=True,
     )
     # ------------------------------------------------------------------------------
@@ -94,6 +94,11 @@ class QlkProject(models.Model):
         required=True,
         tracking=True,
         domain="[('customer', '=', True), ('parent_id', '=', False)]",
+    )
+    client_attachment_ids = fields.Many2many(
+        related="client_id.client_attachment_ids",
+        string="Client Attachments",
+        readonly=False,
     )
     engagement_id = fields.Many2one(
         "bd.engagement.letter",
@@ -166,6 +171,7 @@ class QlkProject(models.Model):
         "project_id",
         string="Legal Fees Lines",
     )
+    scope_of_work = fields.Text(string="Scope of Work")
     assigned_employee_ids = fields.Many2many(
         "hr.employee",
         string="Assigned Lawyers",
@@ -323,7 +329,7 @@ class QlkProject(models.Model):
             if project.project_type == "litigation" and not project.litigation_stage_code:
                 project.litigation_stage_code = "F"
 
-    @api.depends("client_id")
+    @api.depends("client_id", "client_id.code", "client_id.ref")
     def _compute_client_code(self):
         for project in self:
             code = ""

@@ -123,6 +123,10 @@
                                         <field name="due_date"/>
                                     </list>
                                 </field>
+                                <field name="scope_of_work"/>
+                            </page>
+                            <page string="Client Attachments">
+                                <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
                             </page>
                             <page string="POA Documents" invisible="department != 'litigation'">
                                 <field name="poa_attachment_ids" widget="many2many_binary"/>
@@ -141,28 +145,6 @@
                                     </list>
                                 </field>
                             </page>
-                            <page string="Client Documents" groups="qlk_management.group_legal_user">
-                                <group>
-                                    <!-- <field name="client_document_warning"
-                                           nolabel="1"
-                                           widget="html"
-                                           options="{'invisible': [('client_document_warning_required', '=', False)]}"/> -->
-                                </group>
-                                <field name="client_document_ids" nolabel="1">
-                                    <list editable="bottom"
-                                          decoration-danger="needs_translation and not is_translated"
-                                          decoration-success="is_translated">
-                                        <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
-                                        <field name="name"/>
-                                        <field name="document_type"/>
-                                        <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
-                                        <field name="needs_translation"/>
-                                        <field name="is_translated"/>
-                                        <field name="related_model"/>
-                                        <field name="create_date"/>
-                                    </list>
-                                </field>
-                            </page>
                             <page string="Notes">
                                 <field name="notes"/>
                             </page>
@@ -171,6 +153,7 @@
                             </page> -->
                         </notebook>
                     </sheet>
+                    <chatter/>
                 </form>
             </field>
         </record>

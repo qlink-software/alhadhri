@@ -20,11 +20,11 @@ _inherit = ['mail.thread', 'mail.activity.mixin', 'qlk.notification.mixin']
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
             ("litigation_corporate", "Litigation + Corporate"),
-            ("litigation_arbitration", "Litigation + Arbitration"),
-            ("corporate_arbitration", "Corporate + Arbitration"),
-            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
         ],
-        string="Retainer Type",
+        string="Services Type",
+        default="corporate",
         tracking=True,
     )
     agreement_date = fields.Date(string='Date', default=fields.Date.today)

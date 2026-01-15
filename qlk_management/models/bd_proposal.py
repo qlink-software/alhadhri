@@ -41,11 +41,11 @@ class BDProposal(models.Model):
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
             ("litigation_corporate", "Litigation + Corporate"),
-            ("litigation_arbitration", "Litigation + Arbitration"),
-            ("corporate_arbitration", "Corporate + Arbitration"),
-            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
         ],
-        string="Retainer Type",
+        string="Services Type",
+        default="corporate",
         tracking=True,
     )
     client_code = fields.Char(string="Client Code", copy=False, readonly=True)
@@ -56,6 +56,11 @@ class BDProposal(models.Model):
     client_document_ids = fields.One2many(
         related="partner_id.client_document_ids",
         string="Client Documents",
+    )
+    client_attachment_ids = fields.Many2many(
+        related="partner_id.client_attachment_ids",
+        string="Client Attachments",
+        readonly=False,
     )
     client_id = fields.Many2one(
         "res.partner",
@@ -89,6 +94,7 @@ class BDProposal(models.Model):
         "proposal_id",
         string="Legal Fees Lines",
     )
+    scope_of_work = fields.Text(string="Scope of Work")
     payment_terms = fields.Char(string="Payment Terms")
     terms_conditions = fields.Html(string="Terms & Conditions", sanitize=False)
     state = fields.Selection(
@@ -424,7 +430,7 @@ class BDProposal(models.Model):
         # if self._requires_new_task_on_write(vals):
         #     self._raise_missing_hours_error()
         restricted = {"name", "client_code", "client_sequence", "code"}
-        if restricted.intersection(vals):
+        if restricted.intersection(vals) and not self.env.context.get("allow_document_number_update"):
             raise UserError(_("Document numbers and client codes cannot be modified manually."))
         if not self.env.context.get("skip_client_partner_sync"):
             if vals.get("partner_id") and not vals.get("client_id"):
@@ -609,6 +615,21 @@ class BDProposal(models.Model):
         if proposal_type == "proposal":
             return f"{client_code}/PROP{seq_text}"
         return f"{client_code}/EL{seq_text}"
+
+    def _sync_client_code_from_partner(self):
+        for proposal in self:
+            if not proposal.partner_id:
+                continue
+            client_code = proposal.partner_id._get_client_code()
+            if not proposal.client_sequence:
+                continue
+            doc_number = proposal._build_document_number(
+                client_code, proposal.proposal_type, proposal.client_sequence
+            )
+            proposal.with_context(
+                allow_document_number_update=True,
+                skip_client_partner_sync=True,
+            ).write({"client_code": client_code, "name": doc_number, "code": doc_number})
 
     def _copy_partner_attachments(self):
         Attachment = self.env["ir.attachment"].sudo()
@@ -803,6 +824,7 @@ class BDProposal(models.Model):
             "comments": self.comments,
             "proposal_id": self.id,
             "legal_fees_lines": fee_lines,
+            "scope_of_work": self.scope_of_work,
             "approval_role": self.approval_role,
             "lawyer_id": primary_partner.id if primary_partner else False,
             "lawyer_employee_id": primary_employee.id if primary_employee else False,

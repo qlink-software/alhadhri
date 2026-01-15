@@ -40,6 +40,10 @@ class ResPartner(models.Model):
     bd_client_code = fields.Char(string="Client Code", copy=False, readonly=True)
     code = fields.Char(string="Client Code", default="/", copy=False, readonly=True)
     client_year = fields.Integer(string="Client Year", default=lambda self: self._default_client_year())
+    proposal_count = fields.Integer(string="Proposals", compute="_compute_related_counts")
+    engagement_count = fields.Integer(string="Engagement Letters", compute="_compute_related_counts")
+    project_count = fields.Integer(string="Projects", compute="_compute_related_counts")
+
 
     # ------------------------------------------------------------------------------
     # دالة تحدد المستندات المطلوبة حسب نوع العميل (شركة أو فرد).
@@ -187,6 +191,9 @@ class ResPartner(models.Model):
         if "client_year" in vals and not self.env.context.get("skip_year_sync"):
             for partner in self:
                 partner._update_code_for_year_change()
+        if "code" in vals and not self.env.context.get("skip_related_sync"):
+            for partner in self:
+                partner._sync_related_client_codes()
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # self._check_hours_logged()
         return res
@@ -200,6 +207,41 @@ class ResPartner(models.Model):
     def _onchange_qlk_task_ids(self):
         for partner in self:
             partner.hours_logged_ok = bool(partner.qlk_task_ids)
+
+    def _compute_related_counts(self):
+        proposal_counts = {}
+        engagement_counts = {}
+        project_counts = {}
+        partner_ids = self.ids
+        if partner_ids:
+            proposal_groups = self.env["bd.proposal"].read_group(
+                [("partner_id", "in", partner_ids)], ["partner_id"], ["partner_id"]
+            )
+            engagement_groups = self.env["bd.engagement.letter"].read_group(
+                [("partner_id", "in", partner_ids)], ["partner_id"], ["partner_id"]
+            )
+            project_groups = self.env["project.project"].read_group(
+                [("partner_id", "in", partner_ids)], ["partner_id"], ["partner_id"]
+            )
+            proposal_counts = {
+                data["partner_id"][0]: (data.get("__count") or data.get("partner_id_count", 0))
+                for data in proposal_groups
+                if data.get("partner_id")
+            }
+            engagement_counts = {
+                data["partner_id"][0]: (data.get("__count") or data.get("partner_id_count", 0))
+                for data in engagement_groups
+                if data.get("partner_id")
+            }
+            project_counts = {
+                data["partner_id"][0]: (data.get("__count") or data.get("partner_id_count", 0))
+                for data in project_groups
+                if data.get("partner_id")
+            }
+        for partner in self:
+            partner.proposal_count = proposal_counts.get(partner.id, 0)
+            partner.engagement_count = engagement_counts.get(partner.id, 0)
+            partner.project_count = project_counts.get(partner.id, 0)
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
@@ -248,6 +290,51 @@ class ResPartner(models.Model):
                 "default_client_id": partner.id,
             },
         }
+
+    def action_view_bd_proposals(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proposals"),
+            "res_model": "bd.proposal",
+            "view_mode": "list,form",
+            "target": "current",
+            "domain": [("partner_id", "=", self.id)],
+            "context": {
+                "default_partner_id": self.id,
+                "default_client_id": self.id,
+            },
+        }
+
+    def action_view_bd_engagements(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Engagement Letters"),
+            "res_model": "bd.engagement.letter",
+            "view_mode": "list,form",
+            "target": "current",
+            "domain": [("partner_id", "=", self.id)],
+            "context": {
+                "default_partner_id": self.id,
+                "default_client_id": self.id,
+            },
+        }
+
+    def action_view_partner_projects(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Projects"),
+            "res_model": "project.project",
+            "view_mode": "list,form",
+            "target": "current",
+            "domain": [("partner_id", "=", self.id)],
+            "context": {
+                "default_partner_id": self.id,
+            },
+        }
+
 
     def ensure_client_code(self):
         """Ensure partners have a year assigned and a generated client code."""
@@ -301,7 +388,19 @@ class ResPartner(models.Model):
             new_code = f"{prefix}{suffix.zfill(3)}"
         else:
             new_code = self._generate_partner_code(year)
-        self.with_context(skip_year_sync=True).write({"code": new_code})
+        self.with_context(skip_year_sync=True, skip_related_sync=True).write({"code": new_code})
+        self._sync_related_client_codes()
+
+    def _sync_related_client_codes(self):
+        proposals = self.env["bd.proposal"].sudo().search([("partner_id", "=", self.id)])
+        if proposals:
+            proposals._sync_client_code_from_partner()
+        letters = self.env["bd.engagement.letter"].sudo().search([("partner_id", "=", self.id)])
+        if letters:
+            letters._sync_client_code_from_partner()
+        projects = self.env["project.project"].sudo().search([("partner_id", "=", self.id)])
+        if projects:
+            projects._sync_client_code_from_partner()
 
 class ContactAttachments(models.Model):
     _name = "contact.attachments"

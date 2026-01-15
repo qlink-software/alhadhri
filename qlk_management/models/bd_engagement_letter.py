@@ -51,11 +51,10 @@ class BDEngagementLetter(models.Model):
             ("corporate", "Corporate"),
             ("arbitration", "Arbitration"),
             ("litigation_corporate", "Litigation + Corporate"),
-            ("litigation_arbitration", "Litigation + Arbitration"),
-            ("corporate_arbitration", "Corporate + Arbitration"),
-            ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
         ],
-        string="Retainer Type",
+        string="Services Type",
         default="corporate",
         tracking=True,
     )
@@ -70,6 +69,11 @@ class BDEngagementLetter(models.Model):
     client_document_ids = fields.One2many(
         related="partner_id.client_document_ids",
         string="Client Documents",
+    )
+    client_attachment_ids = fields.Many2many(
+        related="partner_id.client_attachment_ids",
+        string="Client Attachments",
+        readonly=False,
     )
     client_id = fields.Many2one(
         "res.partner",
@@ -94,6 +98,7 @@ class BDEngagementLetter(models.Model):
         "letter_id",
         string="Legal Fees Lines",
     )
+    scope_of_work = fields.Text(string="Scope of Work")
     currency_id = fields.Many2one(
         "res.currency",
         string="Currency",
@@ -747,6 +752,7 @@ class BDEngagementLetter(models.Model):
                 "estimated_hours": proposal.planned_hours,
                 "total_estimated_cost": proposal.total_estimated_cost,
                 "billing_type": proposal.billing_type,
+                "scope_of_work": proposal.scope_of_work,
             }
             if proposal.legal_fees_lines:
                 vals["legal_fees_lines"] = [(5, 0, 0)] + [
@@ -756,6 +762,19 @@ class BDEngagementLetter(models.Model):
             else:
                 vals["legal_fees_lines"] = [(5, 0, 0)]
             letter.with_context(skip_proposal_sync=True).write(vals)
+
+    def _sync_client_code_from_partner(self):
+        for letter in self:
+            if not letter.partner_id:
+                continue
+            client_code = letter.partner_id.code or letter.partner_id.ref or ""
+            code = letter.code or ""
+            if code and "/EL" in code:
+                suffix = code.split("/EL", 1)[1]
+                code = f"{client_code}/EL{suffix}" if suffix else code
+            elif client_code:
+                code = letter._generate_letter_code(letter.partner_id, client_code)
+            letter.write({"client_code": client_code, "code": code})
 
     def _find_lawyer_cost(self, lawyer_id):
         cost = self.env["lawyer.cost.calculation"].search([("partner_id", "=", lawyer_id)], limit=1)

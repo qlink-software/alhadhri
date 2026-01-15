@@ -61,19 +61,7 @@
                 </header>
                 <sheet>
                     <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_view_client_attachments"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-paperclip"
-                                string="Client Documents"
-                                groups="qlk_management.group_legal_user"
-                                modifiers="{'invisible': [('partner_id', '=', False)]}">
-                            <div class="o_stat_info">
-                                <span class="o_stat_text">Client Documents</span>
-                            </div>
-                        </button>
-                    </div>
+                    <div class="oe_button_box" name="button_box"/>
                     <group string="Client &amp; General Info">
                         <group>
                             <field name="proposal_type" invisible="1"/>
@@ -113,7 +101,11 @@
                                         <field name="due_date"/>
                                     </list>
                                 </field>
+                                <field name="scope_of_work"/>
                             </group>
+                        </page>
+                        <page string="Client Attachments">
+                            <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
                         </page>
                         <page string="Terms &amp; Conditions">
                             <field name="terms_conditions" nolabel="1"/>
@@ -148,51 +140,12 @@
                                 </form>
                             </field>
                         </page>
-                        <page string="Client Documents" groups="qlk_management.group_legal_user">
-                            <field name="client_document_ids" nolabel="1">
-                                <list editable="bottom"
-                                      decoration-danger="needs_translation and not is_translated"
-                                      decoration-success="is_translated">
-                                    <button name="action_preview" type="object" icon="fa-paperclip" title="Preview" class="btn-link"/>
-                                    <field name="name"/>
-                                    <field name="document_type"/>
-                                    <field name="attachment_id" readonly="1" options="{'no_open': True}"/>
-                                    <field name="needs_translation"/>
-                                    <field name="is_translated"/>
-                                    <field name="related_model"/>
-                                    <field name="create_date"/>
-                                </list>
-                            </field>
-                        </page>
-                                            <page string="Notifications">
-                            <field name="notification_ids" context="{'default_model_name': 'bd.proposal', 'default_res_id': id, 'default_notification_type': 'general'}">
-                                <list string="Notifications">
-                                    <field name="name"/>
-                                    <field name="notification_type"/>
-                                    <field name="notify_datetime"/>
-                                    <field name="user_ids" widget="many2many_tags"/>
-                                    <field name="state"/>
-                                </list>
-                                <form string="Notification">
-                                    <sheet>
-                                        <group>
-                                            <field name="name"/>
-                                            <field name="notification_type"/>
-                                            <field name="notify_datetime"/>
-                                            <field name="user_ids" widget="many2many_tags"/>
-                                            <field name="state"/>
-                                            <field name="active"/>
-                                            <field name="description"/>
-                                        </group>
-                                    </sheet>
-                                </form>
-                            </field>
-                        </page>
                     </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
 
     <record id="view_bd_proposal_search" model="ir.ui.view">
         <field name="name">bd.proposal.search</field>

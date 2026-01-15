@@ -16,9 +16,8 @@ RETAINER_TYPE_SELECTION = [
     ("corporate", "Corporate"),
     ("arbitration", "Arbitration"),
     ("litigation_corporate", "Litigation + Corporate"),
-    ("litigation_arbitration", "Litigation + Arbitration"),
-    ("corporate_arbitration", "Corporate + Arbitration"),
-    ("litigation_corporate_arbitration", "Litigation + Corporate + Arbitration"),
+    ("management_corporate", "Management Corporate"),
+    ("management_litigation", "Management Litigation"),
 ]
 
 
@@ -73,7 +72,8 @@ class ProjectProject(models.Model):
     )
     retainer_type = fields.Selection(
         selection=RETAINER_TYPE_SELECTION,
-        string="Retainer Type",
+        string="Services Type",
+        default="corporate",
     )
     fee_structure = fields.Char(string="Fee Structure")
     payment_terms = fields.Char(string="Payment Terms")
@@ -153,6 +153,23 @@ class ProjectProject(models.Model):
         next_number = (last_number or 0) + 1
         sequence_cache[partner_id] = next_number
         return f"{prefix}{next_number:03d}"
+
+    def _sync_client_code_from_partner(self):
+        for project in self:
+            partner = project.partner_id
+            if not partner:
+                continue
+            client_code = partner._get_client_code()
+            updates = {"client_code": client_code}
+            code = project.code or ""
+            if code and "/PRJ" in code:
+                suffix = code.split("/PRJ", 1)[1]
+                if suffix:
+                    updates["code"] = f"{client_code}/PRJ{suffix}"
+            else:
+                updates["code"] = project._generate_project_code(partner.id, client_code, {})
+            project.with_context(skip_project_code_sync=True).write(updates)
+
 
     def write(self, vals):
         vals = dict(vals)

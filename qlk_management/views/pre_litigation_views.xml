@@ -141,6 +141,9 @@
                                     </group>
                                 </group>
                             </page>
+                            <page string="Client Attachments">
+                                <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                            </page>
                             <page string="Lawyer Notes">
                                 <field name="lawyer_note"/>
                             </page>
@@ -242,10 +245,7 @@
                             </page>
                         </notebook>
                     </sheet>
-                <chatter>
-                <field name="message_ids"
-                    options="{'log': False}"/>
-                </chatter>
+                    <chatter/>
 
                 </form>
             </field>

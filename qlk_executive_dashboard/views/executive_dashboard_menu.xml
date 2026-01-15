@@ -39,41 +39,41 @@
         <menuitem id="menu_qlk_executive_dashboard_root"
                   name="Executive Dashboard"
                   sequence="10"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
 
         <menuitem id="menu_qlk_executive_dashboard_overview"
                   name="Overview"
                   parent="menu_qlk_executive_dashboard_root"
                   action="action_qlk_executive_dashboard_overview"
                   sequence="1"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
 
         <menuitem id="menu_qlk_executive_dashboard_litigation"
                   name="Litigation"
                   parent="menu_qlk_executive_dashboard_root"
                   action="action_qlk_executive_dashboard_litigation"
                   sequence="2"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
 
         <menuitem id="menu_qlk_executive_dashboard_finance"
                   name="Accounting"
                   parent="menu_qlk_executive_dashboard_root"
                   action="action_qlk_executive_dashboard_finance"
                   sequence="3"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
 
         <menuitem id="menu_qlk_executive_dashboard_hr"
                   name="HR"
                   parent="menu_qlk_executive_dashboard_root"
                   action="action_qlk_executive_dashboard_hr"
                   sequence="4"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
 
         <menuitem id="menu_qlk_executive_dashboard_approvals"
                   name="Approvals"
                   parent="menu_qlk_executive_dashboard_root"
                   action="action_qlk_executive_dashboard_approvals"
                   sequence="5"
-                  groups="qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager"/>
+                  groups="qlk_executive_dashboard.group_qlk_exec,qlk_executive_dashboard.group_qlk_manager,qlk_executive_dashboard.group_qlk_assistant_manager,qlk_executive_dashboard.group_qlk_lawyer"/>
     </data>
 </odoo>

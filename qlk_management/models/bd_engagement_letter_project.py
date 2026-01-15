@@ -30,6 +30,7 @@ class BDEngagementLetter(models.Model):
                 "litigation_stage": "court" if proj_type == "litigation" else False,
                 "owner_id": self.reviewer_id.id or self.env.user.id,
                 "reference": self.code,
+                "scope_of_work": self.scope_of_work,
             }
         )
         employee_ids = self.lawyer_ids.ids if self.lawyer_ids else []

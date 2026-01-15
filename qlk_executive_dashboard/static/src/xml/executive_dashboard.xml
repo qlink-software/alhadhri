@@ -11,242 +11,260 @@
                 </div>
             </t>
             <t t-else="">
-                <section class="dashboard-hero">
-                    <div class="hero-text">
-                        <h1>Executive Command Center</h1>
-                        <p>Real-time management snapshot across litigation, finance, HR, and approvals.</p>
+                <header class="exec-header">
+                    <div>
+                        <p class="eyebrow">Executive overview</p>
+                        <h1>Executive Dashboard</h1>
+                        <p>BI-grade insights across cases, sessions, memos, and approvals.</p>
                     </div>
-                </section>
+                    <div class="exec-meta">
+                        <span t-esc="state.data.user.company"/>
+                        <strong t-esc="state.data.user.name"/>
+                    </div>
+                </header>
 
-                <section class="dashboard-section" id="section-litigation">
-                    <header class="section-header">
-                        <div>
-                            <h2>Litigation &amp; Legal Operations</h2>
-                            <p>Active case load, court distribution, and session health.</p>
-                        </div>
-                    </header>
-                    <div class="kpi-grid">
-                        <t t-foreach="litigation.kpis || []" t-as="card" t-key="card.label">
-                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
+                <section class="exec-kpi-grid">
+                    <t t-foreach="kpis" t-as="card" t-key="card.key">
+                        <button type="button" class="exec-kpi-card"
+                                t-on-click="() => openAction(card.action, card.domain)">
+                            <div class="kpi-indicator" t-att-style="'background:' + (card.color || '#1F6FEB')"></div>
+                            <div class="kpi-icon" t-att-style="'background:' + (card.color || '#1F6FEB')">
+                                <i t-att-class="'fa ' + (card.icon || 'fa-chart-bar')"></i>
+                            </div>
+                            <div class="kpi-info">
                                 <span class="kpi-label"><t t-esc="card.label"/></span>
                                 <strong class="kpi-value"><t t-esc="card.value"/></strong>
-                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
+                                <span class="kpi-tag" t-esc="card.tag"/>
                             </div>
-                        </t>
-                    </div>
-                    <div class="split-row">
-                        <article class="chart-card" t-if="litigation.charts and litigation.charts.cases_by_court">
-                            <header>
-                                <h3>Cases by Court Type</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="litigationCourtCanvas"></canvas>
+                        </button>
+                    </t>
+                </section>
+
+                <section class="exec-main-grid">
+                    <article class="exec-card chart-card" t-if="charts.cases_by_stage">
+                        <header>
+                            <div>
+                                <h3>Cases by Stage</h3>
+                                <small>Vertical bar chart</small>
                             </div>
-                        </article>
-                        <article class="list-card" t-if="litigation.cases_by_court and litigation.cases_by_court.length">
-                            <header>
-                                <h3>Cases by Court (Cards)</h3>
-                            </header>
-                            <div class="qlk-card-grid">
-                                <t t-foreach="litigation.cases_by_court" t-as="item" t-key="item.label">
-                                    <div class="qlk-mini-card">
-                                        <span class="label"><t t-esc="item.label"/></span>
-                                        <strong class="value"><t t-esc="item.value"/></strong>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.cases_by_stage.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper tall">
+                            <canvas t-ref="casesByStageCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="exec-card chart-card" t-if="charts.courts_distribution">
+                        <header>
+                            <div>
+                                <h3>Distribution by Court</h3>
+                                <small>Donut chart</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.courts_distribution.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper donut">
+                            <canvas t-ref="courtsDistributionCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <aside class="exec-card metrics-card">
+                        <header>
+                            <h3>Performance Indicators</h3>
+                            <small>Operational KPIs</small>
+                        </header>
+                        <ul class="metric-list">
+                            <t t-foreach="sideMetrics" t-as="metric" t-key="metric.label">
+                                <li>
+                                    <span class="metric-icon">
+                                        <i t-att-class="'fa ' + metric.icon"></i>
+                                    </span>
+                                    <div class="metric-data">
+                                        <strong t-esc="metric.value"/>
+                                        <span t-esc="metric.label"/>
                                     </div>
-                                </t>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="litigation.charts and litigation.charts.cases_by_status">
-                            <header>
-                                <h3>Cases by Status</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="litigationStatusCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="list-card" t-if="litigation.case_status and litigation.case_status.length">
-                            <header>
-                                <h3>Total Cases by Status</h3>
-                            </header>
-                            <div class="qlk-card-grid">
-                                <t t-foreach="litigation.case_status" t-as="item" t-key="item.label">
-                                    <div class="qlk-mini-card">
-                                        <span class="label"><t t-esc="item.label"/></span>
-                                        <strong class="value"><t t-esc="item.value"/></strong>
-                                    </div>
-                                </t>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="litigation.charts and litigation.charts.sessions_timeline">
-                            <header>
-                                <h3>Upcoming Sessions (30 Days)</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="litigationSessionsCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="list-card" t-if="litigation.pre_litigation_vs_litigation and litigation.pre_litigation_vs_litigation.length">
-                            <header>
-                                <h3>Pre-Litigation vs Litigation</h3>
-                            </header>
-                            <div class="qlk-card-grid">
-                                <t t-foreach="litigation.pre_litigation_vs_litigation" t-as="item" t-key="item.label">
-                                    <div class="qlk-mini-card">
-                                        <span class="label"><t t-esc="item.label"/></span>
-                                        <strong class="value"><t t-esc="item.value"/></strong>
-                                    </div>
-                                </t>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="dashboard-section" id="section-finance">
-                    <header class="section-header">
-                        <div>
-                            <h2>Accounting &amp; Finance</h2>
-                            <p>Receivables, payables, revenue flow, and legal fee recovery.</p>
-                        </div>
-                    </header>
-                    <div class="kpi-grid">
-                        <t t-foreach="finance.kpis || []" t-as="card" t-key="card.label">
-                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
-                                <span class="kpi-label"><t t-esc="card.label"/></span>
-                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
-                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
-                            </div>
-                        </t>
-                    </div>
-                    <div class="split-row">
-                        <article class="chart-card" t-if="finance.charts and finance.charts.revenue_by_month">
-                            <header>
-                                <h3>Revenue by Month</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="financeRevenueCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="finance.charts and finance.charts.fees_by_case">
-                            <header>
-                                <h3>Legal Fees by Case</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="financeFeesCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="finance.charts and finance.charts.paid_vs_unpaid">
-                            <header>
-                                <h3>Paid vs Unpaid Invoices</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="financePaidCanvas"></canvas>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="dashboard-section" id="section-hr">
-                    <header class="section-header">
-                        <div>
-                            <h2>Human Resources</h2>
-                            <p>Headcount, attendance, leave pipeline, and payroll visibility.</p>
-                        </div>
-                    </header>
-                    <div class="kpi-grid">
-                        <t t-foreach="hr.kpis || []" t-as="card" t-key="card.label">
-                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
-                                <span class="kpi-label"><t t-esc="card.label"/></span>
-                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
-                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
-                            </div>
-                        </t>
-                    </div>
-                    <div class="split-row">
-                        <article class="chart-card" t-if="hr.charts and hr.charts.employees_by_department">
-                            <header>
-                                <h3>Employees by Department</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="hrDeptCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="hr.charts and hr.charts.employees_by_position">
-                            <header>
-                                <h3>Employees by Position</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="hrPositionCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="chart-card" t-if="hr.charts and hr.charts.leave_status">
-                            <header>
-                                <h3>Leaves Status</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="hrLeavesCanvas"></canvas>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="dashboard-section" id="section-approvals">
-                    <header class="section-header">
-                        <div>
-                            <h2>Approvals Overview</h2>
-                            <p>Pending approvals, SLA adherence, and daily outcomes.</p>
-                        </div>
-                    </header>
-                    <div class="kpi-grid">
-                        <t t-foreach="approvals.kpis || []" t-as="card" t-key="card.label">
-                            <div class="kpi-card" t-att-class="'status-' + (card.status || 'ok')" t-on-click="() => openAction(card.action)">
-                                <span class="kpi-label"><t t-esc="card.label"/></span>
-                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
-                                <span class="kpi-status"><t t-esc="(card.status || 'ok').toUpperCase()"/></span>
-                            </div>
-                        </t>
-                    </div>
-                    <div class="split-row">
-                        <article class="chart-card" t-if="approvals.charts and approvals.charts.approvals_by_model">
-                            <header>
-                                <h3>Approvals by Model</h3>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="approvalsByModelCanvas"></canvas>
-                            </div>
-                        </article>
-                        <article class="list-card">
-                            <header>
-                                <h3>My Pending Approvals</h3>
-                            </header>
-                            <t t-if="approvals.lists and approvals.lists.pending and approvals.lists.pending.length">
-                                <div class="qlk-card-grid">
-                                    <t t-foreach="approvals.lists.pending" t-as="record" t-key="record.id">
-                                        <div class="qlk-mini-card is-clickable" t-on-click="() => openApproval(record)">
-                                            <span class="label"><t t-esc="record.name"/></span>
-                                            <span class="meta"><t t-esc="record.owner"/></span>
-                                        </div>
-                                    </t>
-                                </div>
+                                </li>
                             </t>
-                            <div t-else="" class="qlk-empty">No pending approvals.</div>
-                        </article>
-                        <article class="list-card">
-                            <header>
-                                <h3>Delayed Approvals</h3>
-                            </header>
-                            <t t-if="approvals.lists and approvals.lists.delayed and approvals.lists.delayed.length">
-                                <div class="qlk-card-grid">
-                                    <t t-foreach="approvals.lists.delayed" t-as="record" t-key="record.id">
-                                        <div class="qlk-mini-card is-clickable" t-on-click="() => openApproval(record)">
-                                            <span class="label"><t t-esc="record.name"/></span>
-                                            <span class="meta"><t t-esc="record.owner"/></span>
-                                        </div>
-                                    </t>
-                                </div>
-                            </t>
-                            <div t-else="" class="qlk-empty">No delayed approvals.</div>
-                        </article>
-                    </div>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section class="exec-analytics-grid">
+                    <article class="exec-card chart-card" t-if="charts.cases_trend">
+                        <header>
+                            <div>
+                                <h3>Case Creation Trend</h3>
+                                <small>Line chart</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.cases_trend.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="casesTrendCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="exec-card chart-card" t-if="charts.sessions_by_status">
+                        <header>
+                            <div>
+                                <h3>Sessions by Status</h3>
+                                <small>Bar chart</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.sessions_by_status.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="sessionsByStatusCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="exec-card chart-card" t-if="charts.memos_by_type">
+                        <header>
+                            <div>
+                                <h3>Memos by Type</h3>
+                                <small>Pie chart</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.memos_by_type.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="memosByTypeCanvas"></canvas>
+                        </div>
+                    </article>
+
+                    <article class="exec-card chart-card" t-if="charts.lawyer_workload">
+                        <header>
+                            <div>
+                                <h3>Lawyer Workload</h3>
+                                <small>Stacked bar chart</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.lawyer_workload.action)">
+                                View
+                            </button>
+                        </header>
+                        <div class="chart-wrapper">
+                            <canvas t-ref="lawyerWorkloadCanvas"></canvas>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="exec-table-grid">
+                    <article class="exec-card table-card" t-if="tables.cases">
+                        <header>
+                            <div>
+                                <h3 t-esc="tables.cases.title"/>
+                                <small>Reference, client, status</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.cases.action)">
+                                View all
+                            </button>
+                        </header>
+                        <table t-if="tables.cases.rows.length">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Status</th>
+                                    <th>Stage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="tables.cases.rows" t-as="row" t-key="row.id">
+                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
+                                        <td t-esc="row.reference"/>
+                                        <td t-esc="row.client"/>
+                                        <td t-esc="row.meta"/>
+                                        <td>
+                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
+                                                <t t-esc="row.stage"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div t-else="" class="qlk-empty">No cases to display.</div>
+                    </article>
+
+                    <article class="exec-card table-card" t-if="tables.sessions">
+                        <header>
+                            <div>
+                                <h3 t-esc="tables.sessions.title"/>
+                                <small>Upcoming and recent sessions</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.sessions.action)">
+                                View all
+                            </button>
+                        </header>
+                        <table t-if="tables.sessions.rows.length">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="tables.sessions.rows" t-as="row" t-key="row.id">
+                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
+                                        <td t-esc="row.reference"/>
+                                        <td t-esc="row.client"/>
+                                        <td t-esc="row.meta"/>
+                                        <td>
+                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
+                                                <t t-esc="row.stage"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div t-else="" class="qlk-empty">No sessions to display.</div>
+                    </article>
+
+                    <article class="exec-card table-card" t-if="tables.memos">
+                        <header>
+                            <div>
+                                <h3 t-esc="tables.memos.title"/>
+                                <small>Latest memos</small>
+                            </div>
+                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.memos.action)">
+                                View all
+                            </button>
+                        </header>
+                        <table t-if="tables.memos.rows.length">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="tables.memos.rows" t-as="row" t-key="row.id">
+                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
+                                        <td t-esc="row.reference"/>
+                                        <td t-esc="row.client"/>
+                                        <td t-esc="row.meta"/>
+                                        <td>
+                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
+                                                <t t-esc="row.stage"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div t-else="" class="qlk-empty">No memos to display.</div>
+                    </article>
                 </section>
             </t>
         </div>

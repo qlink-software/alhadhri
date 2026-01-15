@@ -31,6 +31,11 @@ class PreLitigation(models.Model):
     project_id = fields.Many2one("qlk.project", string="Related Project", tracking=True)
     case_id = fields.Many2one("qlk.case", string="Litigation Case", tracking=True)
     client_id = fields.Many2one("res.partner", string="Client", required=True, tracking=True, domain="[('customer', '=', True)]")
+    client_attachment_ids = fields.Many2many(
+        related="client_id.client_attachment_ids",
+        string="Client Attachments",
+        readonly=False,
+    )
     opponent_id = fields.Many2one("res.partner", string="Opponent", domain="[('is_opponent', '=', True)]", tracking=True)
     subject = fields.Char(string="Subject", tracking=True)
     description = fields.Text(string="Summary / Notes")
