@@ -15,7 +15,6 @@
         "hr",
         "hr_attendance",
         "hr_holidays",
-        "alhadhri_bi_dashboard",
         "qlk_management",
     ],
     "data": [
