@@ -1,272 +1,663 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="qlk_executive_dashboard.ExecutiveDashboard" owl="1">
-        <div class="qlk-executive-dashboard" t-att-style="paletteStyle">
-            <t t-if="state.loading">
-                <div class="qlk-dashboard__loading">
-                    <div class="spinner-border text-light" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                    <span>Building executive insights...</span>
+        <div class="qlk-executive-dashboard">
+            <header class="exec-top">
+                <div>
+                    <p class="eyebrow">Decision cockpit</p>
+                    <h1>Executive Dashboard</h1>
+                    <p>Approvals, pipeline, and legal visibility at a glance.</p>
                 </div>
-            </t>
-            <t t-else="">
-                <header class="exec-header">
-                    <div>
-                        <p class="eyebrow">Executive overview</p>
-                        <h1>Executive Dashboard</h1>
-                        <p>BI-grade insights across cases, sessions, memos, and approvals.</p>
-                    </div>
+                <div class="exec-identity">
+                    <span class="role-badge" t-esc="isManager ? 'Managing Director' : 'Assistant Manager'"/>
                     <div class="exec-meta">
-                        <span t-esc="state.data.user.company"/>
-                        <strong t-esc="state.data.user.name"/>
+                        <span t-esc="state.data &amp;&amp; state.data.user ? state.data.user.name : ''"/>
+                        <small t-esc="state.data &amp;&amp; state.data.user ? state.data.user.company : ''"/>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                <section class="exec-kpi-grid">
-                    <t t-foreach="kpis" t-as="card" t-key="card.key">
-                        <button type="button" class="exec-kpi-card"
-                                t-on-click="() => openAction(card.action, card.domain)">
-                            <div class="kpi-indicator" t-att-style="'background:' + (card.color || '#1F6FEB')"></div>
-                            <div class="kpi-icon" t-att-style="'background:' + (card.color || '#1F6FEB')">
-                                <i t-att-class="'fa ' + (card.icon || 'fa-chart-bar')"></i>
-                            </div>
-                            <div class="kpi-info">
-                                <span class="kpi-label"><t t-esc="card.label"/></span>
-                                <strong class="kpi-value"><t t-esc="card.value"/></strong>
-                                <span class="kpi-tag" t-esc="card.tag"/>
-                            </div>
-                        </button>
-                    </t>
-                </section>
-
-                <section class="exec-main-grid">
-                    <article class="exec-card chart-card" t-if="charts.cases_by_stage">
-                        <header>
-                            <div>
-                                <h3>Cases by Stage</h3>
-                                <small>Vertical bar chart</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.cases_by_stage.action)">
-                                View
-                            </button>
-                        </header>
-                        <div class="chart-wrapper tall">
-                            <canvas t-ref="casesByStageCanvas"></canvas>
-                        </div>
-                    </article>
-
-                    <article class="exec-card chart-card" t-if="charts.courts_distribution">
-                        <header>
-                            <div>
-                                <h3>Distribution by Court</h3>
-                                <small>Donut chart</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.courts_distribution.action)">
-                                View
-                            </button>
-                        </header>
-                        <div class="chart-wrapper donut">
-                            <canvas t-ref="courtsDistributionCanvas"></canvas>
-                        </div>
-                    </article>
-
-                    <aside class="exec-card metrics-card">
-                        <header>
-                            <h3>Performance Indicators</h3>
-                            <small>Operational KPIs</small>
-                        </header>
-                        <ul class="metric-list">
-                            <t t-foreach="sideMetrics" t-as="metric" t-key="metric.label">
-                                <li>
-                                    <span class="metric-icon">
-                                        <i t-att-class="'fa ' + metric.icon"></i>
-                                    </span>
-                                    <div class="metric-data">
-                                        <strong t-esc="metric.value"/>
-                                        <span t-esc="metric.label"/>
+            <main class="exec-body">
+                <t t-if="state.loading">
+                    <div class="exec-loading">Loading dashboard...</div>
+                </t>
+                <t t-else="">
+                    <t t-if="isManager">
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <h2>Executive KPIs</h2>
+                                <p>Monthly revenue, liabilities, and delivery health.</p>
+                            </header>
+                            <div class="exec-kpi-grid">
+                                <button type="button" class="exec-kpi-card"
+                                        t-foreach="managerData.kpis" t-as="kpi" t-key="kpi.key"
+                                        t-on-click="() => openKpi(kpi)">
+                                    <div class="kpi-icon">
+                                        <i t-att-class="'fa ' + kpi.icon"/>
                                     </div>
-                                </li>
-                            </t>
-                        </ul>
-                    </aside>
-                </section>
-
-                <section class="exec-analytics-grid">
-                    <article class="exec-card chart-card" t-if="charts.cases_trend">
-                        <header>
-                            <div>
-                                <h3>Case Creation Trend</h3>
-                                <small>Line chart</small>
+                                    <div>
+                                        <p t-esc="kpi.label"/>
+                                        <strong t-esc="kpi.display"/>
+                                    </div>
+                                </button>
                             </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.cases_trend.action)">
-                                View
-                            </button>
+                        </section>
+
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Approval Inbox</h2>
+                                    <p>Manager approvals waiting right now.</p>
+                                </div>
+                                <button type="button" class="exec-link"
+                                        t-on-click="() => openAction(approvalInboxAction, [])">
+                                    View all
+                                </button>
+                            </header>
+                            <div class="exec-table-wrap">
+                                <table class="exec-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Document Type</th>
+                                            <th>Reference</th>
+                                            <th>Client</th>
+                                            <th>Amount</th>
+                                            <th>Current Stage</th>
+                                            <th>Waiting Since</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="!approvalInboxItems.length">
+                                            <tr>
+                                                <td colspan="7" class="empty">No approvals waiting.</td>
+                                            </tr>
+                                        </t>
+                                        <t t-foreach="approvalInboxItems" t-as="item" t-key="item.id">
+                                            <tr>
+                                                <td t-esc="item.doc_type"/>
+                                                <td>
+                                                    <button type="button" class="exec-link"
+                                                            t-on-click="() => openRecord(item)">
+                                                        <t t-esc="item.reference"/>
+                                                    </button>
+                                                </td>
+                                                <td t-esc="item.client"/>
+                                                <td t-esc="item.amount_display"/>
+                                                <td t-esc="item.stage"/>
+                                                <td t-esc="item.waiting_days + ' days'"/>
+                                                <td class="actions">
+                                                    <button type="button" class="btn-approve"
+                                                            t-on-click="() => onApprove(item)">Approve</button>
+                                                    <button type="button" class="btn-reject"
+                                                            t-on-click="() => onReject(item)">Reject</button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Business Pipeline Overview</h2>
+                                    <p>Mini-kanban status by product line.</p>
+                                </div>
+                            </header>
+                            <div class="exec-pipeline-grid">
+                                <div class="exec-pipeline-card">
+                                    <header>
+                                        <h3>Quotations</h3>
+                                        <button type="button" class="exec-link"
+                                        t-on-click="() => openAction(pipelineQuotationsAction, [])">
+                                            View
+                                        </button>
+                                    </header>
+                                    <div class="exec-mini-cards">
+                                        <button type="button" class="mini-card"
+                                                t-foreach="pipelineQuotations.cards"
+                                                t-as="card" t-key="card.key"
+                                                t-att-style="'--accent:' + card.color"
+                                                t-on-click="() => openAction(pipelineQuotationsAction, card.domain)">
+                                            <span t-esc="card.label"/>
+                                            <strong t-esc="card.count"/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="exec-pipeline-card">
+                                    <header>
+                                        <h3>Agreements</h3>
+                                        <button type="button" class="exec-link"
+                                                t-on-click="() => openAction(pipelineAgreementsAction, [])">
+                                            View
+                                        </button>
+                                    </header>
+                                    <div class="exec-mini-cards">
+                                        <button type="button" class="mini-card"
+                                                t-foreach="pipelineAgreements.cards"
+                                                t-as="card" t-key="card.key"
+                                                t-att-style="'--accent:' + card.color"
+                                                t-on-click="() => openAction(pipelineAgreementsAction, card.domain)">
+                                            <span t-esc="card.label"/>
+                                            <strong t-esc="card.count"/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="exec-pipeline-card">
+                                    <header>
+                                        <h3>Projects</h3>
+                                        <button type="button" class="exec-link"
+                                                t-on-click="() => openAction(pipelineProjectsAction, [])">
+                                            View
+                                        </button>
+                                    </header>
+                                    <div class="exec-mini-cards">
+                                        <button type="button" class="mini-card"
+                                                t-foreach="pipelineProjects.cards"
+                                                t-as="card" t-key="card.key"
+                                                t-att-style="'--accent:' + card.color"
+                                                t-on-click="() => openAction(pipelineProjectsAction, card.domain)">
+                                            <span t-esc="card.label"/>
+                                            <strong t-esc="card.count"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Legal Cases Dashboard</h2>
+                                    <p>Court workload, status mix, and upcoming sessions.</p>
+                                </div>
+                            </header>
+                            <div class="exec-legal-grid">
+                                <div class="exec-chart-card">
+                                    <header>
+                                        <h3>Cases per Court</h3>
+                                        <small>Core court types</small>
+                                    </header>
+                                    <div class="exec-chart">
+                                        <t t-if="managerData.legal &amp;&amp; managerData.legal.cases_by_court &amp;&amp; managerData.legal.cases_by_court.recordset &amp;&amp; managerData.legal.cases_by_court.recordset.length">
+                                            <SimpleBarChart chartId="'1'"
+                                                           recordSets="managerData.legal.cases_by_court.recordset"
+                                                           update_chart="onChartClick"/>
+                                        </t>
+                                        <t t-else="">
+                                            <p class="empty">No court data yet.</p>
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="exec-chart-card">
+                                    <header>
+                                        <h3>Cases by Status</h3>
+                                        <small>Status mix</small>
+                                    </header>
+                                    <div class="exec-chart">
+                                        <t t-if="managerData.legal &amp;&amp; managerData.legal.cases_by_status &amp;&amp; managerData.legal.cases_by_status.recordset &amp;&amp; managerData.legal.cases_by_status.recordset.length">
+                                            <SimplePieChart chartId="'2'"
+                                                           recordSets="managerData.legal.cases_by_status.recordset"
+                                                           update_chart="onChartClick"/>
+                                        </t>
+                                        <t t-else="">
+                                            <p class="empty">No status data yet.</p>
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="exec-alert-card">
+                                    <header>
+                                        <h3>Upcoming Sessions</h3>
+                                        <button type="button" class="exec-link"
+                                                t-on-click="() => openAction(legalUpcomingAction, [])">
+                                            View
+                                        </button>
+                                    </header>
+                                    <div class="exec-alert-list">
+                                        <t t-if="!legalUpcoming.items.length">
+                                            <p class="empty">No sessions in the next 7 days.</p>
+                                        </t>
+                                        <t t-foreach="legalUpcoming.items" t-as="item" t-key="item.id">
+                                            <button type="button" class="exec-alert-item"
+                                                    t-on-click="() => openRecord(item)">
+                                                <div>
+                                                    <strong t-esc="item.case || item.name"/>
+                                                    <small t-esc="item.court"/>
+                                                </div>
+                                                <span t-esc="item.date"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </t>
+
+                    <t t-else="">
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Operational Requests</h2>
+                                    <p>New, reviewed, and escalated tasks.</p>
+                                </div>
+                            </header>
+                            <div class="exec-requests-grid">
+                                <button type="button" class="exec-request-card"
+                                        t-foreach="assistantData.operational_requests || []"
+                                        t-as="req" t-key="req.key"
+                                        t-on-click="() => openRequest(req)">
+                                    <h3 t-esc="req.label"/>
+                                    <div class="request-stats">
+                                        <div>
+                                            <span>New</span>
+                                            <strong t-esc="req.new"/>
+                                        </div>
+                                        <div>
+                                            <span>Reviewed</span>
+                                            <strong t-esc="req.reviewed"/>
+                                        </div>
+                                        <div>
+                                            <span>Escalated</span>
+                                            <strong t-esc="req.escalated"/>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Case Monitoring</h2>
+                                    <p>Delays and missing sessions.</p>
+                                </div>
+                            </header>
+                            <div class="exec-monitor-grid">
+                                <button type="button" class="exec-monitor-card"
+                                        t-on-click="() => openAction(caseMonitoringDelayedAction, [])">
+                                    <span>Delayed Cases</span>
+                                    <strong t-esc="caseMonitoringDelayed.count"/>
+                                </button>
+                                <button type="button" class="exec-monitor-card"
+                                        t-on-click="() => openAction(caseMonitoringNoSessionsAction, [])">
+                                    <span>No Upcoming Sessions</span>
+                                    <strong t-esc="caseMonitoringNoSessions.count"/>
+                                </button>
+                                <div class="exec-alert-card compact">
+                                    <header>
+                                        <h3>Upcoming Hearings (14 days)</h3>
+                                        <button type="button" class="exec-link"
+                                                t-on-click="() => openAction(caseMonitoringUpcomingAction, [])">
+                                            View
+                                        </button>
+                                    </header>
+                                    <div class="exec-alert-list">
+                                        <t t-if="!caseMonitoringUpcoming.items.length">
+                                            <p class="empty">No hearings scheduled.</p>
+                                        </t>
+                                        <t t-foreach="caseMonitoringUpcoming.items"
+                                           t-as="item" t-key="item.id">
+                                            <button type="button" class="exec-alert-item"
+                                                    t-on-click="() => openRecord(item)">
+                                                <div>
+                                                    <strong t-esc="item.case || item.name"/>
+                                                    <small t-esc="item.court"/>
+                                                </div>
+                                                <span t-esc="item.date"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="exec-section">
+                            <header class="exec-section-head">
+                                <div>
+                                    <h2>Pre-Approval Queue</h2>
+                                    <p>Recommend or request revisions before manager approval.</p>
+                                </div>
+                                <button type="button" class="exec-link"
+                                        t-on-click="() => openAction(preApprovalAction, [])">
+                                    View all
+                                </button>
+                            </header>
+                            <div class="exec-table-wrap">
+                                <table class="exec-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Document Type</th>
+                                            <th>Reference</th>
+                                            <th>Client</th>
+                                            <th>Amount</th>
+                                            <th>Current Stage</th>
+                                            <th>Waiting Since</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="!preApprovalItems.length">
+                                            <tr>
+                                                <td colspan="7" class="empty">No items in queue.</td>
+                                            </tr>
+                                        </t>
+                                        <t t-foreach="preApprovalItems" t-as="item" t-key="item.id">
+                                            <tr>
+                                                <td t-esc="item.doc_type"/>
+                                                <td>
+                                                    <button type="button" class="exec-link"
+                                                            t-on-click="() => openRecord(item)">
+                                                        <t t-esc="item.reference"/>
+                                                    </button>
+                                                </td>
+                                                <td t-esc="item.client"/>
+                                                <td t-esc="item.amount_display"/>
+                                                <td t-esc="item.stage"/>
+                                                <td t-esc="item.waiting_days + ' days'"/>
+                                                <td class="actions">
+                                                    <button type="button" class="btn-approve"
+                                                            t-on-click="() => onRecommend(item)">Recommend</button>
+                                                    <button type="button" class="btn-reject"
+                                                            t-on-click="() => onNeedsRevision(item)">Needs Revision</button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </t>
+                    <section class="exec-section">
+                        <header class="exec-section-head">
+                            <div>
+                                <h2>Core Records (Oldest First)</h2>
+                                <p>Latest six records per model for rapid review.</p>
+                            </div>
                         </header>
-                        <div class="chart-wrapper">
-                            <canvas t-ref="casesTrendCanvas"></canvas>
+                        <div class="exec-records-grid">
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Leave Requests</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listLeaves.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Leave Type</th>
+                                                <th>Period</th>
+                                                <th>Status</th>
+                                                <th>Requested On</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listLeaves.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No leave records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listLeaves.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td t-esc="item.employee"/>
+                                                    <td t-esc="item.leave_type"/>
+                                                    <td t-esc="item.period"/>
+                                                    <td t-esc="item.state"/>
+                                                    <td t-esc="item.requested_on"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Proposals</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listProposals.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Reference</th>
+                                                <th>Client</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listProposals.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No proposal records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listProposals.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="exec-link" t-on-click="() => openRecord(item)">
+                                                            <t t-esc="item.reference"/>
+                                                        </button>
+                                                    </td>
+                                                    <td t-esc="item.client"/>
+                                                    <td t-esc="item.amount_display"/>
+                                                    <td t-esc="item.state"/>
+                                                    <td t-esc="item.date"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Agreements</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listAgreements.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Reference</th>
+                                                <th>Client</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listAgreements.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No agreement records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listAgreements.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="exec-link" t-on-click="() => openRecord(item)">
+                                                            <t t-esc="item.reference"/>
+                                                        </button>
+                                                    </td>
+                                                    <td t-esc="item.client"/>
+                                                    <td t-esc="item.amount_display"/>
+                                                    <td t-esc="item.state"/>
+                                                    <td t-esc="item.date"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Projects</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listProjects.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Reference</th>
+                                                <th>Client</th>
+                                                <th>Stage</th>
+                                                <th>Type</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listProjects.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No project records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listProjects.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="exec-link" t-on-click="() => openRecord(item)">
+                                                            <t t-esc="item.reference"/>
+                                                        </button>
+                                                    </td>
+                                                    <td t-esc="item.client"/>
+                                                    <td t-esc="item.stage"/>
+                                                    <td t-esc="item.type"/>
+                                                    <td t-esc="item.date"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Cases</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listCases.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Case</th>
+                                                <th>Court</th>
+                                                <th>Status</th>
+                                                <th>Next Hearing</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listCases.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No case records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listCases.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="exec-link" t-on-click="() => openRecord(item)">
+                                                            <t t-esc="item.name"/>
+                                                        </button>
+                                                    </td>
+                                                    <td t-esc="item.court"/>
+                                                    <td t-esc="item.status"/>
+                                                    <td t-esc="item.next_hearing"/>
+                                                    <td t-esc="item.date"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="exec-record-card">
+                                <header>
+                                    <h3>Hearings</h3>
+                                    <button type="button" class="exec-link" t-on-click="() => openAction(listHearings.action, [])">
+                                        View more
+                                    </button>
+                                </header>
+                                <div class="exec-table-wrap">
+                                    <table class="exec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Hearing</th>
+                                                <th>Case</th>
+                                                <th>Court</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="!listHearings.items.length">
+                                                <tr>
+                                                    <td colspan="5" class="empty">No hearing records.</td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="listHearings.items" t-as="item" t-key="item.id">
+                                                <tr>
+                                                    <td>
+                                                        <button type="button" class="exec-link" t-on-click="() => openRecord(item)">
+                                                            <t t-esc="item.name"/>
+                                                        </button>
+                                                    </td>
+                                                    <td t-esc="item.case"/>
+                                                    <td t-esc="item.court"/>
+                                                    <td t-esc="item.date"/>
+                                                    <td t-esc="item.state"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </article>
-
-                    <article class="exec-card chart-card" t-if="charts.sessions_by_status">
-                        <header>
-                            <div>
-                                <h3>Sessions by Status</h3>
-                                <small>Bar chart</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.sessions_by_status.action)">
-                                View
-                            </button>
-                        </header>
-                        <div class="chart-wrapper">
-                            <canvas t-ref="sessionsByStatusCanvas"></canvas>
-                        </div>
-                    </article>
-
-                    <article class="exec-card chart-card" t-if="charts.memos_by_type">
-                        <header>
-                            <div>
-                                <h3>Memos by Type</h3>
-                                <small>Pie chart</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.memos_by_type.action)">
-                                View
-                            </button>
-                        </header>
-                        <div class="chart-wrapper">
-                            <canvas t-ref="memosByTypeCanvas"></canvas>
-                        </div>
-                    </article>
-
-                    <article class="exec-card chart-card" t-if="charts.lawyer_workload">
-                        <header>
-                            <div>
-                                <h3>Lawyer Workload</h3>
-                                <small>Stacked bar chart</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(charts.lawyer_workload.action)">
-                                View
-                            </button>
-                        </header>
-                        <div class="chart-wrapper">
-                            <canvas t-ref="lawyerWorkloadCanvas"></canvas>
-                        </div>
-                    </article>
-                </section>
-
-                <section class="exec-table-grid">
-                    <article class="exec-card table-card" t-if="tables.cases">
-                        <header>
-                            <div>
-                                <h3 t-esc="tables.cases.title"/>
-                                <small>Reference, client, status</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.cases.action)">
-                                View all
-                            </button>
-                        </header>
-                        <table t-if="tables.cases.rows.length">
-                            <thead>
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Client</th>
-                                    <th>Status</th>
-                                    <th>Stage</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="tables.cases.rows" t-as="row" t-key="row.id">
-                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
-                                        <td t-esc="row.reference"/>
-                                        <td t-esc="row.client"/>
-                                        <td t-esc="row.meta"/>
-                                        <td>
-                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
-                                                <t t-esc="row.stage"/>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-                        <div t-else="" class="qlk-empty">No cases to display.</div>
-                    </article>
-
-                    <article class="exec-card table-card" t-if="tables.sessions">
-                        <header>
-                            <div>
-                                <h3 t-esc="tables.sessions.title"/>
-                                <small>Upcoming and recent sessions</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.sessions.action)">
-                                View all
-                            </button>
-                        </header>
-                        <table t-if="tables.sessions.rows.length">
-                            <thead>
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Client</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="tables.sessions.rows" t-as="row" t-key="row.id">
-                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
-                                        <td t-esc="row.reference"/>
-                                        <td t-esc="row.client"/>
-                                        <td t-esc="row.meta"/>
-                                        <td>
-                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
-                                                <t t-esc="row.stage"/>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-                        <div t-else="" class="qlk-empty">No sessions to display.</div>
-                    </article>
-
-                    <article class="exec-card table-card" t-if="tables.memos">
-                        <header>
-                            <div>
-                                <h3 t-esc="tables.memos.title"/>
-                                <small>Latest memos</small>
-                            </div>
-                            <button type="button" class="exec-link" t-on-click="() => openAction(tables.memos.action)">
-                                View all
-                            </button>
-                        </header>
-                        <table t-if="tables.memos.rows.length">
-                            <thead>
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Client</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="tables.memos.rows" t-as="row" t-key="row.id">
-                                    <tr class="is-clickable" t-on-click="() => openRecord(row.url)">
-                                        <td t-esc="row.reference"/>
-                                        <td t-esc="row.client"/>
-                                        <td t-esc="row.meta"/>
-                                        <td>
-                                            <span class="status-badge" t-att-style="'background:' + row.badge_color">
-                                                <t t-esc="row.stage"/>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-                        <div t-else="" class="qlk-empty">No memos to display.</div>
-                    </article>
-                </section>
+                    </section>
+                </t>
+            </main>
+        </div>
+    </t>
+    <t t-name="qlk_executive_dashboard.SimpleBarChart" owl="1">
+        <div class="exec-simple-bar">
+            <t t-foreach="items" t-as="item" t-key="item.label">
+                <button type="button" class="exec-bar-row" t-on-click="() => onClick(item)">
+                    <span class="label" t-esc="item.label"/>
+                    <span class="value" t-esc="item.value"/>
+                    <span class="bar">
+                        <span class="fill" t-att-style="'width:' + item.percent + '%; background:' + item.color"/>
+                    </span>
+                </button>
             </t>
+        </div>
+    </t>
+
+    <t t-name="qlk_executive_dashboard.SimplePieChart" owl="1">
+        <div class="exec-simple-pie">
+            <button type="button" class="pie" t-att-style="pieStyle" t-on-click="() => onClick(items[0] || {})">
+                <span t-esc="items.length ? items[0].percent + '%' : '0%'"/>
+            </button>
+            <div class="legend">
+                <t t-foreach="items" t-as="item" t-key="item.label">
+                    <button type="button" class="legend-row" t-on-click="() => onClick(item)">
+                        <span class="dot" t-att-style="'background:' + item.color"/>
+                        <span class="label" t-esc="item.label"/>
+                        <span class="value" t-esc="item.percent + '%'"/>
+                    </button>
+                </t>
+            </div>
         </div>
     </t>
 </templates>

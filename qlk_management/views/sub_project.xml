@@ -31,8 +31,8 @@
             </form>
         </field>
     </record>
-    <record id="sub_project_view_tree" model="ir.ui.view">
-        <field name="name">sub.project.view.tree</field>
+    <record id="sub_project_view_list" model="ir.ui.view">
+        <field name="name">sub.project.view.list</field>
         <field name="model">sub.project</field>
         <field name="arch" type="xml">
             <list string="">

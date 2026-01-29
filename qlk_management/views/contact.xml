@@ -27,8 +27,8 @@
             </form>
         </field>
     </record>
-    <record id="view_client_document_tree" model="ir.ui.view">
-        <field name="name">qlk.client.document.tree</field>
+    <record id="view_client_document_list" model="ir.ui.view">
+        <field name="name">qlk.client.document.list</field>
         <field name="model">qlk.client.document</field>
         <field name="arch" type="xml">
             <list decoration-danger="needs_translation and not is_translated"
@@ -101,7 +101,7 @@
         <field name="name">Client Documents</field>
         <field name="res_model">qlk.client.document</field>
         <field name="view_mode">list,form</field>
-        <field name="view_id" ref="view_client_document_tree"/>
+        <field name="view_id" ref="view_client_document_list"/>
     </record>
 
     <!-- <record id="view_partner_hide_financial_audit_page" model="ir.ui.view">
@@ -202,9 +202,6 @@
             <!-- <xpath expr="//button[@name='get_client_case']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath> -->
-            <xpath expr="//field[@name='street']/ancestor::group[1]" position="attributes">
-                <attribute name="modifiers">{}</attribute>
-            </xpath>
             <!-- <xpath expr="//field[@name='delivery_type']" position="attributes">
                 <attribute name="modifiers">{'invisible': [('is_company','=', False)]}</attribute>
             </xpath> -->
@@ -303,12 +300,6 @@
             <xpath expr="//field[@name='user_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='street']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//field[@name='street2']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
             <xpath expr="//field[@name='city']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -350,7 +341,7 @@
 
     
 
-    <record id="inherit_view_partner_tree_hide_fields" model="ir.ui.view">
+    <record id="inherit_view_partner_list_hide_fields" model="ir.ui.view">
         <field name="name">res.partner.list.hide.fields</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_tree"/>
@@ -368,9 +359,6 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//field[@name='street']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='city']" position="attributes">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_cost_calculation_tree" model="ir.ui.view">
-        <field name="name">cost.calculation.tree</field>
+    <record id="view_cost_calculation_list" model="ir.ui.view">
+        <field name="name">cost.calculation.list</field>
         <field name="model">cost.calculation</field>
         <field name="arch" type="xml">
             <list string="Lawyer Costs">
@@ -48,7 +48,7 @@
         <field name="name">Lawyer Cost Calculation</field>
         <field name="res_model">cost.calculation</field>
         <field name="view_mode">list,form</field>
-        <field name="view_id" ref="view_cost_calculation_tree"/>
+        <field name="view_id" ref="view_cost_calculation_list"/>
     </record>
 
     <menuitem id="menu_cost_calculation_root"

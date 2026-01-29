@@ -48,8 +48,8 @@
             </form>
         </field>
     </record>
-    <record id="task_view_tree" model="ir.ui.view">
-        <field name="name">task.view.tree</field>
+    <record id="task_view_list" model="ir.ui.view">
+        <field name="name">task.view.list</field>
         <field name="model">task</field>
         <field name="arch" type="xml">
             <list string="">

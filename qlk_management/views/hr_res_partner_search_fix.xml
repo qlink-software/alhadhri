@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_partner_view_search_hr_fix" model="ir.ui.view">
+            <field name="name">res.partner.search.hr.fix</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="hr.res_partner_view_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='customer']" position="attributes">
+                    <attribute name="domain">[('customer_rank','&gt;',0)]</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

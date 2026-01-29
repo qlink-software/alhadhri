@@ -14,4 +14,42 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_employee_form_employee_code" model="ir.ui.view">
+        <field name="name">hr.employee.form.employee.code</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='work_email']" position="after">
+                    <field name="employee_code"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_tree_employee_code" model="ir.ui.view">
+        <field name="name">hr.employee.tree.employee.code</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="employee_code"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_kanban_employee_code" model="ir.ui.view">
+        <field name="name">hr.employee.kanban.employee.code</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='company_id']" position="after">
+                <field name="employee_code"/>
+            </xpath>
+            <xpath expr="//kanban//field[@name='name']" position="after">
+                <div t-if="record.employee_code.raw_value" class="text-muted">
+                    <field name="employee_code"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
 </odoo>

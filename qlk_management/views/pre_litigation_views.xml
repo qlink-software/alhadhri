@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="view_pre_litigation_tree" model="ir.ui.view">
-            <field name="name">qlk.pre.litigation.tree</field>
+        <record id="view_pre_litigation_list" model="ir.ui.view">
+            <field name="name">qlk.pre.litigation.list</field>
             <field name="model">qlk.pre.litigation</field>
             <field name="arch" type="xml">
                 <list string="Pre-Litigation Cases">

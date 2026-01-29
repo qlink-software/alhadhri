@@ -100,7 +100,7 @@ class Crm(models.Model):
         self.ensure_one()
         form_view = self.env.ref('qlk_management.view_bd_proposal_form')
         kanban_view = self.env.ref('qlk_management.view_bd_proposal_kanban')
-        tree_view = self.env.ref('qlk_management.view_bd_proposal_tree')
+        list_view = self.env.ref('qlk_management.view_bd_proposal_list')
         return {
             'name': _('Proposals'),
             'type': 'ir.actions.act_window',
@@ -108,7 +108,7 @@ class Crm(models.Model):
             'view_mode': 'kanban,list,form',
             'views': [
                 (kanban_view.id, 'kanban'),
-                (tree_view.id, 'list'),
+                (list_view.id, 'list'),
                 (form_view.id, 'form'),
             ],
             'domain': [('lead_id', '=', self.id)],

@@ -32,3 +32,4 @@ from . import project_dashboard
 from . import project_stage
 from . import project_workflow
 from . import qlk_project_task
+from . import employee_document

@@ -1,95 +1,121 @@
 /** @odoo-module **/
 
-import { Component, onRendered, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
-import { loadJS } from "@web/core/assets";
 
-const chartKeyMap = {
-    casesByStage: "cases_by_stage",
-    courtsDistribution: "courts_distribution",
-    casesTrend: "cases_trend",
-    sessionsByStatus: "sessions_by_status",
-    memosByType: "memos_by_type",
-    lawyerWorkload: "lawyer_workload",
-};
+const CHART_COLORS = [
+    "#0F5CA8",
+    "#22B6C8",
+    "#27AE60",
+    "#F4B740",
+    "#E86A50",
+    "#0D3E7A",
+];
+
+class SimpleBarChart extends Component {
+    static template = "qlk_executive_dashboard.SimpleBarChart";
+    static props = {
+        chartId: String,
+        recordSets: { type: Array, optional: true },
+        update_chart: { type: Function, optional: true },
+    };
+
+    get items() {
+        const data = this.props.recordSets || [];
+        const values = data.map((item) => item.count || item.value || 0);
+        const max = Math.max(...values, 1);
+        return data.map((item, index) => {
+            const value = item.count || item.value || 0;
+            return {
+                label: item.category || item.label || "Unassigned",
+                value,
+                percent: Math.round((value / max) * 100),
+                color: CHART_COLORS[index % CHART_COLORS.length],
+                domain: item.domain || item.record_id || [],
+            };
+        });
+    }
+
+    onClick(item) {
+        if (this.props.update_chart) {
+            const chartId = Number(this.props.chartId || 0);
+            this.props.update_chart(chartId, "bar_chart", item);
+        }
+    }
+}
+
+class SimplePieChart extends Component {
+    static template = "qlk_executive_dashboard.SimplePieChart";
+    static props = {
+        chartId: String,
+        recordSets: { type: Array, optional: true },
+        update_chart: { type: Function, optional: true },
+    };
+
+    get items() {
+        const data = this.props.recordSets || [];
+        const total = data.reduce((sum, item) => sum + (item.value || item.count || 0), 0);
+        return data.map((item, index) => {
+            const value = item.value || item.count || 0;
+            const percent = total ? Math.round((value / total) * 100) : 0;
+            return {
+                label: item.category || item.label || "Unassigned",
+                value,
+                percent,
+                color: CHART_COLORS[index % CHART_COLORS.length],
+                domain: item.domain || item.record_id || [],
+            };
+        });
+    }
+
+    get pieStyle() {
+        const items = this.items;
+        const total = items.reduce((sum, item) => sum + item.value, 0);
+        if (!total) {
+            return "background: conic-gradient(#e2e8f0 0% 100%);";
+        }
+        let current = 0;
+        const segments = items.map((item) => {
+            const start = current;
+            const end = current + item.value / total;
+            current = end;
+            return `${item.color} ${start * 100}% ${end * 100}%`;
+        });
+        return `background: conic-gradient(${segments.join(", ")});`;
+    }
+
+    onClick(item) {
+        if (this.props.update_chart) {
+            const chartId = Number(this.props.chartId || 0);
+            this.props.update_chart(chartId, "pie_chart", item);
+        }
+    }
+}
 
 class ExecutiveDashboard extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-
         this.state = useState({
             loading: true,
             data: null,
         });
 
-        this.canvasRefs = {
-            casesByStage: useRef("casesByStageCanvas"),
-            courtsDistribution: useRef("courtsDistributionCanvas"),
-            casesTrend: useRef("casesTrendCanvas"),
-            sessionsByStatus: useRef("sessionsByStatusCanvas"),
-            memosByType: useRef("memosByTypeCanvas"),
-            lawyerWorkload: useRef("lawyerWorkloadCanvas"),
-        };
-        this.chartInstances = {};
-
         onWillStart(async () => {
-            await loadJS("/web/static/lib/Chart/Chart.js");
-            await this._loadData();
-        });
-
-        onRendered(() => {
-            this._renderCharts();
-        });
-
-        onWillUnmount(() => {
-            this._destroyCharts();
+            await this.loadDashboard();
         });
     }
 
-    get paletteStyle() {
-        const palette = this.state.data?.palette || {};
-        return [
-            `--qlk-primary: ${palette.primary || "#0B2C3F"}`,
-            `--qlk-accent: ${palette.accent || "#C9A56A"}`,
-            `--qlk-muted: ${palette.muted || "#1C3D4B"}`,
-            `--qlk-warning: ${palette.warning || "#D87A4A"}`,
-            `--qlk-danger: ${palette.danger || "#B83A3A"}`,
-            `--qlk-bg: ${palette.bg || "#F6F8FB"}`,
-            `--qlk-card: ${palette.card || "#FFFFFF"}`,
-            `--qlk-text: ${palette.text || "#1F2933"}`,
-            `--qlk-border: ${palette.border || "#E6EAF0"}`,
-            `--qlk-shadow: ${palette.shadow || "rgba(31, 41, 51, 0.08)"}`,
-        ].join("; ");
-    }
-
-    get kpis() {
-        return this.state.data?.kpis || [];
-    }
-
-    get charts() {
-        return this.state.data?.charts || {};
-    }
-
-    get sideMetrics() {
-        return this.state.data?.side_metrics || [];
-    }
-
-    get tables() {
-        return this.state.data?.tables || {};
-    }
-
-    async _loadData() {
+    async loadDashboard() {
         this.state.loading = true;
         try {
-            const payload = await this.orm.call("qlk.executive.dashboard", "get_dashboard_data", []);
-            this.state.data = payload;
+            this.state.data = await this.orm.call("qlk.executive.dashboard", "get_dashboard_data", []);
         } catch (error) {
             console.error("Failed to load executive dashboard", error);
-            this.notification.add(_t("Unable to load the executive dashboard"), {
+            this.notification.add(_t("Failed to load the executive dashboard"), {
                 type: "danger",
             });
         } finally {
@@ -97,152 +123,238 @@ class ExecutiveDashboard extends Component {
         }
     }
 
-    openAction(actionMeta, domain) {
-        if (!actionMeta) {
-            return;
-        }
-        if (actionMeta.type) {
-            const action = { ...actionMeta };
-            if (domain) {
-                action.domain = domain;
-            }
-            this.action.doAction(action);
-            return;
-        }
-        this.action.doAction(actionMeta);
+    get isManager() {
+        return this.state.data && this.state.data.role === "manager";
     }
 
-    openRecord(target) {
-        if (!target?.res_model || !target?.res_id) {
+    get managerData() {
+        return (this.state.data && this.state.data.manager) || {};
+    }
+
+    get managerLists() {
+        return this.managerData.lists || {};
+    }
+
+    get assistantLists() {
+        return this.assistantData.lists || {};
+    }
+
+    get recordLists() {
+        return Object.keys(this.managerLists).length ? this.managerLists : this.assistantLists;
+    }
+
+    get listLeaves() {
+        return this.recordLists.leaves || { items: [], action: null };
+    }
+
+    get listProposals() {
+        return this.recordLists.proposals || { items: [], action: null };
+    }
+
+    get listAgreements() {
+        return this.recordLists.agreements || { items: [], action: null };
+    }
+
+    get listProjects() {
+        return this.recordLists.projects || { items: [], action: null };
+    }
+
+    get listCases() {
+        return this.recordLists.cases || { items: [], action: null };
+    }
+
+    get listHearings() {
+        return this.recordLists.hearings || { items: [], action: null };
+    }
+
+    get assistantData() {
+        return (this.state.data && this.state.data.assistant) || {};
+    }
+
+    get approvalInboxAction() {
+        return this.managerData.approval_inbox ? this.managerData.approval_inbox.action : null;
+    }
+
+    get approvalInboxItems() {
+        return (this.managerData.approval_inbox && this.managerData.approval_inbox.items) || [];
+    }
+
+    get pipelineQuotations() {
+        return (this.managerData.pipeline && this.managerData.pipeline.quotations) || { cards: [], action: null };
+    }
+
+    get pipelineAgreements() {
+        return (this.managerData.pipeline && this.managerData.pipeline.agreements) || { cards: [], action: null };
+    }
+
+    get pipelineProjects() {
+        return (this.managerData.pipeline && this.managerData.pipeline.projects) || { cards: [], action: null };
+    }
+
+    get pipelineQuotationsAction() {
+        return this.pipelineQuotations.action || null;
+    }
+
+    get pipelineAgreementsAction() {
+        return this.pipelineAgreements.action || null;
+    }
+
+    get pipelineProjectsAction() {
+        return this.pipelineProjects.action || null;
+    }
+
+    get legalUpcoming() {
+        return (this.managerData.legal && this.managerData.legal.upcoming_sessions) || { items: [], action: null };
+    }
+
+    get legalUpcomingAction() {
+        return this.legalUpcoming.action || null;
+    }
+
+    get preApprovalAction() {
+        return this.assistantData.pre_approval ? this.assistantData.pre_approval.action : null;
+    }
+
+    get preApprovalItems() {
+        return (this.assistantData.pre_approval && this.assistantData.pre_approval.items) || [];
+    }
+
+    get caseMonitoringDelayed() {
+        return (this.assistantData.case_monitoring && this.assistantData.case_monitoring.delayed) || {
+            count: 0,
+            action: null,
+        };
+    }
+
+    get caseMonitoringNoSessions() {
+        return (this.assistantData.case_monitoring && this.assistantData.case_monitoring.no_sessions) || {
+            count: 0,
+            action: null,
+        };
+    }
+
+    get caseMonitoringUpcoming() {
+        return (this.assistantData.case_monitoring && this.assistantData.case_monitoring.upcoming_hearings) || {
+            items: [],
+            action: null,
+        };
+    }
+
+    get caseMonitoringDelayedAction() {
+        return this.caseMonitoringDelayed.action || null;
+    }
+
+    get caseMonitoringNoSessionsAction() {
+        return this.caseMonitoringNoSessions.action || null;
+    }
+
+    get caseMonitoringUpcomingAction() {
+        return this.caseMonitoringUpcoming.action || null;
+    }
+
+    openAction(action, domain) {
+        if (!action) {
+            return;
+        }
+        const payload = { ...action };
+        if (domain && domain.length) {
+            payload.domain = domain;
+        }
+        this.action.doAction(payload);
+    }
+
+    openKpi(kpi) {
+        if (!kpi || !kpi.action) {
+            return;
+        }
+        this.openAction(kpi.action, []);
+    }
+
+    openRequest(request) {
+        if (!request || !request.action) {
+            return;
+        }
+        this.openAction(request.action, []);
+    }
+
+    openRecord(item) {
+        if (!item || !item.model || !item.id) {
             return;
         }
         this.action.doAction({
             type: "ir.actions.act_window",
-            res_model: target.res_model,
-            res_id: target.res_id,
+            res_model: item.model,
+            res_id: item.id,
             views: [[false, "form"]],
             target: "current",
         });
     }
 
-    _destroyCharts() {
-        Object.values(this.chartInstances).forEach((chart) => {
-            if (chart?.destroy) {
-                chart.destroy();
-            }
-        });
-        this.chartInstances = {};
-    }
-
-    _renderCharts() {
-        if (!window.Chart || !this.state.data) {
+    async onApprove(item) {
+        if (!item) {
             return;
         }
-        for (const [refKey, ref] of Object.entries(this.canvasRefs)) {
-            const canvas = ref.el;
-            if (!canvas) {
-                continue;
-            }
-            const chartKey = chartKeyMap[refKey];
-            const config = this._chartConfig(chartKey);
-            if (!config) {
-                if (this.chartInstances[refKey]) {
-                    this.chartInstances[refKey].destroy();
-                    delete this.chartInstances[refKey];
-                }
-                continue;
-            }
-            const chartData = this._buildDataset(config);
-            const options = this._chartOptions(config);
-            if (this.chartInstances[refKey]) {
-                this.chartInstances[refKey].data = chartData;
-                this.chartInstances[refKey].options = options;
-                this.chartInstances[refKey].update();
-                continue;
-            }
-            this.chartInstances[refKey] = new window.Chart(canvas.getContext("2d"), {
-                type: config.type || "line",
-                data: chartData,
-                options,
-            });
+        if (!window.confirm(_t("Approve this request?"))) {
+            return;
+        }
+        await this.performAction("action_approve_record", [item.model, item.id]);
+    }
+
+    async onReject(item) {
+        if (!item) {
+            return;
+        }
+        const reason = window.prompt(_t("Rejection reason"));
+        if (!reason) {
+            this.notification.add(_t("Rejection reason is required."), { type: "warning" });
+            return;
+        }
+        await this.performAction("action_reject_record", [item.model, item.id, reason]);
+    }
+
+    async onRecommend(item) {
+        if (!item) {
+            return;
+        }
+        const note = window.prompt(_t("Recommendation note (optional)")) || "";
+        await this.performAction("action_assistant_recommend", [item.model, item.id, "recommend", note]);
+    }
+
+    async onNeedsRevision(item) {
+        if (!item) {
+            return;
+        }
+        const note = window.prompt(_t("Revision note (required)"));
+        if (!note) {
+            this.notification.add(_t("Revision note is required."), { type: "warning" });
+            return;
+        }
+        await this.performAction("action_assistant_recommend", [item.model, item.id, "revision", note]);
+    }
+
+    async performAction(method, args) {
+        try {
+            await this.orm.call("qlk.executive.dashboard", method, args);
+            await this.loadDashboard();
+            this.notification.add(_t("Action completed."), { type: "success" });
+        } catch (error) {
+            console.error("Dashboard action failed", error);
+            this.notification.add(_t("Action failed."), { type: "danger" });
         }
     }
 
-    _chartConfig(key) {
-        return this.charts[key];
-    }
-
-    _buildDataset(config) {
-        const palette = ["#1F6FEB", "#27AE60", "#F4B740", "#E86A50", "#8E7CC3", "#2D9CDB"];
-        const source = config.datasets || config.series || [];
-        const datasets = source.map((serie, index) => {
-            const fallbackColor = palette[index % palette.length];
-            const data = serie.data || [];
-            const isCircular = config.type === "doughnut" || config.type === "pie";
-            let backgroundColor = serie.backgroundColor;
-            if (!backgroundColor) {
-                backgroundColor = isCircular ? palette.slice(0, data.length) : fallbackColor;
-            }
-            return {
-                ...serie,
-                label: serie.label || `Series ${index + 1}`,
-                data,
-                borderColor: serie.borderColor || fallbackColor,
-                backgroundColor,
-                tension: serie.tension ?? 0.35,
-                fill: serie.fill ?? (config.type === "line"),
-            };
-        });
-        return {
-            labels: config.labels || [],
-            datasets,
+    onChartClick(chartId, chartType, dataPoint) {
+        const chartActionMap = {
+            1: this.managerData.legal ? this.managerData.legal.cases_by_court.action : null,
+            2: this.managerData.legal ? this.managerData.legal.cases_by_status.action : null,
         };
-    }
-
-    _chartOptions(config) {
-        const isCircular = config.type === "doughnut" || config.type === "pie";
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: isCircular ? "right" : "bottom",
-                    labels: {
-                        color: "#475569",
-                        boxWidth: 12,
-                        boxHeight: 12,
-                    },
-                },
-                tooltip: {
-                    enabled: true,
-                },
-            },
-            scales: isCircular
-                ? {}
-                : {
-                      x: {
-                          stacked: !!config.stacked,
-                          ticks: {
-                              color: "#475569",
-                          },
-                          grid: {
-                              display: false,
-                          },
-                      },
-                      y: {
-                          stacked: !!config.stacked,
-                          ticks: {
-                              color: "#475569",
-                          },
-                          grid: {
-                              color: "rgba(15, 23, 42, 0.08)",
-                          },
-                      },
-                  },
-        };
+        const action = (dataPoint && dataPoint.action) || chartActionMap[chartId];
+        const domain = (dataPoint && (dataPoint.domain || dataPoint.record_id)) || [];
+        this.openAction(action, domain);
     }
 }
 
 ExecutiveDashboard.template = "qlk_executive_dashboard.ExecutiveDashboard";
+ExecutiveDashboard.components = { SimpleBarChart, SimplePieChart };
+
 registry.category("actions").add("qlk.executive.dashboard", ExecutiveDashboard);

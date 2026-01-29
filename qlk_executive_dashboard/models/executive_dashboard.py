@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+from datetime import timedelta
+
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
+from odoo.exceptions import AccessError
 from odoo.osv.expression import OR
 from odoo.tools.misc import format_amount, format_date
 
@@ -40,17 +43,25 @@ class ExecutiveDashboard(models.AbstractModel):
         return result
 
     @api.model
-    def _lawyer_domain(self, employee_ids, user_id, field_names, allow_all=False):
+    def _employee_domain(self, model, employee_ids, user_id=None, employee_fields=None, user_field=None, allow_all=False):
         if allow_all:
             return []
         domains = []
-        if employee_ids:
-            for field_name in field_names:
+        employee_fields = employee_fields or []
+        for field_name in employee_fields:
+            if field_name in model._fields and employee_ids:
                 domains.append([(field_name, "in", employee_ids)])
-        if user_id:
-            domains.append([("user_id", "=", user_id)])
+        if user_field and user_field in model._fields and user_id:
+            domains.append([(user_field, "=", user_id)])
         combined = self._combine_or(domains)
         return combined or [(0, "=", 1)]
+
+    @api.model
+    def _team_employee_ids(self, employee_ids):
+        if not employee_ids or "hr.employee" not in self.env:
+            return employee_ids
+        employees = self.env["hr.employee"].search([("id", "child_of", employee_ids)])
+        return employees.ids
 
     @api.model
     def _group_counts(self, model, groupby, domain=None, labels=None):
@@ -75,66 +86,11 @@ class ExecutiveDashboard(models.AbstractModel):
         return items
 
     @api.model
-    def _group_time_series(self, model, date_field, domain=None, lang=None):
-        group_key = f"{date_field}:month"
-        groups = model.read_group(domain or [], [date_field], [group_key], lazy=False)
-        series = []
-        for group in groups:
-            raw = group.get(group_key) or group.get(date_field)
-            date_value = None
-            if raw:
-                if isinstance(raw, (fields.Date, fields.Datetime)):
-                    date_value = fields.Date.to_date(raw)
-                elif isinstance(raw, str) and len(raw) >= 10 and "-" in raw:
-                    date_value = fields.Date.to_date(raw)
-            if not date_value:
-                for entry in group.get("__domain", []):
-                    if entry[0] == date_field and entry[1] == ">=":
-                        date_value = fields.Date.to_date(entry[2])
-                        break
-            if not date_value:
-                continue
-            series.append((date_value, group.get("__count", 0)))
-        series.sort(key=lambda item: item[0])
-        labels = [format_date(self.env, item[0], lang_code=lang) for item in series]
-        values = [item[1] for item in series]
-        return labels, values
-
-    @api.model
-    def _lawyer_domain_for_model(self, model, allow_all, employee_ids, user_id, field_names):
-        available = [name for name in field_names if name in model._fields]
-        if "lawyer_id" in model._fields and "lawyer_id" not in available:
-            available.insert(0, "lawyer_id")
-        return self._lawyer_domain(employee_ids, user_id, available, allow_all)
-
-    @api.model
-    def _badge_color(self, category, key):
-        palette = {
-            "case_state": {
-                "study": "#2D9CDB",
-                "prosecution": "#27AE60",
-                "judge": "#1F6FEB",
-                "execution": "#F4B740",
-                "termination": "#E86A50",
-                "stop": "#8E7CC3",
-                "save": "#95A5A6",
-            },
-            "hearing_state": {
-                "new": "#F4B740",
-                "process": "#2D9CDB",
-                "finish": "#27AE60",
-                "confirmed": "#1F6FEB",
-                "cancelled": "#E86A50",
-            },
-            "memo_state": {
-                "new": "#F4B740",
-                "process": "#2D9CDB",
-                "finish": "#27AE60",
-                "confirmed": "#1F6FEB",
-                "cancelled": "#E86A50",
-            },
-        }
-        return palette.get(category, {}).get(key, "#94A3B8")
+    def _sum_field(self, model, domain, field_name):
+        grouped = model.read_group(domain or [], [field_name], [], lazy=False)
+        if not grouped:
+            return 0.0
+        return grouped[0].get(field_name, 0.0) or 0.0
 
     @api.model
     def _count_records(self, model, domain):
@@ -144,38 +100,16 @@ class ExecutiveDashboard(models.AbstractModel):
         return groups[0].get("__count", 0)
 
     @api.model
-    def _get_actions(self):
-        refs = {
-            "cases": "qlk_law.act_open_qlk_case_view",
-            "hearings": "qlk_law.act_open_qlk_hearing_view",
-            "memos": "qlk_law.act_open_qlk_memo_view",
-            "approvals": "qlk_approval.action_approval_request",
-            "cases_by_court_bar": "qlk_executive_dashboard.action_exec_cases_by_court_bar",
-            "sessions_by_status": "qlk_executive_dashboard.action_exec_sessions_by_status",
-            "memos_by_stage": "qlk_executive_dashboard.action_exec_memos_by_stage",
-            "cases_trend": "qlk_executive_dashboard.action_exec_cases_trend",
-            "sessions_timeline": "qlk_executive_dashboard.action_exec_sessions_timeline",
-            "cases_by_court_pie": "qlk_executive_dashboard.action_exec_cases_by_court_pie",
-            "memos_by_type": "qlk_executive_dashboard.action_exec_memos_by_type",
-            "lawyer_workload": "qlk_executive_dashboard.action_exec_lawyer_workload",
-            "case_status_flow": "qlk_executive_dashboard.action_exec_case_status_flow",
-            "session_outcomes": "qlk_executive_dashboard.action_exec_session_outcomes",
-            "memo_lifecycle": "qlk_executive_dashboard.action_exec_memo_lifecycle",
-        }
-        data = {}
-        for key, xml_id in refs.items():
-            action = self.env.ref(xml_id, raise_if_not_found=False)
-            if action:
-                data[key] = action.id
-        return data
-
-    @api.model
-    def _action_dict(self, name, res_model, domain=None):
+    def _action_dict(self, name, res_model, domain=None, view_modes=None):
+        view_modes = view_modes or ["list", "form"]
+        views = [[False, view_modes[0]]]
+        for mode in view_modes[1:]:
+            views.append([False, mode])
         return {
             "type": "ir.actions.act_window",
             "name": name,
             "res_model": res_model,
-            "views": [[False, "list"], [False, "form"]],
+            "views": views,
             "target": "current",
             "domain": domain or [],
         }
@@ -183,461 +117,811 @@ class ExecutiveDashboard(models.AbstractModel):
     @api.model
     def _color_scale(self):
         return [
-            "#1F6FEB",
-            "#13B5B1",
+            "#0F5CA8",
+            "#22B6C8",
+            "#27AE60",
             "#F4B740",
             "#E86A50",
-            "#8E7CC3",
-            "#2D9CDB",
-            "#27AE60",
-            "#EB5757",
+            "#0D3E7A",
         ]
 
     @api.model
-    def _card_colors(self):
+    def _safe_model(self, model_name):
+        return self.env[model_name] if model_name in self.env else False
+
+    @api.model
+    def _safe_read_group(self, model, domain, fields_list, groupby):
+        try:
+            model.check_access_rights("read")
+            return model.read_group(domain, fields_list, groupby, lazy=False)
+        except AccessError:
+            return []
+
+    @api.model
+    def _safe_count(self, model, domain):
+        try:
+            model.check_access_rights("read")
+            return model.search_count(domain)
+        except AccessError:
+            return 0
+
+    @api.model
+    def _safe_search_read(self, model, domain, fields_list, limit=None, order=None):
+        try:
+            model.check_access_rights("read")
+            return model.search_read(domain, fields_list, limit=limit, order=order)
+        except AccessError:
+            return []
+
+    @api.model
+    def _format_amount(self, amount, currency):
+        try:
+            return format_amount(self.env, amount or 0.0, currency)
+        except Exception:
+            return f"{amount or 0.0:,.2f}"
+
+    @api.model
+    def _first_field(self, model, candidates):
+        for field_name in candidates:
+            if field_name in model._fields:
+                return field_name
+        return False
+
+    @api.model
+    def _format_date_value(self, value, lang):
+        if not value:
+            return ""
+        if isinstance(value, str):
+            parsed = fields.Date.to_date(value)
+        else:
+            parsed = fields.Date.to_date(value) if not isinstance(value, fields.Date.__class__) else value
+        if not parsed:
+            try:
+                parsed = fields.Datetime.to_datetime(value).date()
+            except Exception:
+                parsed = False
+        if not parsed:
+            return ""
+        return format_date(self.env, parsed, lang_code=lang)
+
+    @api.model
+    def _approval_item(self, model, record, config, today, stage_labels=None):
+        reference_field = config.get("reference_field")
+        client_field = config.get("client_field")
+        amount_field = config.get("amount_field")
+        stage_field = config.get("stage_field")
+        currency_field = config.get("currency_field")
+
+        reference = record.get(reference_field) if reference_field else record.get("name")
+        client_value = record.get(client_field) if client_field else False
+        if isinstance(client_value, (list, tuple)):
+            client_value = client_value[1] if len(client_value) > 1 else ""
+        amount_value = record.get(amount_field) or 0.0
+        currency_value = record.get(currency_field)
+        currency = self.env["res.currency"].browse(currency_value[0]) if currency_value else self.env.company.currency_id
+
+        stage_value = record.get(stage_field) if stage_field else False
+        stage_label = ""
+        if isinstance(stage_value, (list, tuple)):
+            stage_label = stage_value[1] if len(stage_value) > 1 else ""
+        else:
+            stage_label = stage_labels.get(stage_value, stage_value) if stage_labels else stage_value
+
+        waiting_source = record.get("write_date") or record.get("create_date")
+        waiting_date = fields.Datetime.to_datetime(waiting_source) if waiting_source else None
+        waiting_days = 0
+        if waiting_date:
+            waiting_days = max((today - waiting_date.date()).days, 0)
+
         return {
-            "cases": "#1F6FEB",
-            "hearings": "#13B5B1",
-            "memos": "#8E7CC3",
-            "approvals": "#27AE60",
+            "id": record["id"],
+            "model": config.get("model"),
+            "doc_type": config.get("doc_type"),
+            "reference": reference or "",
+            "client": client_value or "",
+            "amount": amount_value,
+            "amount_display": self._format_amount(amount_value, currency),
+            "stage": stage_label or "Unassigned",
+            "waiting_days": waiting_days,
+        }
+
+    @api.model
+    def _build_pipeline_cards(self, model, groupby, domain, action, colors):
+        labels = self._selection_labels(model._name, groupby) if groupby in model._fields else {}
+        groups = self._group_counts(model, groupby, domain, labels)
+        cards = []
+        for index, group in enumerate(groups):
+            cards.append(
+                {
+                    "key": f"{groupby}_{group['key']}",
+                    "label": group["label"],
+                    "count": group["count"],
+                    "color": colors[index % len(colors)],
+                    "domain": domain + [(groupby, "=", group["key"])],
+                }
+            )
+        return {
+            "cards": cards,
+            "action": action,
         }
 
     @api.model
     def get_dashboard_data(self):
         user = self.env.user
         lang = user.lang or "en_US"
-        employee_ids = user.employee_ids.ids
         today = fields.Date.context_today(self)
+        is_manager = user.has_group("qlk_executive_dashboard.group_qlk_executive_manager")
+        is_assistant = user.has_group("qlk_executive_dashboard.group_qlk_executive_assistant")
+        if not (is_manager or is_assistant):
+            raise AccessError("You do not have access to the executive dashboard.")
 
-        allow_all = bool(
-            user.has_group("qlk_executive_dashboard.group_qlk_exec")
-            or user.has_group("qlk_executive_dashboard.group_qlk_manager")
-            or user.has_group("qlk_executive_dashboard.group_qlk_assistant_manager")
-            or user.has_group("qlk_law.group_qlk_law_manager")
-            or user.has_group("base.group_system")
+        palette = {
+            "primary": "#0F5CA8",
+            "accent": "#22B6C8",
+            "muted": "#0D3E7A",
+            "success": "#27AE60",
+            "warning": "#F4B740",
+            "danger": "#E86A50",
+            "bg": "#F5F8FC",
+            "card": "#FFFFFF",
+            "text": "#1F2937",
+            "border": "#E2E8F0",
+            "shadow": "rgba(15, 92, 168, 0.12)",
+        }
+
+        colors = self._color_scale()
+        month_start = today.replace(day=1)
+        next_month = month_start + relativedelta(months=1)
+
+        proposal_model = self._safe_model("bd.proposal")
+        engagement_model = self._safe_model("bd.engagement.letter")
+        project_model = self._safe_model("qlk.project") or self._safe_model("project.project")
+        case_model = self._safe_model("qlk.case")
+        hearing_model = self._safe_model("qlk.hearing")
+        leave_model = self._safe_model("hr.leave")
+        request_model = self._safe_model("qlk.request")
+        approval_model = self._safe_model("approval.request")
+        account_move = self._safe_model("account.move")
+
+        approval_sources = []
+        if proposal_model:
+            approval_sources.append(
+                {
+                    "model": "bd.proposal",
+                    "doc_type": "Quotation",
+                    "reference_candidates": ["code", "name"],
+                    "client_candidates": ["client_id", "partner_id"],
+                    "amount_candidates": ["total_amount", "legal_fees"],
+                    "stage_field": "state",
+                    "role_field": "approval_role",
+                    "currency_field": "currency_id",
+                }
+            )
+        if engagement_model:
+            approval_sources.append(
+                {
+                    "model": "bd.engagement.letter",
+                    "doc_type": "Agreement",
+                    "reference_candidates": ["code", "name"],
+                    "client_candidates": ["client_id", "partner_id"],
+                    "amount_candidates": ["total_amount", "legal_fee_amount"],
+                    "stage_field": "state",
+                    "role_field": "approval_role",
+                    "currency_field": "currency_id",
+                }
+            )
+        if project_model and "state" in project_model._fields:
+            approval_sources.append(
+                {
+                    "model": project_model._name,
+                    "doc_type": "Project",
+                    "reference_candidates": ["code", "name"],
+                    "client_candidates": ["client_id", "partner_id"],
+                    "amount_candidates": ["total_estimated_cost", "legal_fee_amount", "amount_total"],
+                    "stage_field": "stage_id" if "stage_id" in project_model._fields else "state",
+                    "role_field": "approval_role" if "approval_role" in project_model._fields else False,
+                    "currency_field": "currency_id" if "currency_id" in project_model._fields else False,
+                }
+            )
+
+        manager_inbox = []
+        assistant_queue = []
+        for source in approval_sources:
+            model = self.env[source["model"]]
+            role_field = source.get("role_field")
+            domain = [("state", "=", "waiting_manager_approval")] if "state" in model._fields else []
+            if role_field and role_field in model._fields:
+                role_value = "manager" if is_manager else "assistant_manager"
+                domain.append((role_field, "=", role_value))
+
+            reference_field = next(
+                (field for field in source["reference_candidates"] if field in model._fields), "name"
+            )
+            client_field = next(
+                (field for field in source["client_candidates"] if field in model._fields), False
+            )
+            amount_field = next(
+                (field for field in source["amount_candidates"] if field in model._fields), False
+            )
+            currency_field = source.get("currency_field")
+            if currency_field and currency_field not in model._fields:
+                currency_field = False
+            stage_field = source.get("stage_field") if source.get("stage_field") in model._fields else False
+            stage_labels = self._selection_labels(model._name, stage_field) if stage_field else {}
+
+            fields_list = [reference_field, "create_date", "write_date"]
+            if client_field:
+                fields_list.append(client_field)
+            if amount_field:
+                fields_list.append(amount_field)
+            if stage_field:
+                fields_list.append(stage_field)
+            if currency_field:
+                fields_list.append(currency_field)
+
+            data = self._safe_search_read(
+                model,
+                domain,
+                fields_list,
+                limit=50,
+                order="write_date asc",
+            )
+            config = {
+                "model": source["model"],
+                "doc_type": source["doc_type"],
+                "reference_field": reference_field,
+                "client_field": client_field,
+                "amount_field": amount_field,
+                "stage_field": stage_field,
+                "currency_field": currency_field,
+            }
+            for record in data:
+                item = self._approval_item(model, record, config, today, stage_labels)
+                if is_manager:
+                    manager_inbox.append(item)
+                else:
+                    assistant_queue.append(item)
+
+        # keep oldest-first ordering from the search query
+
+        pipeline = {}
+        if proposal_model:
+            action = self._action_dict("Quotations", "bd.proposal", [])
+            pipeline["quotations"] = self._build_pipeline_cards(
+                proposal_model, "state", [], action, colors
+            )
+        if engagement_model:
+            action = self._action_dict("Agreements", "bd.engagement.letter", [])
+            pipeline["agreements"] = self._build_pipeline_cards(
+                engagement_model, "state", [], action, colors
+            )
+        if project_model:
+            project_domain = []
+            if "active" in project_model._fields:
+                project_domain.append(("active", "=", True))
+            if "stage_id" in project_model._fields and project_model._fields["stage_id"].store:
+                groupby = "stage_id"
+            elif "project_type" in project_model._fields:
+                groupby = "project_type"
+            elif "department" in project_model._fields:
+                groupby = "department"
+            else:
+                groupby = "state" if "state" in project_model._fields else False
+            action = self._action_dict("Projects", project_model._name, project_domain)
+            if groupby:
+                pipeline["projects"] = self._build_pipeline_cards(
+                    project_model, groupby, project_domain, action, colors
+                )
+
+        kpis = []
+        if account_move:
+            date_field = "invoice_date" if "invoice_date" in account_move._fields else "date"
+            amount_field = "amount_total_signed" if "amount_total_signed" in account_move._fields else "amount_total"
+            revenue_domain = [
+                ("state", "=", "posted"),
+                ("move_type", "in", ["out_invoice", "out_refund"]),
+                (date_field, ">=", month_start),
+                (date_field, "<", next_month),
+            ]
+            revenue = self._sum_field(account_move, revenue_domain, amount_field)
+            currency = self.env.company.currency_id
+            kpis.append(
+                {
+                    "key": "revenue",
+                    "label": "Total Revenue (Month)",
+                    "value": revenue,
+                    "display": self._format_amount(revenue, currency),
+                    "icon": "fa-line-chart",
+                    "action": self._action_dict("Invoices", "account.move", revenue_domain),
+                }
+            )
+
+            outstanding_domain = [
+                ("state", "=", "posted"),
+                ("move_type", "in", ["out_invoice", "out_refund"]),
+            ]
+            if "payment_state" in account_move._fields:
+                outstanding_domain.append(("payment_state", "not in", ["paid", "reversed"]))
+            outstanding = self._sum_field(account_move, outstanding_domain, "amount_residual")
+            kpis.append(
+                {
+                    "key": "outstanding",
+                    "label": "Outstanding Invoices",
+                    "value": outstanding,
+                    "display": self._format_amount(outstanding, currency),
+                    "icon": "fa-file-text-o",
+                    "action": self._action_dict("Outstanding Invoices", "account.move", outstanding_domain),
+                }
+            )
+
+        if project_model:
+            project_domain = []
+            if "active" in project_model._fields:
+                project_domain.append(("active", "=", True))
+            active_projects = self._safe_count(project_model, project_domain)
+            kpis.append(
+                {
+                    "key": "projects",
+                    "label": "Active Projects",
+                    "value": active_projects,
+                    "display": f"{active_projects:,}",
+                    "icon": "fa-briefcase",
+                    "action": self._action_dict("Projects", project_model._name, project_domain),
+                }
+            )
+
+        delayed_cases = 0
+        delayed_domain = []
+        if case_model and "next_hearing_date" in case_model._fields:
+            delayed_domain = [("next_hearing_date", "<", today)]
+            delayed_cases = self._safe_count(case_model, delayed_domain)
+        kpis.append(
+            {
+                "key": "delayed_cases",
+                "label": "Delayed Cases",
+                "value": delayed_cases,
+                "display": f"{delayed_cases:,}",
+                "icon": "fa-exclamation-triangle",
+                "action": self._action_dict("Delayed Cases", "qlk.case", delayed_domain) if case_model else None,
+            }
         )
 
-        actions = self._get_actions()
-        palette = {
-            "primary": "#1F6FEB",
-            "accent": "#27AE60",
-            "muted": "#667085",
-            "warning": "#F4B740",
-            "info": "#2D9CDB",
-            "danger": "#E86A50",
-            "bg": "#F6F8FB",
-            "card": "#FFFFFF",
-            "text": "#1F2933",
-            "border": "#E6EAF0",
-            "shadow": "rgba(31, 41, 51, 0.08)",
+        legal_dashboard = {
+            "cases_by_court": {"recordset": [], "action": None},
+            "cases_by_status": {"recordset": [], "action": None},
+            "upcoming_sessions": {"items": [], "action": None},
         }
-
-        case_model = "qlk.case" in self.env and self.env["qlk.case"] or False
-        hearing_model = "qlk.hearing" in self.env and self.env["qlk.hearing"] or False
-        memo_model = "qlk.memo" in self.env and self.env["qlk.memo"] or False
-        approval_model = "approval.request" in self.env and self.env["approval.request"] or False
-
-        case_domain = case_model and self._lawyer_domain_for_model(
-            case_model,
-            allow_all,
-            employee_ids,
-            user.id,
-            ["employee_id", "employee_ids"],
-        ) or []
-        hearing_domain = hearing_model and self._lawyer_domain_for_model(
-            hearing_model,
-            allow_all,
-            employee_ids,
-            user.id,
-            ["employee_id", "employee2_id", "employee_ids"],
-        ) or []
-        memo_domain = memo_model and self._lawyer_domain_for_model(
-            memo_model,
-            allow_all,
-            employee_ids,
-            user.id,
-            ["employee_id"],
-        ) or []
-        if memo_domain is not None:
-            memo_domain = (memo_domain or []) + [("is_memo", "=", True)]
-
-        approval_domain = []
-        if approval_model and not allow_all:
-            approval_domain = [("line_ids.user_id", "=", user.id)]
-
-        list_actions = {
-            "cases": self._action_dict("Cases", "qlk.case", case_domain) if case_model else False,
-            "hearings": self._action_dict("Sessions", "qlk.hearing", hearing_domain)
-            if hearing_model
-            else False,
-            "memos": self._action_dict("Memos", "qlk.memo", memo_domain) if memo_model else False,
-            "approvals": self._action_dict("Approvals", "approval.request", approval_domain)
-            if approval_model
-            else False,
-        }
-
-        totals = {
-            "cases": self._count_records(case_model, case_domain) if case_model else 0,
-            "sessions": self._count_records(hearing_model, hearing_domain) if hearing_model else 0,
-            "memos": self._count_records(memo_model, memo_domain) if memo_model else 0,
-            "approvals": self._count_records(approval_model, approval_domain) if approval_model else 0,
-        }
-
-        active_cases_domain = case_domain + [("state", "not in", ["termination", "stop", "save"])]
-        active_cases = self._count_records(case_model, active_cases_domain) if case_model else 0
-        sessions_today = self._count_records(
-            hearing_model, hearing_domain + [("date", "=", today)]
-        ) if hearing_model else 0
-        pending_memos = self._count_records(
-            memo_model, memo_domain + [("state", "in", ["new", "process"])]
-        ) if memo_model else 0
-        pending_approvals = self._count_records(
-            approval_model, approval_domain + [("state", "in", ["draft", "in_progress"])]
-        ) if approval_model else 0
-
-        kpis = [
-            {
-                "key": "total_cases",
-                "label": "Total Cases",
-                "value": totals["cases"],
-                "icon": "fa-briefcase",
-                "color": palette["info"],
-                "tag": "All cases",
-                "domain": case_domain,
-                "action": list_actions["cases"],
-            },
-            {
-                "key": "active_cases",
-                "label": "Active Cases",
-                "value": active_cases,
-                "icon": "fa-check-circle",
-                "color": palette["accent"],
-                "tag": "In progress",
-                "domain": active_cases_domain,
-                "action": list_actions["cases"],
-            },
-            {
-                "key": "sessions_today",
-                "label": "Sessions Today",
-                "value": sessions_today,
-                "icon": "fa-gavel",
-                "color": palette["warning"],
-                "tag": "Today",
-                "domain": hearing_domain + [("date", "=", today)],
-                "action": list_actions["hearings"],
-            },
-            {
-                "key": "pending_memos",
-                "label": "Pending Memos",
-                "value": pending_memos,
-                "icon": "fa-file-alt",
-                "color": "#8E7CC3",
-                "tag": "Requires action",
-                "domain": memo_domain + [("state", "in", ["new", "process"])],
-                "action": list_actions["memos"],
-            },
-            {
-                "key": "pending_approvals",
-                "label": "Pending Approvals",
-                "value": pending_approvals,
-                "icon": "fa-hourglass-half",
-                "color": "#E67E22",
-                "tag": "Waiting decision",
-                "domain": approval_domain + [("state", "in", ["draft", "in_progress"])],
-                "action": list_actions["approvals"],
-            },
-        ]
-
-        charts = {}
-        colors = self._color_scale()
-
         if case_model:
-            case_labels = self._selection_labels("qlk.case", "state")
-            case_stage_groups = self._group_counts(case_model, "state", case_domain, case_labels)
-            charts["cases_by_stage"] = {
-                "title": "Cases by Stage",
-                "subtitle": "Distribution across procedures",
-                "type": "bar",
-                "labels": [item["label"] for item in case_stage_groups],
-                "datasets": [
-                    {
-                        "label": "Cases",
-                        "data": [item["count"] for item in case_stage_groups],
-                        "backgroundColor": [
-                            colors[idx % len(colors)] for idx in range(len(case_stage_groups))
-                        ],
-                    }
-                ],
-                "action": actions.get("cases"),
-            }
+            court_field = "case_group" if "case_group" in case_model._fields else "case_group_id"
+            court_names = [
+                "Court of Cassation",
+                "Court of Appeal",
+                "Investment & Commercial Court",
+                "Execution Court",
+                "Criminal Court",
+                "Family Court",
+            ]
+            court_counts = {name: {"count": 0, "id": False} for name in court_names}
+            grouped = self._safe_read_group(case_model, [], [court_field], [court_field])
+            for group in grouped:
+                value = group.get(court_field)
+                if isinstance(value, (list, tuple)) and len(value) > 1:
+                    name = value[1]
+                    if name in court_counts:
+                        court_counts[name]["count"] = group.get("__count", 0)
+                        court_counts[name]["id"] = value[0]
 
-            court_labels = self._selection_labels("qlk.casegroup", "court")
-            court_groups = case_model.read_group(
-                case_domain,
-                ["case_group", "case_group.court"],
-                ["case_group"],
-                lazy=False,
+            legal_dashboard["cases_by_court"]["recordset"] = [
+                {
+                    "category": name,
+                    "count": court_counts[name]["count"],
+                    "record_id": [(court_field, "=", court_counts[name]["id"])] if court_counts[name]["id"] else [],
+                }
+                for name in court_names
+            ]
+            legal_dashboard["cases_by_court"]["action"] = self._action_dict(
+                "Cases by Court", case_model._name, []
             )
-            court_map = defaultdict(int)
-            for group in court_groups:
-                court_key = group.get("case_group.court")
-                if not court_key:
-                    continue
-                court_map[court_key] += group.get("__count", 0)
-            court_items = sorted(court_map.items(), key=lambda item: item[1], reverse=True)
-            chart_colors = [colors[idx % len(colors)] for idx in range(len(court_items))]
-            charts["courts_distribution"] = {
-                "title": "Courts Distribution",
-                "subtitle": "Primary, appeal, cassation, execution",
-                "type": "doughnut",
-                "labels": [court_labels.get(key, key) for key, _ in court_items],
-                "datasets": [
+
+            status_field = "status" if "status" in case_model._fields else "state"
+            if status_field in case_model._fields:
+                labels = self._selection_labels(case_model._name, status_field)
+                status_groups = self._safe_read_group(case_model, [], [status_field], [status_field])
+                legal_dashboard["cases_by_status"]["recordset"] = [
                     {
-                        "label": "Cases",
-                        "data": [value for _, value in court_items],
-                        "backgroundColor": chart_colors,
+                        "category": labels.get(group.get(status_field), group.get(status_field)) or "Undefined",
+                        "value": group.get("__count", 0),
+                        "domain": [(status_field, "=", group.get(status_field))],
                     }
-                ],
-                "action": actions.get("cases_by_court_pie"),
-            }
-
-            case_trend_labels, case_trend_values = self._group_time_series(
-                case_model, "date", case_domain, lang
-            )
-            charts["cases_trend"] = {
-                "title": "Case Creation Trend",
-                "subtitle": "Monthly case intake",
-                "type": "line",
-                "labels": case_trend_labels,
-                "datasets": [
-                    {
-                        "label": "Cases",
-                        "data": case_trend_values,
-                        "borderColor": colors[0],
-                        "backgroundColor": "rgba(31, 111, 235, 0.15)",
-                        "fill": True,
-                    }
-                ],
-                "action": actions.get("cases_trend"),
-            }
-
-            workload = case_model.read_group(
-                case_domain,
-                ["employee_id", "state"],
-                ["employee_id", "state"],
-                lazy=False,
-            )
-            workload_map = defaultdict(lambda: defaultdict(int))
-            employee_labels = {}
-            state_labels = self._selection_labels("qlk.case", "state")
-            for group in workload:
-                employee = group.get("employee_id")
-                state_key = group.get("state")
-                if employee:
-                    employee_labels[employee[0]] = employee[1]
-                    workload_map[employee[0]][state_key] += group.get("__count", 0)
-            employee_ids_sorted = sorted(employee_labels.keys(), key=lambda key: employee_labels[key])
-            state_keys = list(state_labels.keys())
-            datasets = []
-            for index, state_key in enumerate(state_keys):
-                datasets.append(
-                    {
-                        "label": state_labels.get(state_key, state_key),
-                        "data": [workload_map[emp_id].get(state_key, 0) for emp_id in employee_ids_sorted],
-                        "backgroundColor": colors[index % len(colors)],
-                    }
-                )
-            charts["lawyer_workload"] = {
-                "title": "Lawyer Workload",
-                "subtitle": "Cases per lawyer by stage",
-                "type": "bar",
-                "stacked": True,
-                "labels": [employee_labels[emp_id] for emp_id in employee_ids_sorted],
-                "datasets": datasets,
-                "action": actions.get("lawyer_workload"),
-            }
-
-        if hearing_model:
-            hearing_labels = self._selection_labels("qlk.hearing", "state")
-            hearing_groups = self._group_counts(hearing_model, "state", hearing_domain, hearing_labels)
-            charts["sessions_by_status"] = {
-                "title": "Sessions by Status",
-                "subtitle": "Session pipeline",
-                "type": "bar",
-                "labels": [item["label"] for item in hearing_groups],
-                "datasets": [
-                    {
-                        "label": "Sessions",
-                        "data": [item["count"] for item in hearing_groups],
-                        "backgroundColor": [
-                            colors[idx % len(colors)] for idx in range(len(hearing_groups))
-                        ],
-                    }
-                ],
-                "action": actions.get("sessions_by_status"),
-            }
-
-        if memo_model:
-            memo_type_groups = memo_model.read_group(
-                memo_domain, ["category_id"], ["category_id"], lazy=False
-            )
-            memo_type_items = []
-            for group in memo_type_groups:
-                value = group.get("category_id")
-                label = value[1] if value else "Unassigned"
-                memo_type_items.append(
-                    {
-                        "label": label,
-                        "count": group.get("__count", 0),
-                    }
-                )
-            memo_type_items.sort(key=lambda item: item["count"], reverse=True)
-            charts["memos_by_type"] = {
-                "title": "Memos per Type",
-                "subtitle": "Category distribution",
-                "type": "pie",
-                "labels": [item["label"] for item in memo_type_items],
-                "datasets": [
-                    {
-                        "label": "Memos",
-                        "data": [item["count"] for item in memo_type_items],
-                        "backgroundColor": [
-                            colors[idx % len(colors)] for idx in range(len(memo_type_items))
-                        ],
-                    }
-                ],
-                "action": actions.get("memos_by_type"),
-            }
-
-        avg_cycle_days = 0.0
-        if case_model:
-            cycle_cases = case_model.search(
-                case_domain + [("date", "!=", False), ("last_hearing_date", "!=", False)],
-                limit=200,
-            )
-            total_days = 0
-            for record in cycle_cases:
-                start = fields.Date.to_date(record.date)
-                end = fields.Date.to_date(record.last_hearing_date)
-                if start and end and end >= start:
-                    total_days += (end - start).days
-            if cycle_cases:
-                avg_cycle_days = round(total_days / len(cycle_cases), 1)
-
-        closed_sessions = self._count_records(
-            hearing_model, hearing_domain + [("state", "=", "finish")]
-        ) if hearing_model else 0
-        overdue_items = self._count_records(
-            hearing_model,
-            hearing_domain + [("date", "<", today), ("state", "not in", ["finish", "cancelled"])],
-        ) if hearing_model else 0
-        closed_cases = self._count_records(
-            case_model, case_domain + [("state", "=", "termination")]
-        ) if case_model else 0
-        performance_rate = round((closed_cases / totals["cases"]) * 100, 1) if totals["cases"] else 0
-
-        side_metrics = [
-            {
-                "label": "Average Cycle Time",
-                "value": f"{avg_cycle_days} days" if avg_cycle_days else "-",
-                "icon": "fa-clock",
-            },
-            {
-                "label": "Sessions Closed",
-                "value": closed_sessions,
-                "icon": "fa-check-circle",
-            },
-            {
-                "label": "Overdue Items",
-                "value": overdue_items,
-                "icon": "fa-exclamation-circle",
-            },
-            {
-                "label": "Performance",
-                "value": f"{performance_rate}%",
-                "icon": "fa-chart-line",
-            },
-        ]
-
-        tables = {
-            "cases": {
-                "title": "My Cases",
-                "rows": [],
-                "action": list_actions["cases"],
-            },
-            "sessions": {
-                "title": "My Sessions",
-                "rows": [],
-                "action": list_actions["hearings"],
-            },
-            "memos": {
-                "title": "My Memos",
-                "rows": [],
-                "action": list_actions["memos"],
-            },
-        }
-
-        if case_model:
-            state_labels = self._selection_labels("qlk.case", "state")
-            status_labels = self._selection_labels("qlk.case", "status")
-            for record in case_model.search(case_domain, order="write_date desc", limit=7):
-                amount = record.case_value or 0.0
-                meta = (
-                    format_amount(self.env, amount, currency=record.currency_id)
-                    if amount
-                    else status_labels.get(record.status, record.status)
-                )
-                tables["cases"]["rows"].append(
-                    {
-                        "id": record.id,
-                        "reference": record.name or "",
-                        "client": record.client_id.name or "",
-                        "meta": meta or "",
-                        "stage": state_labels.get(record.state, record.state),
-                        "badge_color": self._badge_color("case_state", record.state),
-                        "url": {"res_model": "qlk.case", "res_id": record.id},
-                    }
+                    for group in status_groups
+                    if group.get(status_field)
+                ]
+                legal_dashboard["cases_by_status"]["action"] = self._action_dict(
+                    "Cases by Status", case_model._name, []
                 )
 
         if hearing_model:
-            hearing_labels = self._selection_labels("qlk.hearing", "state")
-            for record in hearing_model.search(hearing_domain, order="date desc", limit=7):
-                tables["sessions"]["rows"].append(
+            hearing_domain = [
+                ("date", ">=", today),
+                ("date", "<", today + timedelta(days=7)),
+            ]
+            hearings = hearing_model.search(hearing_domain, order="date asc", limit=6)
+            legal_dashboard["upcoming_sessions"] = {
+                "items": [
                     {
-                        "id": record.id,
-                        "reference": record.name or "",
-                        "client": record.case_id.client_id.name if record.case_id else "",
-                        "meta": record.date and format_date(self.env, record.date, lang_code=lang) or "",
-                        "stage": hearing_labels.get(record.state, record.state),
-                        "badge_color": self._badge_color("hearing_state", record.state),
-                        "url": {"res_model": "qlk.hearing", "res_id": record.id},
+                        "id": hearing.id,
+                        "model": "qlk.hearing",
+                        "name": hearing.name or "",
+                        "case": hearing.case_id.name if hearing.case_id else "",
+                        "court": hearing.case_group.name if getattr(hearing, "case_group", False) else "",
+                        "date": format_date(self.env, hearing.date, lang_code=lang) if hearing.date else "",
                     }
-                )
+                    for hearing in hearings
+                ],
+                "action": self._action_dict("Hearings", "qlk.hearing", hearing_domain)
+                if hearing_model
+                else None,
+            }
 
-        if memo_model:
-            memo_labels = self._selection_labels("qlk.memo", "state")
-            for record in memo_model.search(memo_domain, order="date desc", limit=7):
-                tables["memos"]["rows"].append(
+        lists = {}
+        if leave_model:
+            employee_field = self._first_field(leave_model, ["employee_id"])
+            type_field = self._first_field(leave_model, ["holiday_status_id", "holiday_status"])
+            date_from_field = self._first_field(leave_model, ["request_date_from", "date_from", "date_start"])
+            date_to_field = self._first_field(leave_model, ["request_date_to", "date_to", "date_end"])
+            state_field = self._first_field(leave_model, ["state"])
+            order = f"{date_from_field} asc" if date_from_field else "create_date asc"
+            fields_list = [employee_field, type_field, date_from_field, date_to_field, state_field, "create_date"]
+            fields_list = [field for field in fields_list if field]
+            records = self._safe_search_read(leave_model, [], fields_list, limit=6, order=order)
+            items = []
+            for record in records:
+                employee = record.get(employee_field)
+                leave_type = record.get(type_field)
+                from_date = record.get(date_from_field)
+                to_date = record.get(date_to_field)
+                items.append(
                     {
-                        "id": record.id,
-                        "reference": record.name or "",
-                        "client": record.case_id.name if record.case_id else "",
-                        "meta": record.date and format_date(self.env, record.date, lang_code=lang) or "",
-                        "stage": memo_labels.get(record.state, record.state),
-                        "badge_color": self._badge_color("memo_state", record.state),
-                        "url": {"res_model": "qlk.memo", "res_id": record.id},
+                        "id": record["id"],
+                        "model": "hr.leave",
+                        "employee": employee[1] if isinstance(employee, (list, tuple)) else "",
+                        "leave_type": leave_type[1] if isinstance(leave_type, (list, tuple)) else "",
+                        "period": " - ".join(
+                            [
+                                value
+                                for value in [
+                                    self._format_date_value(from_date, lang),
+                                    self._format_date_value(to_date, lang),
+                                ]
+                                if value
+                            ]
+                        ),
+                        "state": record.get(state_field, ""),
+                        "requested_on": self._format_date_value(record.get("create_date"), lang),
                     }
                 )
+            lists["leaves"] = {
+                "items": items,
+                "action": self._action_dict("Leave Requests", "hr.leave", []),
+            }
+
+        def _doc_list(model, key, title):
+            if not model:
+                return
+            reference_field = self._first_field(model, ["code", "name"])
+            client_field = self._first_field(model, ["client_id", "partner_id"])
+            amount_field = self._first_field(model, ["total_amount", "legal_fees", "legal_fee_amount"])
+            currency_field = self._first_field(model, ["currency_id"])
+            state_field = self._first_field(model, ["state"])
+            date_field = self._first_field(model, ["date", "create_date"])
+            order = f"{date_field} asc" if date_field else "create_date asc"
+            fields_list = [reference_field, client_field, amount_field, currency_field, state_field, date_field]
+            fields_list = [field for field in fields_list if field]
+            records = self._safe_search_read(model, [], fields_list, limit=6, order=order)
+            items = []
+            for record in records:
+                client = record.get(client_field)
+                currency_value = record.get(currency_field)
+                currency = (
+                    self.env["res.currency"].browse(currency_value[0])
+                    if isinstance(currency_value, (list, tuple)) and currency_value
+                    else self.env.company.currency_id
+                )
+                amount_value = record.get(amount_field, 0.0) if amount_field else 0.0
+                items.append(
+                    {
+                        "id": record["id"],
+                        "model": model._name,
+                        "reference": record.get(reference_field, ""),
+                        "client": client[1] if isinstance(client, (list, tuple)) else "",
+                        "amount": amount_value,
+                        "amount_display": self._format_amount(amount_value, currency),
+                        "state": record.get(state_field, "") if state_field else "",
+                        "date": self._format_date_value(record.get(date_field), lang) if date_field else "",
+                    }
+                )
+            lists[key] = {
+                "items": items,
+                "action": self._action_dict(title, model._name, []),
+            }
+
+        _doc_list(proposal_model, "proposals", "Proposals")
+        _doc_list(engagement_model, "agreements", "Agreements")
+
+        if project_model:
+            ref_field = self._first_field(project_model, ["code", "name"])
+            client_field = self._first_field(project_model, ["client_id", "partner_id"])
+            stage_field = self._first_field(project_model, ["stage_id", "stage"])
+            type_field = self._first_field(project_model, ["project_type", "department"])
+            date_field = self._first_field(project_model, ["create_date"])
+            fields_list = [ref_field, client_field, stage_field, type_field, date_field]
+            fields_list = [field for field in fields_list if field]
+            records = self._safe_search_read(project_model, [], fields_list, limit=6, order="create_date asc")
+            items = []
+            for record in records:
+                client = record.get(client_field)
+                stage = record.get(stage_field)
+                items.append(
+                    {
+                        "id": record["id"],
+                        "model": project_model._name,
+                        "reference": record.get(ref_field, ""),
+                        "client": client[1] if isinstance(client, (list, tuple)) else "",
+                        "stage": stage[1] if isinstance(stage, (list, tuple)) else stage or "",
+                        "type": record.get(type_field, "") if type_field else "",
+                        "date": self._format_date_value(record.get(date_field), lang),
+                    }
+                )
+            lists["projects"] = {
+                "items": items,
+                "action": self._action_dict("Projects", project_model._name, []),
+            }
+
+        if case_model:
+            name_field = self._first_field(case_model, ["name"])
+            court_field = self._first_field(case_model, ["case_group", "case_group_id"])
+            status_field = self._first_field(case_model, ["status", "state"])
+            next_field = self._first_field(case_model, ["next_hearing_date", "date"])
+            date_field = self._first_field(case_model, ["create_date"])
+            fields_list = [name_field, court_field, status_field, next_field, date_field]
+            fields_list = [field for field in fields_list if field]
+            records = self._safe_search_read(case_model, [], fields_list, limit=6, order="create_date asc")
+            items = []
+            for record in records:
+                court = record.get(court_field)
+                items.append(
+                    {
+                        "id": record["id"],
+                        "model": "qlk.case",
+                        "name": record.get(name_field, ""),
+                        "court": court[1] if isinstance(court, (list, tuple)) else "",
+                        "status": record.get(status_field, "") if status_field else "",
+                        "next_hearing": self._format_date_value(record.get(next_field), lang) if next_field else "",
+                        "date": self._format_date_value(record.get(date_field), lang),
+                    }
+                )
+            lists["cases"] = {
+                "items": items,
+                "action": self._action_dict("Cases", "qlk.case", []),
+            }
+
+        if hearing_model:
+            name_field = self._first_field(hearing_model, ["name"])
+            case_field = self._first_field(hearing_model, ["case_id"])
+            court_field = self._first_field(hearing_model, ["case_group", "case_group_id"])
+            date_field = self._first_field(hearing_model, ["date", "session_date"])
+            state_field = self._first_field(hearing_model, ["state"])
+            fields_list = [name_field, case_field, court_field, date_field, state_field]
+            fields_list = [field for field in fields_list if field]
+            records = self._safe_search_read(hearing_model, [], fields_list, limit=6, order=f"{date_field} asc")
+            items = []
+            for record in records:
+                case = record.get(case_field)
+                court = record.get(court_field)
+                items.append(
+                    {
+                        "id": record["id"],
+                        "model": "qlk.hearing",
+                        "name": record.get(name_field, ""),
+                        "case": case[1] if isinstance(case, (list, tuple)) else "",
+                        "court": court[1] if isinstance(court, (list, tuple)) else "",
+                        "date": self._format_date_value(record.get(date_field), lang),
+                        "state": record.get(state_field, "") if state_field else "",
+                    }
+                )
+            lists["hearings"] = {
+                "items": items,
+                "action": self._action_dict("Hearings", "qlk.hearing", []),
+            }
+
+        assistant_requests = []
+        if leave_model:
+            leave_action = self._action_dict("Leave Requests", "hr.leave", [])
+            leave_new = self._safe_count(leave_model, [("state", "in", ["draft", "confirm"])])
+            leave_reviewed = self._safe_count(leave_model, [("state", "=", "validate1")])
+            leave_escalated = self._safe_count(leave_model, [("state", "=", "validate")])
+            assistant_requests.append(
+                {
+                    "key": "leave",
+                    "label": "Leave Requests",
+                    "new": leave_new,
+                    "reviewed": leave_reviewed,
+                    "escalated": leave_escalated,
+                    "action": leave_action,
+                }
+            )
+
+        if approval_model and "request_status" in approval_model._fields:
+            approval_action = self._action_dict("HR Requests", "approval.request", [])
+            approval_new = self._safe_count(approval_model, [("request_status", "=", "new")])
+            approval_reviewed = self._safe_count(approval_model, [("request_status", "=", "pending")])
+            approval_escalated = self._safe_count(approval_model, [("request_status", "=", "approved")])
+            assistant_requests.append(
+                {
+                    "key": "hr",
+                    "label": "HR Requests",
+                    "new": approval_new,
+                    "reviewed": approval_reviewed,
+                    "escalated": approval_escalated,
+                    "action": approval_action,
+                }
+            )
+
+        if request_model and "state" in request_model._fields:
+            request_action = self._action_dict("Internal Requests", "qlk.request", [])
+            request_new = self._safe_count(request_model, [("state", "in", ["draft", "new", "submitted"])])
+            request_reviewed = self._safe_count(request_model, [("state", "in", ["reviewed", "in_review"])])
+            request_escalated = self._safe_count(request_model, [("state", "in", ["escalated", "approved"])])
+            assistant_requests.append(
+                {
+                    "key": "internal",
+                    "label": "Internal Requests",
+                    "new": request_new,
+                    "reviewed": request_reviewed,
+                    "escalated": request_escalated,
+                    "action": request_action,
+                }
+            )
+
+        case_monitoring = {
+            "delayed": {"count": 0, "action": None},
+            "no_sessions": {"count": 0, "action": None},
+            "upcoming_hearings": {"items": [], "action": None},
+        }
+        if case_model:
+            if "next_hearing_date" in case_model._fields:
+                delayed_domain = [("next_hearing_date", "<", today)]
+                no_session_domain = [("next_hearing_date", "=", False)]
+                case_monitoring["delayed"] = {
+                    "count": self._safe_count(case_model, delayed_domain),
+                    "action": self._action_dict("Delayed Cases", case_model._name, delayed_domain),
+                }
+                case_monitoring["no_sessions"] = {
+                    "count": self._safe_count(case_model, no_session_domain),
+                    "action": self._action_dict("Cases without Sessions", case_model._name, no_session_domain),
+                }
+
+        if hearing_model:
+            upcoming_domain = [
+                ("date", ">=", today),
+                ("date", "<", today + timedelta(days=14)),
+            ]
+            upcoming_hearings = hearing_model.search(upcoming_domain, order="date asc", limit=6)
+            case_monitoring["upcoming_hearings"] = {
+                "items": [
+                    {
+                        "id": hearing.id,
+                        "model": "qlk.hearing",
+                        "name": hearing.name or "",
+                        "case": hearing.case_id.name if hearing.case_id else "",
+                        "court": hearing.case_group.name if getattr(hearing, "case_group", False) else "",
+                        "date": format_date(self.env, hearing.date, lang_code=lang) if hearing.date else "",
+                    }
+                    for hearing in upcoming_hearings
+                ],
+                "action": self._action_dict("Upcoming Hearings", "qlk.hearing", upcoming_domain),
+            }
 
         return {
             "user": {
                 "name": user.name,
                 "company": user.company_id.display_name if user.company_id else "",
             },
+            "role": "manager" if is_manager else "assistant",
             "palette": palette,
-            "totals": totals,
-            "kpis": kpis,
-            "charts": charts,
-            "side_metrics": side_metrics,
-            "tables": tables,
+            "manager": {
+                "kpis": kpis,
+                "approval_inbox": {
+                    "items": manager_inbox[:6],
+                    "action": self._action_dict(
+                        "Approval Inbox",
+                        approval_sources[0]["model"] if approval_sources else "bd.proposal",
+                        [("state", "=", "waiting_manager_approval")],
+                    ),
+                },
+                "pipeline": pipeline,
+                "legal": legal_dashboard,
+                "lists": lists,
+            },
+            "assistant": {
+                "operational_requests": assistant_requests,
+                "case_monitoring": case_monitoring,
+                "pre_approval": {
+                    "items": assistant_queue[:6],
+                    "action": self._action_dict(
+                        "Pre-Approval Queue",
+                        approval_sources[0]["model"] if approval_sources else "bd.proposal",
+                        [("state", "=", "waiting_manager_approval")],
+                    ),
+                },
+                "lists": lists,
+            },
         }
+
+    @api.model
+    def _ensure_group(self, group_xmlid):
+        if self.env.user.has_group("base.group_system"):
+            return
+        if not self.env.user.has_group(group_xmlid):
+            raise AccessError("You do not have permission to perform this action.")
+
+    @api.model
+    def _approval_model_config(self):
+        return {
+            "bd.proposal": {
+                "approve_method": "action_manager_approve",
+                "reject_method": "_apply_rejection_reason",
+                "reject_role": "manager",
+            },
+            "bd.engagement.letter": {
+                "approve_method": "action_manager_approve",
+                "reject_method": "_apply_rejection_reason",
+                "reject_role": "manager",
+            },
+        }
+
+    @api.model
+    def action_approve_record(self, model_name, res_id):
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_manager")
+        config = self._approval_model_config().get(model_name)
+        if not config:
+            raise AccessError("Unsupported approval model.")
+        record = self.env[model_name].browse(res_id)
+        if not record.exists():
+            raise AccessError("Record not found.")
+        method_name = config.get("approve_method")
+        method = getattr(record, method_name, False)
+        if not method:
+            raise AccessError("Approval method not available.")
+        method()
+        return True
+
+    @api.model
+    def action_reject_record(self, model_name, res_id, reason):
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_manager")
+        reason = (reason or "").strip()
+        if not reason:
+            raise AccessError("Rejection reason is required.")
+        config = self._approval_model_config().get(model_name)
+        if not config:
+            raise AccessError("Unsupported approval model.")
+        record = self.env[model_name].browse(res_id)
+        if not record.exists():
+            raise AccessError("Record not found.")
+        method_name = config.get("reject_method")
+        method = getattr(record, method_name, False)
+        if not method:
+            raise AccessError("Rejection method not available.")
+        method(reason, config.get("reject_role"))
+        return True
+
+    @api.model
+    def action_assistant_recommend(self, model_name, res_id, recommendation, note=None):
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_assistant")
+        record = self.env[model_name].browse(res_id)
+        if not record.exists():
+            raise AccessError("Record not found.")
+        if not hasattr(record, "action_set_assistant_recommendation"):
+            raise AccessError("Recommendation not supported for this model.")
+        record.action_set_assistant_recommendation(recommendation, note or "")
+        return True

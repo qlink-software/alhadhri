@@ -1099,7 +1099,7 @@ class BDEngagementLetter(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Client Documents"),
             "res_model": "qlk.client.document",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("partner_id", "=", partner.id)],
             "context": {
                 "default_partner_id": partner.id,

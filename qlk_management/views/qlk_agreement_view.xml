@@ -136,7 +136,7 @@
             </form>
         </field>
     </record>
-    <record id="agreement_tree" model="ir.ui.view">
+    <record id="agreement_list" model="ir.ui.view">
         <field name="name">managment.agreement.list</field>
         <field name="model">managment.agreement</field>
         <field name="priority">1000</field>

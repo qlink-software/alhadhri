@@ -228,8 +228,8 @@
             </form>
         </field>
     </record>
-    <record id="opportunity_type_view_tree" model="ir.ui.view">
-        <field name="name">opportunity.type.view.tree</field>
+    <record id="opportunity_type_view_list" model="ir.ui.view">
+        <field name="name">opportunity.type.view.list</field>
         <field name="model">opportunity.type</field>
         <field name="arch" type="xml">
             <list string="">
@@ -301,8 +301,8 @@
             </form>
         </field>
     </record>
-    <record id="request_contact_view_tree" model="ir.ui.view">
-        <field name="name">request.contact.view.tree</field>
+    <record id="request_contact_view_list" model="ir.ui.view">
+        <field name="name">request.contact.view.list</field>
         <field name="model">request.contact</field>
         <field name="arch" type="xml">
             <list string="">

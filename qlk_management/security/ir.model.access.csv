@@ -25,3 +25,6 @@ access_pre_litigation_approval_user,qlk.pre.litigation.approval user,model_qlk_p
 access_pre_litigation_approval_wizard_user,qlk.pre.litigation.approval.wizard user,model_qlk_pre_litigation_approval_wizard,base.group_user,1,1,1,1
 access_pre_litigation_approval_wizard_line_user,qlk.pre.litigation.approval.wizard.line user,model_qlk_pre_litigation_approval_wizard_line,base.group_user,1,1,1,1
 access_bd_rejection_wizard_user,bd.rejection.wizard user,model_bd_rejection_wizard,,1,1,1,1
+access_employee_document_user,employee.document user,model_qlk_employee_document,base.group_user,1,1,1,0
+access_employee_document_manager,employee.document manager,model_qlk_employee_document,qlk_management.group_hr_nda_manager,1,1,1,1
+access_employee_document_reject_wizard,employee.document.reject.wizard,model_qlk_employee_document_reject_wizard,qlk_management.group_hr_nda_manager,1,1,1,0

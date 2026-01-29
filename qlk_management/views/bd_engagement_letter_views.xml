@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_bd_engagement_letter_tree" model="ir.ui.view">
-        <field name="name">bd.engagement.letter.tree</field>
+    <record id="view_bd_engagement_letter_list" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.list</field>
         <field name="model">bd.engagement.letter</field>
         <field name="arch" type="xml">
             <list string="Engagement Letters">
@@ -215,7 +215,7 @@
         <field name="search_view_id" ref="view_bd_engagement_letter_search"/>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_bd_engagement_letter_kanban')}),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('view_bd_engagement_letter_tree')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_bd_engagement_letter_list')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_bd_engagement_letter_form')})]"/>
     </record>
 

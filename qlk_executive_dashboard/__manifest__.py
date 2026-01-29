@@ -13,7 +13,9 @@
         "web",
         "account",
         "hr",
+        "hr_attendance",
         "hr_holidays",
+        "alhadhri_bi_dashboard",
         "qlk_management",
     ],
     "data": [
@@ -28,6 +30,7 @@
             "qlk_executive_dashboard/static/src/scss/executive_dashboard.scss",
         ],
     },
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": False,
 }

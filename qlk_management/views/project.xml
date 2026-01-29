@@ -92,8 +92,8 @@
         </field>
     </record>
 
-    <record id="project_project_tree_inherit_engagement" model="ir.ui.view">
-        <field name="name">project.project.tree.engagement</field>
+    <record id="project_project_list_inherit_engagement" model="ir.ui.view">
+        <field name="name">project.project.list.engagement</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">

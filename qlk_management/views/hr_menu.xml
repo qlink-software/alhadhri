@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr.menu_hr_root" model="ir.ui.menu">
+            <!-- <field name="parent_id" ref="qlk_management.menu_management_root"/> -->
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="hr_attendance.menu_hr_attendance_root" model="ir.ui.menu">
+            <field name="parent_id" ref="hr.menu_hr_root"/>
+            <field name="sequence">7</field>
+        </record>
+
+        <record id="hr_holidays.menu_hr_holidays_root" model="ir.ui.menu">
+            <field name="parent_id" ref="hr.menu_hr_root"/>
+            <field name="sequence">8</field>
+        </record>
+        <record id="hr_payroll_community.menu_hr_payroll_community_root" model="ir.ui.menu">
+            <field name="parent_id" ref="hr.menu_hr_root"/>
+            <field name="sequence">9</field>
+        </record>
+        <record id="hr_recruitment.menu_hr_recruitment_root" model="ir.ui.menu">
+            <field name="parent_id" ref="hr.menu_hr_root"/>
+            <field name="sequence">10</field>
+        </record>
+    </data>
+</odoo>
