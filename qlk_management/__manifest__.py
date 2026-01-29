@@ -30,6 +30,8 @@
         'hr',
         'hr_attendance',
         'hr_holidays',
+        'hr_payroll_community',
+        'hr_recruitment',
         'project',
         'account',
         'qlk_law',
