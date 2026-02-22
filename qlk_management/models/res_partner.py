@@ -86,45 +86,45 @@ class ResPartner(models.Model):
     #         else:
     #             partner.poa_next_expiration_date = False
     #         partner.poa_expiry_reminder = reminder
+#بداية 
+    # @api.constrains("phone", "mobile", "email")
+    # def _check_contact_channels(self):
+    #     for partner in self:
+    #         if partner.customer_rank <= 0:
+    #             continue
+    #         missing = []
+    #         if not partner.mobile:
+    #             missing.append(_("Mobile"))
+    #         if not partner.email:
+    #             missing.append(_("Email"))
+    #         if missing:
+    #             raise ValidationError(
+    #                 _("The following fields are required for clients: %s") % ", ".join(missing)
+    #             )
 
-    @api.constrains("phone", "mobile", "email")
-    def _check_contact_channels(self):
-        for partner in self:
-            if partner.customer_rank <= 0:
-                continue
-            missing = []
-            if not partner.mobile:
-                missing.append(_("Mobile"))
-            if not partner.email:
-                missing.append(_("Email"))
-            if missing:
-                raise ValidationError(
-                    _("The following fields are required for clients: %s") % ", ".join(missing)
-                )
-
-    @api.constrains("email", "mobile")
-    def _check_unique_contact_fields(self):
-        partner_model = self.env["res.partner"].sudo()
-        for partner in self:
-            duplicates = []
-            if partner.email:
-                duplicate_email = partner_model.search(
-                    [("email", "=", partner.email), ("id", "!=", partner.id)], limit=1
-                )
-                if duplicate_email:
-                    duplicates.append(_("Email"))
-            if partner.mobile:
-                duplicate_mobile = partner_model.search(
-                    [("mobile", "=", partner.mobile), ("id", "!=", partner.id)], limit=1
-                )
-                if duplicate_mobile:
-                    duplicates.append(_("Mobile"))
-            if duplicates:
-                raise UserError(
-                    _("The following contact fields must be unique across partners: %s.")
-                    % ", ".join(duplicates)
-                )
-
+    # @api.constrains("email", "mobile")
+    # def _check_unique_contact_fields(self):
+    #     partner_model = self.env["res.partner"].sudo()
+    #     for partner in self:
+    #         duplicates = []
+    #         if partner.email:
+    #             duplicate_email = partner_model.search(
+    #                 [("email", "=", partner.email), ("id", "!=", partner.id)], limit=1
+    #             )
+    #             if duplicate_email:
+    #                 duplicates.append(_("Email"))
+    #         if partner.mobile:
+    #             duplicate_mobile = partner_model.search(
+    #                 [("mobile", "=", partner.mobile), ("id", "!=", partner.id)], limit=1
+    #             )
+    #             if duplicate_mobile:
+    #                 duplicates.append(_("Mobile"))
+    #         if duplicates:
+    #             raise UserError(
+    #                 _("The following contact fields must be unique across partners: %s.")
+    #                 % ", ".join(duplicates)
+    #             )
+#نهاية 
     @api.model
     def _default_client_year(self):
         today = fields.Date.context_today(self)
