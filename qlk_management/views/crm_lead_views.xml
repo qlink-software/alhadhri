@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_crm_lead_form_client_name" model="ir.ui.view">
+        <field name="name">crm.lead.form.client.name</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id'][1]" position="after">
+                <field name="client_name" required="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_crm_lead_quick_create_client_name" model="ir.ui.view">
+        <field name="name">crm.lead.form.quick.create.client.name</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.quick_create_opportunity_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="client_name" required="1"/>
+                <field name="name" required="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_crm_lead_kanban_hide_partner" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.hide.partner</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="qlk_management.inherit_view_id_inherit_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card">
+                    <div class="o_kanban_record">
+                        <field class="fw-bold fs-5" name="name"/>
+                        <div class="text-muted">
+                            <span>Stage: </span>
+                            <field name="state"/>
+                        </div>
+                        <div>
+                            <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                        </div>
+                        <div class="pt-1">
+                            <field name="priority_selection"
+                                decoration-danger="priority == 'high'"
+                                decoration-warning="priority == 'medium'"
+                                decoration-success="priority == 'low'"/>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+</odoo>

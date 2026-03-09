@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <menuitem id="menu_mp_root"
+                  name="MP"
+                  parent="qlk_management.menu_management_root"
+                  sequence="65"
+                  groups="qlk_management.group_mp"/>
+
+        <record id="menu_qlk_project_working_hours" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp')])]"/>
+        </record>
+
+        <record id="menu_qlk_project_tasks" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp')])]"/>
+        </record>
+
+        <record id="menu_qlk_project_hours" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp')])]"/>
+        </record>
+
+        <record id="qlk_task_management.menu_task_management_root" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp')])]"/>
+        </record>
+    </data>
+</odoo>

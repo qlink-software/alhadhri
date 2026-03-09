@@ -13,6 +13,7 @@ from odoo.exceptions import UserError, ValidationError
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
+    name_ar = fields.Char(string="Arabic Name")
     indust_date = fields.Date(string="Date")
     attachment_id = fields.Many2one("ir.attachment", string="Attachment", ondelete="set null", index=True)
 

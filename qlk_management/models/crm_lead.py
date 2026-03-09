@@ -14,6 +14,8 @@ class Crm(models.Model):
         ('high', 'High'),('medium', 'Medium'),('low', 'Low'),
     ], string='Priority', tracking=True)
 
+    client_name = fields.Char(string="Client")
+
     opportunity_type = fields.Selection([
         ('litigation', 'Litigation'),('corporate','Corporate'),('arbitration','Arbitration'),
     ], default="litigation", string='Opportunity Type')

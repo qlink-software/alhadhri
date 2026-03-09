@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+        <field name="name">PR</field>
+    </record>
+
+    <record id="menu_management_pipeline" model="ir.ui.menu">
+        <field name="name">PR</field>
+    </record>
+
+</odoo>

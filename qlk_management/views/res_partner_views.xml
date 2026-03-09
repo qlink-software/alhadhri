@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_form_name_ar" model="ir.ui.view">
+        <field name="name">res.partner.form.name.ar</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name'][1]" position="after">
+                <field name="name_ar"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_res_partner_search_client_data_inherit" model="ir.ui.view">
+        <field name="name">res.partner.search.client.data.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="qlk_management.view_res_partner_filter_client_data"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='name']" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', '|', '|', '|', ('complete_name', 'ilike', self), ('name_ar', 'ilike', self), ('qid', 'ilike', self), ('mobile', 'ilike', self), ('ref', 'ilike', self), ('email', 'ilike', self), ('vat', 'ilike', self), ('company_registry', 'ilike', self)]</attribute>
+            </xpath>
+            <xpath expr="//search/field[@name='name']" position="after">
+                <field name="name_ar" filter_domain="[('name_ar', 'ilike', self)]"/>
+                <field name="qid" filter_domain="[('qid', 'ilike', self)]"/>
+                <field name="mobile" filter_domain="[('mobile', 'ilike', self)]"/>
+            </xpath>
+            <xpath expr="//search/field[@name='category_id']" position="replace"/>
+            <xpath expr="//search/field[@name='user_id']" position="replace"/>
+            <xpath expr="//search//filter[@name='salesperson']" position="replace"/>
+        </field>
+    </record>
+</odoo>
