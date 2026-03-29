@@ -6,3 +6,4 @@ from . import transfer_corporate
 from . import transfer_litigation
 from . import pre_litigation_approval_wizard
 from . import employee_document_reject_wizard
+from . import hr_resignation_reject_wizard

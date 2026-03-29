@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from datetime import date
-
 from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
+from odoo.osv.expression import OR
 
 
 class QlkAnalysisDashboard(models.AbstractModel):
@@ -30,6 +29,36 @@ class QlkAnalysisDashboard(models.AbstractModel):
             else:
                 normalized.append(term)
         return normalized
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تبني دومين مرتبط بالمستخدم الحالي لضمان عرض إحصائياته الشخصية.
+    # ------------------------------------------------------------------------------
+    def _scoped_domain(self, model_name, user, employee_ids, allow_all, base_domain=None):
+        domain = list(base_domain or [])
+        if allow_all or model_name not in self.env:
+            return domain
+
+        Model = self.env[model_name]
+        user_scopes = []
+        if "owner_id" in Model._fields:
+            user_scopes.append([("owner_id", "=", user.id)])
+        if "user_id" in Model._fields:
+            user_scopes.append([("user_id", "=", user.id)])
+        if "assigned_user_id" in Model._fields:
+            user_scopes.append([("assigned_user_id", "=", user.id)])
+        if "reviewer_id" in Model._fields:
+            user_scopes.append([("reviewer_id", "=", user.id)])
+        if employee_ids and "employee_id" in Model._fields:
+            user_scopes.append([("employee_id", "in", employee_ids)])
+        if employee_ids and "assigned_employee_ids" in Model._fields:
+            user_scopes.append([("assigned_employee_ids", "in", employee_ids)])
+        # create_uid متوفر افتراضيًا في أغلب الموديلات ويعمل كحل احتياطي.
+        if "create_uid" in Model._fields:
+            user_scopes.append([("create_uid", "=", user.id)])
+
+        if user_scopes:
+            domain += OR(user_scopes)
+        return domain
 
     def _aggregate_monthly(self, model_name, domain=None, date_field="date", value_field="id", value_type="count", months=6, action=None):
         if model_name not in self.env:
@@ -68,8 +97,9 @@ class QlkAnalysisDashboard(models.AbstractModel):
     @api.model
     def get_dashboard_data(self, months=6):
         user = self.env.user
-        allow_all = True
         employee_ids = user.employee_ids.ids
+        # هذا المتغير يفعّل عرض شامل للمديرين فقط، ويقيّد بقية الموظفين ببياناتهم.
+        allow_all = user._qlk_can_view_all_dashboards()
 
         try:
             months = int(months)
@@ -77,30 +107,20 @@ class QlkAnalysisDashboard(models.AbstractModel):
             months = 6
         months = max(1, min(months, 24))
 
-        def project_domain():
-            if allow_all:
-                return []
-            domain = [("owner_id", "=", user.id)]
-            if employee_ids:
-                domain = ["|", ("assigned_employee_ids", "in", employee_ids)] + domain
-            return domain
+        def scoped_domain(model_name, base_domain=None):
+            return self._scoped_domain(model_name, user, employee_ids, allow_all, base_domain)
+
+        project_domain = scoped_domain("qlk.project")
+        task_domain = scoped_domain("qlk.task", [("project_id", "!=", False)])
+        approved_task_domain = task_domain + [("approval_state", "=", "approved")]
 
         totals = {
-            "cases": self._summaries("qlk.case"),
-            "hearings": self._summaries("qlk.hearing"),
-            "consultations": self._summaries("qlk.consulting") if "qlk.consulting" in self.env else 0,
-            "complaints": self._summaries("qlk.police.complaint") if "qlk.police.complaint" in self.env else 0,
-            "projects": self._summaries("qlk.project", project_domain()),
+            "cases": self._summaries("qlk.case", scoped_domain("qlk.case")),
+            "hearings": self._summaries("qlk.hearing", scoped_domain("qlk.hearing")),
+            "consultations": self._summaries("qlk.consulting", scoped_domain("qlk.consulting")) if "qlk.consulting" in self.env else 0,
+            "complaints": self._summaries("qlk.police.complaint", scoped_domain("qlk.police.complaint")) if "qlk.police.complaint" in self.env else 0,
+            "projects": self._summaries("qlk.project", project_domain),
         }
-
-        task_domain = [("project_id", "!=", False)]
-        if not allow_all:
-            if employee_ids:
-                task_domain.append(("employee_id", "in", employee_ids))
-            else:
-                task_domain.append(("assigned_user_id", "=", user.id))
-
-        approved_task_domain = task_domain + [("approval_state", "=", "approved")]
 
         task_hours_group = self.env["qlk.task"].read_group(approved_task_domain, ["hours_spent"], [])
         totals["task_hours"] = task_hours_group[0].get("hours_spent", 0.0) if task_hours_group else 0.0
@@ -112,68 +132,78 @@ class QlkAnalysisDashboard(models.AbstractModel):
 
         case_status = []
         if "qlk.case" in self.env:
-            selection = dict(self.env["qlk.case"]._fields["status"].selection)
-            grouped = self.env["qlk.case"].read_group([], ["status"], ["status"])
+            case_model = self.env["qlk.case"]
+            case_base_domain = scoped_domain("qlk.case")
+            selection = dict(case_model._fields["status"].selection)
+            grouped = case_model.read_group(case_base_domain, ["status"], ["status"])
             for entry in grouped:
                 status = entry.get("status")
                 if not status:
                     continue
+                local_domain = case_base_domain + [("status", "=", status)]
                 case_status.append(
                     {
                         "label": selection.get(status, status),
                         "value": entry.get("status_count", 0),
-                        "domain": [["status", "=", status]],
+                        "domain": self._normalize_domain(local_domain),
                         "action": "cases",
                     }
                 )
 
         hearing_stage = []
         if "qlk.hearing" in self.env:
-            selection = dict(self.env["qlk.hearing"]._fields["state"].selection)
-            grouped = self.env["qlk.hearing"].read_group([], ["state"], ["state"])
+            hearing_model = self.env["qlk.hearing"]
+            hearing_base_domain = scoped_domain("qlk.hearing")
+            selection = dict(hearing_model._fields["state"].selection)
+            grouped = hearing_model.read_group(hearing_base_domain, ["state"], ["state"])
             for entry in grouped:
                 state = entry.get("state")
                 if not state:
                     continue
+                local_domain = hearing_base_domain + [("state", "=", state)]
                 hearing_stage.append(
                     {
                         "label": selection.get(state, state),
                         "value": entry.get("state_count", 0),
-                        "domain": [["state", "=", state]],
+                        "domain": self._normalize_domain(local_domain),
                         "action": "hearings",
                     }
                 )
 
         project_progress = []
         if "qlk.project" in self.env:
-            selection = dict(self.env["qlk.project"]._fields["department"].selection)
-            grouped = self.env["qlk.project"].read_group(project_domain(), ["department"], ["department"])
+            project_model = self.env["qlk.project"]
+            selection = dict(project_model._fields["department"].selection)
+            grouped = project_model.read_group(project_domain, ["department"], ["department"])
             for entry in grouped:
                 dept = entry.get("department")
                 if not dept:
                     continue
+                local_domain = project_domain + [("department", "=", dept)]
                 project_progress.append(
                     {
                         "label": selection.get(dept, dept),
                         "value": entry.get("department_count", 0),
-                        "domain": [["department", "=", dept]],
+                        "domain": self._normalize_domain(local_domain),
                         "action": "projects",
                     }
                 )
 
         task_department = []
         if "qlk.task" in self.env:
-            selection = dict(self.env["qlk.task"]._fields["department"].selection)
-            grouped = self.env["qlk.task"].read_group(task_domain, ["department"], ["department"])
+            task_model = self.env["qlk.task"]
+            selection = dict(task_model._fields["department"].selection)
+            grouped = task_model.read_group(task_domain, ["department"], ["department"])
             for entry in grouped:
                 dept = entry.get("department")
                 if not dept:
                     continue
+                local_domain = task_domain + [("department", "=", dept)]
                 task_department.append(
                     {
                         "label": selection.get(dept, dept),
                         "value": entry.get("department_count", 0),
-                        "domain": [["department", "=", dept], ["project_id", "!=", False]],
+                        "domain": self._normalize_domain(local_domain),
                         "action": "tasks",
                     }
                 )
@@ -187,11 +217,11 @@ class QlkAnalysisDashboard(models.AbstractModel):
             },
             "totals": totals,
             "series": {
-                "cases": safe_aggregate("qlk.case", date_field="date", action="cases"),
-                "hearings": safe_aggregate("qlk.hearing", date_field="date", action="hearings"),
-                "consultations": safe_aggregate("qlk.consulting", date_field="date", action="consultations") if "qlk.consulting" in self.env else [],
-                "complaints": safe_aggregate("qlk.police.complaint", date_field="date", action="complaints") if "qlk.police.complaint" in self.env else [],
-                "projects": safe_aggregate("qlk.project", project_domain(), date_field="create_date", action="projects"),
+                "cases": safe_aggregate("qlk.case", scoped_domain("qlk.case"), date_field="date", action="cases"),
+                "hearings": safe_aggregate("qlk.hearing", scoped_domain("qlk.hearing"), date_field="date", action="hearings"),
+                "consultations": safe_aggregate("qlk.consulting", scoped_domain("qlk.consulting"), date_field="date", action="consultations") if "qlk.consulting" in self.env else [],
+                "complaints": safe_aggregate("qlk.police.complaint", scoped_domain("qlk.police.complaint"), date_field="date", action="complaints") if "qlk.police.complaint" in self.env else [],
+                "projects": safe_aggregate("qlk.project", project_domain, date_field="create_date", action="projects"),
                 "task_hours": safe_aggregate("qlk.task", approved_task_domain, date_field="date_start", value_field="hours_spent", value_type="sum", action="tasks"),
                 "case_status": case_status,
                 "hearing_stage": hearing_stage,

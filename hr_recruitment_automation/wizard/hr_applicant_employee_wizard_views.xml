@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_applicant_employee_create_wizard_form" model="ir.ui.view">
+        <field name="name">hr.applicant.employee.create.wizard.form</field>
+        <field name="model">hr.applicant.employee.create.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create Employee From Offer">
+                <group>
+                    <field name="applicant_id" readonly="1"/>
+                    <div class="o_form_label">Employee and draft contract will be created automatically from recruitment data.</div>
+                </group>
+                <footer>
+                    <button name="action_confirm_create_employee" type="object" string="Create Employee" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

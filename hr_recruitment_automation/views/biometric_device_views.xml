@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_biometric_device_tree" model="ir.ui.view">
+        <field name="name">hr.biometric.device.list</field>
+        <field name="model">hr.biometric.device</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="base_url"/>
+                <field name="endpoint_path"/>
+                <field name="last_sync_at"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_biometric_device_form" model="ir.ui.view">
+        <field name="name">hr.biometric.device.form</field>
+        <field name="model">hr.biometric.device</field>
+        <field name="arch" type="xml">
+            <form string="Biometric Device">
+                <header>
+                    <button name="action_sync_attendance" type="object" string="Sync Now" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="base_url"/>
+                            <field name="endpoint_path"/>
+                            <field name="api_key" password="True"/>
+                        </group>
+                        <group>
+                            <field name="request_timeout"/>
+                            <field name="verify_ssl"/>
+                            <field name="last_sync_at" readonly="1"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_biometric_log_tree" model="ir.ui.view">
+        <field name="name">hr.biometric.log.list</field>
+        <field name="model">hr.biometric.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="event_datetime"/>
+                <field name="device_id"/>
+                <field name="employee_id"/>
+                <field name="event_type"/>
+                <field name="status"/>
+                <field name="message"/>
+                <field name="external_log_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_hr_biometric_device" model="ir.actions.act_window">
+        <field name="name">Biometric Devices</field>
+        <field name="res_model">hr.biometric.device</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_hr_biometric_log" model="ir.actions.act_window">
+        <field name="name">Biometric Logs</field>
+        <field name="res_model">hr.biometric.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_hr_biometric_device"
+              name="Biometric Devices"
+              parent="hr_attendance.menu_hr_attendance_root"
+              action="action_hr_biometric_device"
+              sequence="70"
+              groups="hr_attendance.group_hr_attendance_manager"/>
+
+    <menuitem id="menu_hr_biometric_log"
+              name="Biometric Logs"
+              parent="hr_attendance.menu_hr_attendance_root"
+              action="action_hr_biometric_log"
+              sequence="71"
+              groups="hr_attendance.group_hr_attendance_manager"/>
+</odoo>

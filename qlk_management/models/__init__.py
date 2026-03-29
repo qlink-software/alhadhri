@@ -4,12 +4,16 @@
 # from . import qlk_proposal
 # from . import qlk_agreement
 from . import qlk_dashboard
+from . import client_contact
 from . import res_partner
 from . import sub_project
 from . import task
 from . import crm_lead
 from . import cost_calculation
 from . import hr_employee
+from . import hr_resignation_request
+from . import biometric_integration
+from . import hr_automation
 from . import project_project
 from . import ir_attachment
 from . import ir_model

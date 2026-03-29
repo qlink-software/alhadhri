@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from odoo import _, api, fields, models
+from odoo import _, api, models
 from odoo.exceptions import AccessError
-from odoo.tools.misc import format_amount
+from odoo.osv.expression import OR
 
 
 class QlkBusinessDevelopmentDashboard(models.AbstractModel):
@@ -11,10 +11,6 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
     def _action_payload(self, xmlid):
         action = self.env.ref(xmlid, raise_if_not_found=False)
         return {"id": action.id} if action else None
-
-    def _format_currency(self, amount):
-        currency = self.env.company.currency_id
-        return format_amount(self.env, amount or 0.0, currency)
 
     def _safe_count(self, model, domain):
         try:
@@ -29,6 +25,35 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
             return model.read_group(domain, fields, groupby, lazy=False)
         except AccessError:
             return []
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تبني دومين خاص بالمستخدم الحالي لضمان خصوصية بيانات الداشبورد.
+    # ------------------------------------------------------------------------------
+    def _scoped_domain(self, model_name, user, employee_ids, allow_all, base_domain=None):
+        domain = list(base_domain or [])
+        if allow_all or model_name not in self.env:
+            return domain
+
+        Model = self.env[model_name]
+        user_scopes = []
+        if "reviewer_id" in Model._fields:
+            user_scopes.append([("reviewer_id", "=", user.id)])
+        if "user_id" in Model._fields:
+            user_scopes.append([("user_id", "=", user.id)])
+        if "owner_id" in Model._fields:
+            user_scopes.append([("owner_id", "=", user.id)])
+        if "assigned_user_id" in Model._fields:
+            user_scopes.append([("assigned_user_id", "=", user.id)])
+        if employee_ids and "employee_id" in Model._fields:
+            user_scopes.append([("employee_id", "in", employee_ids)])
+        if employee_ids and "assigned_employee_ids" in Model._fields:
+            user_scopes.append([("assigned_employee_ids", "in", employee_ids)])
+        if "create_uid" in Model._fields:
+            user_scopes.append([("create_uid", "=", user.id)])
+
+        if user_scopes:
+            domain += OR(user_scopes)
+        return domain
 
     def _build_group_cards(self, model, groups, base_domain=None):
         base_domain = base_domain or []
@@ -50,8 +75,8 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
             )
         return cards, total
 
-    def _project_state_groups(self, project_model):
-        base_domain = []
+    def _project_state_groups(self, project_model, base_domain=None):
+        base_domain = list(base_domain or [])
         if "active" in project_model._fields:
             base_domain.append(("active", "=", True))
 
@@ -74,8 +99,8 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
             base_domain=base_domain,
         )
 
-    def _opportunity_state_groups(self, opportunity_model):
-        domain = [("type", "=", "opportunity")]
+    def _opportunity_state_groups(self, opportunity_model, base_domain=None):
+        domain = list(base_domain or []) + [("type", "=", "opportunity")]
         state_groups = self._safe_read_group(opportunity_model, domain, ["state"], ["state"])
         state_labels = dict(opportunity_model._fields["state"].selection or [])
         cards = []
@@ -108,10 +133,20 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
 
     @api.model
     def get_dashboard_data(self):
+        user = self.env.user
+        employee_ids = user.employee_ids.ids
+        # هذا المتغير يسمح للمديرين بالرؤية الشاملة، ويقيّد بقية المستخدمين ببياناتهم.
+        allow_all = user._qlk_can_view_all_dashboards()
+
         proposal_model = self.env["bd.proposal"]
         engagement_model = self.env["bd.engagement.letter"]
         opportunity_model = self.env["crm.lead"]
         project_model = self.env["project.project"]
+
+        proposal_domain = self._scoped_domain("bd.proposal", user, employee_ids, allow_all)
+        engagement_domain = self._scoped_domain("bd.engagement.letter", user, employee_ids, allow_all)
+        opportunity_domain = self._scoped_domain("crm.lead", user, employee_ids, allow_all)
+        project_domain = self._scoped_domain("project.project", user, employee_ids, allow_all)
 
         proposal_action = self._action_payload("qlk_management.action_bd_proposal") or self._action_payload(
             "qlk_management.action_proposal"
@@ -151,6 +186,7 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
                     "tone": "danger",
                 },
             ],
+            base_domain=proposal_domain,
         )
 
         engagement_groups, engagement_total = self._build_group_cards(
@@ -182,11 +218,12 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
                     "tone": "danger",
                 },
             ],
+            base_domain=engagement_domain,
         )
 
-        opportunity_groups, opportunity_total = self._opportunity_state_groups(opportunity_model)
+        opportunity_groups, opportunity_total = self._opportunity_state_groups(opportunity_model, base_domain=opportunity_domain)
 
-        project_groups, project_total = self._project_state_groups(project_model)
+        project_groups, project_total = self._project_state_groups(project_model, base_domain=project_domain)
 
         return {
             "palette": {

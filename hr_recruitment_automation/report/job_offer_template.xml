@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="job_offer_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: 'DejaVu Sans', sans-serif; color: #1f2937;">
+                        <t t-set="currency_code" t-value="doc.currency_id.name or 'QAR'"/>
+                        <div style="margin-bottom: 18px;">
+                            <div style="text-align: right; font-size: 12px; color: #4b5563;">
+                                Date: <span t-out="doc.offer_date or ''"/>
+                            </div>
+                            <h2 style="margin: 10px 0 0; text-align: center; font-size: 28px; letter-spacing: 1px;">Job Offer</h2>
+                        </div>
+
+                        <div style="margin: 22px 0 10px; font-size: 14px; line-height: 1.8;">
+                            <div><strong>NAME:</strong> <span t-out="doc.candidate_name or doc.partner_name or ''"/></div>
+                            <div><strong>Title:</strong> <span t-out="doc.job_id.name or doc.job_title or ''"/></div>
+                            <div style="margin-top: 8px; font-size: 16px;"><strong>Total salary:</strong> <span t-out="currency_code"/> <span t-out="'{:,.2f}'.format(doc.total_salary or 0.0)"/></div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <h3 style="font-size: 16px; margin-bottom: 8px;">Allowance Breakdown</h3>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr>
+                                        <th style="border: 1px solid #111827; background: #f3f4f6; padding: 10px; text-align: left;">Allowance Type</th>
+                                        <th style="border: 1px solid #111827; background: #f3f4f6; padding: 10px; text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px;">Basic Salary</td>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px; text-align: right;"><span t-out="'{:,.2f}'.format(doc.basic_salary or 0.0)"/> <span t-out="currency_code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px;">Housing Allowance</td>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px; text-align: right;"><span t-out="'{:,.2f}'.format(doc.housing_allowance or 0.0)"/> <span t-out="currency_code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px;">Transportation Allowance</td>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px; text-align: right;"><span t-out="'{:,.2f}'.format(doc.transportation_allowance or 0.0)"/> <span t-out="currency_code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px;">Phone Allowance</td>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px; text-align: right;"><span t-out="'{:,.2f}'.format(doc.phone_allowance or 0.0)"/> <span t-out="currency_code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px;">Others</td>
+                                        <td style="border: 1px solid #d1d5db; padding: 10px; text-align: right;"><span t-out="'{:,.2f}'.format(doc.other_allowance or 0.0)"/> <span t-out="currency_code"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="margin-top: 24px; font-size: 13px; line-height: 1.9;">
+                            <h3 style="font-size: 16px; margin-bottom: 8px;">Terms</h3>
+                            <div><strong>Yearly vacation:</strong> Twenty-one (21) calendar days</div>
+                            <div><strong>Trial period:</strong> Six months as per labor law</div>
+                            <div><strong>Ticket Exchange:</strong> Economy ticket to home country every 2 years</div>
+                            <div><strong>Contract Duration:</strong> Indefinite</div>
+                            <div><strong>Work hours:</strong> 48 hours per week according to labor law<br/>36 hours per week during Ramadan</div>
+                            <div style="margin-top: 6px;"><strong>Other holidays:</strong></div>
+                            <ul style="margin: 6px 0 0 18px; padding: 0;">
+                                <li>National Day: working day</li>
+                                <li>Eid al-Fitr: as per business needs</li>
+                                <li>Eid al-Adha: as per business needs</li>
+                                <li>National Sport Day: working day</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-top: 28px; border-top: 1px solid #9ca3af; padding-top: 16px; font-size: 12px; line-height: 1.9;">
+                            <p style="margin: 0 0 8px;">The job offer provided is valid for three days starting from the date it was sent to the candidate. Failure to respond will be considered a rejection.</p>
+                            <p style="margin: 0 0 8px;">Kindly sign and return it by replying to the email.</p>
+                            <p style="margin: 0 0 16px;"><strong>Al-Hadhri &amp; Partners law firm</strong></p>
+
+                            <div style="margin-top: 16px;">Authorized to sign: _____________________________</div>
+
+                            <div style="margin-top: 30px;">Candidate:</div>
+                            <div style="margin-top: 8px;">I __________________________ confirm that I will commence employment on __________</div>
+                            <div style="margin-top: 18px;">Candidate Signature: ______________________</div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

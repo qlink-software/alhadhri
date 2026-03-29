@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_job_offer" model="mail.template">
+            <field name="name">Job Offer Email</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="subject">Job Offer - {{ object.candidate_name or object.partner_name or object.display_name }}</field>
+            <field name="email_from">{{ (user.email_formatted or object.company_id.email_formatted or '') }}</field>
+            <field name="email_to">{{ object.personal_email or object.email_from or object.partner_id.email or '' }}</field>
+            <field name="report_template_ids" eval="[(4, ref('hr_recruitment_automation.action_report_job_offer'))]"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div style="margin:0; padding:0; background:#f5f7fa; font-family:Arial, sans-serif; color:#1f2937;">
+    <div style="max-width:680px; margin:0 auto; padding:28px 16px;">
+        <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden;">
+            <div style="background:#0f4c81; color:#ffffff; padding:24px 28px;">
+                <div style="font-size:12px; letter-spacing:1px; text-transform:uppercase; opacity:0.8;">Al-Hadhri &amp; Partners</div>
+                <h2 style="margin:8px 0 0; font-size:26px;">Job Offer</h2>
+            </div>
+            <div style="padding:24px 28px; font-size:14px; line-height:1.9;">
+                <p style="margin:0 0 14px;">Dear <strong><t t-out="object.candidate_name or object.partner_name or object.display_name"/></strong>,</p>
+                <p style="margin:0 0 14px;">Please find attached your job offer for the position of <strong><t t-out="object.job_id.name or object.job_title or ''"/></strong>.</p>
+                <p style="margin:0 0 14px;">The offer is valid for three days from the date it is sent. Kindly review, sign, and return it by replying to this email.</p>
+                <p style="margin:0 0 18px;">If you need any clarification, please contact us and we will assist you promptly.</p>
+                <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:16px;">
+                    <div><strong>Offer Date:</strong> <t t-out="object.offer_date or ''"/></div>
+                    <div><strong>Total Salary:</strong> <t t-out="object.currency_id.name or 'QAR'"/> <t t-out="'{:,.2f}'.format(object.total_salary or 0.0)"/></div>
+                </div>
+                <p style="margin:18px 0 0;">Regards,<br/><strong>Al-Hadhri &amp; Partners law firm</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+            </field>
+        </record>
+    </data>
+</odoo>

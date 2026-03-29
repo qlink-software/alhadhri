@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_leave_form_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.leave.form.recruitment.automation</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="manager_override" groups="hr_holidays.group_hr_holidays_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_leave_type_form_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.leave.type.form.recruitment.automation</field>
+        <field name="model">hr.leave.type</field>
+        <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='configuration']" position="inside">
+                <field name="automation_code"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

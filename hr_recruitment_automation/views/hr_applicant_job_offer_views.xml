@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_applicant_form_job_offer_actions" model="ir.ui.view">
+        <field name="name">hr.applicant.form.job.offer.actions</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment_automation.view_hr_applicant_form_recruitment_automation"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_print_job_offer"
+                        type="object"
+                        string="Print Job Offer"
+                        class="btn-secondary"
+                        invisible="offer_state != 'approved'"
+                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager,hr_recruitment_automation.group_managing_partner"/>
+
+                <button name="action_send_job_offer"
+                        type="object"
+                        string="Send Job Offer"
+                        class="btn-primary"
+                        invisible="offer_state != 'approved'"
+                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager,hr_recruitment_automation.group_managing_partner"/>
+            </xpath>
+
+            <xpath expr="//group[field[@name='nationality_id']]" position="inside">
+                <field name="candidate_name" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//group[field[@name='basic_salary']]" position="inside">
+                <field name="total_salary" readonly="1"/>
+                <field name="offer_date" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- هذا الكرون لمزامنة الحضور من أجهزة البصمة إلى hr.attendance. -->
+        <record id="ir_cron_qlk_biometric_sync" model="ir.cron">
+            <field name="name">QLK Biometric Attendance Sync</field>
+            <field name="model_id" ref="model_qlk_biometric_device"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_sync_biometric_attendance()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- هذا الكرون لإرسال تذكير الساعات الأسبوعية يوم الأربعاء للـ MP. -->
+        <record id="ir_cron_qlk_weekly_hours_reminder" model="ir.cron">
+            <field name="name">QLK Weekly Hours Reminder (MP)</field>
+            <field name="model_id" ref="model_qlk_hr_automation"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_send_weekly_hours_reminder()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- هذا الكرون لإيقاف المستخدمين تلقائيًا بعد انتهاء فترة الإشعار (15 يوم). -->
+        <record id="ir_cron_qlk_notice_period_deactivation" model="ir.cron">
+            <field name="name">QLK Notice Period User Deactivation</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_deactivate_users_after_notice()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

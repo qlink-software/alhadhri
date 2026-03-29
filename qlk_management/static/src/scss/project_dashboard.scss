@@ -332,3 +332,10 @@
         }
     }
 }
+
+.qlk-project-dashboard {
+    .qlk-warning-item {
+        border-inline-start: 3px solid #f39c12;
+        background: rgba(243, 156, 18, 0.08) !important;
+    }
+}

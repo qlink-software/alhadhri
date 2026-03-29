@@ -1,1 +1,1 @@
-from . import bd_pdf_builder_wizard
+# -*- coding: utf-8 -*-

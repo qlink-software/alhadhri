@@ -93,7 +93,7 @@ class QlkProject(models.Model):
         string="Client",
         required=True,
         tracking=True,
-        domain="[('customer', '=', True), ('parent_id', '=', False)]",
+        domain="[('customer_rank', '>', 0), ('parent_id', '=', False)]",
     )
     client_attachment_ids = fields.Many2many(
         related="client_id.client_attachment_ids",

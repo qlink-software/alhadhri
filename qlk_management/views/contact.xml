@@ -123,7 +123,6 @@
             <!-- <xpath expr="//field[@name='industry_id']" position="replace">
             </xpath> -->
             <xpath expr="//field[@name='category_id']" position="after">
-                <field name="industry_id" />
                 <field name="create_date" />
             </xpath>
             <!-- Add a header button area in the form, before the sheet -->
@@ -165,12 +164,12 @@
                         modifiers="{'invisible': [('id', '=', False)]}">
                     <field name="project_count" widget="statinfo" string="Projects"/>
                 </button>
-                <button name="get_client_case"
+                <button name="action_view_related_cases"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-balance-scale"
                         modifiers="{'invisible': [('id', '=', False)]}">
-                    <field name="case_count" widget="statinfo" string="Cases"/>
+                    <field name="cases_count" widget="statinfo" string="Cases"/>
                 </button>
             </xpath>
             <!-- <xpath expr="//page[@name='invoicing']" position="attributes">
@@ -229,7 +228,9 @@
             </xpath> -->
 
             <xpath expr="//sheet//field[@name='ref']" position="after">
-                <field name="industry_id"/>
+                <field name="industry_id" string="Client Industry"/>
+                <field name="is_individual_customer"/>
+                <field name="classification_id"/>
             </xpath>
             <!-- <xpath expr="//group[.//field[@name='phone']]" position="after">
                 <group string="Customer Type" class="o_inner_group" col="4">
@@ -261,6 +262,16 @@
                 <page string="Client Attachments">
                     <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
                 </page>
+                <page string="Company Contact Channels" invisible="company_type != 'company'">
+                    <field name="company_contact_channel_ids" context="{'default_partner_id': id}">
+                        <list editable="bottom">
+                            <field name="sequence"/>
+                            <field name="channel_type"/>
+                            <field name="value"/>
+                            <field name="label"/>
+                        </list>
+                    </field>
+                </page>
                 <page string="Tasks / Hours">
                     <field name="qlk_task_ids" context="{'default_partner_id': id, 'default_department': 'management'}">
                         <list editable="bottom">
@@ -290,6 +301,9 @@
             </xpath>
             <xpath expr="//field[@name='mobile']" position="attributes">
                 <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">company_type != 'company'</attribute>
             </xpath>
             <xpath expr="//field[@name='email']" position="attributes">
                 <attribute name="required">1</attribute>
@@ -420,7 +434,7 @@
         <field name="name">res.partner.client.data.search</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <search string="Search Partner">
+            <search string="Search Clients">
                 <field name="name"
                        filter_domain="['|', '|', '|', '|', ('complete_name', 'ilike', self), ('ref', 'ilike', self), ('email', 'ilike', self), ('vat', 'ilike', self), ('company_registry', 'ilike', self)]"/>
                 <field name="parent_id" domain="[('is_company', '=', True)]" operator="child_of"/>
@@ -429,8 +443,8 @@
                 <field name="category_id" string="Tag" operator="child_of"/>
                 <field name="user_id"/>
                 <separator/>
-                <filter string="Individuals" name="type_person" domain="[('is_company', '=', False)]"/>
-                <filter string="Companies" name="type_company" domain="[('is_company', '=', True)]"/>
+                <filter string="Individual Clients" name="type_person" domain="[('is_company', '=', False)]"/>
+                <filter string="Company Clients" name="type_company" domain="[('is_company', '=', True)]"/>
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <separator/>

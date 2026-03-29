@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_recruitment_document_package_tree" model="ir.ui.view">
+        <field name="name">hr.recruitment.document.package.list</field>
+        <field name="model">hr.recruitment.document.package</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="applicant_id"/>
+                <field name="employee_id"/>
+                <field name="contract_id"/>
+                <field name="state"/>
+                <field name="employee_response_date"/>
+                <field name="access_email_sent"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_recruitment_document_package_form" model="ir.ui.view">
+        <field name="name">hr.recruitment.document.package.form</field>
+        <field name="model">hr.recruitment.document.package</field>
+        <field name="arch" type="xml">
+            <form string="Document Package">
+                <header>
+                    <button name="action_send_to_manager" type="object" string="Send To Managing Partner" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-primary" invisible="state != 'waiting_manager_approval'" groups="hr_recruitment_automation.group_managing_partner"/>
+                    <button name="action_manager_reject" type="object" string="Manager Reject" class="btn-secondary" invisible="state != 'waiting_manager_approval'" groups="hr_recruitment_automation.group_managing_partner"/>
+                    <button name="action_employee_accept" type="object" string="Employee Accept (Internal)" class="btn-primary" invisible="state != 'employee_pending'" groups="hr.group_hr_user"/>
+                    <button name="action_employee_reject" type="object" string="Employee Reject (Internal)" class="btn-secondary" invisible="state != 'employee_pending'" groups="hr.group_hr_user"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset To Draft" class="btn-secondary" invisible="state == 'draft'" groups="hr.group_hr_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_manager_approval,manager_rejected,employee_pending,employee_accepted,employee_rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="applicant_id" readonly="1"/>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="contract_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="approve_url" readonly="1"/>
+                            <field name="reject_url" readonly="1"/>
+                            <field name="employee_response_date" readonly="1"/>
+                            <field name="access_email_sent" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Rejection">
+                        <field name="manager_reject_reason"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Employment Contract (AR)">
+                            <field name="contract_body_ar" widget="html"/>
+                        </page>
+                        <page string="Employment Contract (EN)">
+                            <field name="contract_body_en" widget="html"/>
+                        </page>
+                        <page string="NDA (AR)">
+                            <field name="nda_body_ar" widget="html"/>
+                        </page>
+                        <page string="NDA (EN)">
+                            <field name="nda_body_en" widget="html"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_recruitment_document_package" model="ir.actions.act_window">
+        <field name="name">Recruitment Document Packages</field>
+        <field name="res_model">hr.recruitment.document.package</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_hr_recruitment_document_package"
+              name="Document Packages"
+              parent="hr_recruitment.menu_hr_recruitment_configuration"
+              action="action_hr_recruitment_document_package"
+              sequence="40"
+              groups="hr_recruitment.group_hr_recruitment_user"/>
+</odoo>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from . import lawyer_dashboard
-from . import corporate_dashboard
-from . import arbitration_dashboard
+from . import hr_employee
+from . import lawyer_dashboard_extension
+from . import court_dashboard_extension

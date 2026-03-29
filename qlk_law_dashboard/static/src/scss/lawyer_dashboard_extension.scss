@@ -1,0 +1,236 @@
+.qlk-dashboard__section--employee .section-header h2 {
+  margin-bottom: 0;
+}
+
+.qlk-dashboard__grid--law-hr {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.qlk-warning-alert-card {
+  border-top-color: #dc2626;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(127, 29, 29, 0.02)), #ffffff;
+}
+
+.qlk-warning-alert-card:hover {
+  transform: translateY(-4px);
+}
+
+.qlk-warning-alert-card header h2,
+.qlk-warning-alert-card header small,
+.qlk-link--light {
+  color: #7f1d1d;
+}
+
+.qlk-warning-alert-card__content {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.qlk-warning-alert-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.qlk-warning-alert-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.qlk-warning-alert-card__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.qlk-warning-alert-card__row span {
+  color: #7f1d1d;
+  font-weight: 600;
+}
+
+.qlk-warning-alert-card__row strong {
+  color: #450a0a;
+  text-align: right;
+}
+
+.qlk-hours-card {
+  min-height: 260px;
+}
+
+.qlk-hours-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.qlk-hours-card__metrics--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.qlk-hours-card__metrics--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.qlk-hours-metric {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(15, 92, 168, 0.05);
+  border: 1px solid rgba(15, 92, 168, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qlk-hours-metric span {
+  color: #475569;
+  font-size: 13px;
+}
+
+.qlk-hours-metric strong {
+  color: #0f5ca8;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.qlk-hours-metric small {
+  margin-left: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.qlk-hours-metric--action {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qlk-hours-metric--action:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 92, 168, 0.22);
+  box-shadow: 0 10px 24px rgba(15, 92, 168, 0.10);
+}
+
+.qlk-progress--hours {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 92, 168, 0.12);
+  overflow: hidden;
+}
+
+.qlk-progress--hours.accent {
+  background: rgba(34, 182, 200, 0.12);
+}
+
+.qlk-progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--qlk-primary), var(--qlk-accent));
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.badge--danger {
+  background: rgba(220, 38, 38, 0.14);
+  color: #dc2626;
+}
+
+.badge--warning {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+
+.qlk-list-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qlk-list-block h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.qlk-list--warnings .qlk-list__item {
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.qlk-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.qlk-resignation-card__message {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(13, 62, 122, 0.06);
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.qlk-employee-card {
+  min-height: 320px;
+  justify-content: space-between;
+}
+
+.qlk-employee-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qlk-employee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.qlk-employee-row span {
+  color: #475569;
+}
+
+.qlk-employee-row strong {
+  color: #1f2937;
+  font-size: 15px;
+}
+
+.qlk-employee-row small {
+  margin-left: 4px;
+  color: #64748b;
+}
+
+@media (max-width: 1199px) {
+  .qlk-dashboard__grid--law-hr {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .qlk-hours-card__metrics,
+  .qlk-hours-card__metrics--two,
+  .qlk-hours-card__metrics--three {
+    grid-template-columns: 1fr;
+  }
+
+  .qlk-warning-alert-card__content,
+  .qlk-warning-alert-card__row,
+  .qlk-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

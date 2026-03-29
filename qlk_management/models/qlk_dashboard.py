@@ -5,6 +5,7 @@
 # حالة العروض، اتفاقيات الارتباط، الوثائق، والفرص في الـ CRM.
 # ------------------------------------------------------------------------------
 from odoo import _, api, fields, models
+from odoo.osv.expression import OR
 from odoo.tools.misc import format_date
 
 
@@ -39,9 +40,42 @@ class ManagementDashboard(models.AbstractModel):
             return {"label": _("Translated"), "css": "chip-success"}
         return {"label": _("Pending"), "css": "chip-danger"}
 
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تبني دومين بيانات مرتبط بالمستخدم الحالي عند الحاجة.
+    # ------------------------------------------------------------------------------
+    def _scoped_domain(self, model_name, user, employee_ids, allow_all, base_domain=None):
+        domain = list(base_domain or [])
+        if allow_all or model_name not in self.env:
+            return domain
+
+        Model = self.env[model_name]
+        user_scopes = []
+        if "reviewer_id" in Model._fields:
+            user_scopes.append([("reviewer_id", "=", user.id)])
+        if "user_id" in Model._fields:
+            user_scopes.append([("user_id", "=", user.id)])
+        if "owner_id" in Model._fields:
+            user_scopes.append([("owner_id", "=", user.id)])
+        if "assigned_user_id" in Model._fields:
+            user_scopes.append([("assigned_user_id", "=", user.id)])
+        if employee_ids and "employee_id" in Model._fields:
+            user_scopes.append([("employee_id", "in", employee_ids)])
+        if employee_ids and "assigned_employee_ids" in Model._fields:
+            user_scopes.append([("assigned_employee_ids", "in", employee_ids)])
+        if "create_uid" in Model._fields:
+            user_scopes.append([("create_uid", "=", user.id)])
+
+        if user_scopes:
+            domain += OR(user_scopes)
+        return domain
+
     @api.model
     def get_dashboard_data(self):
-        lang = self.env.user.lang or "en_US"
+        user = self.env.user
+        employee_ids = user.employee_ids.ids
+        lang = user.lang or "en_US"
+        # هذا المتغير يفعل الرؤية الشاملة للمديرين فقط.
+        allow_all = user._qlk_can_view_all_dashboards()
 
         proposal_model = self.env.get("bd.proposal")
         engagement_model = self.env.get("bd.engagement.letter")
@@ -49,16 +83,34 @@ class ManagementDashboard(models.AbstractModel):
         document_model = self.env.get("qlk.client.document")
         crm_model = self.env.get("crm.lead")
 
+        proposal_domain = self._scoped_domain("bd.proposal", user, employee_ids, allow_all)
+        engagement_domain = self._scoped_domain("bd.engagement.letter", user, employee_ids, allow_all)
+
         proposals_total = proposals_waiting = proposals_approved = legal_total = collected_total = pending_total = 0.0
         proposals_action = self._action_payload("qlk_management.action_bd_proposal")
         if proposal_model:
-            proposals_total = proposal_model.search_count([])
+            proposals_total = proposal_model.search_count(proposal_domain)
             proposals_waiting = proposal_model.search_count(
-                [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
+                proposal_domain + [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
             )
-            proposals_approved = proposal_model.search_count([("state", "=", "approved_client")])
+            proposals_approved = proposal_model.search_count(proposal_domain + [("state", "=", "approved_client")])
+            proposal_amount_group = proposal_model.read_group(proposal_domain, ["legal_fees"], [])
             if proposal_amount_group:
                 legal_total = proposal_amount_group[0].get("legal_fees") or 0.0
+
+            if "payment_status" in proposal_model._fields and "total_amount" in proposal_model._fields:
+                collected_group = proposal_model.read_group(
+                    proposal_domain + [("payment_status", "=", "paid")],
+                    ["total_amount"],
+                    [],
+                )
+                pending_group = proposal_model.read_group(
+                    proposal_domain + [("payment_status", "in", ("unpaid", "partial"))],
+                    ["total_amount"],
+                    [],
+                )
+                collected_total = (collected_group and collected_group[0].get("total_amount") or 0.0) or 0.0
+                pending_total = (pending_group and pending_group[0].get("total_amount") or 0.0) or 0.0
 
         proposal_reports = [
             {"label": _("Total Proposals"), "action": self._action_payload("qlk_management.action_bd_proposal_report_total")},
@@ -70,12 +122,14 @@ class ManagementDashboard(models.AbstractModel):
         engagement_action = self._action_payload("qlk_management.action_bd_engagement_letter")
         engagement_types = []
         if engagement_model:
-            engagement_total = engagement_model.search_count([])
+            engagement_total = engagement_model.search_count(engagement_domain)
             engagement_waiting = engagement_model.search_count(
-                [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
+                engagement_domain + [("state", "in", ("waiting_manager_approval", "waiting_client_approval"))]
             )
             engagement_type_groups = engagement_model.read_group(
-                [], ["retainer_type"], ["retainer_type"]
+                engagement_domain,
+                ["retainer_type"],
+                ["retainer_type"],
             )
             engagement_types = [
                 {
@@ -87,6 +141,15 @@ class ManagementDashboard(models.AbstractModel):
             ]
 
         client_domain = [("customer_rank", ">", 0)]
+        if not allow_all:
+            # هذه الخطوة تربط قائمة العملاء بملفات المستخدم الفعلية فقط.
+            partner_ids = set()
+            if proposal_model:
+                partner_ids.update(proposal_model.search(proposal_domain).mapped("partner_id").ids)
+            if engagement_model:
+                partner_ids.update(engagement_model.search(engagement_domain).mapped("partner_id").ids)
+            client_domain.append(("id", "in", list(partner_ids or {0})))
+
         clients_total = partner_model.search_count(client_domain)
         clients_action = self._action_payload("qlk_management.action_bd_client_data")
 
@@ -96,10 +159,15 @@ class ManagementDashboard(models.AbstractModel):
         poa_documents_action = None
         if document_model:
             poa_documents_action = self._action_payload("qlk_management.action_client_documents")
-            documents_total = document_model.search_count([])
+            document_domain = []
+            if not allow_all:
+                client_ids = partner_model.search(client_domain).ids
+                document_domain = [("partner_id", "in", client_ids or [0])]
+
+            documents_total = document_model.search_count(document_domain)
             doc_labels = dict(document_model._fields["document_type"].selection)
             pending_docs = document_model.search(
-                [("needs_translation", "=", True), ("is_translated", "=", False)],
+                document_domain + [("needs_translation", "=", True), ("is_translated", "=", False)],
                 order="create_date desc",
                 limit=10,
             )
@@ -117,7 +185,7 @@ class ManagementDashboard(models.AbstractModel):
                         "url": {"res_model": "qlk.client.document", "res_id": doc.id},
                     }
                 )
-            partners_with_docs = document_model.read_group([], ["partner_id"], ["partner_id"])
+            partners_with_docs = document_model.read_group(document_domain, ["partner_id"], ["partner_id"])
             clients_with_docs = len(partners_with_docs)
 
         pipeline_total = pipeline_open = pipeline_won = 0
@@ -125,6 +193,9 @@ class ManagementDashboard(models.AbstractModel):
         pipeline_stages = []
         if crm_model:
             pipeline_domain = [("type", "=", "opportunity"), ("active", "=", True)]
+            if not allow_all and "user_id" in crm_model._fields:
+                pipeline_domain.append(("user_id", "=", user.id))
+
             pipeline_total = crm_model.search_count(pipeline_domain)
             pipeline_open = crm_model.search_count(pipeline_domain + [("probability", "<", 100)])
             pipeline_won = crm_model.search_count(pipeline_domain + [("probability", "=", 100)])

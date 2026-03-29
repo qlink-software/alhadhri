@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="qlk_law_qlink_dashboard.Dashboard" t-inherit-mode="extension">
+        <xpath expr="//section[@class='qlk-dashboard__section'][last()]" position="after">
+            <t t-set="workingHours" t-value="state.data and state.data.working_hours or {}"/>
+            <t t-set="hrAlerts" t-value="state.data and state.data.hr_requests_alerts or {}"/>
+            <t t-set="leaveRequests" t-value="hrAlerts.leave_requests or {}"/>
+            <t t-set="warningData" t-value="hrAlerts.warnings or {}"/>
+            <t t-set="warningItems" t-value="warningData.latest_items or []"/>
+            <t t-set="forms" t-value="hrAlerts.forms or {}"/>
+            <t t-set="resignation" t-value="state.data and state.data.resignation_status or {}"/>
+            <t t-set="warningAlert" t-value="state.data and state.data.warning_alert"/>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--warning"
+                     t-if="warningAlert">
+                <article class="qlk-card qlk-warning-alert-card">
+                    <header>
+                        <div>
+                            <h2 t-esc="labels.warning_alert_title" translate="yes"/>
+                            <small t-esc="labels.warning_alert_subtitle" translate="yes"/>
+                        </div>
+                        <button type="button"
+                                class="qlk-link qlk-link--light"
+                                t-on-click="() => this.openRecord(warningAlert.url)">
+                            <span t-esc="labels.view_warning" translate="yes"/>
+                        </button>
+                    </header>
+                    <div class="qlk-warning-alert-card__content">
+                        <div class="qlk-warning-alert-card__icon">
+                            <i class="fa fa-exclamation-triangle"/>
+                        </div>
+                        <div class="qlk-warning-alert-card__details">
+                            <div class="qlk-warning-alert-card__row">
+                                <span t-esc="labels.warning_message_title" translate="yes"/>
+                                <strong t-esc="warningAlert.message"/>
+                            </div>
+                            <div class="qlk-warning-alert-card__row">
+                                <span t-esc="labels.warning_date_title" translate="yes"/>
+                                <strong t-esc="warningAlert.date or '-'"/>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--employee">
+                <div class="section-header">
+                    <div>
+                        <h2 t-esc="labels.working_hours_title" translate="yes"/>
+                        <p t-esc="labels.working_hours_subtitle" translate="yes"/>
+                    </div>
+                </div>
+
+                <div class="qlk-dashboard__grid qlk-dashboard__grid--law-hr">
+                    <article class="qlk-card qlk-hours-card">
+                        <header>
+                            <h2 t-esc="labels.daily_progress_title" translate="yes"/>
+                            <span class="item__badge" t-esc="(workingHours.daily_progress || 0).toFixed(2) + '%'"/>
+                        </header>
+                        <div class="qlk-hours-card__metrics">
+                            <div class="qlk-hours-metric">
+                                <span t-esc="labels.required_hours_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(workingHours.required_today || 0)"/>
+                                    <small t-esc="labels.hours_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                            <div class="qlk-hours-metric">
+                                <span t-esc="labels.today_completed_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(workingHours.completed_today || 0)"/>
+                                    <small t-esc="labels.hours_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                            <div class="qlk-hours-metric">
+                                <span t-esc="labels.remaining_hours_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(workingHours.remaining_today || 0)"/>
+                                    <small t-esc="labels.hours_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="qlk-progress qlk-progress--hours">
+                            <div class="qlk-progress__bar"
+                                 t-att-style="'width: ' + (workingHours.daily_progress || 0).toFixed(2) + '%'"/>
+                        </div>
+                    </article>
+
+                    <article class="qlk-card qlk-hours-card accent">
+                        <header>
+                            <h2 t-esc="labels.weekly_progress_title" translate="yes"/>
+                            <span class="item__badge badge--success" t-esc="(workingHours.weekly_progress || 0).toFixed(2) + '%'"/>
+                        </header>
+                        <div class="qlk-hours-card__metrics qlk-hours-card__metrics--two">
+                            <div class="qlk-hours-metric">
+                                <span t-esc="labels.week_completed_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(workingHours.completed_week || 0)"/>
+                                    <small t-esc="labels.hours_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                            <div class="qlk-hours-metric">
+                                <span t-esc="labels.required_hours_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(workingHours.required_week || 0)"/>
+                                    <small t-esc="labels.hours_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="qlk-progress qlk-progress--hours accent">
+                            <div class="qlk-progress__bar"
+                                 t-att-style="'width: ' + (workingHours.weekly_progress || 0).toFixed(2) + '%'"/>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--employee">
+                <div class="section-header">
+                    <div>
+                        <h2 t-esc="labels.hr_requests_alerts_title" translate="yes"/>
+                        <p t-esc="labels.hr_requests_alerts_subtitle" translate="yes"/>
+                    </div>
+                </div>
+
+                <div class="qlk-dashboard__grid qlk-dashboard__grid--law-hr">
+                    <article class="qlk-card qlk-employee-card">
+                        <header>
+                            <div>
+                                <h2 t-esc="labels.hr_requests_alerts_title" translate="yes"/>
+                            </div>
+                        </header>
+
+                        <div class="qlk-hours-card__metrics qlk-hours-card__metrics--three">
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.leaves"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.leaves, hrAlerts.domains.pending_leaves || [])">
+                                <span t-esc="labels.pending_leave_title" translate="yes"/>
+                                <strong t-esc="formatCount(leaveRequests.pending || 0)"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.leaves"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.leaves, hrAlerts.domains.approved_leaves || [])">
+                                <span t-esc="labels.approved_leave_title" translate="yes"/>
+                                <strong t-esc="formatCount(leaveRequests.approved || 0)"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.leaves"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.leaves, hrAlerts.domains.rejected_leaves || [])">
+                                <span t-esc="labels.rejected_leave_title" translate="yes"/>
+                                <strong t-esc="formatCount(leaveRequests.rejected || 0)"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.warnings"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.warnings, hrAlerts.domains.warnings || [])">
+                                <span t-esc="labels.active_warnings_title" translate="yes"/>
+                                <strong t-esc="formatCount(warningData.active_count || 0)"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.documents"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.documents, hrAlerts.domains.documents || [])">
+                                <span t-esc="labels.hr_forms_title" translate="yes"/>
+                                <strong t-esc="formatCount(forms.documents || 0)"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.resignations"
+                                    type="button"
+                                    class="qlk-hours-metric qlk-hours-metric--action"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.resignations, hrAlerts.domains.resignations || [])">
+                                <span t-esc="labels.resignations_title" translate="yes"/>
+                                <strong t-esc="formatCount(forms.resignations || 0)"/>
+                            </button>
+                            <div t-if="!(hrAlerts.actions and hrAlerts.actions.leaves)" class="qlk-hours-metric">
+                                <span t-esc="labels.pending_leave_title" translate="yes"/>
+                                <strong t-esc="formatCount(leaveRequests.pending || 0)"/>
+                            </div>
+                        </div>
+
+                        <div class="qlk-list-block">
+                            <h3 t-esc="labels.latest_warnings_title" translate="yes"/>
+                            <t t-if="warningItems.length">
+                                <ul class="qlk-list qlk-list--warnings">
+                                    <t t-foreach="warningItems" t-as="warning" t-key="warning.id">
+                                        <li class="qlk-list__item qlk-warning-item"
+                                            t-on-click="() => this.openRecord(warning.url)">
+                                            <div class="item__title">
+                                                <span class="item__name" t-esc="warning.message"/>
+                                                <span class="item__badge badge--danger" t-esc="warning.state_label || warning.punishment_label || '-'"/>
+                                            </div>
+                                            <div class="item__meta">
+                                                <span class="item__date" t-esc="warning.date || '-'"/>
+                                            </div>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </t>
+                            <t t-else="">
+                                <div class="qlk-empty" t-esc="labels.no_warning_data" translate="yes"/>
+                            </t>
+                        </div>
+
+                        <div class="qlk-card__footer">
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.leaves"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.leaves, hrAlerts.domains.leaves || [])">
+                                <span t-esc="labels.view_leaves" translate="yes"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.warnings"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.warnings, hrAlerts.domains.warnings || [])">
+                                <span t-esc="labels.view_warnings" translate="yes"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.documents"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.documents, hrAlerts.domains.documents || [])">
+                                <span t-esc="labels.view_documents" translate="yes"/>
+                            </button>
+                            <button t-if="hrAlerts.actions and hrAlerts.actions.resignations"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openAction(hrAlerts.actions.resignations, hrAlerts.domains.resignations || [])">
+                                <span t-esc="labels.view_resignations" translate="yes"/>
+                            </button>
+                        </div>
+                    </article>
+
+                    <article class="qlk-card qlk-employee-card muted">
+                        <header>
+                            <div>
+                                <h2 t-esc="labels.resignation_status_title" translate="yes"/>
+                                <small t-esc="labels.resignation_status_subtitle" translate="yes"/>
+                            </div>
+                            <span t-att-class="'item__badge ' + (resignation.state === 'approved' ? 'badge--success' : resignation.state === 'rejected' ? 'badge--danger' : resignation.state === 'submitted' ? 'badge--warning' : '')"
+                                  t-esc="resignation.label || '-'"/>
+                        </header>
+
+                        <div class="qlk-resignation-card__message" t-esc="resignation.message || '-'"/>
+
+                        <div class="qlk-employee-card__rows">
+                            <div class="qlk-employee-row" t-if="resignation.manager">
+                                <span t-esc="labels.manager_title" translate="yes"/>
+                                <strong t-esc="resignation.manager"/>
+                            </div>
+                            <div class="qlk-employee-row" t-if="resignation.effective_date">
+                                <span t-esc="labels.effective_date_title" translate="yes"/>
+                                <strong t-esc="resignation.effective_date"/>
+                            </div>
+                            <div class="qlk-employee-row" t-if="resignation.state === 'approved'">
+                                <span t-esc="labels.remaining_hours_title" translate="yes"/>
+                                <strong>
+                                    <t t-esc="formatCount(resignation.countdown_days || 0)"/>
+                                    <small t-esc="labels.days_unit" translate="yes"/>
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div class="qlk-card__footer">
+                            <button t-if="resignation.current_request"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openRecord(resignation.current_request)">
+                                <span t-esc="labels.view_request" translate="yes"/>
+                            </button>
+                            <button t-if="resignation.action"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="() => this.openAction(resignation.action, resignation.domain || [])">
+                                <span t-esc="labels.view_resignations" translate="yes"/>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </xpath>
+    </t>
+</templates>

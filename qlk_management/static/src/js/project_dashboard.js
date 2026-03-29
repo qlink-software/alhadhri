@@ -70,6 +70,53 @@ class ProjectDashboard extends Component {
         };
     }
 
+    // هذا getter يجمع بيانات قسم HR المرسل من الباك إند داخل نفس الداشبورد.
+    get hrSummary() {
+        return (
+            this.state.data?.hr || {
+                employees: [],
+                warnings: [],
+                requests: {
+                    my_leaves: 0,
+                    pending_approvals: 0,
+                    documents_total: 0,
+                    documents_waiting_approval: 0,
+                },
+                leave_totals: {
+                    allocated: 0,
+                    used: 0,
+                    remaining: 0,
+                },
+                actions: {},
+            }
+        );
+    }
+
+    get hrEmployees() {
+        return this.hrSummary.employees || [];
+    }
+
+    get hrWarnings() {
+        return this.hrSummary.warnings || [];
+    }
+
+    get hrRequests() {
+        return this.hrSummary.requests || {
+            my_leaves: 0,
+            pending_approvals: 0,
+            documents_total: 0,
+            documents_waiting_approval: 0,
+        };
+    }
+
+    get hrLeaveTotals() {
+        return this.hrSummary.leave_totals || {
+            allocated: 0,
+            used: 0,
+            remaining: 0,
+        };
+    }
+
     get actions() {
         return this.state.data?.actions || {};
     }
@@ -110,6 +157,18 @@ class ProjectDashboard extends Component {
 
     openHours() {
         this.openAction(this.taskSummary.hours_action);
+    }
+
+    openHrLeaves() {
+        this.openAction(this.hrSummary.actions?.leaves);
+    }
+
+    openHrAttendance() {
+        this.openAction(this.hrSummary.actions?.attendance);
+    }
+
+    openHrDocuments() {
+        this.openAction(this.hrSummary.actions?.documents);
     }
 
     openProject(project) {

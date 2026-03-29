@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_applicant_form_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.applicant.form.recruitment.automation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_send_to_manager"
+                        type="object"
+                        string="Send To Manager"
+                        class="btn-secondary"
+                        invisible="offer_state != 'draft'"
+                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+
+                <button name="action_offer_approve"
+                        type="object"
+                        string="Approve Offer"
+                        class="btn-primary"
+                        invisible="offer_state != 'waiting_manager_approval'"
+                        groups="hr_recruitment_automation.group_managing_partner"/>
+
+                <button name="action_reset_offer_to_draft"
+                        type="object"
+                        string="Send To Draft"
+                        class="btn-secondary"
+                        invisible="offer_state != 'approved'"
+                        groups="hr_recruitment_automation.group_managing_partner"/>
+
+                <button name="action_open_offer_reject_wizard"
+                        type="object"
+                        string="Reject Offer"
+                        class="btn-secondary"
+                        invisible="offer_state not in ('waiting_manager_approval','approved')"
+                        groups="hr_recruitment_automation.group_managing_partner"/>
+
+                <button name="action_mark_offer_accepted"
+                        type="object"
+                        string="Mark As Accepted"
+                        class="btn-primary"
+                        invisible="offer_state != 'approved'"
+                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+
+                <button name="action_generate_documents"
+                        type="object"
+                        string="Generate Documents"
+                        class="btn-secondary"
+                        invisible="not employee_created_id"
+                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+
+                <field name="offer_state" widget="statusbar" statusbar_visible="draft,waiting_manager_approval,approved,accepted,rejected"/>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_generated_employee"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-id-card-o"
+                        invisible="not employee_created_id">
+                    <field name="employee_created_id" string="Employee" widget="statinfo"/>
+                </button>
+
+                <button name="action_open_generated_contract"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        invisible="not generated_contract_id">
+                    <field name="generated_contract_id" string="Contract" widget="statinfo"/>
+                </button>
+
+                <button name="action_open_document_packages"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-folder-open-o"
+                        invisible="not document_package_count">
+                    <field name="document_package_count" string="Document Packages" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//group[1]/group[1]" position="inside">
+                <field name="recruitment_full_name" required="1"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Recruitment Automation">
+                    <group>
+                        <group string="Personal Information">
+                            <field name="nationality_id" required="1"/>
+                            <field name="date_of_birth" required="1"/>
+                            <field name="recruitment_gender" required="1"/>
+                            <field name="qid_passport_number" required="1"/>
+                            <field name="marital_status" required="1"/>
+                            <field name="personal_phone" required="1"/>
+                            <field name="personal_email" required="1"/>
+                            <field name="home_address" required="1"/>
+                        </group>
+
+                        <group string="Employment Information">
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="employment_type" required="1"/>
+                            <field name="reporting_manager_id" required="1"/>
+                            <field name="office_location_id" required="1"/>
+                            <field name="proposed_work_email" required="1"/>
+                            <field name="system_username" required="1"/>
+                            <field name="system_password_input" password="True" required="not system_password_hash"/>
+                            <field name="system_password_hash" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Compensation">
+                            <field name="basic_salary" required="1"/>
+                            <field name="housing_allowance" required="1"/>
+                            <field name="transportation_allowance" required="1"/>
+                            <field name="phone_allowance" required="1"/>
+                            <field name="other_allowance" required="1"/>
+                            <field name="bank_name" required="1"/>
+                            <field name="bank_account_number" required="1"/>
+                            <field name="payroll_start_date" required="1"/>
+                            <field name="salary_type" required="1"/>
+                        </group>
+
+                        <group string="Attachments">
+                            <field name="qid_passport_copy" filename="qid_passport_filename" required="1"/>
+                            <field name="cv_copy" filename="cv_filename" required="1"/>
+                            <field name="certificates_copy" filename="certificates_filename" required="1"/>
+                            <field name="visa_copy" filename="visa_filename" required="1"/>
+                            <field name="other_document_ids" widget="many2many_binary"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Generated Records">
+                            <field name="employee_created_id" readonly="1"/>
+                            <field name="generated_contract_id" readonly="1"/>
+                            <field name="offer_reject_reason" readonly="1" invisible="offer_state != 'rejected'"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_search_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.applicant.search.recruitment.automation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_search_bis"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="Draft Offers" name="offer_draft" domain="[('offer_state', '=', 'draft')]"/>
+                <filter string="Pending Manager Approval" name="offer_waiting" domain="[('offer_state', '=', 'waiting_manager_approval')]"/>
+                <filter string="Accepted Offers" name="offer_accepted" domain="[('offer_state', '=', 'accepted')]"/>
+                <filter string="Rejected Offers" name="offer_rejected" domain="[('offer_state', '=', 'rejected')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_hr_applicant_rejected_job_offers" model="ir.actions.act_window">
+        <field name="name">Rejected Job Offers</field>
+        <field name="res_model">hr.applicant</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('offer_state', '=', 'rejected')]</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <menuitem id="menu_hr_recruitment_rejected_job_offers"
+              name="Rejected Job Offers"
+              parent="hr_recruitment.menu_hr_recruitment_root"
+              action="action_hr_applicant_rejected_job_offers"
+              sequence="35"
+              groups="hr_recruitment.group_hr_recruitment_user"/>
+</odoo>

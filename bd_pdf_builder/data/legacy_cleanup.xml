@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <function model="bd.pdf.builder.legacy.cleanup" name="cleanup_legacy_records"/>
+    </data>
+</odoo>

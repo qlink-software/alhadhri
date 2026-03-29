@@ -28,3 +28,10 @@ access_bd_rejection_wizard_user,bd.rejection.wizard user,model_bd_rejection_wiza
 access_employee_document_user,employee.document user,model_qlk_employee_document,base.group_user,1,1,1,0
 access_employee_document_manager,employee.document manager,model_qlk_employee_document,qlk_management.group_hr_nda_manager,1,1,1,1
 access_employee_document_reject_wizard,employee.document.reject.wizard,model_qlk_employee_document_reject_wizard,qlk_management.group_hr_nda_manager,1,1,1,0
+access_qlk_contact_classification_user,qlk.contact.classification user,model_qlk_contact_classification,base.group_user,1,1,1,1
+access_qlk_company_contact_channel_user,qlk.company.contact.channel user,model_qlk_company_contact_channel,base.group_user,1,1,1,1
+access_qlk_biometric_device_manager,qlk.biometric.device manager,model_qlk_biometric_device,hr.group_hr_manager,1,1,1,1
+access_qlk_biometric_user_map_manager,qlk.biometric.user.map manager,model_qlk_biometric_user_map,hr.group_hr_manager,1,1,1,1
+access_qlk_biometric_log_manager,qlk.biometric.log manager,model_qlk_biometric_log,hr.group_hr_manager,1,0,0,0
+access_hr_resignation_request_user,hr.resignation.request user,model_hr_resignation_request,base.group_user,1,1,1,0
+access_qlk_hr_resignation_reject_wizard_user,qlk.hr.resignation.reject.wizard user,model_qlk_hr_resignation_reject_wizard,base.group_user,1,1,1,0

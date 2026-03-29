@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_hr_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.employee.form.hr.recruitment.automation</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_employee_week_attendance"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-clock-o"
+                        groups="hr.group_hr_user">
+                    <field name="dashboard_weekly_hours" string="Weekly Hours" widget="statinfo"/>
+                </button>
+                <button name="action_open_employee_pending_requests"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calendar"
+                        groups="hr.group_hr_user">
+                    <field name="dashboard_pending_requests_count" string="Pending Requests" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//group[group/field[@name='department_id']]/group[2]" position="inside">
+                <field name="biometric_user_code"/>
+                <field name="employment_type"/>
+                <field name="recruitment_employee_code" readonly="1"/>
+                <field name="applicant_origin_id" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//page[@name='public']" position="after">
+                <page string="HR Dashboard" groups="hr.group_hr_user">
+                    <group>
+                        <group string="Working Hours">
+                            <field name="dashboard_daily_hours" readonly="1"/>
+                            <field name="dashboard_weekly_hours" readonly="1"/>
+                            <field name="dashboard_required_hours" readonly="1"/>
+                            <field name="dashboard_missing_hours" readonly="1"/>
+                        </group>
+                        <group string="Leave Balance">
+                            <field name="dashboard_leave_total" readonly="1"/>
+                            <field name="dashboard_leave_used" readonly="1"/>
+                            <field name="dashboard_leave_remaining" readonly="1"/>
+                            <field name="dashboard_pending_requests_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Alerts">
+                        <field name="dashboard_alerts" readonly="1" widget="html"/>
+                    </group>
+                </page>
+            </xpath>
+
+            <xpath expr="//page[@name='hr_settings']/group" position="inside">
+                <group string="Resignation &amp; Notice" groups="hr.group_hr_user">
+                    <field name="resignation_approved"/>
+                    <field name="resignation_date"/>
+                    <field name="notice_period_end" readonly="1"/>
+                    <button name="action_approve_resignation"
+                            type="object"
+                            string="Approve Resignation"
+                            class="btn-secondary"
+                            invisible="resignation_approved"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

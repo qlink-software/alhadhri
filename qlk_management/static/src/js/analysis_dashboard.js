@@ -72,11 +72,15 @@ class AnalysisDashboard extends Component {
         return this.filters?.months === months;
     }
 
-    openAction(actionMeta) {
+    openAction(actionMeta, domain = null) {
         if (!actionMeta?.id) {
             return;
         }
-        this.action.doAction(actionMeta.id);
+        const options = {};
+        if (domain && domain.length) {
+            options.domain = domain;
+        }
+        this.action.doAction(actionMeta.id, options);
     }
 
     async changePeriod(months) {

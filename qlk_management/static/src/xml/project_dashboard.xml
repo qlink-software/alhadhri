@@ -15,7 +15,7 @@
                 <section class="qlk-project-dashboard__hero">
                     <div class="hero__info">
                         <h1>Project portfolio overview</h1>
-                        <p>Monitor pipeline, case linkage, and task approval status in real time.</p>
+                        <p>Monitor pipeline, case linkage, task approvals, and HR indicators in real time.</p>
                     </div>
                     <div class="hero__metrics">
                         <div class="metric-card">
@@ -106,6 +106,101 @@
                             <small>Total tasks: <t t-esc="formatNumber(taskSummary.total)"/></small><br/>
                             <small>Approved hours: <t t-esc="formatHours(taskSummary.hours)"/></small>
                         </div>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>HR working hours</h2>
+                                <small>Daily/weekly progress and leave balances</small>
+                            </div>
+                            <div>
+                                <button t-if="hrSummary.actions?.attendance"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="openHrAttendance">
+                                    Attendance
+                                </button>
+                                <button t-if="hrSummary.actions?.leaves"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="openHrLeaves">
+                                    Leaves
+                                </button>
+                            </div>
+                        </header>
+                        <ul class="qlk-list">
+                            <li class="qlk-list__item">
+                                <span class="item__name">Allocated leave</span>
+                                <span class="item__badge">
+                                    <t t-esc="formatHours(hrLeaveTotals.allocated)"/>
+                                </span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Used leave</span>
+                                <span class="item__badge badge--danger">
+                                    <t t-esc="formatHours(hrLeaveTotals.used)"/>
+                                </span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Remaining leave</span>
+                                <span class="item__badge badge--success">
+                                    <t t-esc="formatHours(hrLeaveTotals.remaining)"/>
+                                </span>
+                            </li>
+                        </ul>
+                        <ul class="qlk-list" t-if="hrEmployees.length">
+                            <t t-foreach="hrEmployees.slice(0, 3)" t-as="employee" t-key="employee.id">
+                                <li class="qlk-list__item">
+                                    <span class="item__name">
+                                        <t t-esc="employee.name"/>: <t t-esc="formatHours(employee.daily_hours)"/> / <t t-esc="formatHours(employee.required_daily)"/> day
+                                    </span>
+                                    <span class="item__badge">
+                                        Week <t t-esc="formatHours(employee.weekly_hours)"/>
+                                    </span>
+                                </li>
+                            </t>
+                        </ul>
+                    </article>
+
+                    <article class="qlk-card">
+                        <header>
+                            <div>
+                                <h2>HR requests &amp; warnings</h2>
+                                <small>Employee requests and compliance alerts</small>
+                            </div>
+                            <button t-if="hrSummary.actions?.documents"
+                                    class="qlk-link"
+                                    type="button"
+                                    t-on-click="openHrDocuments">
+                                HR documents
+                            </button>
+                        </header>
+                        <ul class="qlk-list">
+                            <li class="qlk-list__item">
+                                <span class="item__name">My leave requests</span>
+                                <span class="item__badge"><t t-esc="formatNumber(hrRequests.my_leaves)"/></span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Pending approvals</span>
+                                <span class="item__badge"><t t-esc="formatNumber(hrRequests.pending_approvals)"/></span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">My HR documents</span>
+                                <span class="item__badge"><t t-esc="formatNumber(hrRequests.documents_total)"/></span>
+                            </li>
+                            <li class="qlk-list__item">
+                                <span class="item__name">Docs waiting approval</span>
+                                <span class="item__badge badge--danger"><t t-esc="formatNumber(hrRequests.documents_waiting_approval)"/></span>
+                            </li>
+                        </ul>
+                        <ul class="qlk-list" t-if="hrWarnings.length">
+                            <t t-foreach="hrWarnings.slice(0, 5)" t-as="warning" t-key="warning">
+                                <li class="qlk-list__item qlk-warning-item">
+                                    <span class="item__name"><t t-esc="warning"/></span>
+                                </li>
+                            </t>
+                        </ul>
                     </article>
 
                     <t t-if="projectCards.length">

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 
 
 class ResPartner(models.Model):
@@ -44,6 +45,67 @@ class ResPartner(models.Model):
     proposal_count = fields.Integer(string="Proposals", compute="_compute_related_counts")
     engagement_count = fields.Integer(string="Engagement Letters", compute="_compute_related_counts")
     project_count = fields.Integer(string="Projects", compute="_compute_related_counts")
+    # هذا الحقل لاحتساب عدد القضايا المرتبطة بالعميل وعرضها في زر ذكي داخل بطاقة العميل.
+    cases_count = fields.Integer(string="Cases", compute="_compute_related_counts")
+
+    # هذا الحقل يحول تصنيف جهة الاتصال من نص حر إلى قائمة اختيار قابلة للتوسع.
+    classification_id = fields.Many2one(
+        "qlk.contact.classification",
+        string="Contact Classification",
+        ondelete="set null",
+        index=True,
+    )
+    # هذا الحقل يعرض ما إذا كان العميل فردًا، ويعكس قيمة company_type تلقائيًا.
+    is_individual_customer = fields.Boolean(
+        string="Individual Client",
+        compute="_compute_is_individual_customer",
+        inverse="_inverse_is_individual_customer",
+        store=True,
+    )
+    # هذا الحقل يتيح حفظ عدة أرقام/إيميلات للشركات في One2many نظيف.
+    company_contact_channel_ids = fields.One2many(
+        "qlk.company.contact.channel",
+        "partner_id",
+        string="Company Contact Channels",
+    )
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تربط حقل Individual Client بقيمة company_type بشكل مباشر.
+    # ------------------------------------------------------------------------------
+    @api.depends("company_type")
+    def _compute_is_individual_customer(self):
+        for partner in self:
+            partner.is_individual_customer = partner.company_type != "company"
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تعكس اختيار المستخدم من الحقل المنطقي إلى company_type.
+    # ------------------------------------------------------------------------------
+    def _inverse_is_individual_customer(self):
+        for partner in self:
+            partner.company_type = "person" if partner.is_individual_customer else "company"
+
+    # ------------------------------------------------------------------------------
+    # توسيع بحث ORM ليشمل الجوال والهاتف والاسم العربي والتصنيف في حقول Many2one.
+    # ------------------------------------------------------------------------------
+    @api.model
+    def _search_display_name(self, operator, value):
+        base_domain = super()._search_display_name(operator, value)
+        if not value:
+            return base_domain
+        if operator not in ("=", "like", "ilike", "=like", "=ilike"):
+            return base_domain
+        extra_domain = [
+            "|",
+            "|",
+            "|",
+            "|",
+            ("name_ar", operator, value),
+            ("mobile", operator, value),
+            ("phone", operator, value),
+            ("ref", operator, value),
+            ("classification_id.name", operator, value),
+        ]
+        return expression.OR([base_domain, extra_domain])
 
 
     # ------------------------------------------------------------------------------
@@ -213,6 +275,7 @@ class ResPartner(models.Model):
         proposal_counts = {}
         engagement_counts = {}
         project_counts = {}
+        case_counts = {}
         partner_ids = self.ids
         if partner_ids:
             proposal_groups = self.env["bd.proposal"].read_group(
@@ -239,10 +302,40 @@ class ResPartner(models.Model):
                 for data in project_groups
                 if data.get("partner_id")
             }
+
+            case_model = self.env.get("qlk.case")
+            if case_model:
+                # هذا الدومين يجمع القضايا المرتبطة بالعميل عبر الحقول المدعومة في نموذج القضية.
+                domain_parts = []
+                if "client_id" in case_model._fields:
+                    domain_parts.append(("client_id", "in", partner_ids))
+                if "client_ids" in case_model._fields:
+                    domain_parts.append(("client_ids", "in", partner_ids))
+                if "partner_id" in case_model._fields:
+                    domain_parts.append(("partner_id", "in", partner_ids))
+
+                if domain_parts:
+                    case_domain = domain_parts[0]
+                    for extra_domain in domain_parts[1:]:
+                        case_domain = expression.OR([[case_domain], [extra_domain]])
+                    related_cases = case_model.search(case_domain)
+                    partner_id_set = set(partner_ids)
+                    for case in related_cases:
+                        linked_ids = set()
+                        if "client_id" in case._fields and case.client_id:
+                            linked_ids.add(case.client_id.id)
+                        if "client_ids" in case._fields:
+                            linked_ids.update(case.client_ids.ids)
+                        if "partner_id" in case._fields and case.partner_id:
+                            linked_ids.add(case.partner_id.id)
+                        for partner_id in linked_ids:
+                            if partner_id in partner_id_set:
+                                case_counts[partner_id] = case_counts.get(partner_id, 0) + 1
         for partner in self:
             partner.proposal_count = proposal_counts.get(partner.id, 0)
             partner.engagement_count = engagement_counts.get(partner.id, 0)
             partner.project_count = project_counts.get(partner.id, 0)
+            partner.cases_count = case_counts.get(partner.id, 0)
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
@@ -336,6 +429,52 @@ class ResPartner(models.Model):
             },
         }
 
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تبني دومين موحد لفتح القضايا المرتبطة بالعميل في زر Cases.
+    # ------------------------------------------------------------------------------
+    def _case_domain_for_partner(self):
+        self.ensure_one()
+        case_model = self.env.get("qlk.case")
+        if not case_model:
+            return [("id", "=", 0)]
+
+        domain_parts = []
+        if "client_id" in case_model._fields:
+            domain_parts.append([("client_id", "=", self.id)])
+        if "client_ids" in case_model._fields:
+            domain_parts.append([("client_ids", "in", self.id)])
+        if "partner_id" in case_model._fields:
+            domain_parts.append([("partner_id", "=", self.id)])
+        if not domain_parts:
+            return [("id", "=", 0)]
+        if len(domain_parts) == 1:
+            return domain_parts[0]
+        return expression.OR(domain_parts)
+
+    # ------------------------------------------------------------------------------
+    # هذا الأكشن يفتح كل القضايا المرتبطة بالعميل بنفس منطق النظام القديم.
+    # ------------------------------------------------------------------------------
+    def action_view_related_cases(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Cases"),
+            "res_model": "qlk.case",
+            "view_mode": "list,form",
+            "target": "current",
+            "domain": self._case_domain_for_partner(),
+            "context": {
+                "default_client_id": self.id,
+                "search_default_client_id": self.id,
+            },
+        }
+
+    # ------------------------------------------------------------------------------
+    # إبقاء اسم الدالة القديمة للتوافق مع الأزرار القديمة إن وجدت في موديلات أخرى.
+    # ------------------------------------------------------------------------------
+    def get_client_case(self):
+        return self.action_view_related_cases()
 
     def ensure_client_code(self):
         """Ensure partners have a year assigned and a generated client code."""

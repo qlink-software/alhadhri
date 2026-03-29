@@ -21,7 +21,7 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='work_email']" position="after">
-                    <field name="employee_code"/>
+                <field name="employee_code"/>
             </xpath>
         </field>
     </record>
@@ -49,6 +49,77 @@
                 <div t-if="record.employee_code.raw_value" class="text-muted">
                     <field name="employee_code"/>
                 </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_resignation_tracking" model="ir.ui.view">
+        <field name="name">hr.employee.form.resignation.tracking</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@class='oe_button_box']" position="inside">
+                <button name="action_open_resignation_requests"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-sign-out">
+                    <field name="resignation_request_count" widget="statinfo" string="Resignations"/>
+                </button>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <widget name="web_ribbon"
+                        title="Resigned"
+                        bg_color="text-bg-danger"
+                        invisible="not resignation_approved"/>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Resignation">
+                    <group>
+                        <group>
+                            <field name="resignation_approved" readonly="1"/>
+                            <field name="resignation_date" readonly="1"/>
+                            <field name="approval_date" readonly="1" invisible="not resignation_approved"/>
+                        </group>
+                        <group>
+                            <field name="effective_date" readonly="1" invisible="not resignation_approved"/>
+                            <field name="notice_end_date" readonly="1" invisible="not resignation_approved"/>
+                            <field name="user_deactivated_after_notice" readonly="1" invisible="not resignation_approved"/>
+                        </group>
+                    </group>
+                    <group string="Requests">
+                        <field name="resignation_request_ids" context="{'default_employee_id': id}">
+                            <list>
+                                <field name="manager_id"/>
+                                <field name="resignation_date"/>
+                                <field name="notice_period_days"/>
+                                <field name="approval_state" widget="badge"/>
+                                <field name="approval_date"/>
+                                <field name="effective_date"/>
+                            </list>
+                            <form>
+                                <sheet>
+                                    <group>
+                                        <group>
+                                            <field name="employee_id"/>
+                                            <field name="manager_id"/>
+                                            <field name="resignation_date"/>
+                                            <field name="notice_period_days"/>
+                                        </group>
+                                        <group>
+                                            <field name="approval_state"/>
+                                            <field name="approval_date"/>
+                                            <field name="effective_date"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <field name="reason"/>
+                                        <field name="rejection_reason"/>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

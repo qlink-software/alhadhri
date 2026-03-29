@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_hr_resignation_request_list" model="ir.ui.view">
+            <field name="name">hr.resignation.request.list</field>
+            <field name="model">hr.resignation.request</field>
+            <field name="arch" type="xml">
+                <list string="Resignation Requests">
+                    <field name="employee_id"/>
+                    <field name="manager_id"/>
+                    <field name="resignation_date"/>
+                    <field name="notice_period_days"/>
+                    <field name="approval_state" widget="badge"/>
+                    <field name="approval_date"/>
+                    <field name="effective_date"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_hr_resignation_request_search" model="ir.ui.view">
+            <field name="name">hr.resignation.request.search</field>
+            <field name="model">hr.resignation.request</field>
+            <field name="arch" type="xml">
+                <search string="Resignation Requests">
+                    <field name="employee_id"/>
+                    <field name="manager_id"/>
+                    <field name="approval_state"/>
+                    <field name="resignation_date"/>
+                    <filter string="Submitted" name="submitted" domain="[('approval_state', '=', 'submitted')]"/>
+                    <filter string="Approved" name="approved" domain="[('approval_state', '=', 'approved')]"/>
+                    <filter string="Rejected" name="rejected" domain="[('approval_state', '=', 'rejected')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                        <filter string="Manager" name="group_manager" context="{'group_by': 'manager_id'}"/>
+                        <filter string="State" name="group_state" context="{'group_by': 'approval_state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="view_hr_resignation_request_form" model="ir.ui.view">
+            <field name="name">hr.resignation.request.form</field>
+            <field name="model">hr.resignation.request</field>
+            <field name="arch" type="xml">
+                <form string="Resignation Request">
+                    <header>
+                        <button name="action_submit_resignation"
+                                type="object"
+                                string="Submit Resignation"
+                                class="btn-primary"
+                                invisible="approval_state != 'draft' or not is_current_user_employee"/>
+                        <button name="action_approve"
+                                type="object"
+                                string="Approve"
+                                class="btn-primary"
+                                invisible="approval_state != 'submitted' or not can_current_user_approve"/>
+                        <button name="action_open_reject_wizard"
+                                type="object"
+                                string="Reject"
+                                class="btn-secondary"
+                                invisible="approval_state != 'submitted' or not can_current_user_approve"/>
+                        <field name="approval_state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
+                    </header>
+                    <sheet>
+                        <div class="alert alert-danger"
+                             invisible="approval_state != 'rejected' or not rejection_reason"
+                             role="alert">
+                            <strong>Rejection Reason:</strong>
+                            <field name="rejection_reason" readonly="1" nolabel="1"/>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id" readonly="approval_state != 'draft'"/>
+                                <field name="manager_id" readonly="approval_state != 'draft'"/>
+                                <field name="resignation_date" readonly="approval_state != 'draft'"/>
+                                <field name="notice_period_days" readonly="approval_state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="approval_date" readonly="1"/>
+                                <field name="effective_date" readonly="1"/>
+                                <field name="is_current_user_employee" invisible="1"/>
+                                <field name="can_current_user_approve" invisible="1"/>
+                            </group>
+                        </group>
+                        <group string="Reason">
+                            <field name="reason" readonly="approval_state != 'draft'"/>
+                        </group>
+                    </sheet>
+                    
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_hr_resignation_requests" model="ir.actions.act_window">
+            <field name="name">Resignation Requests</field>
+            <field name="res_model">hr.resignation.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_hr_resignation_request_search"/>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_hr_resignation_requests"
+                  name="Resignation Requests"
+                  parent="hr.menu_hr_employee"
+                  action="action_hr_resignation_requests"
+                  sequence="70"/>
+    </data>
+</odoo>

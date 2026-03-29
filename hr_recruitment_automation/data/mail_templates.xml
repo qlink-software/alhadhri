@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_documents_for_manager_approval" model="mail.template">
+            <field name="name">Recruitment Documents - Manager Approval</field>
+            <field name="model_id" ref="hr_recruitment_automation.model_hr_recruitment_document_package"/>
+            <field name="subject">Documents Approval Needed - {{ object.employee_id.name }}</field>
+            <field name="email_from">{{ (user.email_formatted or '') }}</field>
+            <field name="body_html" type="html">
+<div>
+    <p>Managing Partner,</p>
+    <p>A new recruitment document package is awaiting your approval.</p>
+    <ul>
+        <li>Applicant: <t t-out="object.applicant_id.display_name"/></li>
+        <li>Employee: <t t-out="object.employee_id.name"/></li>
+        <li>Reference: <t t-out="object.name"/></li>
+    </ul>
+    <p>Please review and approve/reject from Odoo.</p>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_documents_for_employee_approval" model="mail.template">
+            <field name="name">Recruitment Documents - Employee Approval</field>
+            <field name="model_id" ref="hr_recruitment_automation.model_hr_recruitment_document_package"/>
+            <field name="subject">Please Review Your Employment Documents</field>
+            <field name="email_from">{{ (user.email_formatted or '') }}</field>
+            <field name="email_to">{{ object.applicant_id.personal_email or object.employee_id.private_email or '' }}</field>
+            <field name="body_html" type="html">
+<div>
+    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+    <p>Your contract and NDA are ready for your approval.</p>
+    <p>
+        <a t-att-href="object.approve_url" style="padding:8px 14px; background:#198754; color:#fff; text-decoration:none; border-radius:4px;">Approve Documents</a>
+        <span style="display:inline-block; width:8px;"/>
+        <a t-att-href="object.reject_url" style="padding:8px 14px; background:#dc3545; color:#fff; text-decoration:none; border-radius:4px;">Reject Documents</a>
+    </p>
+    <p>If links do not work, copy and paste these URLs:</p>
+    <p>Approve: <t t-out="object.approve_url"/></p>
+    <p>Reject: <t t-out="object.reject_url"/></p>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_system_access" model="mail.template">
+            <field name="name">Recruitment - System Access Email</field>
+            <field name="model_id" ref="hr_recruitment_automation.model_hr_recruitment_document_package"/>
+            <field name="subject">Your Official Work Account and System Access</field>
+            <field name="email_from">{{ (user.email_formatted or '') }}</field>
+            <field name="body_html" type="html">
+<div>
+    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+    <p>This is your official work account and system access.</p>
+    <ul>
+        <li>Work Email: <t t-out="object.applicant_id.proposed_work_email or object.employee_id.work_email or ''"/></li>
+        <li>Username: <t t-out="ctx.get('generated_login')"/></li>
+        <li>Password: <t t-out="ctx.get('generated_password')"/></li>
+        <li>System URL: <a t-att-href="ctx.get('login_url')"><t t-out="ctx.get('login_url')"/></a></li>
+    </ul>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_employee_joining_notice" model="mail.template">
+            <field name="name">Recruitment - Employee Joining Notice</field>
+            <field name="model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="subject">Welcome to {{ object.company_id.name or 'Our Company' }} | Joining Confirmation</field>
+            <field name="email_from">{{ (user.email_formatted or '') }}</field>
+            <field name="email_to">{{ object.personal_email or object.proposed_work_email or object.employee_created_id.work_email or '' }}</field>
+            <field name="body_html" type="html">
+<div style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif; color:#1f2933;">
+    <div style="max-width:760px; margin:0 auto; padding:32px 16px;">
+        <div style="background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 12px 30px rgba(15, 23, 42, 0.08); border:1px solid #e5e7eb;">
+            <div style="background:linear-gradient(135deg, #0f4c81 0%, #1f7a8c 100%); padding:28px 32px; color:#ffffff;">
+                <div style="font-size:13px; letter-spacing:1px; text-transform:uppercase; opacity:0.85;">Joining Confirmation</div>
+                <h2 style="margin:8px 0 6px; font-size:28px; line-height:1.3;">Welcome, <t t-out="object.employee_created_id.name or object.recruitment_full_name or object.partner_name"/>.</h2>
+                <p style="margin:0; font-size:15px; line-height:1.8; opacity:0.95;">Your employment record has been created in the system and your joining has been scheduled successfully.</p>
+            </div>
+
+            <div style="padding:28px 32px 8px;">
+                <p style="margin:0 0 14px; font-size:15px; line-height:1.9;">
+                    Dear <strong><t t-out="object.employee_created_id.name or object.recruitment_full_name or object.partner_name"/></strong>,<br/>
+                    We are pleased to confirm your employment and welcome you to <strong><t t-out="object.company_id.name or ''"/></strong>.
+                </p>
+                <p style="margin:0 0 18px; font-size:15px; line-height:1.9; direction:rtl; text-align:right;">
+                    عزيزي/عزيزتي <strong><t t-out="object.employee_created_id.name or object.recruitment_full_name or object.partner_name"/></strong>،<br/>
+                    نرحب بك في <strong><t t-out="object.company_id.name or ''"/></strong>، ونؤكد أنه تم إنشاء بيانات مباشرتك وعقدك الوظيفي بنجاح من خلال النظام.
+                </p>
+            </div>
+
+            <div style="padding:0 32px 12px;">
+                <table role="presentation" style="width:100%; border-collapse:separate; border-spacing:0 12px;">
+                    <tr>
+                        <td style="width:50%; vertical-align:top; background:#f8fafc; border:1px solid #e5e7eb; border-radius:14px; padding:18px;">
+                            <div style="font-size:12px; text-transform:uppercase; color:#64748b; margin-bottom:10px;">Position Details</div>
+                            <div style="font-size:14px; line-height:2;">
+                                <strong>Job Title:</strong> <t t-out="object.job_id.name or ''"/><br/>
+                                <strong>Department:</strong> <t t-out="object.department_id.name or ''"/><br/>
+                                <strong>Manager:</strong> <t t-out="object.reporting_manager_id.name or ''"/><br/>
+                                <strong>Employment Type:</strong> <t t-out="'Full-time' if object.employment_type == 'full_time' else 'Part-time' if object.employment_type == 'part_time' else ''"/>
+                            </div>
+                        </td>
+                        <td style="width:50%; vertical-align:top; background:#f8fafc; border:1px solid #e5e7eb; border-radius:14px; padding:18px;">
+                            <div style="font-size:12px; text-transform:uppercase; color:#64748b; margin-bottom:10px;">Contract Details</div>
+                            <div style="font-size:14px; line-height:2;">
+                                <strong>Start Date:</strong> <t t-out="object.generated_contract_id.date_start or object.payroll_start_date or ''"/><br/>
+                                <strong>End Date:</strong> <t t-out="object.generated_contract_id.date_end or ''"/><br/>
+                                <strong>Work Email:</strong> <t t-out="object.proposed_work_email or object.employee_created_id.work_email or ''"/><br/>
+                                <strong>Employee Code:</strong> <t t-out="object.employee_created_id.recruitment_employee_code or ''"/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="padding:8px 32px 20px;">
+                <div style="background:#ecfeff; border:1px solid #a5f3fc; border-radius:14px; padding:18px; font-size:14px; line-height:1.9; color:#164e63;">
+                    Your contract has been generated directly from the recruitment form with the approved salary and allowance details, and it is valid for one year from the joining date.
+                </div>
+            </div>
+
+            <div style="padding:0 32px 28px; text-align:center;">
+                <a t-att-href="ctx.get('login_url')" style="display:inline-block; padding:12px 22px; background:#0f4c81; color:#ffffff; text-decoration:none; border-radius:999px; font-size:14px; font-weight:600;">Open System</a>
+            </div>
+
+            <div style="border-top:1px solid #e5e7eb; padding:20px 32px 28px; font-size:13px; color:#6b7280; line-height:1.9;">
+                If you need any clarification, please contact HR or your reporting manager.<br/>
+                في حال وجود أي استفسار، يرجى التواصل مع قسم الموارد البشرية أو المدير المباشر.
+            </div>
+        </div>
+    </div>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_weekly_hours_reminder" model="mail.template">
+            <field name="name">Weekly Hours Reminder To MP</field>
+            <field name="model_id" ref="base.model_res_company"/>
+            <field name="subject">Weekly Working Hours Alert - {{ object.name }}</field>
+            <field name="email_from">{{ (user.email_formatted or '') }}</field>
+            <field name="body_html" type="html">
+<div>
+    <p>Managing Partner,</p>
+    <p>The following employees have missing working hours this week:</p>
+    <t t-out="ctx.get('hours_table')"/>
+</div>
+            </field>
+        </record>
+    </data>
+</odoo>

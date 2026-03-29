@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_mp_root"
+              name="MP"
+              parent="qlk_law.menu_qlk_case_root"
+              sequence="40"/>
+
+    <menuitem id="menu_mp_contacts"
+              name="Clients"
+              parent="menu_mp_root"
+              action="contacts.action_contacts"
+              sequence="10"/>
+
+    <record id="qlk_task_management.menu_task_management_root" model="ir.ui.menu">
+        <field name="parent_id" ref="menu_mp_root"/>
+        <field name="sequence">20</field>
+    </record>
+</odoo>

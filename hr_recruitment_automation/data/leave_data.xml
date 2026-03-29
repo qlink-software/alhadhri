@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Annual Leave: 21 days/year accrual, carry forward max 5 -->
+        <record id="leave_type_annual" model="hr.leave.type">
+            <field name="name">Annual Leave</field>
+            <field name="requires_allocation">yes</field>
+            <field name="employee_requests">yes</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="allocation_validation_type">no_validation</field>
+            <field name="request_unit">day</field>
+            <field name="show_on_dashboard">True</field>
+            <field name="automation_code">annual</field>
+        </record>
+
+        <record id="leave_accrual_plan_annual" model="hr.leave.accrual.plan">
+            <field name="name">Annual Leave 21/365</field>
+            <field name="time_off_type_id" ref="hr_recruitment_automation.leave_type_annual"/>
+            <field name="transition_mode">immediately</field>
+            <field name="accrued_gain_time">end</field>
+            <field name="carryover_date">year_start</field>
+            <field name="carryover_month">jan</field>
+            <field name="carryover_day">1</field>
+        </record>
+
+        <record id="leave_accrual_plan_annual_level" model="hr.leave.accrual.level">
+            <field name="accrual_plan_id" ref="hr_recruitment_automation.leave_accrual_plan_annual"/>
+            <field name="start_count">0</field>
+            <field name="start_type">day</field>
+            <field name="added_value">0.05753</field>
+            <field name="frequency">daily</field>
+            <field name="added_value_type">day</field>
+            <field name="cap_accrued_time">True</field>
+            <field name="maximum_leave">26</field>
+            <field name="cap_accrued_time_yearly">True</field>
+            <field name="maximum_leave_yearly">21</field>
+            <field name="action_with_unused_accruals">maximum</field>
+            <field name="postpone_max_days">5</field>
+        </record>
+
+        <record id="leave_type_sick" model="hr.leave.type">
+            <field name="name">Sick Leave</field>
+            <field name="requires_allocation">no</field>
+            <field name="employee_requests">yes</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">day</field>
+            <field name="show_on_dashboard">True</field>
+            <field name="automation_code">sick</field>
+        </record>
+
+        <record id="leave_type_emergency" model="hr.leave.type">
+            <field name="name">Emergency Leave</field>
+            <field name="requires_allocation">no</field>
+            <field name="employee_requests">yes</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">day</field>
+            <field name="show_on_dashboard">True</field>
+            <field name="automation_code">emergency</field>
+        </record>
+
+        <record id="leave_type_hajj" model="hr.leave.type">
+            <field name="name">Hajj Leave</field>
+            <field name="requires_allocation">no</field>
+            <field name="employee_requests">yes</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">day</field>
+            <field name="show_on_dashboard">True</field>
+            <field name="automation_code">hajj</field>
+        </record>
+    </data>
+</odoo>
