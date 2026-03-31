@@ -18,6 +18,7 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@id='configuration']" position="inside">
                 <field name="automation_code"/>
+                <field name="overtime_deductible"/>
             </xpath>
         </field>
     </record>

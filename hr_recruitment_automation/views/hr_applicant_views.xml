@@ -85,47 +85,47 @@
                 <page string="Recruitment Automation">
                     <group>
                         <group string="Personal Information">
-                            <field name="nationality_id" required="1"/>
-                            <field name="date_of_birth" required="1"/>
-                            <field name="recruitment_gender" required="1"/>
-                            <field name="qid_passport_number" required="1"/>
-                            <field name="marital_status" required="1"/>
-                            <field name="personal_phone" required="1"/>
-                            <field name="personal_email" required="1"/>
-                            <field name="home_address" required="1"/>
+                            <field name="nationality_id" />
+                            <field name="date_of_birth" />
+                            <field name="recruitment_gender" />
+                            <field name="qid_passport_number" />
+                            <field name="marital_status" />
+                            <field name="personal_phone" />
+                            <field name="personal_email" />
+                            <field name="home_address" />
                         </group>
 
                         <group string="Employment Information">
                             <field name="department_id"/>
                             <field name="job_id"/>
-                            <field name="employment_type" required="1"/>
-                            <field name="reporting_manager_id" required="1"/>
-                            <field name="office_location_id" required="1"/>
-                            <field name="proposed_work_email" required="1"/>
-                            <field name="system_username" required="1"/>
-                            <field name="system_password_input" password="True" required="not system_password_hash"/>
+                            <field name="employment_type" />
+                            <field name="reporting_manager_id" />
+                            <field name="office_location_id" />
+                            <field name="proposed_work_email" />
+                            <field name="system_username" />
+                            <field name="system_password_input" password="True"/>
                             <field name="system_password_hash" readonly="1"/>
                         </group>
                     </group>
 
                     <group>
                         <group string="Compensation">
-                            <field name="basic_salary" required="1"/>
-                            <field name="housing_allowance" required="1"/>
-                            <field name="transportation_allowance" required="1"/>
-                            <field name="phone_allowance" required="1"/>
-                            <field name="other_allowance" required="1"/>
-                            <field name="bank_name" required="1"/>
-                            <field name="bank_account_number" required="1"/>
-                            <field name="payroll_start_date" required="1"/>
-                            <field name="salary_type" required="1"/>
+                            <field name="basic_salary" />
+                            <field name="housing_allowance" />
+                            <field name="transportation_allowance" />
+                            <field name="phone_allowance" />
+                            <field name="other_allowance" />
+                            <field name="bank_name" />
+                            <field name="bank_account_number" />
+                            <field name="payroll_start_date" />
+                            <field name="salary_type"/>
                         </group>
 
                         <group string="Attachments">
-                            <field name="qid_passport_copy" filename="qid_passport_filename" required="1"/>
-                            <field name="cv_copy" filename="cv_filename" required="1"/>
-                            <field name="certificates_copy" filename="certificates_filename" required="1"/>
-                            <field name="visa_copy" filename="visa_filename" required="1"/>
+                            <field name="qid_passport_copy" filename="qid_passport_filename" />
+                            <field name="cv_copy" filename="cv_filename" />
+                            <field name="certificates_copy" filename="certificates_filename" />
+                            <field name="visa_copy" filename="visa_filename" />
                             <field name="other_document_ids" widget="many2many_binary"/>
                         </group>
                     </group>

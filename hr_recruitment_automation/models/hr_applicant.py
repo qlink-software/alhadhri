@@ -30,15 +30,15 @@ class HrApplicant(models.Model):
     # -------------------------------------------------------------------------
     # Personal Information
     # -------------------------------------------------------------------------
-    recruitment_full_name = fields.Char(string="Full Name", tracking=True, required=True)
-    nationality_id = fields.Many2one("res.country", string="Nationality", required=True)
-    date_of_birth = fields.Date(string="Date of Birth", required=True)
+    recruitment_full_name = fields.Char(string="Full Name", tracking=True, )
+    nationality_id = fields.Many2one("res.country", string="Nationality", )
+    date_of_birth = fields.Date(string="Date of Birth", )
     recruitment_gender = fields.Selection(
         [("male", "Male"), ("female", "Female"), ("other", "Other")],
         string="Gender",
-        required=True,
+        
     )
-    qid_passport_number = fields.Char(string="QID/Passport Number", required=True)
+    qid_passport_number = fields.Char(string="QID/Passport Number",)
     marital_status = fields.Selection(
         [
             ("single", "Single"),
@@ -49,11 +49,11 @@ class HrApplicant(models.Model):
         ],
         string="Marital Status",
         default="single",
-        required=True,
+        
     )
-    personal_phone = fields.Char(string="Personal Phone", required=True)
-    personal_email = fields.Char(string="Personal Email", required=True)
-    home_address = fields.Text(string="Home Address", required=True)
+    personal_phone = fields.Char(string="Personal Phone", )
+    personal_email = fields.Char(string="Personal Email", )
+    home_address = fields.Text(string="Home Address", )
 
     # -------------------------------------------------------------------------
     # Employment Information
@@ -62,12 +62,12 @@ class HrApplicant(models.Model):
         [("full_time", "Full-time"), ("part_time", "Part-time")],
         string="Employment Type",
         default="full_time",
-        required=True,
+        
     )
-    reporting_manager_id = fields.Many2one("hr.employee", string="Reporting Manager", required=True)
-    office_location_id = fields.Many2one("hr.work.location", string="Office Location", required=True)
-    proposed_work_email = fields.Char(string="Work Email", required=True)
-    system_username = fields.Char(string="System Username", required=True)
+    reporting_manager_id = fields.Many2one("hr.employee", string="Reporting Manager", )
+    office_location_id = fields.Many2one("hr.work.location", string="Office Location", )
+    proposed_work_email = fields.Char(string="Work Email", )
+    system_username = fields.Char(string="System Username",)
     system_password_input = fields.Char(string="System Password", copy=False)
     system_password_hash = fields.Char(string="System Password Hash", readonly=True, copy=False)
 
@@ -75,31 +75,31 @@ class HrApplicant(models.Model):
     # Compensation
     # -------------------------------------------------------------------------
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
-    basic_salary = fields.Monetary(string="Basic Salary", currency_field="currency_id", required=True)
-    housing_allowance = fields.Monetary(string="Housing Allowance", currency_field="currency_id", required=True)
-    transportation_allowance = fields.Monetary(string="Transportation Allowance", currency_field="currency_id", required=True)
-    phone_allowance = fields.Monetary(string="Phone Allowance", currency_field="currency_id", required=True)
-    other_allowance = fields.Monetary(string="Other Allowance", currency_field="currency_id", required=True)
-    bank_name = fields.Char(string="Bank Name", required=True)
-    bank_account_number = fields.Char(string="Bank Account Number", required=True)
-    payroll_start_date = fields.Date(string="Payroll Start Date", required=True)
+    basic_salary = fields.Monetary(string="Basic Salary", currency_field="currency_id", )
+    housing_allowance = fields.Monetary(string="Housing Allowance", currency_field="currency_id", )
+    transportation_allowance = fields.Monetary(string="Transportation Allowance", currency_field="currency_id", )
+    phone_allowance = fields.Monetary(string="Phone Allowance", currency_field="currency_id", )
+    other_allowance = fields.Monetary(string="Other Allowance", currency_field="currency_id", )
+    bank_name = fields.Char(string="Bank Name", )
+    bank_account_number = fields.Char(string="Bank Account Number", )
+    payroll_start_date = fields.Date(string="Payroll Start Date", )
     salary_type = fields.Selection(
         [("fixed", "Fixed")],
         string="Salary Type",
         default="fixed",
-        required=True,
+        
     )
 
     # -------------------------------------------------------------------------
     # Attachments
     # -------------------------------------------------------------------------
-    qid_passport_copy = fields.Binary(string="QID/Passport Copy", attachment=True, required=True)
+    qid_passport_copy = fields.Binary(string="QID/Passport Copy", attachment=True,)
     qid_passport_filename = fields.Char(string="QID/Passport Filename")
-    cv_copy = fields.Binary(string="CV", attachment=True, required=True)
+    cv_copy = fields.Binary(string="CV", attachment=True, )
     cv_filename = fields.Char(string="CV Filename")
-    certificates_copy = fields.Binary(string="Certificates", attachment=True, required=True)
+    certificates_copy = fields.Binary(string="Certificates", attachment=True, )
     certificates_filename = fields.Char(string="Certificates Filename")
-    visa_copy = fields.Binary(string="Visa", attachment=True, required=True)
+    visa_copy = fields.Binary(string="Visa", attachment=True,)
     visa_filename = fields.Char(string="Visa Filename")
     other_document_ids = fields.Many2many(
         "ir.attachment",
