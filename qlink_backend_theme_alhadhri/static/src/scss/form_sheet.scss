@@ -1,0 +1,313 @@
+/* 🏛️ تصميم واجهة الاستمارة للمحاماة - أودو 18 */
+
+/* 1. ورقة العمل (The Legal Sheet) */
+.o_form_sheet_bg {
+    background-color: #f0f2f5 !important; /* خلفية رمادية باردة لتقليل إجهاد العين */
+    padding: 15px !important;
+}
+
+.o_form_view .o_form_sheet {
+    border-radius: 12px !important; /* زوايا متوسطة تعطي انطباعاً عصرياً ورصيناً */
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; /* ظل خفيف جداً للعمق فقط */
+    max-width: 96% !important;
+    margin: 20px auto !important;
+    padding: 40px !important;
+    background-color: #ffffff !important;
+    min-height: auto !important;
+}
+
+/* 2. تسميات الحقول (Labels) - الوضوح هو الأولوية */
+.o_form_view .o_form_label {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #4a5568 !important; /* رمادي داكن مريح للعين بدلاً من الأسود الحاد */
+    margin-bottom: 4px !important;
+}
+
+/* 3. مدخلات البيانات (Inputs) - سهولة القراءة والكتابة */
+.o_field_widget input.o_input, 
+.o_field_widget select.o_input, 
+.o_field_widget textarea.o_input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 10px 12px !important;
+    font-size: 1rem !important;
+    color: #1a202c !important;
+    transition: all 0.2s ease;
+    background-color: #fdfdfd !important;
+}
+
+.o_field_widget input.o_input:focus {
+    border-color: #042273 !important; /* لون هويتك الأساسي */
+    box-shadow: 0 0 0 3px rgba(4, 34, 115, 0.1) !important;
+    background-color: #ffffff !important;
+}
+.o_form_view {
+    .o_form_sheet_bg {
+        max-width: none;
+    }
+    .o_form_sheet {
+        max-width: $o-form-view-sheet-max-width;
+        width: 100%;
+        @include media-breakpoint-up(md) {
+            margin: $o-sheet-vpadding * 0.2 auto;
+        }
+    }
+}
+// ######
+
+
+/* 5. المجموعات (Groups) - تنظيم البيانات */
+.o_form_view .o_group {
+    margin-bottom: 20px !important;
+}
+
+.o_form_view .o_horizontal_separator {
+    color: #042273 !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    border-bottom: 2px solid #f0f2f5 !important;
+    margin-top: 25px !important;
+    padding-bottom: 8px !important;
+}
+
+/* 6. الأزرار الذكية (Stat Buttons) */
+.o-form-buttonbox .oe_stat_button {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+    transition: hover 0.2s;
+}
+
+.o-form-buttonbox .oe_stat_button:hover {
+    background-color: #f8fafc !important;
+    border-color: #042273 !important;
+}
+
+.text-muted {
+    --text-opacity: 1;
+    color: rgba(187, 188, 188, 0.76) !important;
+}
+
+// // linke to another record
+// .o_form_view .o_form_uri > span:first-child {
+//     color: #042273 !important;
+// }
+// /* الرابط للسجلات الأخرى + اسم السجل الحالي في المسار + عنوان السجل */
+// .o_form_view .o_form_uri > span:first-child,
+// .o_control_panel .breadcrumb-item.active,
+// .o_form_view .oe_title h1 {
+//     color: #042273 !important;
+// }
+// /* لضمان بقاء اللون حتى في وضع التحرير للحقول النصية */
+// .o_form_view .oe_title input.o_field_widget {
+//     color: #042273 !important;
+// }
+
+/* 1. استهداف روابط المسار العلوي (Breadcrumbs) بناءً على الكلاسات في الصورة */
+.o_control_panel {
+    .breadcrumb {
+        .breadcrumb-item {
+            // استهداف الرابط (اسم السجل السابق أو الحالي)
+            a.fw-bold.text-truncate {
+                color: #042273 !important;
+                text-decoration: none; // إزالة الخط تحت النص إذا وجد
+
+                &:hover {
+                    color: #5b99ef !important; // لون أفتح قليلاً عند التمرير
+                }
+            }
+
+            // إذا كان السجل هو الأخير (النشط حالياً) ولا يوجد رابط
+            span.text-truncate {
+                color: #042273 !important;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+/* 2. تنسيق إضافي لضمان شمولية "اسم السجل" داخل النموذج نفسه */
+.o_form_view {
+    .oe_title {
+        span.o_field_widget, h1 {
+            color: #042273 !important;
+        }
+    }
+}
+
+/* 3. تنسيق الفواصل بين الكلمات في المسار (مثل / ) */
+.breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(4, 34, 115, 0.5) !important; // جعل الفاصل شفاف قليلاً بنفس اللون
+    font-size: 18px;
+}
+
+// .breadcrumb-item + .breadcrumb-item {
+//     padding-left: var(--breadcrumb-item-padding-x);
+//     font-size: 20px;
+// }
+
+/* 1. استهداف جميع المجموعات في ورقة النموذج (Sheet) */
+.o_form_view .o_group {
+    /* يجعل المجموعة تبدو كبطاقة (Card) */
+    // border: 1px solid #e0e0e0; /* حد خفيف جداً (أبسط من #dee2e6) */
+    // border-radius: 8px; /* تقليل الزوايا لـ 8px لتبسيط الشكل */
+    padding: 15px; 
+    margin-bottom: 25px; /* زيادة التباعد بين البطاقات */
+    
+    /* تظليل مبسط (Drop Shadow) لرفع البطاقة قليلاً، وهو أبسط وأوضح من الظل الداخلي */
+    // box-shadow: 3px 2px 3px rgba(0, 0, 0, 0.1); 
+    
+    background-color: #ffffff; /* التأكد من أن الخلفية بيضاء لتميز البطاقة */
+}
+
+/* 2. استهداف عنوان المجموعة (لإزالة الخط السفلي) */
+.o_form_view .o_group > h1, 
+.o_form_view .o_group > h2, 
+.o_form_view .o_group > h3,
+.o_form_view .o_group > legend {
+    border-bottom: none !important; /* إزالة الخط الافتراضي (ضروري) */
+    padding-bottom: 0 !important; 
+    margin-bottom: 10px; /* تباعد العنوان عن الحقول */
+    /* **ملاحظة:** يمكن جعل العنوان بخط أغمق لزيادة وضوحه إن أردت: font-weight: 600; */
+}
+
+/* 3. تعديل حجم الحقول داخل المجموعة */
+.o_form_view .o_inner_group {
+    grid-template-columns: fit-content(150px) minmax(0, 1fr); 
+}
+
+.form-check-input:checked {
+    background-color:  #4186ca !important;
+    border-color:  #5b99ef !important;
+}
+.o_form_view .o_horizontal_separator:not(:empty) {
+    // box-shadow: 0 1px 0 #cacad2;
+    color: #000000 !important;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+.o_form_view .o_group {
+    justify-content: space-between;
+    color: #042273 !important;
+    // font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 1 4px 3 #e6e6e6;
+    // border-radius: 10px;
+}
+
+
+/* 💡 تحسين الروابط (Links) */
+a {
+    color: #083680; /* أزرق متوسط */
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+a:hover {
+    color: #5b99ef; 
+    text-decoration: underline;
+}
+.nav-link {
+    color: #042273;
+}
+.o_field_widget input.o_input {
+    border: 1px solid #e6e4e4;;
+    border-radius: 8px;
+    color: #000000;
+    transition: all 0.3s;
+}
+.o_field_widget input.o_input:focus {
+    // border-color: #042273;
+    // box-shadow: 0 0 7px rgba(5, 20, 154, 0.5);
+    border: 2px solid #042273;
+}
+
+/* =====================================================
+   📱 RESPONSIVE ADJUSTMENTS (MOBILE & TABLET)
+   تصغير الأحجام لتناسب الشاشات الصغيرة
+   ===================================================== */
+
+   @media (max-width: 768px) {
+    
+    /* 1. تصغير ورقة العمل (The Sheet) */
+    .o_form_view .o_form_sheet {
+        padding: 15px !important; // تقليل الحشو من 40px إلى 15px
+        margin: 10px auto !important;
+        max-width: 98% !important;
+        border-radius: 8px !important;
+    }
+
+    /* 2. تصغير العناوين والخطوط */
+    .o_form_view {
+        .oe_title h1 {
+            font-size: 1.4rem !important; // تصغير عنوان السجل الرئيسي
+        }
+
+        .o_horizontal_separator:not(:empty) {
+            font-size: 1.1rem !important; // تصغير الفواصل بين الأقسام
+            margin-top: 15px !important;
+        }
+
+        .o_form_label {
+            font-size: 0.85rem !important; // تصغير تسميات الحقول
+            margin-bottom: 2px !important;
+        }
+    }
+
+    /* 3. ضبط المسار العلوي (Breadcrumbs) */
+    .o_control_panel .breadcrumb {
+        font-size: 0.9rem !important;
+        .breadcrumb-item a.fw-bold.text-truncate {
+            max-width: 150px; // منع تداخل العناوين الطويلة
+            font-size: 1rem !important;
+        }
+    }
+
+    /* 4. الحقول والمجموعات (Inputs & Groups) */
+    .o_form_view .o_group {
+        padding: 10px !important; // تقليل حشو البطاقات
+        margin-bottom: 15px !important;
+        font-size: 1rem !important;
+        
+        // جعل الحقول تحت بعضها بدلاً من بجانب بعضها
+        .o_inner_group {
+            display: block !important; 
+            width: 100% !important;
+        }
+    }
+
+    .o_field_widget input.o_input, 
+    .o_field_widget select.o_input, 
+    .o_field_widget textarea.o_input {
+        font-size: 0.95rem !important;
+        padding: 8px !important;
+        height: auto !important; // السماح للحقل بالتمدد حسب المحتوى
+    }
+
+    /* 5. الأزرار الذكية (Stat Buttons) */
+    .o-form-buttonbox {
+        position: relative !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        
+        .oe_stat_button {
+            width: 48% !important; // زرين بجانب بعضهما في الموبايل
+            margin: 1% !important;
+            height: 40px !important;
+        }
+    }
+}
+
+/* 6. تعديلات إضافية للشاشات المتناهية الصغر (Extra Small) */
+@media (max-width: 480px) {
+    .o_control_panel .breadcrumb-item a.fw-bold.text-truncate {
+        max-width: 100px;
+    }
+    
+    .o-form-buttonbox .oe_stat_button {
+        width: 100% !important; // زر واحد في كل سطر للشاشات الصغيرة جداً
+    }
+}

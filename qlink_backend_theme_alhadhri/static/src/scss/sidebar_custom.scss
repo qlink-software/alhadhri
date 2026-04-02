@@ -1,0 +1,770 @@
+// /* =========================================================
+//    🏛️ هيكل القائمة الجانبية المحدث (QLAWPRO 2026)
+//    التصميم: Qlink Tech Style - Gradient & Glass
+//    ========================================================= */
+
+//    #sidebar_panel {
+//     height: 100%;
+//     position: fixed;
+//     top: 0;
+//     width: 350px;
+//     left: 0 !important; 
+    
+    
+//     /* 1. تطبيق التدرج اللوني الانسيابي من شعار Qlink */
+//     /* اقتراح لزيادة انسيابية التدرج */
+//     background: linear-gradient(180deg, 
+        
+//         $brand-primary 50%, 
+//         $brand-dark 100%
+//     ) !important;    
+//     box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+//     border-radius: 0 15px 15px 0; // زوايا دائرية عصرية
+//     border-right: 1px solid rgba(255, 255, 255, 0.1);
+//     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+//     z-index: 1050;
+//     // زر التبديل العائم (يجب أن يكون ظاهراً في الموبايل ليتمكن المستخدم من فتحه)
+//     .o_floating_sidebar_toggle_container {
+//         display: flex !important;
+//         position: fixed !important;
+//         left: 10px; // وضعه في جهة اليسار لفتحه
+//         top: 10px;
+//         z-index: 11000 !important;
+
+//         .o_modern_sidebar_toggle {
+//             background: $brand-primary !important;
+//             color: white !important;
+//             width: 38px !important; // زر أصغر
+//             height: 38px !important;
+//             box-shadow: 0 2px 10px rgba(0,0,0,0.2);   
+//             border-radius: 10px !important;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//             i {
+//                 font-size: 26px !important;
+//             }
+//         }
+//     }
+
+//     &.open {
+//         left: 0 !important;
+//         display: block !important;
+//     }
+
+//     // الأيقونات العامة
+//     .nav-icon-container {
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         width: 45px;
+//         height: 45px;
+//         transition: all 0.3s ease;
+//         pointer-events: none;
+        
+//         .sidebar-icon {
+//             height: 26px !important;
+//             width: auto;
+//             object-fit: contain;
+//             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+//         }
+//     }
+
+//     ul, li { list-style: none !important; }
+//     a { text-decoration: none !important; outline: none !important; }
+
+//     // ✅ وضع التصغير (Collapsed Mode)
+//     &.collapsed {
+//         width: 90px !important;
+//         .nav-icon-container { width: 100%; justify-content: center; }
+//         .sidebar_sub_menu, .app-name-text, .sidebar_logo, span { display: none !important; }
+        
+//         .sidebar_menu > li {
+//             display: flex;
+//             justify-content: center;
+//             width: 100%;
+//             > a {
+//                 width: 50px; height: 50px;
+//                 justify-content: center;
+//                 border-radius: 12px;
+//             }
+//             &.active > a {
+//                 background: rgba(255, 255, 255, 0.2) !important;
+//                 backdrop-filter: blur(10px);
+//                 transform: scale(1.05);
+//             }
+//         }
+//     }
+
+//     // جسم القائمة الداخلي
+//     .sidebar {
+//         height: 100vh;
+//         overflow-y: auto;
+//         scrollbar-width: none;
+//         padding-top: 90px !important;
+//         padding-bottom: 50px;
+
+//         .sidebar_menu {
+            
+//             padding: 0 !important;
+//             margin: 0 !important;
+
+//             > li {
+//                 position: relative;
+//                 margin-bottom: 4px;
+
+//                 > a {
+//                     color: rgba(255, 255, 255, 0.85) !important;
+//                     font-family: $font-main; // استخدام الخط المختار
+//                     font-weight: 400;
+//                     font-size: 20px;
+//                     display: flex;
+//                     align-items: center;
+//                     gap: 15px;
+//                     margin: 4px 15px !important;
+//                     padding: 12px 18px !important;
+//                     border-radius: 10px;
+//                     transition: all 0.25s ease;
+
+//                     &:hover {
+//                         background: rgba(255, 255, 255, 0.1) !important;
+//                         color: #ffffff !important;
+//                         transform: translateX(5px);
+//                     }
+//                 }
+
+//                 /* 2. العنصر النشط: تصميم "خفيف وغير مزعج" */
+//                 &.active, &:has(.sidebar_sub_menu li.active) {
+//                     > a {
+//                         background: rgba(255, 255, 255, 0.15) !important; // خلفية زجاجية رقيقة
+//                         backdrop-filter: blur(8px);
+//                         color: #ffffff !important;
+//                         border-left: 4px solid $brand-accent; // شريط سماوي مضيء رفيع
+//                         font-weight: 600;
+//                         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
+// // 📂 القوائم الفرعية (Sub Menu)
+// .sidebar_sub_menu {
+//     background: rgba(0, 0, 0, 0.1) !important;
+//     margin: 5px 15px 10px 25px !important;
+//     border-radius: 10px;
+//     /* تغيير من display: none إلى أسلوب يسمح بالحركة الانسيابية */
+//     max-height: 0;
+//     overflow: hidden;
+//     opacity: 0;
+//     display: block !important; // نحتاجه دائماً ليعمل الـ transition
+//     transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+//     padding: 0;
+
+//     &.open {
+//         max-height: 2000px; // رقم كبير كافٍ لاحتواء العناصر
+//         opacity: 1;
+//         padding: 5px 0;
+//         border-left: 1px solid rgba(255, 255, 255, 0.1);
+//     }
+
+//     li {
+//         a {
+//             color: rgba(255, 255, 255, 0.7);
+//             padding: 8px 10px 8px 20px !important;
+//             font-size: 14px;
+//             display: block;
+//             transition: all 0.2s;
+//             &:hover { 
+//                 color: $ui-action-hover !important; 
+//                 padding-left: 25px !important; 
+//             }
+//         }
+
+//         &.active > a {
+//             color: #ffffff !important;
+//             font-weight: 800;
+//             font-size: 18px;
+//             background: transparent !important;
+//             &::before {
+//                 content: "•";
+//                 color: $ui-action-hover;
+//                 margin-right: 8px;
+//             }
+//         }
+//     }
+// }
+
+// /* تأكد من إضافة هذه القواعد في ملف SCSS */
+// @media (min-width: 769px) {
+//     // إزاحة الـ Navbar والمحتوى عند الفتح
+//     .sidebar-active {
+//         margin-left: 350px !important;
+//         width: calc(100% - 350px) !important;
+//     }
+
+//     // إزاحة الـ Navbar والمحتوى عند التصغير
+//     .sidebar-collapsed {
+//         margin-left: 90px !important;
+//         width: calc(100% - 90px) !important;
+//     }
+
+//     // لضمان استجابة المحتوى الداخلي لأودو (Action Manager)
+//     .o_action_manager.sidebar-active {
+//         margin-left: 350px !important;
+//     }
+//     .o_action_manager.sidebar-collapsed {
+//         margin-left: 90px !important;
+//     }
+// }
+
+
+// /* =========================================================
+//    📱 QLAWPRO 2026 - FULL MOBILE OPTIMIZATION
+//    الحل الشامل لتصغير الخطوط والعناصر على الجوال
+//    ========================================================= */
+
+//    @media (max-width: 768px) {
+//     #sidebar_panel {
+//         display: block !important; 
+//         visibility: visible !important;
+//         width: 260px !important; // تصغير العرض لتوفير مساحة رؤية خلفية
+//         position: fixed !important;
+//         top: 0;
+//         bottom: 0;
+//         left: -260px !important; 
+//         z-index: 10000 !important; 
+//         transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+//         border-radius: 0 15px 15px 0 !important;
+
+//         &.open {
+//             left: 0 !important;
+//             box-shadow: 10px 0 50px rgba(0, 0, 0, 0.4);
+//         }
+
+//         // --- تصغير محتوى القائمة الداخلي ---
+//         .sidebar {
+//             padding-top: 60px !important; // تقليل الإزاحة العلوية
+            
+//             .sidebar_menu > li {
+//                 margin-bottom: 2px !important;
+
+//                 > a {
+//                     padding: 8px 12px !important; // حشو أصغر
+//                     margin: 2px 8px !important;
+//                     font-size: 13px !important; // خط أصغر للعناصر الرئيسية
+//                     gap: 10px !important;
+
+//                     span {
+//                         display: inline-block !important;
+//                         font-size: 13px !important;
+//                     }
+//                 }
+//             }
+//         }
+
+//         // --- تصغير الأيقونات ---
+//         .nav-icon-container {
+//             width: 32px !important;
+//             height: 32px !important;
+            
+//             .sidebar-icon {
+//                 height: 18px !important; // أيقونات أرشق
+//             }
+//         }
+
+//         // --- تصغير القوائم الفرعية ---
+//         .sidebar_sub_menu {
+//             margin: 2px 10px 5px 15px !important;
+            
+//             li a {
+//                 font-size: 12px !important; // خط ناعم جداً للفرعي
+//                 padding: 5px 10px 5px 15px !important;
+                
+//                 &::before {
+//                     font-size: 10px;
+//                 }
+//             }
+//         }
+//     }
+
+//     // --- زر التبديل العائم (Floating Toggle) بحجم أصغر ---
+//     .o_floating_sidebar_toggle_container {
+//         display: flex !important;
+//         position: fixed !important;
+//         left: 8px;
+//         top: 8px;
+//         z-index: 11000 !important;
+
+//         .o_modern_sidebar_toggle {
+//             background: $brand-primary !important;
+//             color: white !important;
+//             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+//             width: 38px !important; // زر أصغر
+//             height: 38px !important;
+//             border-radius: 10px !important;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+            
+//             i {
+//                 font-size: 16px !important;
+//             }
+//         }
+//     }
+
+//     // --- تصغير الخطوط في محتوى أودو الداخلي للجوال ---
+//     .o_form_view {
+//         .o_form_sheet {
+//             padding: 15px !important;
+//             max-width: 100% !important;
+//         }
+        
+//         .o_form_label {
+//             font-size: 12px !important; // تصغير الليبل
+//         }
+        
+//         .o_input {
+//             font-size: 13px !important; // تصغير خط الإدخال
+//             padding: 6px 10px !important;
+//         }
+
+//         .o_horizontal_separator {
+//             font-size: 14px !important;
+//             margin-top: 15px !important;
+//         }
+//     }
+
+//     // --- تصغير أزرار الـ Statusbar ---
+//     .o_form_statusbar {
+//         .btn {
+//             font-size: 11px !important;
+//             padding: 4px 8px !important;
+//         }
+//     }
+// }
+
+
+
+
+
+/* =========================================================
+   🏛️ نظام QLAWPRO 2026 - العرض المرن والخطوط المتكيفة
+   الفخامة في الشاشات الكبيرة والرشاقة في الشاشات الصغيرة
+   ========================================================= */
+
+// 1. المتغيرات الأساسية
+$sidebar-desktop: 350px;    // العرض الضخم المفضل لديك للكمبيوتر
+$sidebar-tablet: 260px;     // العرض الرشيق للأجهزة المتوسطة
+$sidebar-mobile: 240px;     // العرض المريح للجوال
+$accent-color: #5b99ef;
+
+// متغيرات القياس (تأكد من تعريفها في بداية الملف)
+// $sidebar-mobile: 280px;
+// $sidebar-tablet: 100px;
+
+#sidebar_panel {
+    height: 100vh;
+    position: fixed;
+    border-radius: 0 15px 15px 0; // زوايا دائرية عصرية
+    top: 0;
+    left: -$sidebar-desktop; // الوضع الافتراضي مخفي
+    width: $sidebar-desktop !important; 
+    background: linear-gradient(180deg, #031a57 0%, #042273 100%) !important;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.2);
+    z-index: 1050;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+
+    &.open, &.sidebar-active {
+        left: 0 !important;
+    }
+    // عندما يتم إخفاء السايدبار برمجياً
+    &.sidebar-hidden {
+        left: -$sidebar-desktop !important;
+        
+        @media (max-width: 1200px) {
+            left: -$sidebar-tablet !important;
+        }
+        
+        @media (max-width: 768px) {
+            left: -$sidebar-mobile !important;
+        }
+    }
+    /* 🏢 محتوى السايدبار */
+    .sidebar {
+        flex-grow: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        padding-top: 80px !important;
+
+        .sidebar_menu > li {
+            margin: 8px 15px; // مسافات فخمة للكمبيوتر
+            list-style: none; // إخفاء النقاط القديمة الصغيرة
+            > a {
+                color: rgba(255, 255, 255, 0.9) !important;
+                font-size: 18px; // خط كبير وواضح للكمبيوتر
+                font-weight: 500;
+                padding: 12px 18px !important;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateX(8px);
+                }
+                // إنشاء نقطة فخمة وكبيرة
+                &::before {
+                    content: ""; 
+                    width: 8px;   // التحكم في العرض
+                    height: 8px;  // التحكم في الارتفاع
+                    background-color: #5b99ef; // لون النقطة
+                    border-radius: 50%; // جعلها دائرية
+                    display: inline-block;
+                    flex-shrink: 0; // ضمان عدم انضغاطها
+                    transition: all 0.3s ease;
+                }
+
+                &:hover::before {
+                    transform: scale(1.5); // تكبير النقطة عند التمرير (Hover)
+                    background-color: #ffffff;
+                }
+            }
+            
+            &.active > a {
+                // background: $accent-color !important;
+                box-shadow: 0 4px 15px rgba(91, 153, 239, 0.4);
+                color: #ffffff !important;
+                font-weight: bold;
+                background: rgba(255, 255, 255, 0.1); // أو اللون الأزرق المفضل لديك
+                
+                // // إضافة النقطة التي تظهر في صورتك
+                // &::before {
+                //     content: "•";
+                //     margin-right: 8px;
+                //     color: #5b99ef;
+                // }
+            }
+            /* تدوير السهم عند الفتح */
+li.open > a.dropdown-toggle-custom::after {
+    transform: rotate(90deg);
+}
+        }
+    }
+
+    /* 📂 القوائم الفرعية */
+    /* 📂 القوائم الفرعية - دعم مستويات غير محدودة */
+    .sidebar_sub_menu {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: all 0.4s ease;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 5px 15px;
+        border-radius: 8px;
+        list-style: none !important; // تأكد من إخفاء النقاط
+
+        // القوائم المفتوحة
+        &.open, 
+        li.open > ul { 
+            max-height: 2000px; // رقم كبير لاستيعاب الأحفاد
+            opacity: 1;
+            padding: 5px 0;
+            display: block !important;
+        }
+
+    li {
+        position: relative;
+        
+        // تنسيق الروابط الفرعية والأحفاد
+        a {
+            padding: 10px 15px 10px 45px !important;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7) !important;
+            display: block;
+            transition: all 0.3s;
+            
+            &:hover { 
+                color: #e67e22 !important; 
+                padding-left: 50px !important;
+            }
+        }
+
+        // تمييز العنصر النشط (سواء ابن أو حفيد)
+        &.active > a {
+            color: #ffffff !important;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            &::before {
+                content: "•";
+                color: $ui-action-hover;
+                font-size: 20px;
+                margin-right: 8px;
+            }
+        }
+
+        /* 🌳 تنسيق الأحفاد (Nested UL) */
+        ul {
+            list-style: none !important;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            background: rgba(0, 0, 0, 0.05); // تعميق لون الخلفية للأحفاد
+            
+            li a {
+                padding-left: 65px !important; // إزاحة إضافية للحفيد
+                font-size: 14px;
+            }
+        }
+    }
+    .sidebar_has_children {
+        position: relative;
+        
+        // سهم صغير للإشارة لوجود قائمة فرعية
+        &::after {
+            content: '\f105'; // fa-angle-right
+            font-family: 'FontAwesome';
+            position: absolute;
+            right: 25px;
+            top: 15px;
+            color: rgba(255,255,255,0.5);
+            transition: transform 0.3s;
+        }
+    
+        &.open::after {
+            transform: rotate(90deg);
+            color: $accent-color;
+        }
+    }
+}
+}
+
+/* =========================================================
+   📱 سحر التصغير (Responsive Logic)
+   هنا يتم التحكم في تقليص الأحجام عند صغر الشاشة
+   ========================================================= */
+
+/* 1. للشاشات المتوسطة (Tablets / Small Laptops) */
+@media (max-width: 1200px) {
+    #sidebar_panel {
+        width: $sidebar-tablet !important; // تصغير العرض لـ 260px
+        
+        .sidebar .sidebar_menu > li {
+            margin: 4px 10px;
+            > a {
+                font-size: 15px !important; // تصغير الخط
+                padding: 8px 12px !important;
+                gap: 10px;
+            }
+        }
+        
+        .sidebar_sub_menu li a {
+            font-size: 13px !important;
+            padding-left: 35px !important;
+        }
+
+        .logo_img { max-width: 160px !important; } // تصغير الشعار
+    }
+}
+
+/* تعديل منطق الإزاحة */
+@media (min-width: 769px) {
+    // الحالة عندما يكون السايدبار مفتوحاً
+    .sidebar-active {
+        .o_main_navbar, .o_action_manager, .o_content, .o_control_panel {
+            margin-left: $sidebar-desktop !important;
+            width: calc(100% - #{$sidebar-desktop}) !important;
+            transition: all 0.4s ease;
+
+            @media (max-width: 1200px) {
+                margin-left: $sidebar-tablet !important;
+                width: calc(100% - #{$sidebar-tablet}) !important;
+            }
+        }
+    }
+
+    // الحالة عندما يكون السايدبار مغلقاً (sidebar-none)
+    .sidebar-none {
+        margin-left: 0 !important;
+        width: 100% !important;
+        transition: all 0.4s ease;
+    }
+}
+
+/* 3. للجوال (Mobile) */
+// @media (max-width: 768px) {
+//     #sidebar_panel {
+//         width: $sidebar-mobile !important;
+//         left: -$sidebar-mobile !important;
+//         &.open { left: 0 !important; }
+//     }
+//      // الحالة عندما يكون السايدبار مفتوحاً
+//      .sidebar-active {
+//         .o_main_navbar, .o_action_manager, .o_content, .o_control_panel {
+//             margin-left: $sidebar-mobile !important;
+//             width: calc(100% - #{$sidebar-mobile}) !important;
+//             transition: all 0.4s ease;
+
+//             @media (max-width: 1200px) {
+//                 margin-left: $sidebar-tablet !important;
+//                 width: calc(100% - #{$sidebar-tablet}) !important;
+//             }
+//         }
+//     }
+
+//     // الحالة عندما يكون السايدبار مغلقاً (sidebar-none)
+//     .sidebar-none {
+//         margin-left: 0 !important;
+//         width: 100% !important;
+//         transition: all 0.4s ease;
+//     }
+//     .sidebar-active { margin-left: 0 !important; } // لا إزاحة في الموبايل (نظام الطبقات)
+//     // --- زر التبديل العائم (Floating Toggle) بحجم أصغر ---
+//     .o_floating_sidebar_toggle_container {
+//         display: flex !important;
+//         position: fixed !important;
+//         left: 8px;
+//         top: 8px;
+//         z-index: 11000 !important;
+
+//         .o_modern_sidebar_toggle {
+//             background: $brand-primary !important;
+//             color: white !important;
+//             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+//             width: 38px !important; // زر أصغر
+//             height: 38px !important;
+//             border-radius: 10px !important;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+            
+//             i {
+//                 font-size: 16px !important;
+//             }
+//         }
+//     }
+// }
+
+/* =====================================================
+   📱 MOBILE & RESPONSIVE OPTIMIZATION
+   تنسيق الجوال والجداول - نظام الإزاحة والطبقات
+   ===================================================== */
+
+
+
+@media (max-width: 768px) {
+    // 1. لوحة القائمة الجانبية (Sidebar Panel)
+    #sidebar_panel {
+        width: $sidebar-mobile !important;
+        left: -$sidebar-mobile !important; // مخفي خارج الشاشة جهة اليسار
+        transition: $transition-std;
+        z-index: 1050; // لضمان الظهور فوق المحتوى
+
+        &.open { 
+            left: 0 !important; 
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+        }
+    }
+     // --- زر التبديل العائم (Floating Toggle) بحجم أصغر ---
+     .o_floating_sidebar_toggle_container {
+        display: flex !important;
+        position: fixed !important;
+        left: 8px;
+        top: 8px;
+        z-index: 11000 !important;
+
+        .o_modern_sidebar_toggle {
+            background: $brand-primary !important;
+            color: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 38px !important; // زر أصغر
+            height: 38px !important;
+            border-radius: 10px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            i {
+                font-size: 16px !important;
+            }
+        }
+    }
+
+    // 2. إدارة المحتوى عند فتح السايدبار (Sidebar Active)
+    .sidebar-active {
+        // في الجوال: نلغي الإزاحة (margin-left) لأن السايدبار يظهر كطبقة فوقية (Overlay)
+        margin-left: 0 !important; 
+
+        .o_main_navbar, 
+        .o_action_manager, 
+        .o_content, 
+        .o_control_panel {
+            // بقاء المحتوى بعرض كامل خلف السايدبار لمنع التشوه
+            width: 100% !important;
+            margin-left: 0 !important;
+            transition: $transition-std;
+            filter: blur(2px); // تأثير اختياري لتركيز الانتباه على القائمة
+            pointer-events: none; // منع التفاعل مع المحتوى أثناء فتح القائمة
+        }
+    }
+
+    // 3. إدارة المحتوى عند إغلاق السايدبار (Sidebar None/Closed)
+    // .sidebar-none {
+    //     margin-left: 0 !important;
+    //     width: 100% !important;
+    //     transition: $transition-std;
+        
+    //     .o_main_navbar, 
+    //     .o_action_manager, 
+    //     .o_content, 
+    //     .o_control_panel {
+    //         filter: none;
+    //         pointer-events: auto;
+    //     }
+    // }
+}
+
+// 4. تنسيق التابلت (Tablet View) - بين الجوال والديسكتوب
+@media (min-width: 769px) and (max-width: 1200px) {
+    .sidebar-active {
+        .o_main_navbar, 
+        .o_action_manager, 
+        .o_content, 
+        .o_control_panel {
+            margin-left: $sidebar-tablet !important;
+            width: calc(100% - #{$sidebar-tablet}) !important;
+            transition: $transition-std;
+        }
+    }
+}
+
+/* 🔘 زر التبديل العائم */
+.o_floating_sidebar_toggle_container {
+    display: flex !important;
+    position: fixed !important;
+    left: 10px; // وضعه في جهة اليسار لفتحه
+    top: 10px;
+    z-index: 11000 !important;
+
+    .o_modern_sidebar_toggle {
+        background: $brand-primary !important;
+        color: white !important;
+        width: 38px !important; // زر أصغر
+        height: 38px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);   
+        border-radius: 10px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        i {
+            font-size: 26px !important;
+        }
+    }
+}

@@ -1,0 +1,241 @@
+/* =====================================================
+   QLAWPRO 2026 - PRESTIGE LOGIN EXPERIENCE
+   الأزرق الليلي والبرونز المطفي مع تأثير الزجاج الفاخر الموحد
+===================================================== */
+
+
+body.bg-100:not(.o_portal) {
+  
+    #wrapwrap {
+        background: linear-gradient(135deg, rgba(26, 42, 64, 0.8) 0%, rgba(13, 23, 42, 0.6) 100%),
+            url('/qlink_backend_theme/static/description/gavel-law-book.jpg') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100vh !important;
+
+        main {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        // الحاوية الرئيسية (The Glass Vault)
+        .o_database_list {
+            width: 100% !important;
+            max-width: 50% !important;
+            background: $glass-white-thick-light !important; // استخدام الشفافية الموحدة
+            backdrop-filter: blur(20px) saturate(180%) !important; 
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            // border: 1px solid $brand-primary !important;
+            border-radius: 20px !important;
+            padding: 2.5rem !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+            position: relative;
+
+            // // الشعار العلوي
+            // &::before {
+            //     content: "QLAWPRO";
+            //     display: block;
+            //     font-family: 'Poppins', sans-serif;
+            //     font-size: 1.2rem;
+            //     font-weight: 1000;
+            //     color: $brand-accent;
+            //     letter-spacing: 5px;
+            //     // border-bottom: 2px solid $brand-accent;
+            //     padding-bottom: 15px;
+            //     margin-bottom: 25px;
+            //     text-align: center;
+            // }
+
+            // إزالة الخلفيات البيضاء من العناصر الداخلية
+            .card, .card-body {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+
+            /* حقول الإدخال - شبه شفافة لتناسب التصميم */
+            .form-control {
+                background: rgba(255, 255, 255, 0.6) !important;
+                border: 1px solid rgba(26, 42, 64, 0.2) !important;
+                border-radius: 8px !important;
+                height: 48px !important;
+                color: $brand-primary !important;
+                font-weight: 600 !important;
+                transition: all 0.3s ease;
+
+                &:focus {
+                    border-color: $brand-accent_text !important;
+                    background: rgba(255, 255, 255, 0.9) !important;
+                    box-shadow: 0 0 0 4px rgba(166, 124, 82, 0.15) !important;
+                }
+            }
+
+            .form-label {
+                color: white !important;
+                font-weight: 700 !important;
+                font-size: 0.9rem;
+            }
+
+            /* إخفاء حقوق أودو */
+            a[href*="odoo.com"] { display: none !important; }
+
+            /* زر الدخول */
+            .btn-primary {
+                color: white !important;
+                width: 100% !important;
+                height: 50px !important;
+                border-radius: 8px !important;
+                background: linear-gradient(135deg, $brand-primary 0%, #0d1726 100%) !important;
+                border: none !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                margin-top: 1rem !important;
+                box-shadow: 0 10px 20px rgba(26, 42, 64, 0.2) !important;
+
+                &:hover {
+                    transform: translateY(-2px) !important;
+                    box-shadow: 0 15px 30px rgba(26, 42, 64, 0.3) !important;
+                }
+            }
+
+            /* الروابط الجانبية */
+            .o_login_auth, .justify-content-between {
+                margin-top: 15px;
+               
+            }
+            a, button {
+                color: $brand-primary !important;
+                font-weight: 700 !important;
+                text-decoration: none !important;
+                &:hover {
+                    color: $brand-accent !important;
+                    text-decoration: underline !important;
+                }
+            }
+
+            /* زر اختيار قاعدة البيانات */
+            .input-group {
+                
+                .btn-secondary {
+                    background: linear-gradient(135deg, $brand-primary 0%, #0d1726 100%) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: 0 8px 8px 0 !important;
+                }
+                .form-control {
+                    
+                    border-radius: 8px 0 0 8px !important;
+                }
+            }
+            .mb-3 label.col-form-label {
+                color: #ffffff; /* For example, blue */
+                font-weight: bold;
+            }
+
+            div.text-center.pb-3.border-bottom.mb-4 {
+                background: transparent !important; 
+                border-bottom: 0px !important;
+            }
+            div.text-center.pb-3.border-bottom.mb-4{
+                img{
+                    /* 1. رفع القيد عن الارتفاع */
+                    max-height: 350px !important; 
+                    
+                    /* 2. التحكم في العرض */
+                    width: 350px !important; /* يمكنك زيادة هذا الرقم حسب الرغبة */
+                    
+                    /* 3. الحفاظ على تناسق الأبعاد */
+                    height: auto !important;
+                    object-fit: contain;
+                    
+                    /* 4. إزاحة اختيارية لضمان التوسط */
+                    display: block;
+                    margin: auto;
+                }
+            }
+        }
+    }
+}
+
+// 1. استهداف أجهزة التابلت (الشاشات المتوسطة)
+@media (min-width: 769px) and (max-width: 1024px) {
+    body.bg-100:not(.o_portal) #wrapwrap {
+        align-items: center !important; // التوسيط العمودي أفضل للتابلت لتوفر المساحة
+        padding-top: 0 !important;
+
+        .o_database_list {
+            /* تطبيق البعد الذي طلبته (70%) */
+            width: 70% !important; 
+            max-width: 70% !important; 
+            
+            padding: 2rem !important; // حشوة متوسطة تناسب حجم الشاشة
+            border-radius: 22px !important;
+           
+        }
+    }
+}
+
+
+/* 2. تحسينات الموبايل - QLAWPRO PRESTIGE */
+@media (max-width: 768px) {
+    body.bg-100:not(.o_portal) #wrapwrap {
+        align-items: flex-start !important; 
+        padding-top: 3vh !important; // تقليل المسافة العلوية لرفع الصندوق أكثر
+        
+
+        .o_database_list {
+            max-width: 90% !important;
+            padding: 1.2rem !important; // تقليل الحشوة الداخلية للصندوق
+
+            /* استهداف الحاوية المباشرة للصورة */
+            div.text-center.pb-3.border-bottom.mb-4 {
+                margin-bottom: 1rem !important;
+                padding-bottom: 0 !important; // إلغاء البادينج السفلي للحاوية
+                height: auto !important; // منع الحاوية من أخذ ارتفاع ثابت
+                min-height: auto !important;
+
+                img {
+                
+                    /* 1. رفع القيد عن الارتفاع */
+                    max-height: 300px !important; 
+                
+                    /* 2. التحكم في العرض */
+                    width: 350px !important; /* يمكنك زيادة هذا الرقم حسب الرغبة */
+                    
+                    /* 3. الحفاظ على تناسق الأبعاد */
+                    height: auto !important;
+                    object-fit: contain;
+                    
+                    /* 4. إزاحة اختيارية لضمان التوسط */
+                    display: block;
+                    margin: auto;
+                }
+            }
+
+            /* تقليص المسافات بين الحقول لتوفير مساحة عمودية */
+            .form-group {
+                margin-bottom: 0.8rem !important;
+            }
+
+            .form-control {
+                height: 40px !important; // تقليل ارتفاع الحقول قليلاً
+            }
+
+            .btn-primary {
+                margin-top: 0.5rem !important;
+                height: 45px !important;
+            }
+        }
+    }
+}
+
+
+
+

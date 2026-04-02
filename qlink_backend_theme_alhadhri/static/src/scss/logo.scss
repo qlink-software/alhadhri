@@ -1,0 +1,28 @@
+// ###### logo
+.logo_img {
+    display: block;
+    /* 1. تصغير العرض لرقم منطقي يناسب القائمة الجانبية */
+    width: 300px; 
+    height: auto;
+    
+    /* 2. تصغير المساحة حول الشعار (إلغاء المارجن الزائد) */
+    margin: 0px auto; 
+    padding: 0; /* تأكد أن البادينج صفر لإزالة الفراغات */
+    
+    /* 3. تفعيل حركة التوهج */
+    animation: logo-glow 3s infinite ease-in-out;
+    
+    /* منع أي تمدد غير مرغوب */
+    max-width: 80%; 
+}
+
+@keyframes logo-glow {
+    0%, 100% { 
+        transform: scale(1);
+        filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.2)); 
+    }
+    50% { 
+        transform: scale(1.03); /* حركة تكبير بسيطة جداً مع النبض */
+        filter: drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.6)); 
+    }
+}

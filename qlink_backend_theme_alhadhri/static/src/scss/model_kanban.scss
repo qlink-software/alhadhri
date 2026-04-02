@@ -1,0 +1,76 @@
+
+
+
+
+// ///////////////////////////////
+
+/* 🛠 إصلاح تنسيق المجموعات داخل النوافذ المنبثقة (Popups) */
+.modal-content .o_form_view .o_group {
+    display: block !important; /* إلغاء الـ flex لمنع تداخل الأعمدة */
+    font-size: 1rem !important; /* تقليل حجم الخط قليلاً ليتناسب مع المساحة */
+    padding: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+/* تحسين عرض العناوين داخل الـ Popup */
+.modal-content .o_form_view .o_horizontal_separator {
+    font-size: 1.1rem !important;
+    margin-top: 10px !important;
+    border-bottom: 1px solid #e0e0e0 !important; /* إضافة خط فاصل لزيادة الترتيب */
+}
+
+/* إصلاح توزيع الحقول (Label vs Field) في المساحات الضيقة */
+.modal-content .o_form_view .o_inner_group {
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* جعل العنوان فوق الحقل مباشرة */
+    gap: 5px !important;
+}
+
+/* تعديل عرض الحقول لملء العرض المتاح */
+.modal-content .o_form_view .o_cell {
+    width: 100% !important;
+    padding: 2px 0 !important;
+}
+
+/* تصغير أزرار التنقل السفلية لتناسب عرض الـ Popup */
+.modal-content .stage_class {
+    width: 100% !important; 
+    height: auto !important;
+    padding: 10px !important;
+}
+
+/* تحسين مظهر ورقة النموذج داخل الـ Popup */
+.modal-content .o_form_sheet {
+    border-radius: 10px !important;
+    padding: 15px !important;
+}
+
+
+.o_kanban_renderer.o_kanban_grouped .o_kanban_record {
+    width: 100%;
+    border-radius: 12px !important;
+    // border-left: 10px solid #5b99ef !important;
+    margin:10px;
+}
+
+.o_kanban_view .o_kanban_record:hover {
+        transform: scale(1.02);
+        border-color: #5b99ef !important;
+    }
+
+
+.o_kanban_renderer .o_legacy_kanban_record > div:not(.o_dropdown_kanban) {
+    border: 1px solid #dee2e6;
+    background-color: white;
+    border-radius: 12px !important;
+    border-left: 10px solid #5b99ef !important;
+    padding: var(--KanbanRecord-padding-v) var(--KanbanRecord-padding-h);
+    width: 100%;
+    height: 100%;
+}
+
+
+// /* سيقوم هذا الكود بإخفاء صندوق الأزرار تماماً في واجهة النموذج */
+// .o_form_view .o-form-buttonbox {
+//     display: none !important;
+// }

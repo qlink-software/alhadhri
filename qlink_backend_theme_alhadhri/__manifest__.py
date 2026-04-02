@@ -13,11 +13,22 @@
     ],
     'assets': {
         'web.assets_backend': [
-            # 'qlink_backend_theme_alhadhri/static/src/scss/theme.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/primary_variables.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/sidebar_custom.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/logo.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/form_sheet.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/model_kanban.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/navbar_menu.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/buttons.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/search_panel.scss',
+            'qlink_backend_theme_alhadhri/static/src/js/web_navbar_appmenu/webNavbarAppMenu.js',
             "qlink_backend_theme_alhadhri/static/src/xml/top_bar_templates.xml",
-            'qlink_backend_theme_alhadhri/static/src/scss/sidebar.scss',
-            'qlink_backend_theme_alhadhri/static/src/js/web_navbar_appmenu/webNavbarAppMenu.js'
+
         ],
+        'web.assets_frontend': [
+            'qlink_backend_theme_alhadhri/static/src/scss/primary_variables.scss',
+            'qlink_backend_theme_alhadhri/static/src/scss/login_desgin.scss',
+        ]
     },
     'images': ['static/description/icon.jpg'],
     'installable': True,

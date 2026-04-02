@@ -1,0 +1,76 @@
+html .o_web_client .o_main_navbar {
+    margin-left: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// شريط التنقل العلوي (Navbar)
+/* 🚀 3.  وتحديث القائمة العلوية (Navbar) */
+html .o_web_client .o_main_navbar {
+    margin-left: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1); 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    
+}
+.o_main_navbar {
+    height: var(--o-navbar-height);
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-bottom: 1px solid #042273;
+    font-size: 0.9rem;
+}
+/* ✅ حالة الفتح: تحريك الـ Navbar */
+.o_main_navbar.sidebar-active {
+    margin-left: 350px !important;
+    width: calc(100% - 350px) !important;
+    left: 350px !important;
+}
+/* 🚀 2. إخفاء شعار العلامة التجارية (Brand/Logo) */
+.o_web_client .o_main_navbar .o_menu_brand {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 🔑 خلفية شريط التنقل العلوي:  أزرق حيوي */
+html .o_web_client .o_main_navbar,
+.o_main_navbar,
+.o_main_navbar .o_menu_brand,
+.o_menu_sections,
+.o_menu_systray,
+.o_web_client > header {
+    background: linear-gradient(180deg, #031a57 0%, #042273 100%) !important;
+    box-shadow: 0 4px 20px rgba(4, 34, 115, 0.3);
+}
+
+/* 💡 تنسيق عناصر القائمة الافتراضية */
+.o_main_navbar .o_menu_sections .o_nav_entry,
+.o_main_navbar .o_menu_sections .dropdown-toggle {
+    color: #ffffff !important; 
+    background: transparent !important; 
+    border-radius: 12px;
+    box-shadow: none;
+    transition: all 0.2s ease-in-out; 
+}
+/* 🚀 تأثير التمرير والعنصر النشط: الأزرق الفيروزي (Accent) */
+.o_main_navbar .o_menu_sections .o_nav_entry:hover,
+.o_main_navbar .o_menu_sections .dropdown-toggle:hover,
+.o_main_navbar .o_menu_sections .o_nav_entry.active,
+.o_main_navbar .o_menu_sections .dropdown-toggle.show {
+    color: #e67e22 !important; 
+    background: #5b99ef !important; 
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(38, 190, 202, 0.5); 
+}
+.o_user_menu {
+    padding: 0 10px; 
+    border-left: 1px solid rgba(255,255,255,0.2);
+    transition: background 0.2s ease-in-out;
+}
+.o_user_menu:hover {
+    background: rgba(38, 190, 202, 0.2);
+}

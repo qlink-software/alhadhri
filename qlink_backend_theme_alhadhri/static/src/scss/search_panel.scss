@@ -1,0 +1,109 @@
+
+/* =====================================================
+   🔍 QLAWPRO 2026 - TREE VIEW SEARCH PANEL FIX
+   إصلاح ظهور العناصر الفرعية (الأحفاد) في لوحة البحث
+   ===================================================== */
+
+   .o_search_panel {
+    // بناءً على الصورة: header.o_search_panel_section_header
+    .o_search_panel_section_header {
+        background-color: #f8f9fa !important; // خلفية رمادية فاتحة جداً كما في الصورة
+        padding: 12px 15px !important;
+        margin: 0 0 8px 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        border-bottom: 1px solid #edf0f2 !important;
+        
+        // النص داخل الهيدر (مثل كلمة القسم)
+        b, span {
+            color: #042273 !important; // اللون الملكي الخاص بك
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            text-transform: uppercase !important;
+        }
+
+        // الأيقونة بجانب العنوان (مثل أيقونة المستخدمين)
+        .o_search_panel_section_icon {
+            color: #5b99ef !important; // الأزرق الفيروزي للأيقونات
+            margin-right: 10px !important;
+            font-size: 1.1rem !important;
+        }
+       
+    }
+    // تنسيق حاوية القائمة المتداخلة
+    .list-group {
+        padding: 0 !important;
+        margin: 0 !important;
+        
+        .list-group {
+            margin-right: 15px !important; // إزاحة العناصر الفرعية (الأحفاد) لليمين (للعربي)
+            border-right: 1px dashed rgba(4, 34, 115, 0.2) !important; // خط وهمي يربط الأحفاد بوالدهم
+            padding-right: 5px !important;
+        }
+    }
+
+    // تنسيق العناصر التي تحتوي على أحفاد
+    .o_search_panel_category_value {
+        position: relative;
+        display: block !important; // لضمان ظهور القائمة الفرعية تحتها
+
+        header.list-group-item-action {
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+        }
+
+        // زر السهم (Toggle) لفتح وطي الأحفاد
+        .o_toggle_fold {
+            background: none !important;
+            border: none !important;
+            color: #5b99ef !important; // لون الفيروزي للسهم
+            font-size: 0.7rem !important;
+            padding: 4px !important;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+
+            &:hover {
+                color: #042273 !important;
+                transform: scale(1.2);
+            }
+
+            // السهم عندما يكون مفتوحاً
+            &.fa-caret-down {
+                transform: rotate(0deg);
+            }
+            // السهم عندما يكون مغلقاً (حسب اتجاه الموقع)
+            &.fa-caret-right {
+                transform: rotate(180deg); 
+            }
+        }
+    }
+
+    // تأكيد ظهور النص والعداد للأحفاد بشكل مرتب
+    // .o_search_panel_label_title {
+    //     font-size: 0.85rem !important;
+    //     color: #495057 !important;
+    //     vertical-align: middle;
+    // }
+
+    // تمييز الابن النشط (Active Child)
+    .list-group-item.active {
+        .o_toggle_fold, .o_search_panel_label_title {
+            color: #0c032e !important;
+        }
+    }
+    .o_search_panel_counter{
+        color: #042273 !important; // اللون الملكي الخاص بك
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+// تعديل بسيط لضمان سلاسة الحركة كما ظهر في الفيديو
+.o_search_panel_resize {
+    width: 2px !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    &:hover {
+        background-color: #5b99ef !important;
+    }
+}

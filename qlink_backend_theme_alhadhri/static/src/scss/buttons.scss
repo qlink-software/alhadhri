@@ -1,0 +1,720 @@
+/*
+| الألوان الأساسية:
+| - الأزرق الداكن (Primary/Corporate): #042273
+| - الأزرق الفيروزي (Accent/Hover): #5b99ef
+| - الخلفية العامة (Light Background): #f8f9fa
+*/
+
+// الألوان الأساسية والمظهر العام
+@font-face {
+    font-family: 'Poppins' !important;
+    src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&amp;display=swap');
+}
+body {
+    font-family: 'Poppins', sans-serif !important;
+    background-color: #f8f9fa !important; /* خلفية فاتحة ومريحة */
+}
+
+
+
+// //  this wher i have to work submenu with no action
+// .bg-transparent {
+//     color:#5b99ef !important; 
+//     font-size:1rem;
+//     font-weight: bold;
+//     // border-bottom: 1px solid #e0e0e1;
+// }
+
+// .btn-outline-primary {
+//     --btn-color: #042273;
+//     --btn-border-color: #042273;
+//     --btn-hover-color: #FFFFFF;
+//     --btn-hover-bg: #042273;
+//     --btn-hover-border-color: #042273;
+//     --btn-focus-shadow-rgb: 113, 99, 158;
+//     --btn-active-color: #FFFFFF;
+//     --btn-active-bg: #042273;
+//     --btn-active-border-color: #042273;
+//     --btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+//     --btn-disabled-color: #042273;
+//     --btn-disabled-bg: transparent;
+//     --btn-disabled-border-color: #042273;
+//     --gradient: none;
+// }
+
+// .o-form-buttonbox .oe_stat_button .o_button_icon {
+//     font-size: 1.5em;
+//     color: var(--o-stat-button-color, #ffffff);
+// }
+
+
+
+// /* 2. الأزرار (Arrows) - المراحل غير النشطة */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button {
+//     height: 36px !important; /* ارتفاع أكثر رشاقة */
+//     min-width: 130px !important;
+//     max-width: 180px !important;
+//     position: relative;
+//     padding: 0 20px 0 30px !important;
+//     margin-right: -12px !important; /* تداخل سلس */
+//     clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%, 0% 0%);
+    
+//     /* لون هادئ للمراحل القادمة لتقليل التشتت */
+//     background-color: #e6e7e9 !important; 
+//     color: #000000 !important;
+    
+//     font-size: 0.85rem !important;
+//     font-weight: 500 !important;
+//     border: none !important;
+//     transition: all 0.2s ease-in-out;
+// }
+
+// /* 3. تنسيق المرحلة النشطة (Current Stage) */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button.o_arrow_button_current {
+//     background-color: #042273 !important; /* اللون الملكي الأساسي */
+//     color: #ffffff !important;
+//     font-weight: 700 !important;
+//     z-index: 2;
+//     box-shadow: 4px 0 10px rgba(4, 34, 115, 0.15) !important;
+// }
+
+// /* 4. تأثير التمرير (Hover) */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button:hover:not(:disabled):not(.o_arrow_button_current) {
+//     background-color: #e2e8f0 !important;
+//     color: #e67e22 !important;
+//     z-index: 3;
+// }
+
+// /* 5. معالجة الزر الأول والأخير */
+// /* الزر الأول (البداية) */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button:first-child {
+//     clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 0% 0%);
+//     padding-left: 15px !important;
+//     border-radius: 6px 0 0 6px !important;
+// }
+
+// /* الزر الأخير (النهاية) */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button:last-child {
+//     margin-right: 0 !important;
+//     clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 12px 50%, 0% 0%);
+//     border-radius: 0 6px 6px 0 !important;
+// }
+
+// /* 6. حالة التعطيل أو الضغط (Active/Disabled State) */
+// .o_field_statusbar > .o_statusbar_status > .o_arrow_button:not(.d-none).o_arrow_button_current:disabled {
+//     opacity: 1 !important;
+//     color: #ffffff !important;
+//     background-color: #042273 !important;
+// }
+
+
+
+// .o_progressbar .o_progress {
+//     width: 200px;
+//     border-radius: 20px;
+//     height: 15px;
+//     border: 1px solid #dee2e6;
+//     background-color: #042273;
+// }
+// // for progress bar
+// .bg-primary {
+//     --background-color: RGBA(113, 99, 158, var(--bg-opacity, 1));
+//     background-color: #5b99ef !important;
+// }
+
+
+// .stage_class{
+//     height:60px;
+//     width:200px;
+//     background-color:#f7f9fb;
+//     color:#042273
+// }
+// .o_field_statusbar > .o_statusbar_status, .o_field_statusbar_duration > .o_statusbar_status {
+//     display: -webkit-box;
+//     display: -webkit-flex;
+//     display: flex;
+//     align-content: space-around;
+//     // margin-left: auto;
+//     flex-flow: row-reverse wrap-reverse;
+//     align-self: stretch;
+//     align-items: stretch;
+// }
+// // التفاعل والأزرار (Buttons & Interactions)
+// /* 🚀 الأزرار الرئيسية */
+// .btn-primary{
+//     background-color: #042273;
+//     color: white;
+//     border-radius: 8px; 
+//     // padding: 10px;
+//     box-shadow: 0 4px 6px rgba(4, 34, 115, 0.2); 
+//     transition: all 0.2s ease-in-out;
+// }
+// // .btn{
+// //     padding:15px;
+// // }
+// .btn:hover{
+//     background-color: #e67e22;
+//     color: white;
+// }
+
+
+// .btn-primary:hover {
+//     color: #fff !important;
+//     background-color: #5b99ef !important;
+//     transform: translateY(-1px); 
+//     box-shadow: 0 6px 10px rgba(4, 34, 115, 0.3) !important; 
+// }
+// .btn-secondary{
+//     background-color:  #5b99ef;
+//     color: white;
+// }
+// .btn-secondary:hover{
+//     background-color: #042273;
+//     color: white;
+// }
+// /* ⚖️ تنسيق أزرار التنقل والإنهاء لنظام المحاماة */
+
+// /* 1. التنسيق العام للأزرار (قاعدة مشتركة) */
+// [name="action_prev"], 
+// [name="action_next"], 
+// [name="action_summary"] {
+//     min-width: 160px !important;
+//     height: 50px !important;
+//     font-size: 1.1rem !important;
+//     font-weight: 700 !important;
+//     border-radius: 12px !important;
+//     text-transform: uppercase !important;
+//     letter-spacing: 0.5px !important;
+//     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+//     display: inline-flex !important;
+//     align-items: center;
+//     justify-content: center;
+//     border: none !important;
+//     margin: 10px 5px !important;
+// }
+
+// /* 2. زر "التالي" (Action Next) - لون أزرق ملكي متوهج */
+// [name="action_next"] {
+//     background: linear-gradient(135deg, #042273 0%, #0639bd 100%) !important;
+//     color: #ffffff !important;
+//     box-shadow: 0 4px 15px rgba(4, 34, 115, 0.25) !important;
+// }
+
+// [name="action_next"]:hover {
+//     transform: translateY(-2px) scale(1.02);
+//     box-shadow: 0 8px 25px rgba(4, 34, 115, 0.4) !important;
+//     background: linear-gradient(135deg, #0639bd 0%, #042273 100%) !important;
+// }
+
+// /* 3. زر "السابق" (Action Previous) - تصميم هادئ ووقور */
+// [name="action_prev"] {
+//     background-color: #f1f5f9 !important;
+//     color: #475569 !important;
+//     border: 1px solid #e2e8f0 !important;
+// }
+
+// [name="action_prev"]:hover {
+//     background-color: #e2e8f0 !important;
+//     color: #042273 !important;
+//     transform: translateX(-3px);
+// }
+
+// /* 4. زر "إنهاء الاستشارة" (End Consultation) - تمييز ذهبي فخم */
+// /* ملاحظة: استخدمت اللون الذهبي ليعطي شعوراً بالإنجاز عند إغلاق الملف */
+// [name="action_summary"] {
+//     background: linear-gradient(135deg, #b8860b 0%, #daa520 100%) !important;
+//     color: #ffffff !important;
+//     box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3) !important;
+// }
+
+// [name="action_summary"]:hover {
+//     transform: translateY(-3px);
+//     box-shadow: 0 8px 25px rgba(184, 134, 11, 0.5) !important;
+// }
+
+// /* 5. إضافة أيقونات برمجية بجانب النص (اختياري عبر CSS) */
+// [name="action_next"]::after {
+//     content: " ➜";
+//     margin-left: 10px;
+//     font-size: 1.2rem;
+// }
+
+// [name="action_prev"]::before {
+//     content: "⬅ ";
+//     margin-right: 10px;
+// }
+
+// [name="action_summary"]::before {
+//     content: "✓ ";
+//     font-weight: bold;
+//     margin-right: 8px;
+// }
+
+
+// /* ✅ الأزرار الإحصائية (تحسين النيومورفيزم) */
+// .o-form-buttonbox .oe_stat_button{
+//     background-color: #042273;
+//     color: #ffffff;
+//     border-radius: 5px;
+//     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3), -5px -5px 15px rgba(255, 255, 255, 0.1);
+//     transition: all 0.3s ease-in-out;
+//     padding:10px;
+//     margin: 10px;
+// }
+
+
+// /* ⚖️ Class الأزرار الفاخرة لنظام المحاماة */
+// .btn-law-pro {
+//     /* الأبعاد والخط */
+//     min-width: 150px !important;
+//     height: 48px !important;
+//     padding: 10px 25px !important;
+//     font-size: 1rem !important;
+//     font-weight: 700 !important;
+//     text-align: center !important;
+//     border-radius: 10px !important; /* زوايا احترافية ناعمة */
+    
+//     /* الألوان والخلفية (أزرق ملكي متدرج) */
+//     background: linear-gradient(135deg, #042273 0%, #083680 100%) !important;
+//     color: #ffffff !important;
+//     border: none !important;
+    
+//     /* الظل والحركة */
+//     box-shadow: 0 4px 12px rgba(4, 34, 115, 0.2) !important;
+//     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+//     cursor: pointer !important;
+//     display: inline-flex !important;
+//     align-items: center !important;
+//     justify-content: center !important;
+//     gap: 10px !important; /* مسافة بين النص والأيقونة إن وجدت */
+// }
+
+// /* تأثير عند تمرير الماوس */
+// .btn-law-pro:hover {
+//     background: linear-gradient(135deg, #083680 0%, #042273 100%) !important;
+//     transform: translateY(-3px) !important; /* حركة ارتفاع بسيطة */
+//     box-shadow: 0 8px 20px rgba(4, 34, 115, 0.35) !important;
+//     color: #ffffff !important;
+// }
+
+// /* تأثير عند الضغط */
+// .btn-law-pro:active {
+//     transform: translateY(-1px) scale(0.98) !important;
+// }
+
+// /* حالة الزر عندما يكون غير مفعل */
+// .btn-law-pro:disabled {
+//     background: #cbd5e1 !important;
+//     color: #94a3b8 !important;
+//     cursor: not-allowed !important;
+//     box-shadow: none !important;
+// }
+// .o-form-buttonbox .oe_stat_button:hover {
+//     background-color: #5b99ef; /* الفيروزي عند التمرير */
+//     transform: translateY(-3px);
+//     box-shadow: 0 8px 20px rgba(38, 190, 202, 0.6);
+// }
+// .o-form-buttonbox .o_pie_value, .o-form-buttonbox .oe_stat_button .o_stat_info .o_stat_value, .o-form-buttonbox .oe_stat_button > span .o_stat_value, .o-form-buttonbox .oe_stat_button .o_field_statinfo .o_stat_value {
+//     color: #ffffff;
+//     font-size: 1rem;
+// }
+// .o-form-buttonbox .oe_stat_button .o_stat_text{
+//     color: #ffffff;
+//     font-weight: bold;
+// }
+
+
+
+
+
+// #########################
+
+
+// /* Sidebar close container */
+// /* 🚀 إصلاح وتنسيق زر إغلاق القائمة الجانبية (Sidebar Close Button) */
+
+// .sidebar_close {
+//     position: absolute;
+//     top: 15px;
+//     /* تحويل الزر ليكون في الزاوية المقابلة لجهة فتح القائمة (اليسار في حالتنا) */
+//     left: 15px; 
+//     z-index: 1100; /* لضمان ظهوره فوق الشعار والقائمة */
+//     cursor: pointer;
+//     transition: all 0.3s ease;
+// }
+
+// /* تنسيق أيقونة الإغلاق نفسها (أيقونة X) */
+// .sidebar_close i, 
+// .sidebar_close svg {
+//     font-size: 1.4rem !important;
+//     color: rgba(255, 255, 255, 0.7) !important; /* لون أبيض شفاف قليلاً */
+//     background: rgba(255, 255, 255, 0.1); /* خلفية دائرية خفيفة */
+//     padding: 8px;
+//     border-radius: 50%; /* جعل الزر دائرياً */
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     width: 35px;
+//     height: 35px;
+//     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+// }
+
+// /* تأثير التمرير (Hover) لزيادة وضوح التفاعل */
+// .sidebar_close:hover i,
+// .sidebar_close:hover svg {
+//     color: #ffffff !important; /* أبيض ناصع عند التمرير */
+//     background: rgba(255, 255, 255, 0.25); /* تفتيح الخلفية */
+//     transform: rotate(90deg); /* حركة دوران بسيطة تعطي شعوراً بالحداثة */
+// }
+
+// /* تأثير عند الضغط (Active) */
+// .sidebar_close:active {
+//     transform: scale(0.9); /* تصغير بسيط عند الضغط لتعزيز شعور الزر الحقيقي */
+// }
+
+
+// // /* إصلاح التداخل مع الشعار (Logo) */
+// // /* إذا كان الشعار قريباً جداً، سنقوم بإضافة مسافة علوية للقائمة */
+// // .sidebar_panel .sidebar {
+// //     padding-top: 60px !important; /* لضمان عدم غطرسة زر الإغلاق على الشعار */
+// // }
+
+
+
+
+// .modal-body{
+//     font-size: 25px;
+// }
+
+// @media (min-width: 476px) {
+//     .modal-dialog {
+//         max-width: var(--modal-width);
+//         margin-right: auto;
+//         margin-left: auto;
+//         border-radius: 20px;
+//     }
+// }
+
+
+
+
+/* ==========================================================================
+   🏛️ QLAWPRO - PROFESSIONAL LAW SYSTEM THEME 2026
+==========================================================================
+*/
+
+
+
+
+// الروابط العامة
+a {
+    color: $primary-light;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+    &:hover {
+        color: $accent-blue;
+        text-decoration: underline;
+    }
+}
+
+// 3. مكونات واجهة النموذج (Form View & Widgets)
+// -----------------------------------------------------------------------
+.o_form_view {
+    // العناوين والفواصل الأفقية
+    .o_horizontal_separator:not(:empty) {
+        color: $text-dark !important;
+        font-weight: bold;
+        font-size: 1.3rem;
+    }
+
+    // مجموعات الحقول
+    .o_group {
+        justify-content: space-between;
+        color: $primary-dark !important;
+        font-size: 1.2rem;
+        box-shadow: 1px 4px 3px #e6e6e6;
+    }
+
+    // مدخلات البيانات (Inputs)
+    .o_field_widget input.o_input {
+        border: 1px solid #e6e4e4;
+        border-radius: 8px;
+        color: $text-dark;
+        transition: all 0.3s;
+        &:focus {
+            border: 2px solid $primary-dark;
+            outline: none;
+        }
+    }
+}
+
+// مربعات الاختيار (Checkboxes)
+.form-check-input:checked {
+    background-color: #4186ca !important;
+    border-color: $accent-blue !important;
+}
+
+// 4. شريط الحالة والمراحل (Statusbar & Arrows)
+// -----------------------------------------------------------------------
+.o_field_statusbar > .o_statusbar_status, 
+.o_field_statusbar_duration > .o_statusbar_status {
+    display: flex;
+    flex-flow: row-reverse wrap-reverse;
+    align-content: space-around;
+    align-self: stretch;
+    align-items: stretch;
+
+    .o_arrow_button {
+        height: 36px !important;
+        min-width: 130px !important;
+        max-width: 180px !important;
+        position: relative;
+        padding: 0 20px 0 30px !important;
+        margin-right: -12px !important;
+        clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%, 0% 0%);
+        background-color: #e6e7e9 !important;
+        color: $text-dark !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        border: none !important;
+        transition: all 0.2s ease-in-out;
+
+        // المرحلة النشطة حالياً
+        &.o_arrow_button_current {
+            background-color: $primary-dark !important;
+            color: $white !important;
+            font-weight: 700 !important;
+            z-index: 2;
+            box-shadow: 4px 0 10px rgba(4, 34, 115, 0.15) !important;
+            
+            &:disabled {
+                opacity: 1 !important;
+            }
+        }
+
+        // تأثير التمرير على المراحل غير النشطة
+        &:hover:not(:disabled):not(.o_arrow_button_current) {
+            background-color: #e2e8f0 !important;
+            color: $accent-orange !important;
+            z-index: 3;
+        }
+
+        // الزر الأول (البداية)
+        &:first-child {
+            clip-path: polygon(calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 0% 0%);
+            padding-left: 15px !important;
+            border-radius: 6px 0 0 6px !important;
+        }
+
+        // الزر الأخير (النهاية)
+        &:last-child {
+            margin-right: 0 !important;
+            clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 12px 50%, 0% 0%);
+            border-radius: 0 6px 6px 0 !important;
+        }
+    }
+}
+
+// 5. الأزرار (Buttons & Interaction)
+// -----------------------------------------------------------------------
+
+// الأزرار الرئيسية (Primary)
+.btn-primary {
+    background-color: $primary-dark;
+    color: $white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(4, 34, 115, 0.2);
+    transition: all 0.2s ease-in-out;
+    &:hover {
+        background-color: $accent-blue !important;
+        color: $white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 10px rgba(4, 34, 115, 0.3) !important;
+    }
+}
+
+// الأزرار الثانوية (Secondary)
+.btn-secondary {
+    background-color: $accent-blue;
+    color: $white;
+    &:hover {
+        background-color: $primary-dark;
+        color: $white;
+    }
+}
+
+/* =====================================================
+   🔘 QLAWPRO 2026 - OUTLINE & FILTER BUTTONS
+   تنسيق أزرار التحديد، الفلاتر، والأزرار المفرغة
+   ===================================================== */
+
+// استهداف أزرار التحديد (Outline) وأزرار الفلاتر الثانوية
+.btn-outline-primary, 
+.btn-outline-secondary,
+.o_searchview_facet, // كبسولات الفلترة في صندوق البحث
+.o_control_panel .o_panel_filter_button {
+    
+    background: transparent !important;
+    color: #042273 !important; // اللون الملكي الأساسي
+    border: 1px solid #042273 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    // تنسيق الأيقونات داخل هذه الأزرار
+    .o_button_icon, i {
+        color: inherit !important;
+        font-size: 1.1em;
+    }
+
+    // تأثير الحوم (Hover State)
+    &:hover {
+        background-color: #042273 !important; // يتحول للخلفية الداكنة عند التمرير
+        border-color: #042273 !important;
+        color: #ffffff !important; // النص أبيض لضمان الوضوح
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(4, 34, 115, 0.2) !important;
+        
+        .o_button_icon, i {
+            color: #ffffff !important;
+        }
+    }
+
+    // حالة الزر عند الضغط أو التفعيل (Active/Checked)
+    &:active, &.active, &.show {
+        background-color: #083680 !important;
+        color: #ffffff !important;
+        border-color: #083680 !important;
+    }
+}
+
+// تنسيق خاص لكبسولات الفلترة المحذوفة (Remove Icon)
+.o_searchview_facet .o_facet_remove {
+    color: #5b99ef !important; // الفيروزي لعلامة الحذف
+    &:hover {
+        color: #ff4d4f !important; // أحمر خفيف عند محاولة الحذف
+    }
+}
+
+// أزرار التحكم في العمليات (Prev, Next, Summary)
+[name="action_prev"], [name="action_next"], [name="action_summary"] {
+    min-width: 160px !important;
+    height: 50px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    text-transform: uppercase !important;
+    transition: $transition-std !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    margin: 10px 5px !important;
+}
+
+[name="action_next"] {
+    background: linear-gradient(135deg, $primary-dark 0%, #0639bd 100%) !important;
+    color: $white !important;
+    box-shadow: 0 4px 15px rgba(4, 34, 115, 0.25) !important;
+    &::after { content: " ➜"; margin-left: 10px; }
+    &:hover { transform: translateY(-2px) scale(1.02); }
+}
+
+[name="action_prev"] {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    &::before { content: "⬅ "; margin-right: 10px; }
+    &:hover { transform: translateX(-3px); }
+}
+
+[name="action_summary"] {
+    background: linear-gradient(135deg, #b8860b 0%, #daa520 100%) !important;
+    color: $white !important;
+    &::before { content: "✓ "; font-weight: bold; margin-right: 8px; }
+    &:hover { transform: translateY(-3px); }
+}
+
+// 6. الأزرار الإحصائية والفاخرة (Pro & Stat Buttons)
+// -----------------------------------------------------------------------
+
+// // الزر الإحصائي (Stat Button)
+// .o-form-buttonbox .oe_stat_button {
+//     background-color: $primary-dark;
+//     color: $white;
+//     border-radius: 5px;
+//     padding: 10px;
+//     margin: 10px;
+//     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+//     transition: all 0.3s ease-in-out;
+
+//     // .o_button_icon { font-size: 1.5em; color: $white; }
+//     // .o_stat_text { color: $white; font-weight: bold; }
+//     // .o_stat_value { color: $white; font-size: 1rem; }
+
+//     &:hover {
+//         background-color: $accent-blue;
+//         transform: translateY(-3px);
+//         box-shadow: 0 8px 20px rgba(38, 190, 202, 0.6);
+//     }
+// }
+
+// الزر الاحترافي (Law-Pro Class)
+.btn-law-pro {
+    min-width: 150px !important;
+    height: 48px !important;
+    padding: 10px 25px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, $primary-dark 0%, $primary-light 100%) !important;
+    color: $white !important;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.2) !important;
+    transition: $transition-std !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    &:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 20px rgba(4, 34, 115, 0.35) !important;
+        color: $white !important;
+    }
+}
+
+// 7. أشرطة التقدم والقوائم (Progress & Sidebars)
+// -----------------------------------------------------------------------
+.o_progressbar .o_progress {
+    width: 200px;
+    height: 15px;
+    background-color: $primary-dark;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.bg-primary {
+    background-color: $accent-blue !important;
+}
+
+.bg-transparent {
+    color: $accent-blue !important;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.stage_class {
+    height: 60px;
+    width: 200px;
+    background-color: #f7f9fb;
+    color: $primary-dark;
+}
+
+.o_searchview_dropdown_toggler.btn-outline-secondary {
+    @extend .btn-outline-primary; // لضمان أخذ نفس التنسيق الفخم
+    border: 1px solid $primary-dark !important; // إخفاء الإطار في شريط البحث لمظهر أنظف
+}

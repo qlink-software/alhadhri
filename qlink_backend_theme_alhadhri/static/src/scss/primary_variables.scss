@@ -1,0 +1,84 @@
+
+/* =========================================================
+   🌐 1. إعدادات الخطوط (Fonts Localization)
+   ========================================================= */
+   @font-face {
+    font-family: 'Poppins' !important;
+    src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;768&display=swap');
+}
+
+$font-en: 'Poppins', sans-serif;
+$font-ar: 'Cairo', 'Segoe UI', Tahoma, sans-serif; // Cairo هو الأنسب لهوية Qlink التقنية
+/* --- الهوية البصرية المحدثة: QLAWPRO 2026 (Logic & Tech Names) --- */
+
+// الألوان الرئيسية - الهوية البصرية المحدثة (Qlink Identity)
+$brand-primary: #032a82; 
+// $brand-accent: #00d2ff;        // القديم: $legal-bronze (السماوي المضيء بدلاً من البرونزي)
+$brand-accent-hover: #009ecc;  // القديم: $legal-bronze-hover
+// $brand-accent: rgb(42, 207, 219);
+// التعديل الجديد للألوان: هدوء واحترافية
+$brand-accent_text: #070707;       // أزرق أطلسي مطفأ (Muted Atlantic) - مريح جداً للعين
+$brand-accent-glow: rgba(92, 158, 173, 0.15); 
+
+// خلفية الأكورديون والحالات النشطة
+$bg-accordion-active: #f8fafc; // رمادي مزرق فاتح جداً (أبرد وأهدأ)
+$text-header-dark: #1e293b;    // كحلي رمادي للنصوص
+
+$brand-dark: #003d82;          // القديم: $legal-blue
+
+// درجات الخلفية - الحداثة والراحة التقنية
+$bg-white: #ffffff;            // القديم: $legal-bg-light
+$bg-ice: #eef7ff;              // القديم: $legal-bg-cream (أزرق جليدي بدلاً من الكريمي)
+$bg-ice-glass: rgba(238, 247, 255, 0.85); // القديم: $legal-bg-cream_light
+$bg-cold-grey: #f0f4f8;        // القديم: $legal-bg-darker
+$bg-soft-azure: #ebeff6; 
+
+      // القديم: $legal-bg-soft-blue
+$bg-main-app: #e2e3e4;         // القديم: $legal-cream-lighter
+$bg-highlight: #d1e3ff;        // القديم: $legal-light-blue-soft
+
+// النصوص (Typography)
+$text-main: #1a365d;           // القديم: $legal-text-primary (كحلي عميق)
+$text-muted: #64748b;          // القديم: $legal-text-muted
+$text-header: #0f172a;         // القديم: $legal-text-dark أو $law-text-dark
+
+// تأثيرات الزجاج (Glassmorphism)
+$glass-white-thick: rgba(255, 255, 255, 0.95); // القديم: $legal-glass
+$glass-white-thin: rgba(255, 255, 255, 0.45);  // القديم: $legal-glass-light
+$glass-card: rgba(255, 255, 255, 0.8);         // القديم: $law-light-glass
+
+// أزرار وحالات (UI Elements)
+$ui-action-blue: #3a86ff;      // القديم: $legal-light-blue-hover
+$ui-action-hover: #007bff;     
+$ui-soft-glow: rgba(0, 210, 255, 0.15);       
+$ui-warning-orange: #ff9f1c;   // القديم: $legal-orange
+$ui-status-blue-light: #e0f2ff; // القديم: $legal-gold-soft (تحويل من أصفر لأزرق حالات)
+$glass-overlay: rgba(255, 255, 255, 0.96); // القديم: $legal-glass
+
+// الظلال
+$shadow-sm: 0 4px 12px rgba(0, 86, 179, 0.12); // القديم: $legal-shadow
+$legal-light-blue: #c9a362;
+$brand-accent: #dee5e6; // اللون السماوي المضيء (Electric Cyan) بدلاً من البرونزي القديم
+$legal-bg-warm: #f2f0e9; 
+$glass-white-thick-light: rgba(255, 255, 255, 0.2); // شفافية بيضاء خفيفة جداً تناسب الخلفيات الزرقاء
+
+
+$bg-form-paper: #f4f7fa; // رمادي هادئ جداً يكسر حدة الأبيض
+$text-legal-navy: #1a2b4b; // كحلي وقور بدلاً من الأسود
+// الخطوط (Fonts)
+// // ملاحظة: تأكد من إضافة الخطوط في ملف الـ CSS الرئيسي
+$font-main: 'Poppins', sans-serif;   // للإنجليزية
+$font-arabic: 'Cairo', sans-serif;   // للعربية (الأفضل لهوية Qlink)
+
+
+// 1. المتغيرات (Variables)
+// -----------------------------------------------------------------------
+$primary-dark:   #042273;
+$primary-light:  #083680;
+$accent-blue:    #5b99ef;
+$accent-orange:  #e67e22;
+$bg-light:       #f8f9fa;
+$white:          #ffffff;
+$text-dark:      #000000;
+$text-muted:     #475569;
+$transition-std: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
