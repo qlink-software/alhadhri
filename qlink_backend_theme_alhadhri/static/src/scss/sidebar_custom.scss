@@ -552,51 +552,71 @@ li.open > a.dropdown-toggle-custom::after {
    ========================================================= */
 
 /* 1. للشاشات المتوسطة (Tablets / Small Laptops) */
-@media (max-width: 1200px) {
-    #sidebar_panel {
-        width: $sidebar-tablet !important; // تصغير العرض لـ 260px
+// @media (max-width: 1200px) {
+//     #sidebar_panel {
+//         width: $sidebar-tablet !important; // تصغير العرض لـ 260px
+//          // لضمان استجابة المحتوى الداخلي لأودو (Action Manager)
+//         // .o_action_manager.sidebar-active {
+//         //     margin-left: $sidebar-tablet !important;
+//         // }
+//         .sidebar .sidebar_menu > li {
+//             margin: 4px 10px;
+//             > a {
+//                 font-size: 15px !important; // تصغير الخط
+//                 padding: 8px 12px !important;
+//                 gap: 10px;
+//             }
+//         }
         
-        .sidebar .sidebar_menu > li {
-            margin: 4px 10px;
-            > a {
-                font-size: 15px !important; // تصغير الخط
-                padding: 8px 12px !important;
-                gap: 10px;
-            }
-        }
-        
-        .sidebar_sub_menu li a {
-            font-size: 13px !important;
-            padding-left: 35px !important;
-        }
+//         .sidebar_sub_menu li a {
+//             font-size: 13px !important;
+//             padding-left: 35px !important;
+//         }
 
-        .logo_img { max-width: 160px !important; } // تصغير الشعار
-    }
-}
-
-/* تعديل منطق الإزاحة */
+//         .logo_img { max-width: 160px !important; } // تصغير الشعار
+//     }
+// }
+/* تأكد من إضافة هذه القواعد في ملف SCSS */
 @media (min-width: 769px) {
-    // الحالة عندما يكون السايدبار مفتوحاً
-    .sidebar-active {
-        .o_main_navbar, .o_action_manager, .o_content, .o_control_panel {
-            margin-left: $sidebar-desktop !important;
-            width: calc(100% - #{$sidebar-desktop}) !important;
-            transition: all 0.4s ease;
-
-            @media (max-width: 1200px) {
-                margin-left: $sidebar-tablet !important;
-                width: calc(100% - #{$sidebar-tablet}) !important;
-            }
-        }
-    }
-
+  
     // الحالة عندما يكون السايدبار مغلقاً (sidebar-none)
     .sidebar-none {
         margin-left: 0 !important;
         width: 100% !important;
         transition: all 0.4s ease;
     }
+    
+    // لضمان استجابة المحتوى الداخلي لأودو (Action Manager)
+    .o_action_manager.sidebar-active {
+        margin-left: 350px !important;
+    }
+   
 }
+
+
+// /* تعديل منطق الإزاحة */
+// @media (min-width: 769px) {
+//     // الحالة عندما يكون السايدبار مفتوحاً
+//     .sidebar-active {
+//         .o_main_navbar, .o_action_manager, .o_content, .o_control_panel {
+//             margin-left: $sidebar-desktop !important;
+//             width: calc(100% - #{$sidebar-desktop}) !important;
+//             transition: all 0.4s ease;
+
+//             @media (max-width: 1200px) {
+//                 margin-left: $sidebar-tablet !important;
+//                 width: calc(100% - #{$sidebar-tablet}) !important;
+//             }
+//         }
+//     }
+
+//     // الحالة عندما يكون السايدبار مغلقاً (sidebar-none)
+//     .sidebar-none {
+//         margin-left: 0 !important;
+//         width: 100% !important;
+//         transition: all 0.4s ease;
+//     }
+// }
 
 /* 3. للجوال (Mobile) */
 // @media (max-width: 768px) {
@@ -697,22 +717,9 @@ li.open > a.dropdown-toggle-custom::after {
         }
     }
 
-    // 2. إدارة المحتوى عند فتح السايدبار (Sidebar Active)
-    .sidebar-active {
-        // في الجوال: نلغي الإزاحة (margin-left) لأن السايدبار يظهر كطبقة فوقية (Overlay)
-        margin-left: 0 !important; 
-
-        .o_main_navbar, 
-        .o_action_manager, 
-        .o_content, 
-        .o_control_panel {
-            // بقاء المحتوى بعرض كامل خلف السايدبار لمنع التشوه
-            width: 100% !important;
-            margin-left: 0 !important;
-            transition: $transition-std;
-            filter: blur(2px); // تأثير اختياري لتركيز الانتباه على القائمة
-            pointer-events: none; // منع التفاعل مع المحتوى أثناء فتح القائمة
-        }
+    // لضمان استجابة المحتوى الداخلي لأودو (Action Manager)
+    .o_action_manager.sidebar-active {
+        margin-left: $sidebar-mobile !important;
     }
 
     // 3. إدارة المحتوى عند إغلاق السايدبار (Sidebar None/Closed)
