@@ -7,8 +7,10 @@
 body.bg-100:not(.o_portal) {
   
     #wrapwrap {
-        background: linear-gradient(135deg, rgba(26, 42, 64, 0.8) 0%, rgba(13, 23, 42, 0.6) 100%),
-            url('/qlink_backend_theme/static/description/gavel-law-book.jpg') !important;
+        // background: linear-gradient(135deg, rgba(26, 42, 64, 0.8) 0%, rgba(13, 23, 42, 0.6) 100%),
+        //     url('/qlink_backend_theme/static/description/gavel-law-book.jpg') !important;
+        /* التعديل هنا: تم استبدال الصورة والخلفية المتدرجة بخلفية بيضاء */
+        background: #ffffff !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
