@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_bd_proposal_xlsx_report" model="ir.actions.report">
+            <field name="name">BD Excel Report</field>
+            <field name="model">bd.proposal</field>
+            <field name="report_type">xlsx</field>
+            <field name="report_name">qlk_management.bd_report_xlsx</field>
+            <field name="report_file">qlk_management.bd_report_xlsx</field>
+            <field name="binding_model_id" ref="model_bd_proposal"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'BD Report - %s' % (object.display_name or object.id)</field>
+        </record>
+
+        <record id="action_bd_engagement_letter_xlsx_report" model="ir.actions.report">
+            <field name="name">BD Excel Report</field>
+            <field name="model">bd.engagement.letter</field>
+            <field name="report_type">xlsx</field>
+            <field name="report_name">qlk_management.bd_report_xlsx</field>
+            <field name="report_file">qlk_management.bd_report_xlsx</field>
+            <field name="binding_model_id" ref="model_bd_engagement_letter"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'BD Report - %s' % (object.display_name or object.id)</field>
+        </record>
+
+        <record id="action_bd_report_xlsx_wizard" model="ir.actions.report">
+            <field name="name">BD Excel Report</field>
+            <field name="model">bd.report.wizard</field>
+            <field name="report_type">xlsx</field>
+            <field name="report_name">qlk_management.bd_report_xlsx</field>
+            <field name="report_file">qlk_management.bd_report_xlsx</field>
+            <field name="print_report_name">'BD Report - %s - %s' % (object.date_from, object.date_to)</field>
+        </record>
+    </data>
+</odoo>

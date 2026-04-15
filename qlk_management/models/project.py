@@ -100,6 +100,24 @@ class QlkProject(models.Model):
         string="Client Attachments",
         readonly=False,
     )
+    translation_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "qlk_project_translation_attachment_rel",
+        "project_id",
+        "attachment_id",
+        string="Attachments Needing Translation",
+        tracking=True,
+    )
+    translation_status = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("sent", "Sent to Translation"),
+            ("done", "Translated"),
+        ],
+        string="Translation Status",
+        default="draft",
+        tracking=True,
+    )
     engagement_id = fields.Many2one(
         "bd.engagement.letter",
         string="Engagement Letter",
@@ -198,6 +216,7 @@ class QlkProject(models.Model):
     )
     poa_requested_on = fields.Datetime(string="POA Requested On")
     poa_received_on = fields.Datetime(string="POA Received On")
+    poa_mp_sent_on = fields.Datetime(string="POA Sent to MP On", readonly=True, tracking=True, copy=False)
     active = fields.Boolean(default=True)
     notes = fields.Text()
     task_ids = fields.One2many("qlk.task", "project_id", string="Tasks")
@@ -749,6 +768,8 @@ class QlkProject(models.Model):
     def create(self, vals_list):
         res = []
         for vals in vals_list:
+            if vals.get("translation_attachment_ids") and not vals.get("translation_status"):
+                vals["translation_status"] = "draft"
             prepared = self._prepare_project_type_values(vals)
             if not prepared.get("name"):
                 company_id = prepared.get("company_id") or self.env.company.id
@@ -783,6 +804,8 @@ class QlkProject(models.Model):
         return projects
     def write(self, vals):
         prepared_vals = self._prepare_project_type_values(vals) if "project_type" in vals else vals
+        if "translation_attachment_ids" in prepared_vals and "translation_status" not in prepared_vals:
+            prepared_vals["translation_status"] = "draft"
         case_fields = tuple(self._department_case_field_map.values())
         old_corporate_cases = {project.id: project.corporate_case_id for project in self}
         old_arbitration_cases = {project.id: project.arbitration_case_id for project in self}
@@ -931,6 +954,55 @@ class QlkProject(models.Model):
                 }
             )
             project.message_post(body=_("POA has been requested from the client."))
+
+    # ------------------------------------------------------------------------------
+    # إرسال طلب POA إلى مكتب MP عبر البريد الإلكتروني مع تسجيل الحدث في الشاتّر.
+    # عند أول إرسال يتم أيضًا نقل حالة الـ POA إلى Requested إن كانت لا تزال Draft.
+    # ------------------------------------------------------------------------------
+    def action_send_poa_to_mp(self):
+        template = self.env.ref("qlk_management.mail_template_project_poa_mp", raise_if_not_found=False)
+        if not template:
+            raise UserError(_("The POA email template could not be found."))
+
+        target_email = "mp.office@alhadhrilawfirm.com"
+        sent_count = 0
+        for project in self:
+            if not project.client_id:
+                raise UserError(_("Please select a client before sending the POA request to MP Office."))
+
+            template.send_mail(
+                project.id,
+                force_send=True,
+                email_values={"email_to": target_email},
+            )
+
+            update_vals = {"poa_mp_sent_on": fields.Datetime.now()}
+            if project.poa_state == "draft":
+                update_vals.update(
+                    {
+                        "poa_state": "requested",
+                        "poa_requested_on": fields.Datetime.now(),
+                    }
+                )
+            project.write(update_vals)
+            project.message_post(
+                body=_(
+                    "POA request email has been sent to MP Office at %(email)s.",
+                    email=target_email,
+                )
+            )
+            sent_count += 1
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("POA Email Sent"),
+                "message": _("POA request email sent for %s project(s).") % sent_count,
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def action_mark_poa_received(self):
         for project in self:
@@ -1105,8 +1177,6 @@ class QlkProject(models.Model):
         self.ensure_one()
         if self.project_type != "litigation":
             raise UserError(_("Only litigation projects can create pre-litigation cases."))
-        if self.litigation_stage != "pre":
-            raise UserError(_("Pre-litigation cases can be created only in the Pre-Litigation stage."))
         if self.pre_litigation_id:
             action = self.env.ref("qlk_management.action_pre_litigation", raise_if_not_found=False)
             if action:
@@ -1126,6 +1196,8 @@ class QlkProject(models.Model):
             "description": self.description,
             "lawyer_employee_id": lawyer.id if lawyer else False,
             "currency_id": self.company_id.currency_id.id,
+            "translation_attachment_ids": [(6, 0, self.translation_attachment_ids.ids)],
+            "translation_status": self.translation_status or "draft",
         }
         pre_case = self.env["qlk.pre.litigation"].create(pre_vals)
         action = self.env.ref("qlk_management.action_pre_litigation", raise_if_not_found=False)

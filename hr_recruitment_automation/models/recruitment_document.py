@@ -19,11 +19,10 @@ class RecruitmentDocumentPackage(models.Model):
     state = fields.Selection(
         [
             ("draft", "Draft"),
-            ("waiting_manager_approval", "Waiting Manager Approval"),
-            ("manager_rejected", "Manager Rejected"),
-            ("employee_pending", "Employee Approval Pending"),
-            ("employee_accepted", "Employee Accepted"),
-            ("employee_rejected", "Employee Rejected"),
+            ("under_review", "Under Review"),
+            ("approved", "Approved"),
+            ("signed", "Signed"),
+            ("rejected", "Rejected"),
         ],
         default="draft",
         tracking=True,
@@ -36,6 +35,9 @@ class RecruitmentDocumentPackage(models.Model):
     reject_url = fields.Char(string="Reject URL", compute="_compute_access_urls")
 
     manager_reject_reason = fields.Text(string="Manager Rejection Reason")
+    approval_user_id = fields.Many2one("res.users", string="Approved By", readonly=True, copy=False)
+    approval_date = fields.Datetime(string="Approval Date", readonly=True, copy=False)
+    signed_date = fields.Datetime(string="Signed Date", readonly=True, copy=False)
     employee_response_date = fields.Datetime(string="Employee Response Date", copy=False)
     access_email_sent = fields.Boolean(string="Access Email Sent", copy=False)
 
@@ -44,6 +46,29 @@ class RecruitmentDocumentPackage(models.Model):
     contract_body_en = fields.Html(string="Employment Contract (EN)")
     nda_body_ar = fields.Html(string="NDA (AR)")
     nda_body_en = fields.Html(string="NDA (EN)")
+
+    def init(self):
+        # هذا التحديث يحافظ على توافق السجلات القديمة مع الـ workflow الجديد عند الترقية.
+        self.env.cr.execute(
+            """
+            UPDATE hr_recruitment_document_package
+               SET state = CASE state
+                   WHEN 'waiting_manager_approval' THEN 'under_review'
+                   WHEN 'manager_rejected' THEN 'rejected'
+                   WHEN 'employee_pending' THEN 'approved'
+                   WHEN 'employee_accepted' THEN 'signed'
+                   WHEN 'employee_rejected' THEN 'rejected'
+                   ELSE state
+               END
+             WHERE state IN (
+                 'waiting_manager_approval',
+                 'manager_rejected',
+                 'employee_pending',
+                 'employee_accepted',
+                 'employee_rejected'
+             )
+            """
+        )
 
     @api.depends("access_token")
     def _compute_access_urls(self):
@@ -136,9 +161,11 @@ class RecruitmentDocumentPackage(models.Model):
             email_values["email_to"] = email_to
         template.with_context(ctx).send_mail(self.id, force_send=True, email_values=email_values)
 
-    def action_send_to_manager(self):
+    def action_send_for_approval(self):
         for package in self:
-            package.state = "waiting_manager_approval"
+            if package.state != "draft":
+                raise UserError(_("Documents can only be sent for approval from Draft."))
+            package.state = "under_review"
             recipients = package.env.ref("hr_recruitment_automation.group_managing_partner").users.filtered(lambda u: u.email)
             if recipients:
                 package._send_template(
@@ -146,10 +173,19 @@ class RecruitmentDocumentPackage(models.Model):
                     email_to=",".join(recipients.mapped("email")),
                 )
 
-    def action_manager_approve(self):
+    def action_approve(self):
         for package in self:
             package._check_managing_partner_access()
-            package.state = "employee_pending"
+            if package.state != "under_review":
+                raise UserError(_("Documents can only be approved from Under Review."))
+            package.write(
+                {
+                    "state": "approved",
+                    "manager_reject_reason": False,
+                    "approval_user_id": self.env.user.id,
+                    "approval_date": fields.Datetime.now(),
+                }
+            )
             employee_email = package.applicant_id.personal_email or package.employee_id.private_email
             if employee_email:
                 package._send_template(
@@ -157,19 +193,15 @@ class RecruitmentDocumentPackage(models.Model):
                     email_to=employee_email,
                 )
 
-    def action_manager_reject(self):
+    def action_sign(self):
         for package in self:
-            package._check_managing_partner_access()
-            package.state = "manager_rejected"
-
-    def action_employee_accept(self):
-        for package in self:
-            if package.state not in ("employee_pending", "employee_rejected"):
-                continue
-            package.state = "employee_accepted"
+            if package.state != "approved":
+                raise UserError(_("Documents cannot be signed before approval."))
+            package.state = "signed"
+            package.signed_date = fields.Datetime.now()
             package.employee_response_date = fields.Datetime.now()
-            user, generated_password = package._ensure_portal_user()
 
+            user, generated_password = package._ensure_portal_user()
             login_url = package.env["ir.config_parameter"].sudo().get_param("web.base.url", "") + "/web/login"
             package._send_template(
                 "hr_recruitment_automation.mail_template_system_access",
@@ -182,12 +214,39 @@ class RecruitmentDocumentPackage(models.Model):
             )
             package.access_email_sent = True
 
+    # هذه الدوال تُترك للتوافق مع الأزرار/الروابط القديمة داخل الموديول.
+    def action_send_to_manager(self):
+        return self.action_send_for_approval()
+
+    def action_manager_approve(self):
+        return self.action_approve()
+
+    def action_manager_reject(self):
+        for package in self:
+            package._check_managing_partner_access()
+            if package.state not in ("under_review", "approved"):
+                raise UserError(_("Documents can only be rejected while under review or after approval."))
+            package.state = "rejected"
+
+    def action_employee_accept(self):
+        return self.action_sign()
+
     def action_employee_reject(self):
         for package in self:
-            if package.state not in ("employee_pending", "employee_accepted"):
-                continue
-            package.state = "employee_rejected"
+            if package.state not in ("approved", "signed"):
+                raise UserError(_("Employee rejection is only allowed after approval."))
+            package.state = "rejected"
             package.employee_response_date = fields.Datetime.now()
 
     def action_reset_to_draft(self):
-        self.write({"state": "draft", "manager_reject_reason": False})
+        self.write(
+            {
+                "state": "draft",
+                "manager_reject_reason": False,
+                "approval_user_id": False,
+                "approval_date": False,
+                "signed_date": False,
+                "employee_response_date": False,
+                "access_email_sent": False,
+            }
+        )

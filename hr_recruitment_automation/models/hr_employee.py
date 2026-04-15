@@ -19,6 +19,20 @@ class HrEmployee(models.Model):
         string="Employment Type",
         default="full_time",
     )
+    # هذا الحقل يحفظ تاريخ مباشرة الموظف داخل الشركة دون الاعتماد على العقد فقط.
+    date_of_joining = fields.Date(string="Date of Joining")
+    # هذا الحقل يسمح بحفظ التحويلة الداخلية لهاتف العمل.
+    work_phone_extension = fields.Char(string="Work Phone Extension")
+    # هذا الحقل يوفر حالة تشغيلية واضحة للموظف داخل واجهة الموارد البشرية.
+    status = fields.Selection(
+        [
+            ("active", "Active"),
+            ("on_leave", "On Leave"),
+            ("resigned", "Resigned"),
+        ],
+        string="Status",
+        default="active",
+    )
     # هذا الحقل يربط الموظف بمعرفه داخل جهاز البصمة.
     biometric_user_code = fields.Char(string="Biometric User Code", index=True)
 

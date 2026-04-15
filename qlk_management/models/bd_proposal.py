@@ -13,10 +13,16 @@ PAYMENT_STATUS_SELECTION = [
     ("paid", "Paid"),
 ]
 
+TRANSLATION_STATUS_SELECTION = [
+    ("draft", "Draft"),
+    ("sent", "Sent to Translation"),
+    ("done", "Translated"),
+]
+
 class BDProposal(models.Model):
     _name = "bd.proposal"
     _description = "Business Proposal"
-    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin", "bd.retainer.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -62,6 +68,20 @@ class BDProposal(models.Model):
         string="Client Attachments",
         readonly=False,
     )
+    translation_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "bd_proposal_translation_attachment_rel",
+        "proposal_id",
+        "attachment_id",
+        string="Attachments Needing Translation",
+        tracking=True,
+    )
+    translation_status = fields.Selection(
+        TRANSLATION_STATUS_SELECTION,
+        string="Translation Status",
+        default="draft",
+        tracking=True,
+    )
     client_id = fields.Many2one(
         "res.partner",
         string="Client",
@@ -83,16 +103,77 @@ class BDProposal(models.Model):
         tracking=True,
     )
     billing_type = fields.Selection(
-        [("free", "Pro bono"), ("billable", "Paid")],
+        [
+            ("free", "Pro bono"),
+            ("paid", "Paid"),
+        ],
         string="Billing Type",
-        default="billable",
+        default="paid",
         tracking=True,
     )
-    legal_fees = fields.Float(string="Legal Fees", tracking=True)
+    retainer_period = fields.Selection(
+        [("annual", "Annual"), ("monthly", "Monthly")],
+        string="Retainer Type",
+        tracking=True,
+    )
+    allocated_hours = fields.Float(string="Allocated Hours", tracking=True)
+    used_hours = fields.Float(
+        string="Used Hours",
+        compute="_compute_used_hours",
+        store=True,
+        readonly=True,
+    )
+    remaining_hours = fields.Float(
+        string="Remaining Hours",
+        compute="_compute_remaining_hours",
+        store=True,
+        readonly=True,
+    )
+    monthly_hours_limit = fields.Float(string="Monthly Hours Limit", tracking=True)
+    monthly_used_hours = fields.Float(
+        string="Monthly Used Hours",
+        compute="_compute_monthly_used_hours",
+        readonly=True,
+    )
+    year_start_date = fields.Date(string="Year Start Date", tracking=True)
+    year_end_date = fields.Date(string="Year End Date", tracking=True)
+    exception_approved = fields.Boolean(string="Exception Approved", tracking=True)
+    retainer_usage_percent = fields.Float(
+        string="Retainer Usage %",
+        compute="_compute_retainer_usage_percent",
+        readonly=True,
+    )
+    retainer_usage_state = fields.Selection(
+        [
+            ("normal", "Normal"),
+            ("success", "Healthy"),
+            ("warning", "Warning"),
+            ("danger", "Critical"),
+        ],
+        string="Retainer Usage State",
+        compute="_compute_retainer_usage_percent",
+        readonly=True,
+    )
+    last_retainer_alert_key = fields.Char(
+        string="Last Retainer Alert Period",
+        copy=False,
+        readonly=True,
+    )
+    legal_fees = fields.Monetary(
+        string="Legal Fees",
+        currency_field="currency_id",
+        tracking=True,
+    )
     legal_fees_lines = fields.One2many(
         "bd.proposal.legal.fee",
         "proposal_id",
         string="Legal Fees Lines",
+    )
+    total_legal_fees = fields.Monetary(
+        string="Total Legal Fees",
+        currency_field="currency_id",
+        compute="_compute_total_fees",
+        store=True,
     )
     scope_of_work = fields.Text(string="Scope of Work")
     payment_terms = fields.Char(string="Payment Terms")
@@ -124,6 +205,16 @@ class BDProposal(models.Model):
             "rejected",
             "cancelled",
         ]
+
+    def init(self):
+        # Normalize legacy billing values introduced during previous customizations.
+        self._cr.execute(
+            """
+            UPDATE bd_proposal
+               SET billing_type = 'paid'
+             WHERE billing_type IN ('billable', 'fixed', 'retainer')
+            """
+        )
 
     
     total_amount = fields.Monetary(
@@ -164,10 +255,46 @@ class BDProposal(models.Model):
         store=True,
         tracking=True,
     )
-    lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
-    hourly_cost = fields.Float(string="Cost Per Hour", tracking=True, readonly=True)
+    lawyer_user_id = fields.Many2one(
+        "res.users",
+        string="Assigned Lawyer User",
+        related="lawyer_employee_id.user_id",
+        store=True,
+        readonly=True,
+    )
+    contract_type = fields.Selection(
+        related="retainer_type",
+        string="Contract Type",
+        store=True,
+        readonly=True,
+    )
+    assigned_date = fields.Datetime(
+        string="Assignment Date",
+        copy=False,
+        tracking=True,
+    )
+    kanban_assignment_date = fields.Datetime(
+        string="Kanban Assignment Date",
+        compute="_compute_kanban_assignment_date",
+    )
+    lawyer_cost_hour = fields.Monetary(
+        string="Lawyer Cost Per Hour",
+        currency_field="currency_id",
+        readonly=True,
+    )
+    hourly_cost = fields.Monetary(
+        string="Cost Per Hour",
+        currency_field="currency_id",
+        tracking=True,
+        readonly=True,
+    )
     planned_hours = fields.Float(string="Planned Hours", tracking=True)
-    total_estimated_cost = fields.Float(string="Total Estimated Cost", compute="_compute_total_cost", store=True)
+    total_estimated_cost = fields.Monetary(
+        string="Total Estimated Cost",
+        currency_field="currency_id",
+        compute="_compute_total_cost",
+        store=True,
+    )
     services_description = fields.Text(string="Services Description")
     reviewer_id = fields.Many2one(
         "res.users",
@@ -215,6 +342,13 @@ class BDProposal(models.Model):
         default=lambda self: self.env.company.currency_id,
         index=True,
     )
+    project_id = fields.Many2one(
+        "project.project",
+        string="Timesheet Project",
+        ondelete="set null",
+        tracking=True,
+        domain="[('allow_timesheets', '=', True)]",
+    )
     time_entry_ids = fields.One2many(
         "qlk.task",
         "proposal_id",
@@ -245,6 +379,11 @@ class BDProposal(models.Model):
         for record in self:
             record.hours_logged_ok = bool(record.time_entry_ids)
 
+    @api.depends("assigned_date", "create_date")
+    def _compute_kanban_assignment_date(self):
+        for record in self:
+            record.kanban_assignment_date = record.assigned_date or record.create_date
+
     @api.onchange("time_entry_ids")
     def _onchange_time_entry_ids(self):
         for record in self:
@@ -261,17 +400,60 @@ class BDProposal(models.Model):
     # ------------------------------------------------------------------------------
     # دالة تحسب المبلغ المتبقي ديناميكياً بناءً على المدفوعات ورسوم العرض.
     # ------------------------------------------------------------------------------
-    @api.depends("legal_fees_lines.amount", "legal_fees", "billing_type")
+    @api.depends("legal_fees_lines.subtotal", "legal_fees", "billing_type")
+    def _compute_total_fees(self):
+        for record in self:
+            if record.billing_type == "free":
+                record.total_legal_fees = 0.0
+                continue
+            lines_total = sum(record.legal_fees_lines.mapped("subtotal"))
+            record.total_legal_fees = lines_total or (record.legal_fees or 0.0)
+
+    @api.depends("total_legal_fees", "legal_fees", "billing_type")
     def _compute_total_amount(self):
         for record in self:
             if record.billing_type == "free":
                 record.total_amount = 0.0
                 continue
-            lines_total = sum(record.legal_fees_lines.mapped("amount"))
-            if lines_total:
-                record.total_amount = lines_total
-            else:
-                record.total_amount = record.legal_fees or 0.0
+            record.total_amount = record.total_legal_fees or (record.legal_fees or 0.0)
+
+    # ------------------------------------------------------------------------------
+    # Retainer tracking is driven from project.task timesheets when a standard
+    # project is linked, with a safe zero fallback when no project exists.
+    # ------------------------------------------------------------------------------
+    @api.depends(
+        "billing_type",
+        "retainer_period",
+        "year_start_date",
+        "year_end_date",
+        "project_id.task_ids.timesheet_ids.unit_amount",
+        "project_id.task_ids.timesheet_ids.date",
+    )
+    def _compute_used_hours(self):
+        self._compute_retainer_used_hours()
+
+    @api.depends("billing_type", "allocated_hours", "used_hours")
+    def _compute_remaining_hours(self):
+        self._compute_retainer_remaining_hours()
+
+    @api.depends(
+        "billing_type",
+        "project_id.task_ids.timesheet_ids.unit_amount",
+        "project_id.task_ids.timesheet_ids.date",
+    )
+    def _compute_monthly_used_hours(self):
+        self._compute_retainer_monthly_used_hours()
+
+    @api.depends(
+        "billing_type",
+        "retainer_period",
+        "allocated_hours",
+        "monthly_hours_limit",
+        "used_hours",
+        "monthly_used_hours",
+    )
+    def _compute_retainer_usage_percent(self):
+        self._compute_retainer_usage_visuals()
 
 
 
@@ -412,6 +594,7 @@ class BDProposal(models.Model):
                 vals["partner_id"] = lead_vals["partner_id"]
             self._prepare_partner_sequence_vals(vals, sequence_cache)
         records = super().create(vals_list)
+        records._sync_assigned_date()
         records._copy_partner_attachments()
         for proposal in records:
             if proposal.lead_id:
@@ -424,11 +607,22 @@ class BDProposal(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        if "translation_attachment_ids" in vals and "translation_status" not in vals:
+            vals["translation_status"] = "draft"
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # if self._has_new_task_command(vals.get("time_entry_ids")):
         #     return super().write(vals)
         # if self._requires_new_task_on_write(vals):
         #     self._raise_missing_hours_error()
+        previous_assignments = None
+        if (
+            not self.env.context.get("skip_assignment_date_sync")
+            and "assigned_date" not in vals
+            and any(field in vals for field in ("lawyer_id", "lawyer_employee_id"))
+        ):
+            previous_assignments = {
+                proposal.id: proposal._get_assignment_anchor() for proposal in self
+            }
         restricted = {"name", "client_code", "client_sequence", "code"}
         if restricted.intersection(vals) and not self.env.context.get("allow_document_number_update"):
             raise UserError(_("Document numbers and client codes cannot be modified manually."))
@@ -437,18 +631,10 @@ class BDProposal(models.Model):
                 vals["client_id"] = vals["partner_id"]
             if vals.get("client_id") and not vals.get("partner_id"):
                 vals["partner_id"] = vals["client_id"]
-        if any(
-            field in vals
-            for field in (
-                "legal_fees_lines",
-                "legal_fees",
-                "currency_id",
-                "billing_type",
-            )
-        ):
+        if self._has_locked_financial_changes(vals):
             for proposal in self:
-                if proposal.state in {"approved_manager", "waiting_client_approval", "approved_client"}:
-                    raise UserError(_("Financial fields are locked after approval."))
+                if proposal.state == "approved_client":
+                    raise UserError(_("Financial fields are locked after client approval."))
         if "lawyer_id" in vals and vals["lawyer_id"]:
             lawyer_cost = self._get_lawyer_cost(vals["lawyer_id"])
             vals["hourly_cost"] = lawyer_cost
@@ -456,11 +642,57 @@ class BDProposal(models.Model):
         if vals.get("lead_id"):
             lead_vals = self._prepare_lead_defaults(vals["lead_id"])
         res = super().write(vals)
-        if any(field in vals for field in ("legal_fees", "billing_type")):
+        if previous_assignments is not None:
+            self._sync_assigned_date(previous_assignments)
+        if any(
+            field in vals
+            for field in (
+                "legal_fees",
+                "billing_type",
+                "retainer_period",
+                "allocated_hours",
+                "monthly_hours_limit",
+                "year_start_date",
+                "year_end_date",
+                "project_id",
+            )
+        ):
             self.mapped("engagement_letter_id")._sync_proposal_financials()
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # self._check_hours_logged()
         return res
+
+    def _has_locked_financial_changes(self, vals):
+        financial_fields = (
+            "legal_fees_lines",
+            "legal_fees",
+            "currency_id",
+            "billing_type",
+            "retainer_period",
+            "allocated_hours",
+            "monthly_hours_limit",
+            "year_start_date",
+            "year_end_date",
+        )
+        changed_fields = [field_name for field_name in financial_fields if field_name in vals]
+        if not changed_fields:
+            return False
+        for proposal in self:
+            for field_name in changed_fields:
+                field = proposal._fields.get(field_name)
+                if not field:
+                    continue
+                if field.type in {"one2many", "many2many"}:
+                    return True
+                current_value = proposal[field_name]
+                new_value = vals[field_name]
+                if field.type == "many2one":
+                    if (current_value.id or False) != (new_value or False):
+                        return True
+                else:
+                    if current_value != new_value:
+                        return True
+        return False
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
@@ -552,6 +784,30 @@ class BDProposal(models.Model):
         if "address_home_id" in employee._fields and employee.address_home_id:
             return employee.address_home_id
         return self.env["res.partner"]
+
+    def _get_assignment_anchor(self):
+        self.ensure_one()
+        if self.lawyer_employee_id:
+            return self.lawyer_employee_id.id
+        return self._employee_from_partner(self.lawyer_id).id or False
+
+    def _sync_assigned_date(self, previous_assignments=None):
+        if self.env.context.get("skip_assignment_date_sync"):
+            return
+        now = fields.Datetime.now()
+        for record in self:
+            current_assignment = record._get_assignment_anchor()
+            if previous_assignments is None:
+                if current_assignment and not record.assigned_date:
+                    record.with_context(skip_assignment_date_sync=True).write(
+                        {"assigned_date": now}
+                    )
+                continue
+            previous_assignment = previous_assignments.get(record.id)
+            if previous_assignment != current_assignment:
+                record.with_context(skip_assignment_date_sync=True).write(
+                    {"assigned_date": now if current_assignment else False}
+                )
 
     @api.depends("lawyer_id")
     def _compute_lawyer_employee_id(self):
@@ -767,6 +1023,19 @@ class BDProposal(models.Model):
     # ------------------------------------------------------------------------------
     # زر الطباعة يقوم باستدعاء الـ QWeb report بعد التأكد من حالة الموافقة.
     # ------------------------------------------------------------------------------
+    def action_print_excel(self):
+        return self.env.ref("qlk_management.action_bd_proposal_xlsx_report").report_action(self)
+
+    def action_open_report_wizard(self):
+        self.ensure_one()
+        action = self.env.ref("qlk_management.action_bd_report_wizard").read()[0]
+        action["context"] = {
+            "default_record_type": "proposal",
+            "default_date_from": self.date or fields.Date.context_today(self),
+            "default_date_to": self.date or fields.Date.context_today(self),
+        }
+        return action
+
     def action_print_proposal(self):
         for proposal in self:
             if proposal.state != "approved_client":
@@ -804,7 +1073,23 @@ class BDProposal(models.Model):
         partner = self.partner_id
         partner_code = partner._get_client_code()
         fee_lines = [
-            (0, 0, {"description": line.description, "amount": line.amount, "due_date": line.due_date})
+            (
+                0,
+                0,
+                {
+                    "service_name": line.service_name,
+                    "description": line.description,
+                    "service_type": line.service_type,
+                    "assigned_lawyer_id": line.assigned_lawyer_id.id,
+                    "quantity": line.quantity,
+                    "unit_price": line.unit_price,
+                    "discount_type": line.discount_type,
+                    "discount": line.discount,
+                    "lawyer_cost": line.lawyer_cost,
+                    "amount": line.amount,
+                    "due_date": line.due_date,
+                },
+            )
             for line in self.legal_fees_lines
         ]
         primary_employee = self.lawyer_employee_id
@@ -817,7 +1102,7 @@ class BDProposal(models.Model):
             "client_code": partner_code,
             "date": fields.Date.context_today(self),
             "contract_type": "retainer",
-            "legal_fee_amount": self.legal_fees,
+            "legal_fee_amount": self.total_legal_fees,
             "total_amount": self.total_amount,
             "currency_id": self.currency_id.id,
             "payment_terms": self.payment_terms,
@@ -836,6 +1121,15 @@ class BDProposal(models.Model):
             "total_estimated_cost": self.total_estimated_cost,
             "billing_type": self.billing_type,
             "retainer_type": self.retainer_type,
+            "retainer_period": self.retainer_period,
+            "allocated_hours": self.allocated_hours,
+            "monthly_hours_limit": self.monthly_hours_limit,
+            "year_start_date": self.year_start_date,
+            "year_end_date": self.year_end_date,
+            "exception_approved": self.exception_approved,
+            "project_id": self.project_id.id,
+            "translation_attachment_ids": [(6, 0, self.translation_attachment_ids.ids)],
+            "translation_status": self.translation_status or "draft",
             "services_description": False,
             "description": self.comments or _("Legal engagement for client %s") % (partner.display_name,),
         }
@@ -869,6 +1163,17 @@ class BDProposal(models.Model):
             ):
                 raise UserError(_("Only Assistant Managers can approve or reject this document."))
 
+    @api.model
+    def cron_check_retainer_usage(self):
+        proposals = self.search(
+            [
+                ("billing_type", "!=", "free"),
+                ("retainer_period", "!=", False),
+                ("state", "not in", ("rejected", "cancelled")),
+            ]
+        )
+        proposals._process_retainer_notifications()
+
 
 class BDProposalLegalFee(models.Model):
     _name = "bd.proposal.legal.fee"
@@ -881,8 +1186,48 @@ class BDProposalLegalFee(models.Model):
         ondelete="cascade",
         index=True,
     )
-    description = fields.Char(string="Description", required=True)
-    amount = fields.Monetary(string="Amount", required=True)
+    service_name = fields.Char(string="Service Name")
+    description = fields.Char(string="Description")
+    service_type = fields.Selection(
+        [
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("litigation_corporate", "Litigation + Corporate"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
+        ],
+        string="Service Type",
+    )
+    assigned_lawyer_id = fields.Many2one(
+        "hr.employee",
+        string="Assigned Lawyer",
+        index=True,
+    )
+    quantity = fields.Float(string="Quantity", default=1.0)
+    unit_price = fields.Monetary(string="Unit Price")
+    discount_type = fields.Selection(
+        [("fixed", "Fixed"), ("percent", "Percentage")],
+        string="Discount Type",
+        default="fixed",
+    )
+    discount = fields.Float(string="Discount")
+    lawyer_cost = fields.Monetary(
+        string="Lawyer Cost",
+        currency_field="currency_id",
+        copy=False,
+        help="Frozen lawyer cost captured when the line lawyer is selected.",
+    )
+    subtotal = fields.Monetary(
+        string="Subtotal",
+        currency_field="currency_id",
+        compute="_compute_subtotal",
+        store=True,
+    )
+    amount = fields.Monetary(
+        string="Amount",
+        currency_field="currency_id",
+    )
     due_date = fields.Date(string="Due Date")
     currency_id = fields.Many2one(
         related="proposal_id.currency_id",
@@ -890,3 +1235,92 @@ class BDProposalLegalFee(models.Model):
         store=True,
         readonly=True,
     )
+
+    @api.depends("quantity", "unit_price", "discount", "discount_type", "amount")
+    def _compute_subtotal(self):
+        for line in self:
+            if not line.unit_price and not line.discount and line.amount:
+                line.subtotal = line.amount
+                continue
+            gross_amount = (line.quantity or 0.0) * (line.unit_price or 0.0)
+            if line.discount_type == "percent":
+                discount_amount = gross_amount * ((line.discount or 0.0) / 100.0)
+            else:
+                discount_amount = line.discount or 0.0
+            line.subtotal = gross_amount - discount_amount
+
+    def _get_line_subtotal_from_vals(self, vals):
+        record = self[:1]
+        quantity = vals.get("quantity", record.quantity or 0.0)
+        unit_price = vals.get("unit_price", record.unit_price or 0.0)
+        discount = vals.get("discount", record.discount or 0.0)
+        discount_type = vals.get("discount_type", record.discount_type or "fixed")
+        gross_amount = (quantity or 0.0) * (unit_price or 0.0)
+        if discount_type == "percent":
+            discount_amount = gross_amount * ((discount or 0.0) / 100.0)
+        else:
+            discount_amount = discount or 0.0
+        return gross_amount - discount_amount
+
+    def _get_current_lawyer_cost(self, employee):
+        if not employee:
+            return 0.0
+        if employee.lawyer_hour_cost:
+            return employee.lawyer_hour_cost
+        partner = employee.user_id.partner_id or employee.work_contact_id or employee.address_home_id
+        if not partner:
+            return 0.0
+        cost_record = self.env["lawyer.cost.calculation"].search(
+            [("partner_id", "=", partner.id)],
+            limit=1,
+        )
+        return cost_record.cost_per_hour if cost_record else 0.0
+
+    def _normalize_line_vals(self, vals):
+        if vals.get("service_name") and not vals.get("description"):
+            vals["description"] = vals["service_name"]
+        elif vals.get("description") and not vals.get("service_name"):
+            vals["service_name"] = vals["description"]
+        if vals.get("assigned_lawyer_id") and "lawyer_cost" not in vals:
+            employee = self.env["hr.employee"].browse(vals["assigned_lawyer_id"])
+            vals["lawyer_cost"] = self._get_current_lawyer_cost(employee)
+        pricing_keys = {"quantity", "unit_price", "discount", "discount_type"}
+        if pricing_keys.intersection(vals):
+            vals["amount"] = self._get_line_subtotal_from_vals(vals)
+        return vals
+
+    @api.onchange("assigned_lawyer_id")
+    def _onchange_assigned_lawyer_id(self):
+        for line in self:
+            if line.assigned_lawyer_id and not line.lawyer_cost:
+                line.lawyer_cost = line._get_current_lawyer_cost(line.assigned_lawyer_id)
+
+    @api.onchange("service_name", "quantity", "unit_price", "discount", "discount_type")
+    def _onchange_pricing_fields(self):
+        for line in self:
+            if line.service_name and not line.description:
+                line.description = line.service_name
+            line.amount = line._get_line_subtotal_from_vals({})
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        vals_list = [self._normalize_line_vals(dict(vals)) for vals in vals_list]
+        return super().create(vals_list)
+
+    def write(self, vals):
+        pricing_keys = {"quantity", "unit_price", "discount", "discount_type"}
+        if len(self) > 1 and pricing_keys.intersection(vals):
+            result = True
+            for line in self:
+                result = super(BDProposalLegalFee, line).write(
+                    line._normalize_line_vals(dict(vals))
+                ) and result
+            return result
+        vals = self._normalize_line_vals(dict(vals))
+        if "assigned_lawyer_id" in vals and "lawyer_cost" not in vals:
+            if vals.get("assigned_lawyer_id"):
+                employee = self.env["hr.employee"].browse(vals["assigned_lawyer_id"])
+                vals["lawyer_cost"] = self._get_current_lawyer_cost(employee)
+            else:
+                vals["lawyer_cost"] = 0.0
+        return super().write(vals)

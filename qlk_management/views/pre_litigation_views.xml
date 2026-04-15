@@ -36,6 +36,12 @@
                                 class="btn-primary"
                                 type="object"
                                 invisible="state != 'draft' or approvals_blocked"/>
+                        <button name="action_send_to_translation"
+                                string="Send to Translation (MP)"
+                                class="btn-secondary"
+                                type="object"
+                                groups="qlk_management.group_legal_user,qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"
+                                invisible="not translation_attachment_ids"/>
                         <button name="action_to_memo"
                                 string="Send to Memo"
                                 class="btn-primary"
@@ -143,6 +149,12 @@
                             </page>
                             <page string="Client Attachments">
                                 <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                            </page>
+                            <page string="Attachments for Translation">
+                                <group>
+                                    <field name="translation_status" readonly="1"/>
+                                </group>
+                                <field name="translation_attachment_ids" widget="many2many_binary" nolabel="1"/>
                             </page>
                             <page string="Lawyer Notes">
                                 <field name="lawyer_note"/>

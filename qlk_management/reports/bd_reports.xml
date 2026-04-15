@@ -43,27 +43,69 @@
                         </p>
                         <p>
                             <strong>Reference:</strong>
-                            <span t-esc="doc.reference"/>
+                            <span t-esc="doc.code or doc.name"/>
                         </p>
                         <h3>Scope of Work</h3>
                         <div t-if="doc.scope_of_work" t-raw="doc.scope_of_work"/>
                         <h3>Terms &amp; Conditions</h3>
                         <div t-if="doc.terms_conditions" t-raw="doc.terms_conditions"/>
-                        <h3>Financial Summary</h3>
+                        <h3>Services &amp; Legal Fees</h3>
                         <table class="table table-sm o_main_table">
                             <thead>
                                 <tr>
-                                    <th>Description</th>
-                                    <th class="text-end">Amount</th>
+                                    <th>Service</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Discount</th>
+                                    <th class="text-end">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Legal Fees</td>
-                                    <td class="text-end" t-esc="doc.legal_fees"/>
+                                <tr t-foreach="doc.legal_fees_lines" t-as="line">
+                                    <td>
+                                        <span t-esc="line.service_name or line.description or '-'"/>
+                                        <div t-if="line.service_type" class="text-muted">
+                                            <span t-field="line.service_type"/>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-esc="line.quantity"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="line.discount_type == 'percent'">
+                                            <span t-esc="line.discount"/>%
+                                        </t>
+                                        <t t-else="">
+                                            <span t-field="line.discount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                        </t>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.subtotal" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
                                 </tr>
-                                
+                                <tr t-if="not doc.legal_fees_lines">
+                                    <td>Legal Fees</td>
+                                    <td class="text-end">1.00</td>
+                                    <td class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                    <td class="text-end">0.00</td>
+                                    <td class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                </tr>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-end">Total Legal Fees</th>
+                                    <th class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </t>
@@ -116,22 +158,57 @@
                         <table class="table table-sm o_main_table">
                             <thead>
                                 <tr>
-                                    <th>Description</th>
-                                    <th>Due Date</th>
-                                    <th class="text-end">Amount</th>
+                                    <th>Service</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Discount</th>
+                                    <th class="text-end">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr t-foreach="doc.fee_line_ids" t-as="line">
-                                    <td t-esc="line.description"/>
-                                    <td t-esc="line.due_date"/>
-                                    <td class="text-end" t-esc="line.amount"/>
+                                <tr t-foreach="doc.legal_fees_lines" t-as="line">
+                                    <td>
+                                        <span t-esc="line.service_name or line.description or '-'"/>
+                                        <div t-if="line.service_type" class="text-muted">
+                                            <span t-field="line.service_type"/>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-esc="line.quantity"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="line.discount_type == 'percent'">
+                                            <span t-esc="line.discount"/>%
+                                        </t>
+                                        <t t-else="">
+                                            <span t-field="line.discount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                        </t>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.subtotal" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                </tr>
+                                <tr t-if="not doc.legal_fees_lines">
+                                    <td>Legal Fees</td>
+                                    <td class="text-end">1.00</td>
+                                    <td class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
+                                    <td class="text-end">0.00</td>
+                                    <td class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="2" class="text-end">Total</th>
-                                    <th class="text-end" t-esc="doc.fee_total"/>
+                                    <th colspan="4" class="text-end">Total Legal Fees</th>
+                                    <th class="text-end">
+                                        <span t-field="doc.total_legal_fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                    </th>
                                 </tr>
                             </tfoot>
                         </table>

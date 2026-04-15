@@ -23,20 +23,20 @@
         <record id="mail_template_documents_for_employee_approval" model="mail.template">
             <field name="name">Recruitment Documents - Employee Approval</field>
             <field name="model_id" ref="hr_recruitment_automation.model_hr_recruitment_document_package"/>
-            <field name="subject">Please Review Your Employment Documents</field>
+            <field name="subject">Please Sign Your Employment Documents</field>
             <field name="email_from">{{ (user.email_formatted or '') }}</field>
             <field name="email_to">{{ object.applicant_id.personal_email or object.employee_id.private_email or '' }}</field>
             <field name="body_html" type="html">
 <div>
     <p>Dear <t t-out="object.employee_id.name"/>,</p>
-    <p>Your contract and NDA are ready for your approval.</p>
+    <p>Your contract and NDA are approved and ready for your signature.</p>
     <p>
-        <a t-att-href="object.approve_url" style="padding:8px 14px; background:#198754; color:#fff; text-decoration:none; border-radius:4px;">Approve Documents</a>
+        <a t-att-href="object.approve_url" style="padding:8px 14px; background:#198754; color:#fff; text-decoration:none; border-radius:4px;">Sign Documents</a>
         <span style="display:inline-block; width:8px;"/>
         <a t-att-href="object.reject_url" style="padding:8px 14px; background:#dc3545; color:#fff; text-decoration:none; border-radius:4px;">Reject Documents</a>
     </p>
     <p>If links do not work, copy and paste these URLs:</p>
-    <p>Approve: <t t-out="object.approve_url"/></p>
+    <p>Sign: <t t-out="object.approve_url"/></p>
     <p>Reject: <t t-out="object.reject_url"/></p>
 </div>
             </field>

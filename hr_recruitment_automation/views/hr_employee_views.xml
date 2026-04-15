@@ -22,11 +22,41 @@
                 </button>
             </xpath>
 
-            <xpath expr="//group[group/field[@name='department_id']]/group[2]" position="inside">
-                <field name="biometric_user_code"/>
-                <field name="employment_type"/>
-                <field name="recruitment_employee_code" readonly="1"/>
-                <field name="applicant_origin_id" readonly="1"/>
+            <!-- إخفاء الوسوم من بطاقة الموظف بدون حذف الحقل أو كسر الاعتماديات. -->
+            <xpath expr="//field[@name='category_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+
+            <!-- استبدال المصطلحات المطلوبة في الواجهة. -->
+            <xpath expr="//field[@name='coach_id']" position="attributes">
+                <attribute name="string">Mentor</attribute>
+            </xpath>
+            <xpath expr="//field[@name='study_school']" position="attributes">
+                <attribute name="string">University</attribute>
+            </xpath>
+
+            <!-- تنظيف بيانات المعلومات الخاصة: إخفاء SSN وحقل رقم التصريح المكرر. -->
+            <xpath expr="//field[@name='ssnid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='permit_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+
+            <!-- تجميع حقول التوظيف الجديدة والموجودة مسبقًا داخل قسم واضح في Work Information. -->
+            <xpath expr="//page[@name='public']//group[field[@name='address_id'] and field[@name='work_location_id']]" position="after">
+                <group string="Employment Information" groups="hr.group_hr_user">
+                    <field name="date_of_joining"/>
+                    <field name="employment_type"/>
+                    <field name="work_phone_extension"/>
+                    <field name="status"/>
+                    <field name="biometric_user_code"/>
+                    <field name="recruitment_employee_code" readonly="1"/>
+                    <field name="applicant_origin_id" readonly="1"/>
+                </group>
             </xpath>
 
             <xpath expr="//page[@name='public']" position="after">

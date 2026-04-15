@@ -1,11 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!-- Main workspace menu for MP-related navigation only. -->
+        <menuitem id="menu_mp_workspace_root"
+                  name="MP"
+                  sequence="35"/>
+
+        <!-- Existing MP operational menu moves under the new MP root. -->
+        <!-- Project dashboard is exposed directly under the MP root. -->
+        <record id="menu_project_dashboard_entry" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_workspace_root"/>
+            <field name="sequence">10</field>
+        </record>
         <menuitem id="menu_mp_root"
                   name="MP"
-                  parent="qlk_management.menu_management_root"
-                  sequence="65"
+                  parent="qlk_management.menu_mp_workspace_root"
+                  sequence="20"
                   groups="qlk_management.group_mp"/>
+
+        <!-- Project workspace moves under the new MP root, while its children stay unchanged. -->
+        <record id="menu_qlk_project_projects" model="ir.ui.menu">
+            <field name="parent_id" ref="qlk_management.menu_mp_workspace_root"/>
+            <field name="sequence">30</field>
+        </record>
+
+        
 
         <record id="menu_qlk_project_working_hours" model="ir.ui.menu">
             <field name="parent_id" ref="qlk_management.menu_mp_root"/>

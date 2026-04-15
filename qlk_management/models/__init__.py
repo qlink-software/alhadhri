@@ -17,6 +17,7 @@ from . import hr_automation
 from . import project_project
 from . import ir_attachment
 from . import ir_model
+from . import bd_retainer_mixin
 from . import bd_proposal
 from . import bd_engagement_letter
 from . import qlk_task

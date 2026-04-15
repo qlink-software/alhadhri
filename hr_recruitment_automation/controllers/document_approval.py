@@ -1,4 +1,5 @@
 from odoo import http
+from odoo.exceptions import UserError
 from odoo.http import request
 
 
@@ -15,8 +16,11 @@ class RecruitmentDocumentApprovalController(http.Controller):
         if not package:
             return request.make_response("<h3>Invalid approval link.</h3>")
 
-        package.action_employee_accept()
-        return request.make_response("<h3>Documents approved successfully. Your system credentials have been emailed.</h3>")
+        try:
+            package.action_sign()
+        except UserError as error:
+            return request.make_response(f"<h3>{error.args[0]}</h3>")
+        return request.make_response("<h3>Documents signed successfully. Your system credentials have been emailed.</h3>")
 
     @http.route("/recruitment/document/reject/<string:token>", type="http", auth="public", website=False, csrf=False)
     def reject_document(self, token, **kwargs):
@@ -24,5 +28,8 @@ class RecruitmentDocumentApprovalController(http.Controller):
         if not package:
             return request.make_response("<h3>Invalid rejection link.</h3>")
 
-        package.action_employee_reject()
+        try:
+            package.action_employee_reject()
+        except UserError as error:
+            return request.make_response(f"<h3>{error.args[0]}</h3>")
         return request.make_response("<h3>Documents were rejected. HR team has been notified.</h3>")

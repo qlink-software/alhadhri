@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Hide the Sales application root menu without uninstalling any sales modules.
+        Using base.group_no_one keeps the menu unavailable to all UI users while
+        leaving the underlying models and flows intact for integrations.
+    -->
+    <record id="sale.sale_menu_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+    </record>
+
+    <!--
+        Remove direct CRM shortcuts to Sales from the opportunity form.
+        This keeps CRM usable while preventing BD users from navigating to
+        quotations or sale orders from the lead/opportunity screen.
+    -->
+    <record id="crm_lead_view_form_hide_sales_links" model="ir.ui.view">
+        <field name="name">crm.lead.form.hide.sales.links</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_sale_quotations_new']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_view_sale_quotation']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_view_sale_order']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

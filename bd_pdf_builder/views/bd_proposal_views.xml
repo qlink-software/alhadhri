@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo><data/></odoo>
+<odoo>
+    <data>
+        <record id="view_bd_proposal_form_pdf_builder" model="ir.ui.view">
+            <field name="name">bd.proposal.form.report.button</field>
+            <field name="model">bd.proposal</field>
+            <field name="inherit_id" ref="qlk_management.view_bd_proposal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header" position="inside">
+                    <button name="action_print_proposal"
+                            type="object"
+                            string="Print Proposal PDF"
+                            class="btn-secondary"
+                            invisible="state != 'approved_client'"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

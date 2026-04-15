@@ -5,6 +5,10 @@
         <field name="model">hr.applicant</field>
         <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <xpath expr="//form/header" position="inside">
                 <button name="action_send_to_manager"
                         type="object"
@@ -138,6 +142,41 @@
                         </group>
                     </group>
                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_tree_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.applicant.tree.recruitment.automation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.crm_case_tree_view_job"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_kanban_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.recruitment.automation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+        <field name="arch" type="xml">
+            <!-- إزالة نجوم التقييم من بطاقة المرشح في واجهة Kanban. -->
+            <xpath expr="//footer/field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_calendar_recruitment_automation" model="ir.ui.view">
+        <field name="name">hr.applicant.calendar.recruitment.automation</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_calendar_view"/>
+        <field name="arch" type="xml">
+            <!-- إزالة نجوم التقييم من نافذة التقويم أيضًا حتى لا تظهر في أي تمثيل رئيسي. -->
+            <xpath expr="//calendar/field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

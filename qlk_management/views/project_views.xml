@@ -27,6 +27,9 @@
             <field name="arch" type="xml">
                 <form string="Project">
                     <header>
+                        <button name="action_send_poa_to_mp" type="object" string="Send POA to MP" class="btn-primary"
+                                groups="qlk_management.group_legal_user,qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"
+                                invisible="department != 'litigation'"/>
                         <button name="action_request_poa" type="object" string="Request POA" class="btn-warning"
                                 invisible="department != 'litigation' or poa_state != 'draft'"/>
                         <button name="action_mark_poa_received" type="object" string="POA Received" class="btn-primary"
@@ -36,7 +39,7 @@
                         <button name="action_open_log_hours" type="object" string="Log Hours" class="btn-primary"/>
                         <button name="action_create_pre_litigation_case" type="object" string="Create Pre-Litigation Case"
                                 class="btn-primary"
-                                modifiers="{'invisible': ['|', '|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'pre'), ('pre_litigation_id', '!=', False)]}"/>
+                                modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('pre_litigation_id', '!=', False)]}"/>
                         <button name="action_create_litigation_case" type="object" string="Create Case"
                                 class="btn-primary"
                                 modifiers="{'invisible': ['|', '|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court'), ('case_id', '!=', False)]}"/>
@@ -81,8 +84,6 @@
                                 <field name="litigation_stage" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="litigation_stage_code" string="Litigation Degree" invisible="1"/>
                                 <field name="litigation_stage_iteration" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
-                                <field name="litigation_court_id" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
-                                <field name="litigation_case_type_id" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="client_id" string="Client Name"/>
                                 <field name="engagement_id" readonly="1"/>
                                 <field name="lawyer_id"/>
@@ -106,6 +107,7 @@
                                 <field name="poa_state" widget="badge"/>
                                 <field name="poa_requested_on" readonly="1"/>
                                 <field name="poa_received_on" readonly="1"/>
+                                <field name="poa_mp_sent_on" readonly="1" invisible="department != 'litigation'"/>
                                 <field name="deadline"/>
                                 <field name="transfer_ready"/>
                             </group>
@@ -127,6 +129,12 @@
                             </page>
                             <page string="Client Attachments">
                                 <field name="client_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                            </page>
+                            <page string="Attachments for Translation">
+                                <group>
+                                    <field name="translation_status" readonly="1"/>
+                                </group>
+                                <field name="translation_attachment_ids" widget="many2many_binary" nolabel="1"/>
                             </page>
                             <page string="POA Documents" invisible="department != 'litigation'">
                                 <field name="poa_attachment_ids" widget="many2many_binary"/>

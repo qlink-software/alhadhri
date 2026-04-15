@@ -143,7 +143,7 @@ class ProjectDashboard extends Component {
             return;
         }
         this.action.doAction(actionMeta.id, {
-            additional_context: context,
+            additionalContext: context,
         });
     }
 

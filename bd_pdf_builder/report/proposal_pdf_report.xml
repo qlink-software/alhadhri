@@ -1,2 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo><data/></odoo>
+<odoo>
+    <data>
+        <record id="paperformat_proposal_pdf" model="report.paperformat">
+            <field name="name">Proposal A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="disable_shrinking" eval="True"/>
+            <field name="dpi">110</field>
+        </record>
+
+        <record id="action_proposal_pdf" model="ir.actions.report">
+            <field name="name">Proposal PDF</field>
+            <field name="model">bd.proposal</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bd_pdf_builder.report_proposal_pdf</field>
+            <field name="report_file">bd_pdf_builder.report_proposal_pdf</field>
+            <field name="paperformat_id" ref="bd_pdf_builder.paperformat_proposal_pdf"/>
+            <field name="binding_model_id" ref="qlk_management.model_bd_proposal"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'Proposal - %s' % (object.display_name or object.id)</field>
+        </record>
+    </data>
+</odoo>

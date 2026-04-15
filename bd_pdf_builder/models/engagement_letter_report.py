@@ -7,6 +7,7 @@ class BdEngagementLetter(models.Model):
 
     def _get_or_create_engagement_report_action(self):
         xmlid = "bd_pdf_builder.action_engagement_letter_pdf"
+        paperformat = self.env.ref("bd_pdf_builder.paperformat_engagement_letter_pdf", raise_if_not_found=False)
         report_name = "bd_pdf_builder.report_engagement_letter_pdf"
         print_name_expr = "'Engagement Letter - %s' % (object.display_name or object.id)"
 
@@ -18,10 +19,17 @@ class BdEngagementLetter(models.Model):
             "report_file": report_name,
             "print_report_name": print_name_expr,
         }
+        if paperformat:
+            desired_vals["paperformat_id"] = paperformat.id
 
         action = self.env.ref(xmlid, raise_if_not_found=False)
         if action:
-            updates = {k: v for k, v in desired_vals.items() if action[k] != v}
+            updates = {}
+            for key, value in desired_vals.items():
+                current = action[key]
+                current_value = current.id if key == "paperformat_id" else current
+                if current_value != value:
+                    updates[key] = value
             if updates:
                 action.sudo().write(updates)
             return action

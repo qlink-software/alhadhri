@@ -1,379 +1,735 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_engagement_letter_pdf">
-        <t t-name="bd_pdf_builder.report_engagement_letter_pdf">
+        <!-- <t t-name="bd_pdf_builder.report_engagement_letter_pdf"> -->
             <t t-call="web.html_container">
-                <t t-call="bd_pdf_builder.engagement_letter_pdf_style"/>
-                <t t-call="bd_pdf_builder.engagement_letter_template_classic"/>
+                <t t-call="web.external_layout">
+                    <t t-call="bd_pdf_builder.engagement_letter_pdf_style"/>
+                    <t t-call="bd_pdf_builder.engagement_letter_template_classic"/>
+                </t>
             </t>
-        </t>
+        <!-- </t> -->
     </template>
 
     <template id="engagement_letter_pdf_style">
         <style type="text/css">
             @page {
                 size: A4;
-                margin: 8mm 10mm 10mm 10mm;
+                margin: 28mm 10mm 26mm 10mm;
             }
 
-            .bd-pdf {
-                padding: 0;
-                color: #000;
-                font-size: 12pt;
-                line-height: 1.4;
-                font-family: "DejaVu Sans", "Noto Naskh Arabic", "Arial", sans-serif;
+            @font-face {
+                font-family: "BDNotoNaskhArabic";
+                src: url("/bd_pdf_builder/static/src/fonts/NotoNaskhArabic-Regular.ttf") format("truetype");
+                font-weight: 400;
+                font-style: normal;
+            }
+
+            @font-face {
+                font-family: "BDNotoNaskhArabic";
+                src: url("/bd_pdf_builder/static/src/fonts/NotoNaskhArabic-Bold.ttf") format("truetype");
+                font-weight: 700;
+                font-style: normal;
+            }
+
+            @font-face {
+                font-family: "BDLiberationSans";
+                src: url("/bd_pdf_builder/static/src/fonts/LiberationSans-Regular.ttf") format("truetype");
+                font-weight: 400;
+                font-style: normal;
+            }
+
+            @font-face {
+                font-family: "BDLiberationSans";
+                src: url("/bd_pdf_builder/static/src/fonts/LiberationSans-Bold.ttf") format("truetype");
+                font-weight: 700;
+                font-style: normal;
+            }
+
+            :root {
+                --el-font-en: "Liberation Sans", "BDLiberationSans", "DejaVu Sans", "Arial", sans-serif;
+                --el-font-ar: "Noto Naskh Arabic", "BDNotoNaskhArabic", "Noto Sans Arabic UI", "Noto Sans Arabic", "DejaVu Sans", serif;
+                --el-font-mix: "Liberation Sans", "Noto Naskh Arabic", "BDLiberationSans", "BDNotoNaskhArabic", "DejaVu Sans", sans-serif;
+            }
+
+            .bd-pdf--engagement {
+                position: relative;
+                color: #111;
+                font-size: 11.5pt;
+                line-height: 1.55;
+                font-family: var(--el-font-mix);
+                direction: ltr;
                 -webkit-font-smoothing: antialiased;
                 text-rendering: optimizeLegibility;
             }
 
-            .bd-pdf--engagement .el-header,
-            .bd-pdf--engagement .el-footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 12px;
+            .bd-pdf--engagement .el-fixed-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 3;
+                text-align: center;
+                padding-top: 2mm;
             }
 
-            .bd-pdf--engagement .el-header__left,
-            .bd-pdf--engagement .el-header__right {
-                max-height: 90px;
-                width: auto;
+            .bd-pdf--engagement .el-fixed-header img {
+                width: 72px;
+                height: auto;
+                display: inline-block;
+            }
+
+            .bd-pdf--engagement .el-sheet {
+                position: relative;
+                z-index: 2;
+                direction: ltr;
+            }
+
+            .bd-pdf--engagement .el-top-logo {
+                text-align: center;
+                margin: 0 0 10px;
+            }
+
+            .bd-pdf--engagement .el-top-logo img {
+                width: 72px;
+                height: auto;
+            }
+
+            .bd-pdf--engagement .el-watermark {
+                position: fixed;
+                top: 29%;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 0;
+                opacity: 0.06;
+                text-align: center;
+            }
+
+            .bd-pdf--engagement .el-watermark img {
+                width: 280px;
+                height: auto;
+            }
+
+            .bd-pdf--engagement .el-fixed-footer {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 3;
+            }
+
+            .bd-pdf--engagement .el-fixed-footer img {
+                width: 100%;
+                height: auto;
                 display: block;
             }
 
-            .bd-pdf--engagement .el-title {
-                text-align: center;
-                margin: 12px 0 18px;
-            }
-
-            .bd-pdf--engagement .el-title__ar {
-                font-size: 20pt;
-                font-weight: 700;
+            .bd-pdf--engagement .el-titlebar,
+            .bd-pdf--engagement .el-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
                 direction: rtl;
-                unicode-bidi: plaintext;
             }
 
-            .bd-pdf--engagement .el-title__en {
-                font-size: 16pt;
-                font-weight: 700;
-                margin-top: 4px;
-            }
-
-            .bd-pdf--engagement .el-ar {
-                direction: rtl;
-                unicode-bidi: plaintext;
-                text-align: right;
-                font-family: "Noto Naskh Arabic", "Amiri", "DejaVu Sans", "Arial", sans-serif;
-            }
-
-            .bd-pdf--engagement .el-en {
-                direction: ltr;
-                unicode-bidi: plaintext;
-                text-align: left;
-                font-family: "DejaVu Sans", "Arial", sans-serif;
-            }
-
-            .bd-pdf--engagement .el-block,
-            .bd-pdf--engagement .el-section,
-            .bd-pdf--engagement .el-article {
+            .bd-pdf--engagement .el-titlebar {
                 margin-bottom: 12px;
-                word-break: break-word;
             }
 
-            .bd-pdf--engagement .el-party {
-                margin: 10px 0;
+            .bd-pdf--engagement .el-titlebar td {
+                background: #436175;
+                color: #fff;
+                padding: 10px 14px;
+                font-size: 17pt;
+                font-weight: 700;
+                letter-spacing: 0.2px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .bd-pdf--engagement .el-titlebar__ar {
+                direction: rtl;
+                unicode-bidi: embed;
+                font-family: var(--el-font-ar);
+                font-size: 18pt;
+                letter-spacing: 0;
+            }
+
+            .bd-pdf--engagement .el-titlebar__en {
+                direction: ltr;
+                unicode-bidi: embed;
+                font-family: var(--el-font-en);
+            }
+
+            .bd-pdf--engagement .el-table {
+                border: 1px solid #ced7df;
+                margin-bottom: 10px;
+                background: rgba(255, 255, 255, 0.94);
+            }
+
+            .bd-pdf--engagement .el-table td {
+                padding: 10px 12px;
+                vertical-align: top;
+                border-top: 1px solid #dde4ea;
+            }
+
+            .bd-pdf--engagement .el-table tr:first-child td {
+                border-top: 0;
+            }
+
+            .bd-pdf--engagement .el-cell--ar {
+                width: 50%;
+                text-align: right;
+                direction: rtl;
+                unicode-bidi: embed;
+                border-left: 1px solid #dde4ea;
+                font-family: var(--el-font-ar);
+                font-size: 12.6pt;
+                font-weight: 500;
+                line-height: 1.65;
+                letter-spacing: 0;
+                word-spacing: 0;
+            }
+
+            .bd-pdf--engagement .el-cell--en {
+                width: 50%;
+                text-align: left;
+                direction: ltr;
+                unicode-bidi: embed;
+                font-family: var(--el-font-en);
+                font-size: 11.3pt;
+            }
+
+            .bd-pdf--engagement .el-cell--ar,
+            .bd-pdf--engagement .el-titlebar__ar,
+            .bd-pdf--engagement .el-cell--ar .el-underlined,
+            .bd-pdf--engagement .el-cell--ar .el-article-title {
+                -webkit-text-size-adjust: none;
+                font-kerning: normal;
+                font-variant-ligatures: common-ligatures contextual;
+            }
+
+            .bd-pdf--engagement .el-cell--ar .el-highlight {
+                direction: ltr;
+                unicode-bidi: embed;
+                display: inline-block;
+            }
+
+            .bd-pdf--engagement .el-section-head td {
+                background: #436175;
+                color: #fff;
+                font-size: 13pt;
+                font-weight: 700;
+                letter-spacing: 0.2px;
+                text-align: center;
+                padding: 8px 12px;
+            }
+
+            .bd-pdf--engagement .el-meta-line,
+            .bd-pdf--engagement .el-party-line,
+            .bd-pdf--engagement .el-paragraph {
+                margin: 0 0 6px;
+            }
+
+            .bd-pdf--engagement .el-underlined {
+                font-weight: 700;
+                text-decoration: underline;
+            }
+
+            .bd-pdf--engagement .el-highlight {
+                background: #fff0a6;
+                padding: 0 3px;
             }
 
             .bd-pdf--engagement .el-pre {
                 white-space: pre-wrap;
             }
 
-            .bd-pdf--engagement .el-section-title {
-                text-align: center;
-                margin: 16px 0 12px;
+            .bd-pdf--engagement .el-list {
+                margin: 6px 0 0;
+                padding-left: 18px;
+            }
+
+            .bd-pdf--engagement .el-cell--ar .el-list {
+                padding-left: 0;
+                padding-right: 18px;
+            }
+
+            .bd-pdf--engagement .el-list li {
+                margin: 0 0 4px;
+            }
+
+            .bd-pdf--engagement .el-fees-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 8px;
+                font-size: 10.5pt;
+            }
+
+            .bd-pdf--engagement .el-fees-table th,
+            .bd-pdf--engagement .el-fees-table td {
+                border-bottom: 1px solid rgba(44, 56, 69, 0.18);
+                padding: 6px 4px;
+                vertical-align: top;
+            }
+
+            .bd-pdf--engagement .el-fees-table th {
+                font-size: 9pt;
+                text-transform: uppercase;
+                color: #5f6e7b;
+            }
+
+            .bd-pdf--engagement .el-fees-total {
                 font-weight: 700;
             }
 
-            .bd-pdf--engagement .el-section-title .el-ar,
-            .bd-pdf--engagement .el-section-title .el-en {
-                font-size: 14pt;
+            .bd-pdf--engagement .el-article-title {
+                margin: 0 0 6px;
+                font-weight: 700;
+                text-decoration: underline;
             }
 
-            .bd-pdf--engagement ul {
-                padding-left: 18px;
-                margin: 6px 0 10px;
+            .bd-pdf--engagement .el-cell--ar .el-article-title,
+            .bd-pdf--engagement .el-cell--ar .el-underlined {
+                font-family: var(--el-font-ar);
             }
 
-            .bd-pdf--engagement .el-footer {
-                border-top: 1px solid rgba(0, 0, 0, 0.2);
-                padding-top: 8px;
-                margin-top: 16px;
+            .bd-pdf--engagement .el-cell--en .el-article-title,
+            .bd-pdf--engagement .el-cell--en .el-underlined {
+                font-family: var(--el-font-en);
             }
 
-            .bd-pdf--engagement .el-footer__image {
-                width: 100%;
-                height: auto;
-                display: block;
+            .bd-pdf--engagement .el-signature-table td {
+                padding-top: 22px;
+                padding-bottom: 18px;
+            }
+
+            .bd-pdf--engagement .el-signature-line {
+                border-top: 1.5px solid #111;
+                padding-top: 10px;
+                text-align: center;
+                font-weight: 700;
+                min-height: 46px;
             }
         </style>
     </template>
 
-<template id="engagement_letter_template_classic" name="Engagement Letter Template - Al Hadhri">
-        <t t-name="bd_pdf_builder.engagement_letter_template_classic">
+    <template id="engagement_letter_template_classic" name="Engagement Letter Template - Al Hadhri">
+        <!-- <t t-name="bd_pdf_builder.engagement_letter_template_classic"> -->
             <t t-foreach="docs" t-as="doc">
-                <div class="page bd-pdf bd-pdf--engagement">
-                    <div class="el-header">
-                        <img class="el-header__left" t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_left.png'"/>
-                        <img class="el-header__right" t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_right.png'"/>
+                <t t-set="reference_no" t-value="doc.reference or doc.code or ''"/>
+                <t t-set="issue_date" t-value="doc.date and doc.date.strftime('%d/%m/%Y') or ''"/>
+                <t t-set="partner_name" t-value="doc.partner_id.display_name or ''"/>
+                <t t-set="partner_id_no" t-value="doc.partner_id.vat or doc.partner_id.ref or ''"/>
+                <t t-set="partner_phone" t-value="doc.partner_id.mobile or doc.partner_id.phone or ''"/>
+                <t t-set="partner_email" t-value="doc.partner_id.email or ''"/>
+                <t t-set="partner_address" t-value="doc.contact_details or doc.partner_id.contact_address or ''"/>
+                <div class="page bd-pdf--engagement">
+                    <div class="el-fixed-header">
+                        <img t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_left.png'"/>
+                    </div>
+                    <div class="el-watermark">
+                        <img t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_left.png'"/>
+                    </div>
+                    <div class="el-fixed-footer">
+                        <img t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/footer.png'"/>
                     </div>
 
-                    <div class="el-title">
-                        <div class="el-title__ar">إتفاقية أتعاب</div>
-                        <div class="el-title__en">Mandate Agreement</div>
-                    </div>
+                    <div class="el-sheet">
+                        <table class="el-titlebar">
+                            <tr>
+                                <td class="el-titlebar__ar" lang="ar" dir="rtl">إتفاقية أتعاب</td>
+                                <td class="el-titlebar__en" lang="en" dir="ltr">Mandate Agreement</td>
+                            </tr>
+                        </table>
 
-                    <div class="el-block">
-                        <div class="el-ar">الموضوع: تقديم خدمات قانونية</div>
-                        <div class="el-ar">الرقم المرجعي: <t t-esc="doc.reference or doc.code or ''"/></div>
-                        <div class="el-ar">أبرمت هذه الاتفاقية في يوم ________ الموافق <t t-esc="doc.date or ''"/> بين كل من:</div>
+                        <table class="el-table">
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-meta-line el-underlined">الموضوع: تقديم خدمات قانونية</div>
+                                    <div class="el-meta-line el-underlined">
+                                        الرقم المرجعي:
+                                        <span class="el-highlight"><t t-esc="reference_no"/></span>
+                                    </div>
+                                    <div class="el-meta-line">
+                                        أبرمت هذه الاتفاقية في يوم ________ الموافق
+                                        <span class="el-highlight"><t t-esc="issue_date"/></span>
+                                        بين كل من:
+                                    </div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-meta-line el-underlined">Subject: Provision of Legal Services</div>
+                                    <div class="el-meta-line el-underlined">
+                                        Reference No:
+                                        <span class="el-highlight"><t t-esc="reference_no"/></span>
+                                    </div>
+                                    <div class="el-meta-line">
+                                        This Agreement is entered on ________
+                                        <span class="el-highlight"><t t-esc="issue_date"/></span>
+                                        between:
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-party-line">أولاً: الحضـــــــــري وشركاه للمحاماة.</div>
+                                    <div class="el-party-line">رخصة المكتب رقم: (212506).</div>
+                                    <div class="el-party-line">عنوانه: برج البراحة، الطابق الخامس - لوسيل مارينا.</div>
+                                    <div class="el-party-line">رقم الهاتف: (+974) 40473576.</div>
+                                    <div class="el-party-line">ص.ب: 18022، الدوحة - قطر.</div>
+                                    <div class="el-party-line">بريد الكتروني: dev@alhadhrilawfirm.com.</div>
+                                    <div class="el-party-line">(يشار إليه فيما بعد بـ "الطرف الأول").</div>
+                                    <div class="el-party-line">ويمثله المحامي عبد الله الحضري، بصفته: الشريك المدير.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-party-line">First: Al Hadhri &amp; Partners Law Firm.</div>
+                                    <div class="el-party-line">Office License Number: (212506).</div>
+                                    <div class="el-party-line">Address: Al Baraha Tower, 5th Floor, Lusail Marina.</div>
+                                    <div class="el-party-line">Tel: (+974) 40473576.</div>
+                                    <div class="el-party-line">P.O. Box: 18022, Doha, Qatar.</div>
+                                    <div class="el-party-line">Email Address: dev@alhadhrilawfirm.com.</div>
+                                    <div class="el-party-line">(Hereinafter referred to as the "1st Party").</div>
+                                    <div class="el-party-line">Represented by Lawyer Abdalla Al-Hadhri, in the capacity of Managing Partner.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-party-line">
+                                        ثانياً:
+                                        <span class="el-highlight"><t t-esc="partner_name"/></span>
+                                    </div>
+                                    <div class="el-party-line">بطاقة شخصية / سجل تجاري رقم: <t t-esc="partner_id_no"/></div>
+                                    <div class="el-party-line">رقم الهاتف: <t t-esc="partner_phone"/></div>
+                                    <div class="el-party-line">بريد الكتروني: <t t-esc="partner_email"/></div>
+                                    <div class="el-party-line" t-if="partner_address">العنوان / ص.ب: <span class="el-pre" t-esc="partner_address"/></div>
+                                    <div class="el-party-line">(ويشار إليه فيما بعد بـ "الطرف الثاني").</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-party-line">
+                                        Second:
+                                        <span class="el-highlight"><t t-esc="partner_name"/></span>
+                                    </div>
+                                    <div class="el-party-line">ID / CR Number: <t t-esc="partner_id_no"/></div>
+                                    <div class="el-party-line">Tel: <t t-esc="partner_phone"/></div>
+                                    <div class="el-party-line">Email Address: <t t-esc="partner_email"/></div>
+                                    <div class="el-party-line" t-if="partner_address">Address / P.O. Box: <span class="el-pre" t-esc="partner_address"/></div>
+                                    <div class="el-party-line">(Hereinafter referred to as the "2nd Party").</div>
+                                </td>
+                            </tr>
+                        </table>
 
-                        <div class="el-en">Subject: Provision of Legal Services</div>
-                        <div class="el-en">Reference No: <t t-esc="doc.reference or doc.code or ''"/></div>
-                        <div class="el-en">This Agreement is entered on ________ <t t-esc="doc.date or ''"/> between</div>
-                    </div>
+                        <table class="el-table">
+                            <tr class="el-section-head">
+                                <td>نطاق الاعمال الموكلة من قبلكم</td>
+                                <td>Scope of Work</td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl"><div class="el-pre" t-esc="doc.scope_of_work or '-'"/></td>
+                                <td class="el-cell--en" lang="en" dir="ltr"><div class="el-pre" t-esc="doc.scope_of_work or '-'"/></td>
+                            </tr>
+                        </table>
 
-                    <div class="el-party">
-                        <div class="el-ar">
-                            أولاً: الحضـــــــــري وشركاه للمحاماة، رخصة المكتب رقم (212506).<br/>
-                            عنوانه: برج البراحة، الطابق الخامس – لوسيل مارينا<br/>
-                            رقم الهاتف: 40473576 (+974)،<br/>
-                            ص.ب: 18022، الدوحة – قطر.<br/>
-                            بريد الكتروني: dev@alhadhrilawfirm.com ،<br/>
-                            (يشار إليه فيما بعد بـ"الطرف الأول")<br/>
-                            ويمثله المحامي عبد الله الحضــــري، بصفته: الشريك المدير.
-                        </div>
-                        <div class="el-en">
-                            First: Al Hadhri &amp; Partners Law Firm, Office License Number: (212506).<br/>
-                            Address: Al Baraha Tower, 5th Floor, Lusail Marina<br/>
-                            Tel: (+974) 40473576,<br/>
-                            P.O. Box 18022, Doha, Qatar.<br/>
-                            Email Address: dev@alhadhrilawfirm.com,<br/>
-                            (Hereinafter referred to as the “1st Party”)<br/>
-                            Represented by Lawyer Abdalla Al-Hadhri, in the capacity of Managing Partner.
-                        </div>
-                    </div>
+                        <table class="el-table">
+                            <tr class="el-section-head">
+                                <td>الأتعــــــاب</td>
+                                <td>Fees</td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-paragraph">
+                                        ستكون أتعابنا مقابل تقديم خدماتنا المهنية للعميل وفقاً لنطاق العمل المذكور أعلاه مبلغ
+                                        <span class="el-highlight"><t t-esc="doc.total_legal_fees or doc.fee_total or 0"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></span>
+                                        وتدفع كالتالي:
+                                    </div>
+                                    <table class="el-fees-table">
+                                        <thead>
+                                            <tr>
+                                                <th>الخدمة</th>
+                                                <th>الكمية</th>
+                                                <th>السعر</th>
+                                                <th>الخصم</th>
+                                                <th>الإجمالي</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="doc.legal_fees_lines" t-as="line">
+                                                <td>
+                                                    <div t-esc="line.service_name or line.description or '-'"/>
+                                                    <div t-if="line.service_type"><span t-field="line.service_type"/></div>
+                                                </td>
+                                                <td><t t-esc="'{:,.2f}'.format(line.quantity or 0.0)"/></td>
+                                                <td><t t-esc="'{:,.3f}'.format(line.unit_price or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                                <td>
+                                                    <t t-if="line.discount_type == 'percent'">
+                                                        <t t-esc="'{:,.2f}'.format(line.discount or 0.0)"/>%
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-esc="'{:,.3f}'.format(line.discount or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/>
+                                                    </t>
+                                                </td>
+                                                <td><t t-esc="'{:,.3f}'.format(line.subtotal or line.amount or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                            <tr t-if="not doc.legal_fees_lines">
+                                                <td>الأتعاب القانونية</td>
+                                                <td>1.00</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                                <td>0.00</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                            <tr class="el-fees-total">
+                                                <td colspan="4">إجمالي الأتعاب القانونية</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="el-paragraph">تستحق كافة المبالغ المذكورة أعلاه في حالة تسوية أو التنازل.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-paragraph">
+                                        Our fees for providing the client with our professional services in accordance with the above-mentioned scope of work will be
+                                        <span class="el-highlight"><t t-esc="doc.total_legal_fees or doc.fee_total or 0"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></span>
+                                        paid as follows:
+                                    </div>
+                                    <table class="el-fees-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Service</th>
+                                                <th>Qty</th>
+                                                <th>Price</th>
+                                                <th>Discount</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="doc.legal_fees_lines" t-as="line">
+                                                <td>
+                                                    <div t-esc="line.service_name or line.description or '-'"/>
+                                                    <div t-if="line.service_type"><span t-field="line.service_type"/></div>
+                                                </td>
+                                                <td><t t-esc="'{:,.2f}'.format(line.quantity or 0.0)"/></td>
+                                                <td><t t-esc="'{:,.3f}'.format(line.unit_price or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                                <td>
+                                                    <t t-if="line.discount_type == 'percent'">
+                                                        <t t-esc="'{:,.2f}'.format(line.discount or 0.0)"/>%
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-esc="'{:,.3f}'.format(line.discount or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/>
+                                                    </t>
+                                                </td>
+                                                <td><t t-esc="'{:,.3f}'.format(line.subtotal or line.amount or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                            <tr t-if="not doc.legal_fees_lines">
+                                                <td>Legal Fees</td>
+                                                <td>1.00</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                                <td>0.00</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                            <tr class="el-fees-total">
+                                                <td colspan="4">Total Legal Fees</td>
+                                                <td><t t-esc="'{:,.3f}'.format(doc.total_legal_fees or doc.fee_total or 0.0)"/> <t t-esc="doc.currency_id.symbol or doc.currency_id.name or ''"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="el-paragraph">All the above amounts are due in the event of settlement or cancellation of the case.</div>
+                                </td>
+                            </tr>
+                        </table>
 
-                    <div class="el-party">
-                        <div class="el-ar">
-                            ثانياً: <t t-esc="doc.partner_id.display_name or ''"/><br/>
-                            بطاقة شخصية /سجل تجاري رقم: <t t-esc="doc.partner_id.vat or doc.partner_id.ref or ''"/><br/>
-                            رقم الهاتف: <t t-esc="doc.partner_id.mobile or doc.partner_id.phone or ''"/> (974)<br/>
-                            بريد الكتروني: <t t-esc="doc.partner_id.email or ''"/><br/>
-                            (ويشار إليهم فيما بعد ب “الطرف الثاني")
-                        </div>
-                        <div class="el-en">
-                            Second: <t t-esc="doc.partner_id.display_name or ''"/><br/>
-                            ID/CR Number: <t t-esc="doc.partner_id.vat or doc.partner_id.ref or ''"/><br/>
-                            Tel: (974) <t t-esc="doc.partner_id.mobile or doc.partner_id.phone or ''"/><br/>
-                            Email Address: <t t-esc="doc.partner_id.email or ''"/><br/>
-                            (Hereinafter referred to “the 2nd Party”)
-                        </div>
-                    </div>
+                        <table class="el-table">
+                            <tr class="el-section-head">
+                                <td>ملحق الشروط والأحكام</td>
+                                <td>Terms and Provisions Addendum</td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">تمهيد:</div>
+                                    <div class="el-paragraph">حيث إن الطرف الأول محامي مرخص لمزاولة مهنة المحاماة ويتولى الترافع والدفاع نيابة عن عملائه أمام المحاكم القطرية وتقديم الاستشارات القانونية وتنظيم وصياغة العقود القانونية المختلفة.</div>
+                                    <div class="el-paragraph">وحيث إن الطرف الثاني يرغب بتوكيل الطرف الأول للمرافعة والمدافعة عنه أمام المحاكم المختصة والدوائر الحكومية على اختلافها واتخاذ كل ما يلزم للحفاظ على حقوقه أو يرغب بالاستفادة من الخبرات القانونية التي يتمتع بها الطرف الأول بما في ذلك تقديم الاستشارة القانونية اللازمة أو صياغة عقود أو اتفاقيات تتعلق بأعمال الطرف الثاني.</div>
+                                    <div class="el-paragraph">وبعد أن أقر الطرفان بأهليتهما للتعاقد، وتلاقت إرادتهما، اتفقا على ما ورد في ملحق هذه الاتفاقية.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Preamble:</div>
+                                    <div class="el-paragraph">Whereas the First Party is a lawyer licensed to practice the legal profession and pleads and defends on behalf of clients before the Qatari courts, provides legal consultations, and drafts different legal contracts.</div>
+                                    <div class="el-paragraph">Whereas the Second Party wishes to appoint the First Party to plead and defend before competent courts and government authorities, preserve rights, provide legal advice, or draft contracts and agreements related to the business of the Second Party.</div>
+                                    <div class="el-paragraph">After the parties acknowledged their legal capacity to contract and their wills converged, they agreed on the following provisions.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (1):</div>
+                                    <div class="el-paragraph">يعتبر التمهيد السابق وجميع الشروط والأحكام المرفقة جزءاً لا يتجزأ من هذه الاتفاقية ومتمماً لها.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (1):</div>
+                                    <div class="el-paragraph">The above preamble and all annexes attached thereto shall be an integral and interpretive part of this Agreement.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (2):</div>
+                                    <div class="el-paragraph">تسري هذه الاتفاقية من يوم التوقيع عليها من قبل الطرفين، وتنتهي إما بانتهاء إجراء التقاضي الموكل إلى الطرف الأول أو بتوقف الطرف الأول عن الدفاع عن الطرف الثاني حال إخلاله ببند الأتعاب الوارد في نطاق العمل محل هذه الاتفاقية وطبقاً لحكم المادة (6) من هذه الاتفاقية. ويحق للطرف الأول أن ينهي الاتفاقية بإرادته المنفردة في أي مرحلة من مراحل الدعوى.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (2):</div>
+                                    <div class="el-paragraph">This Agreement shall be effective from the day it is signed by both parties and shall end either upon completion of the litigation entrusted to the First Party or upon the First Party ceasing to act due to a breach of the fees clause in accordance with Article (6). The First Party may terminate the Agreement unilaterally at any stage of the case.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (3):</div>
+                                    <div class="el-paragraph">يقوم الطرف الأول بتمثيل الطرف الثاني في الدعوى المقامة أمام المحكمة المذكورة في نطاق العمل المشار إليه في هذه الاتفاقية.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (3):</div>
+                                    <div class="el-paragraph">The First Party will represent the Second Party in the matter before the court mentioned in the agreed scope of work.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (4):</div>
+                                    <div class="el-paragraph">يلتزم الطرف الثاني بالإفصاح عن كافة المعلومات المتعلقة بالعمل الذي وكل به الطرف الأول، وفي حال عدم قيامه بذلك فإنه وحده يتحمل ما قد يترتب على ذلك من نتائج.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (4):</div>
+                                    <div class="el-paragraph">The Second Party undertakes to disclose all information related to the matter entrusted to the First Party and shall alone bear any consequences resulting from a failure to do so.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (5):</div>
+                                    <div class="el-paragraph">إذا تأخر الطرف الثاني عن سداد الأتعاب المتفق عليها أو جزء منها في المواعيد المحددة بموجب هذه الاتفاقية لمدة تزيد على أسبوع، يكون للطرف الأول الحق في التوقف عن الاستمرار في العمل الموكل به، ويتحمل الطرف الثاني وحده كامل المسؤولية عن النتائج المترتبة على هذا التوقف.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (5):</div>
+                                    <div class="el-paragraph">If the Second Party delays payment of the agreed fees, in whole or in part, for more than one week beyond the due date, the First Party may stop carrying out the entrusted work and the Second Party shall bear sole responsibility for the resulting consequences.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (6):</div>
+                                    <div class="el-paragraph">يكون للطرف الأول الحق في حبس ما يدخل في حوزته من أوراق أو مستندات أو أموال من الطرف الثاني أو بسببه إلى حين استيفاء كامل أتعابه المتفق عليها وفقاً لحكم المادة (41) من قانون المحاماة رقم (23) لسنة 2006 وتعديلاته.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (6):</div>
+                                    <div class="el-paragraph">The First Party shall have the right to withhold any papers, documents, or funds received from or because of the Second Party until full payment of the agreed fees is made in accordance with Article (41) of the Law Practice Code No. (23) of 2006 and its amendments.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (7):</div>
+                                    <div class="el-paragraph">يتحمل الطرف الثاني وحده كافة مصاريف الدعوى ونفقاتها بما في ذلك الرسوم القضائية ونفقات طلب الخبرة، ولا تعتبر هذه المصاريف والنفقات من أتعاب المحاماة.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (7):</div>
+                                    <div class="el-paragraph">The Second Party alone shall bear all lawsuit costs and expenses, including judicial fees and expert expenses, and such amounts shall not be considered part of attorney fees.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (8):</div>
+                                    <div class="el-paragraph">يلتزم الطرف الثاني بتزويد الطرف الأول بكافة المستندات والوثائق اللازمة للقيام بالعمل الموكل به فور طلبها، ولا يتحمل الطرف الأول النتائج المترتبة على عدم تقديمها في الوقت المحدد، ويتحمل الطرف الثاني وحده المسؤولية المدنية والجنائية عن صحة هذه المستندات.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (8):</div>
+                                    <div class="el-paragraph">The Second Party shall provide all documents and records required to perform the entrusted work upon request. The First Party shall not be responsible for consequences resulting from delay or non-submission, and the Second Party shall bear sole civil and criminal responsibility for the authenticity of such documents.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (9):</div>
+                                    <div class="el-paragraph">يلتزم الطرف الأول بالمحافظة على سرية البيانات التي يدلي بها الطرف الثاني، كما يلتزم بالمحافظة على كافة المستندات والأوراق التي يتسلمها من الطرف الثاني وبإعادتها إليه عند انتهاء العمل الموكل به ما لم يكن قد أودعها لدى المحكمة، وذلك مع عدم الإخلال بأحكام المادة (6) من هذه الاتفاقية.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (9):</div>
+                                    <div class="el-paragraph">The First Party undertakes to maintain the confidentiality of the information provided by the Second Party and to preserve all documents received from the Second Party and return them upon completion of the entrusted work unless they have been deposited with the court, without prejudice to Article (6) of this Agreement.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (10):</div>
+                                    <div class="el-paragraph">يقر الطرف الثاني بأن التزام الطرف الأول هو التزام ببذل العناية اللازمة وليس التزاماً بتحقيق نتيجة.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (10):</div>
+                                    <div class="el-paragraph">The Second Party acknowledges that the obligation of the First Party is an obligation of due care and not an obligation to achieve a specific result.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (11):</div>
+                                    <div class="el-paragraph">يستحق الطرف الأول كامل الأتعاب المتفق عليها في هذه الاتفاقية حتى ولو قام الطرف الثاني بالتنازل عن توكيل الطرف الأول قبل إنهاء العمل الموكل فيه أو قام بعزله لسبب لا علاقة للطرف الأول به أو إذا تعلق التوكيل بنزاع قضائي وانتهى هذا النزاع بطريق الصلح أو إسقاط الدعوى أو التنازل عنها.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (11):</div>
+                                    <div class="el-paragraph">The First Party shall be entitled to the full fees agreed in this Agreement even if the Second Party revokes or waives the mandate before completion of the entrusted work, dismisses the First Party for a reason unrelated to the First Party, or if the judicial dispute ends by settlement, withdrawal, or waiver.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (12):</div>
+                                    <div class="el-paragraph">تقتصر مسؤولية المكتب تجاهكم بموجب هذه الاتفاقية، سواء كانت عن إخلال بالالتزامات التعاقدية أو بالنظام أو بالتزام تشريعي أو خلافه، وسواء تعلقت بأي تصرف أو إغفال أو تأخير في العمل، على حدود مبلغ الأتعاب المتفق عليه في هذه الاتفاقية. ولا يتحمل المكتب بأي حال من الأحوال المسؤولية عن أية خسارة غير مباشرة أو قرارات تجارية صادرة من جانبكم أو أية خسارة تبعية، كما لا يتحمل أية مسؤولية أخرى إذا نشأت عن تصرف أجريناه بحسن نية للالتزام بالقانون. وعلاوة على ذلك يخلو المكتب من أية مسؤولية حال استخدام رأينا الاستشاري خارج نطاق هذا التعاقد.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (12):</div>
+                                    <div class="el-paragraph">The firm's liability under this Agreement, whether for breach of contractual obligations, statutory duties, negligence, omission, or delay, shall be limited to the amount of fees agreed herein. In no event shall the Firm be liable for indirect loss, business decisions made by you, or consequential loss. The Firm shall also not be liable for acts taken in good faith as necessary to comply with the law, nor for advisory opinions used outside the scope of this engagement.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (13):</div>
+                                    <div class="el-paragraph">يلتزم الطرف الأول بعدم الإفصاح عن المعلومات السرية التي تلقاها من الطرف الثاني ما لم يطلب الطرف الثاني الإفصاح عنها أو كانت تلك المعلومات معلنة أو رأى الطرف الأول بحسن نية أن الإفصاح عنها مفروض بحكم القانون أو السلطة الرسمية لأي هيئة حكومية أو تنظيمية أو مهنية.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (13):</div>
+                                    <div class="el-paragraph">The First Party undertakes not to disclose confidential information received from the Second Party unless disclosure is requested by the Second Party, the information is public, or the First Party believes in good faith that disclosure is required by law or by an official governmental, regulatory, or professional authority.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (14):</div>
+                                    <div class="el-paragraph">في حال نشوء أي خلاف بين الطرفين بشأن تنفيذ أو تفسير بنود هذه الاتفاقية تختص المحاكم القطرية بالفصل فيه وفقاً للقوانين القطرية ذات العلاقة.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (14):</div>
+                                    <div class="el-paragraph">In the event of any dispute arising between the parties regarding the implementation or interpretation of this Agreement, the Qatari courts shall have jurisdiction in accordance with the relevant Qatari laws.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (15):</div>
+                                    <div class="el-paragraph">يعتبر عنوان الطرفين الوارد في هذه الاتفاقية موطناً مختاراً لكل منهما، وترسل إليه جميع المراسلات والإخطارات والإعلانات بما في ذلك البريد الإلكتروني.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (15):</div>
+                                    <div class="el-paragraph">The addresses of the parties stated in this Agreement shall be deemed their elected domiciles for all correspondence, notices, and communications, including email.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-article-title">مادة (16):</div>
+                                    <div class="el-paragraph">حررت هذه الاتفاقية باللغتين العربية والإنجليزية من نسختين بيد كل طرف نسخة للعمل بموجبها، وفي حال الخلاف بين اللغتين ترجح النسخة العربية.</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-article-title">Article (16):</div>
+                                    <div class="el-paragraph">This Agreement was executed in Arabic and English in two copies, with each party holding one copy. In case of discrepancy between the two versions, the Arabic version shall prevail.</div>
+                                </td>
+                            </tr>
+                        </table>
 
-                    <div class="el-section">
-                        <div class="el-ar">نطاق الاعمال الموكلة من قبلكم:</div>
-                        <div class="el-ar el-pre" t-esc="doc.scope_of_work or '-'"/>
-                        <div class="el-en">Scope of Work:</div>
-                        <div class="el-en el-pre" t-esc="doc.scope_of_work or '-'"/>
-                    </div>
-
-                    <div class="el-section">
-                        <div class="el-en">FEES:</div>
-                        <div class="el-ar">الأتعــــــاب:</div>
-                        <div class="el-en">
-                            Our fees for providing the client with our professional services in accordance with the above-mentioned scope of work will be
-                            <t t-esc="doc.fee_total or 0"/> <t t-esc="doc.currency_id.name or ''"/> paid as follows:
-                        </div>
-                        <div class="el-ar">
-                            ستكون أتعابنا مقابل تقديم خدماتنا المهنية للعميل وفقاً لنطاق العمل المذكور أعلاه مبلغ
-                            <t t-esc="doc.fee_total or 0"/> <t t-esc="doc.currency_id.name or ''"/> وتدفع كالتالي:
-                        </div>
-                        <ul class="el-en">
-                            <li t-foreach="doc.legal_fees_lines" t-as="line">
-                                <t t-esc="line.amount"/> <t t-esc="doc.currency_id.name or ''"/> - <t t-esc="line.description"/>
-                            </li>
-                        </ul>
-                        <ul class="el-ar">
-                            <li t-foreach="doc.legal_fees_lines" t-as="line">
-                                <t t-esc="line.description"/> - <t t-esc="line.amount"/> <t t-esc="doc.currency_id.name or ''"/>
-                            </li>
-                        </ul>
-                        <div class="el-en">All the above amounts are due in the event of settlement or cancellation of the Case.</div>
-                        <div class="el-ar">تستحق كافة المبالغ المذكورة أعلاه في حالة تسوية أو التنازل.</div>
-                    </div>
-
-                    <div class="el-section">
-                        <div class="el-en">First Party: Al Hadhri &amp; Partners Law Firm represented by Mr. Abdulla Al Hadhri</div>
-                        <div class="el-en">Second Party: <t t-esc="doc.partner_id.display_name or ''"/></div>
-                    </div>
-
-                    <div class="el-section-title">
-                        <div class="el-ar">ملحق الشروط والأحكام</div>
-                        <div class="el-en">Terms and Provisions Addendum</div>
-                    </div>
-
-                    <div class="el-section">
-                        <div class="el-ar">تمهيد:</div>
-                        <div class="el-en">Preamble:</div>
-                        <div class="el-ar">
-                            حيث إن الطرف الأول محامي مرخص لمزاولة مهنة المحاماة ويتولى الترافع والدفاع نيابة عن عملائه أمام المحاكم القطرية وتقديم الاستشارات القانونية وتنظيم وصياغة العقود القانونية المختلفة.
-                        </div>
-                        <div class="el-en">
-                            Whereas the First Party is a lawyer licensed to practice the legal profession and pleads and defend on behalf of his clients before the Qatari courts, providing legal consultations, organizing, and drafting various legal contracts.
-                        </div>
-                        <div class="el-ar">
-                            وحيث إن الطرف الثاني يرغب بتوكيل الطرف الأول للمرافعة والمدافعة عنه أمام المحاكم المختصة والدوائر الحكومية على اختلافها واتخاذ كل ما يلزم للحفاظ على حقوقه/ أو يرغب بالاستفادة من الخبرات القانونية التي يتمتع بها الطرف الأول بما في ذلك تقديم الاستشارة القانونية اللازمة/ أو صياغة عقود أو اتفاقيات تتعلق بأعمال الطرف الثاني.
-                        </div>
-                        <div class="el-en">
-                            And whereas the Second Party wishes to appoint the First Party to plead and defend him/her before the competent courts, different government departments and to take all necessary measures to preserve his/her rights / or wish to benefit from the legal expertise enjoyed by the First Party, including providing the necessary legal advice / or drafting contracts or agreements Related to the business of the Second Party.
-                        </div>
-                        <div class="el-ar">و بعد أن أقر الطرفان بأهليتهما للتعاقد، وتلاقت إرادتهما، اتفقا على ما ورد في ملحق هذه الاتفاقية:</div>
-                        <div class="el-en">After the parties acknowledged their legal capacity to contract, and their wills converged, they agreed on the following:</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (1):</div>
-                        <div class="el-en">Article (1):</div>
-                        <div class="el-ar">يعتبر التمهيد السابق وجميع الشروط والأحكام المرفقة جزءاً لا يتجزأ من هذه الاتفاقية ومتمماً لها.</div>
-                        <div class="el-en">The above preamble and all the annexes attached thereto shall be an integral and interpretive part of this Contract.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (2):</div>
-                        <div class="el-en">Article (2):</div>
-                        <div class="el-ar">
-                            تسـري هذه الاتفاقية من يوم التوقيع عليها من قبل الطرفين، وتنتهي إما بانتهاء إجراء التقاضي الموكل إلى الطرف الأول/أو بتوقف الطرف الأول عن الدفاع عن الطرف الثاني حال إخلاله/ها لبند الأتعاب الوارد في نطاق العمل محل هذه الاتفاقية وطبقاً لحكم المادة (6) من هذه الاتفاقية.
-                            ويحق للطرف الأول أن ينهي الاتفاقية بإرادته المنفردة في أي مرحلة من مراحل الدعوى.
-                        </div>
-                        <div class="el-en">
-                            This agreement shall be effective from the day it is signed by the two parties and ends either at the end of the litigation procedure entrusted to the First Party / or with the First Party ceasing from defending on behalf of the Second Party In the event that he/she breaches the fees clause mentioned in the scope of work subject of this Agreement and in accordance with the provisions of Article (6) of this agreement. The First Party has the right to terminate the agreement of its own unilateral will at any stage of the lawsuit.
-                        </div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (3):</div>
-                        <div class="el-en">Article (3):</div>
-                        <div class="el-ar">يقوم الطرف الأول بتمثيل الطرف الثاني في الدعوى المقامة أمام المحكمة المذكورة في نطاق العمل المشار إليه في هذه الاتفاقية.</div>
-                        <div class="el-en">The First Party will represent the Second Party in the case before Court mentioned in the above scope of work of this Agreement.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (4):</div>
-                        <div class="el-en">Article (4):</div>
-                        <div class="el-ar">يلتزم الطرف الثاني بالإفصاح عن كافة المعلومات المتعلقة بالعمل الذي وكل به الطرف الأول، وفي حال عدم قيامه بذلك، فإنه وحده يتحمل ما قد يترتب على ذلك من نتائج.</div>
-                        <div class="el-en">The Second Party obligates to disclose all information related to the work entrusted to the First Party, in the event the Second Party failure to perform his/her obligation, he/she alone shall bear any consequences result from his/her failure.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (5):</div>
-                        <div class="el-en">Article (5):</div>
-                        <div class="el-ar">إذا تأخر الطرف الثاني عن سداد الاتعاب المتفق عليها أو جزء منها في المواعيد المحددة بموجب هذه الاتفاقية لمدة تزيد على أسبوع، يكون للطرف الأول الحق في التوقف عن الاستمرار في العمل الموكل به من قبل الطرف الثاني، ويتحمل الطرف الثاني وحدة كامل المسؤولية عن النتائج المترتبة على هذا التوقف.</div>
-                        <div class="el-en">If the Second Party did not pay the agreed fees or part of them on the dates specified under this Agreement for a period of more than a week, the First Party has the right to discontinue the work entrusted to him by the Second Party, and the Second Party alone bears all responsibility for the consequences of this decision.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (6):</div>
-                        <div class="el-en">Article (6):</div>
-                        <div class="el-ar">يكون للطرف الأول الحق في حبس ما يدخل في حوزته من أوراق أو مستندات أو أموال من الطرف الثاني أو بسببه إلى حين استيفاء كامل اتعابه المتفق عليها وفقاً لحكم المادة (41) من قانون المحاماة رقم (23) لسنة 2006 وتعديلاته.</div>
-                        <div class="el-en">The First Party shall have the right to withhold any papers, documents or funds come into his possession from or because of the Second Party until the full agreed fees are paid off in accordance with the provision of the Article (41) of the code of Law Practice no: (23) of year 2006 and its amendments.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (7):</div>
-                        <div class="el-en">Article (7):</div>
-                        <div class="el-ar">يتحمل الطرف الثاني وحده كافة مصاريف الدعوى ونفقاتها بما في ذلك الرسوم القضائية ونفقات طلب الخبرة، ولا تعتبر هذه المصاريف والنفقات من أتعاب المحاماة.</div>
-                        <div class="el-en">The Second Party alone bears all costs and expenses of the lawsuit, including judicial fees and expenses of requesting expertise, and these expenses are not considered among the attorney's fees.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة(8):</div>
-                        <div class="el-en">Article (8):</div>
-                        <div class="el-ar">يلتزم الطرف الثاني بتزويد الطرف الأول بكافة المستندات والوثائق اللازمة للقيام بالعمل الموكل به فور طلبها، ولا يتحمل الطرف الأول النتائج المترتبة على عدم تقديمها بالوقت المحدد، ويتحمل الطرف الثاني وحده المسؤولية المدنية والجنائية عن صحة هذه المستندات.</div>
-                        <div class="el-en">The Second Party obliges to provide all necessary documents upon First Party`s request to deliver the work he entrusted to him, in the event the Second Party did not fulfil this obligation or did not provide it on time, he/she alone shall bear the civil and the criminal responsibility towards the authenticity of these documents.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (9):</div>
-                        <div class="el-en">Article (9):</div>
-                        <div class="el-ar">يلتزم الطرف الأول بالمحافظة على سرية البيانات التي يدلي بها الطرف الثاني، كما يلتزم بالمحافظة على كافة المستندات والأوراق التي يتسلمها من الطرف الثاني وبإعادتها إليه عند انتهاء العمل الموكل به، ما لم يكن قد أودعها في ملف الدعوى لدى المحكمة، ومع عدم الإخلال بأحكام المادة (6) من هذه الاتفاقية.</div>
-                        <div class="el-en">The First Party obligates to maintain the confidentiality of the data provided by the Second Party, as well as he also obligates to maintain all documents that he receives from the Second Party and to return them to him upon completion of the work entrusted to him unless he has deposited them in the case file in the court and provided the fee dues to the First Party is paid off, and without prejudice the provision of the Article (6) of this Agreement.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (10):</div>
-                        <div class="el-en">Article (10):</div>
-                        <div class="el-ar">يقر الطرف الثاني بأن التزام الطرف الأول هو التزام ببذل العناية اللازمة وليس التزام بتحقيق نتيجة.</div>
-                        <div class="el-en">The Second party acknowledges that the obligation of the first party is an obligation to exercise due diligence and not an obligation to achieve a result.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (11):</div>
-                        <div class="el-en">Article (11):</div>
-                        <div class="el-ar">يستحق الطرف الأول كامل الاتعاب المتفق عليها في هذه الاتفاقية. حتى ولو قام الطرف الثاني بالتنازل عن توكيل الطرف الأول قبل إنهاء العمل الذي وكل فيه، أو قام بعزله لسبب لا علاقة للطرف الأول به، أو إذا تعلق التوكيل بنزاع قضائي وانتهى هذا النزاع بطريق الصلح أو بسبب اسقاط الدعوى أو التنازل عنها.</div>
-                        <div class="el-en">The First party shall be entitled to the full fees agreed upon in this agreement. Even if the second party waived the power of attorney for the first party before ending the work for which he was entrusted or dismissed him for a reason unrelated to the first party, or if the power of attorney was related to a judicial dispute and this dispute ended through conciliation or because of the dismissal or assignment of the lawsuit.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (12):</div>
-                        <div class="el-en">Article (12):</div>
-                        <div class="el-ar">
-                            تقتصر مسئولية المكتب تجاهكم بموجب هذه الاتفاقية-سواء كانت المسئولية عن إخلال  بالالتزامات التعاقدية أو بالنظام (بما في ذلك الإهمال أو الإقرار الخاطئ أو خلافه) أو بالتزام تشريعي أو خلافه، وسواءٌ كانت هذه المسئولية تتعلق بأي تصرفٍ أو إغفالٍ أو تأخيرٍ في العمل- في حدود مبلغ الأتعاب المُتفق عليه في هذه الاتفاقية. ولن يتحمل المكتب بأي حالٍ من الأحوال المسئولية عن أية خسارة غير مباشرة /او عن قرارات تجارية صدرت من جانبكم /أو خسارة تبعية. كما لن يتحمل المكتب أية مسئولية أخرى من أي نوع كان إن نشأت عن تصرفٍ أجريناه وبحسن نية باعتباره تصرفًا ضروريًا بالنسبة لنا للالتزام بالقانون.
-                            وعلاوة على ذلك، يخلو المكتب من أية مسؤولية حال استخدام رأينا الاستشاري في خارج نطاق التعاقد الماثل.
-                        </div>
-                        <div class="el-en">
-                            The firm's liability to you under this Agreement, whether in breach of contractual obligations /or breach the order (including negligence, false acknowledgement, or otherwise) /or breach of the statutory obligation/or otherwise, and whether in connection with any act, omission, or delay in action, shall be limited to the amount of fees agreed upon in this Agreement. In no event will the Firm be liable for any indirect loss / or commercial decisions made by you / or consequential loss. Nor will the Firm bear any other liability of any kind if it arises from an act we have taken in good faith as necessary for us to comply with the law.
-                            In addition, the office is free of any responsibility if our advisory opinion is used outside the scope of this contract.
-                        </div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (13)</div>
-                        <div class="el-en">Article (13)</div>
-                        <div class="el-ar">يلتزم الطرف الأول بعدم الإفصاح عن المعلومات الـسريــة التي تلقاها من الطرف الثاني ما لم يطلب الطرف الثاني بالإفصاح عنها أو كانت تلك المعلومات معلنة، أو رأينا – بحسن نية – أن الافصاح عن المعلومات مفروض بحكم القانون أو السلطة الرسمية لأية هيئة حكومية أو تنظيمية أو مهنية.</div>
-                        <div class="el-en">The First Party obligates not to disclose the confidential information it received from the Second Party unless the Second Party requests to disclose it or that information is public, or the First Party believe - in good faith - that the disclosure of the information is imposed by law or the official authority of any governmental council, regulatory or professional body.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة (14)</div>
-                        <div class="el-en">Article (14)</div>
-                        <div class="el-ar">في حال نشوء أي خلاف بين الطرفين بشأن تنفيذ أو تفسير بنود هذه الاتفاقية تختص المحاكم القطرية بالفصل فيه، وفقاً للقوانين القطرية ذات العلاقة.</div>
-                        <div class="el-en">In the event of any dispute arising between the two parties regarding the implementation or interpretation of the provisions of this agreement, the Qatari courts shall be competent to adjudicate it, in accordance with the relevant Qatari laws.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة(15):</div>
-                        <div class="el-en">Article (15):</div>
-                        <div class="el-ar">يعتبر عنوان الطرفين الوارد في هذه الاتفاقية موطناً مختاراً لكل منهما، ترسل عليه جميع المراسلات والإخطارات والإعلانات، بما في ذلك البريد الالكتروني.</div>
-                        <div class="el-en">The address of the two parties mentioned in this agreement is considered a domicile for each of them, to which all correspondences, notifications, and advertisements, including e-mail, are to be sent.</div>
-                    </div>
-
-                    <div class="el-article">
-                        <div class="el-ar">مادة(16)</div>
-                        <div class="el-en">Article (16)</div>
-                        <div class="el-ar">حررت هذه الاتفاقية، باللغتين؛ العربية والإنجليزية، و من نسختين بيد كل طرف نسخة للعمل بموجبها. وفي حال الخلاف بين اللغتين، ترجح النسخة العربية.</div>
-                        <div class="el-en">This agreement was made up in two copies in the Arabic language, with each party holding a copy to act accordingly. In case of any discrepancy between the two versions, Arabic version shall prevail.</div>
-                    </div>
-
-                    <div class="el-section">
-                        <div class="el-en">First Party: Al Hadhri &amp; Partners Law Firm represented by Mr. Abdulla Al Hadhri</div>
-                        <div class="el-en">Second Party: <t t-esc="doc.partner_id.display_name or ''"/></div>
-                    </div>
-
-                    <div class="el-footer">
-                        <img class="el-footer__image" t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/footer.png'"/>
+                        <table class="el-table el-signature-table">
+                            <tr>
+                                <td class="el-cell--ar" lang="ar" dir="rtl">
+                                    <div class="el-signature-line">الطرف الأول: الحضري وشركاه للمحاماة ويمثله المحامي عبد الله الحضري</div>
+                                </td>
+                                <td class="el-cell--en" lang="en" dir="ltr">
+                                    <div class="el-signature-line">Second Party: <t t-esc="partner_name"/></div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </t>
-        </t>
+        <!-- </t> -->
     </template>
 </odoo>

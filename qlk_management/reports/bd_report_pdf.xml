@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_bd_report_pdf_wizard" model="ir.actions.report">
+        <field name="name">BD PDF Report</field>
+        <field name="model">bd.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.bd_report_pdf_document</field>
+        <field name="report_file">qlk_management.bd_report_pdf_document</field>
+        <field name="print_report_name">'BD Report - %s - %s' % (object.date_from, object.date_to)</field>
+    </record>
+
+    <template id="bd_report_pdf_document">
+        <t t-call="web.html_container">
+            <t t-set="o" t-value="docs[:1]"/>
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-3">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 70px; max-width: 180px;" alt="Company Logo"/>
+                        </div>
+                        <div class="col-9 text-end">
+                            <h2>BD Report - Proposals &amp; Engagement Letters</h2>
+                            <div>
+                                <strong>From:</strong>
+                                <span t-esc="report_data.get('date_from')"/>
+                                <strong class="ms-3">To:</strong>
+                                <span t-esc="report_data.get('date_to')"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <t t-if="report_data.get('proposal_rows')">
+                        <h4>Proposals</h4>
+                        <table class="table table-sm o_main_table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sequence</th>
+                                    <th>Client Name</th>
+                                    <th>Client Code</th>
+                                    <th>Service Type</th>
+                                    <th>Contract Type</th>
+                                    <th>Billing Type</th>
+                                    <th>Assigned Lawyer</th>
+                                    <th class="text-end">Total Legal Fees</th>
+                                    <th class="text-end">Paid Amount</th>
+                                    <th class="text-end">Unpaid Amount</th>
+                                    <th>Currency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="report_data.get('proposal_rows')" t-as="row">
+                                    <td><span t-esc="row['reference']"/></td>
+                                    <td><span t-esc="row['client_name']"/></td>
+                                    <td><span t-esc="row['client_code']"/></td>
+                                    <td><span t-esc="row['service_type']"/></td>
+                                    <td><span t-esc="row['contract_type']"/></td>
+                                    <td><span t-esc="row['billing_type']"/></td>
+                                    <td><span t-esc="row['assigned_lawyer']"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['total_legal_fees'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['paid_amount'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['unpaid_amount'])"/></td>
+                                    <td><span t-esc="row['currency_name']"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <t t-if="report_data.get('engagement_rows')">
+                        <h4 class="mt-4">Engagement Letters</h4>
+                        <table class="table table-sm o_main_table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sequence</th>
+                                    <th>Client Name</th>
+                                    <th>Client Code</th>
+                                    <th>Service Type</th>
+                                    <th>Contract Type</th>
+                                    <th>Billing Type</th>
+                                    <th>Assigned Lawyer</th>
+                                    <th class="text-end">Total Legal Fees</th>
+                                    <th class="text-end">Paid Amount</th>
+                                    <th class="text-end">Unpaid Amount</th>
+                                    <th>Currency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="report_data.get('engagement_rows')" t-as="row">
+                                    <td><span t-esc="row['reference']"/></td>
+                                    <td><span t-esc="row['client_name']"/></td>
+                                    <td><span t-esc="row['client_code']"/></td>
+                                    <td><span t-esc="row['service_type']"/></td>
+                                    <td><span t-esc="row['contract_type']"/></td>
+                                    <td><span t-esc="row['billing_type']"/></td>
+                                    <td><span t-esc="row['assigned_lawyer']"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['total_legal_fees'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['paid_amount'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (row['currency_symbol'], row['unpaid_amount'])"/></td>
+                                    <td><span t-esc="row['currency_name']"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <t t-if="report_data.get('overall_totals')">
+                        <h4 class="mt-4">Totals By Currency</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th class="text-end">Total Legal Fees</th>
+                                    <th class="text-end">Total Paid</th>
+                                    <th class="text-end">Total Unpaid</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="report_data.get('overall_totals')" t-as="total">
+                                    <td><span t-esc="total['currency_name']"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (total['currency_symbol'], total['fees'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (total['currency_symbol'], total['paid'])"/></td>
+                                    <td class="text-end"><span t-esc="'%s %.2f' % (total['currency_symbol'], total['unpaid'])"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

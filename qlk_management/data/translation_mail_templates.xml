@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Template used by pre-litigation records to send translation requests to
+        MP Office with the dedicated translation attachments attached.
+    -->
+    <record id="mail_template_pre_litigation_translation" model="mail.template">
+        <field name="name">Pre-Litigation Translation Request</field>
+        <field name="model_id" ref="model_qlk_pre_litigation"/>
+        <field name="subject">Translation Request - {{ object.client_id.name or object.name }}</field>
+        <field name="email_to">mp.office@alhadhrilawfirm.com</field>
+        <field name="email_from">{{ user.email_formatted or user.company_id.partner_id.email_formatted or '' }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear MP Office,</p>
+
+                <p>Please find attached documents that require translation.</p>
+
+                <p><strong>Client Details:</strong></p>
+                <ul>
+                    <li><strong>Client Name:</strong> {{ object.client_id.name or '' }}</li>
+                    <li><strong>Client Code:</strong> {{ object.project_id.client_code or object.client_id.code or '' }}</li>
+                </ul>
+
+                <p><strong>Case / Reference:</strong></p>
+                <ul>
+                    <li><strong>Reference:</strong> {{ object.name or object.subject or '' }}</li>
+                </ul>
+
+                <p>The required documents are attached for your action.</p>
+
+                <p>
+                    Best Regards,<br/>
+                    {{ user.name }}
+                </p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

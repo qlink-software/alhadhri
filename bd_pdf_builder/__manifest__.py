@@ -9,8 +9,11 @@
     ],
     "data": [
         "data/legacy_cleanup.xml",
+        "views/templates/proposal_pdf_templates.xml",
+        "report/proposal_pdf_report.xml",
         "views/templates/engagement_letter_pdf_templates.xml",
         "report/engagement_letter_pdf_report.xml",
+        "views/bd_proposal_views.xml",
         "views/bd_engagement_letter_views.xml",
     ],
     "assets": {

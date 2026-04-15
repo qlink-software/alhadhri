@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bd_report_wizard_form" model="ir.ui.view">
+        <field name="name">bd.report.wizard.form</field>
+        <field name="model">bd.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="BD Reports">
+                <sheet>
+                    <group string="Select Date Range" col="2">
+                        <field name="date_from" required="1"/>
+                        <field name="date_to" required="1"/>
+                    </group>
+                    <group string="Select Report Type">
+                        <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <group string="Select Data">
+                        <field name="record_type" widget="radio"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_print_report" type="object" string="Print Report" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bd_report_wizard" model="ir.actions.act_window">
+        <field name="name">BD Reports</field>
+        <field name="res_model">bd.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bd_report_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_bd_reports_root"
+              name="Reports"
+              parent="qlk_management.menu_management_root"
+              sequence="60"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"/>
+
+    <menuitem id="menu_bd_report_wizard"
+              name="BD Reports"
+              parent="menu_bd_reports_root"
+              action="action_bd_report_wizard"
+              sequence="10"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"/>
+</odoo>

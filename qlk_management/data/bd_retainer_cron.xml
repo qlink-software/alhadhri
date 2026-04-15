@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_bd_proposal_retainer_usage" model="ir.cron">
+            <field name="name">BD Proposal Retainer Check</field>
+            <field name="model_id" ref="model_bd_proposal"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_check_retainer_usage()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="ir_cron_bd_engagement_retainer_usage" model="ir.cron">
+            <field name="name">BD Engagement Retainer Check</field>
+            <field name="model_id" ref="model_bd_engagement_letter"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_check_retainer_usage()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

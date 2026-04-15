@@ -248,6 +248,7 @@ class HrApplicant(models.Model):
 
     def _prepare_employee_vals(self, partner):
         self.ensure_one()
+        joining_date = self.payroll_start_date or fields.Date.context_today(self)
         return {
             "name": self.recruitment_full_name or self.partner_name,
             "work_contact_id": partner.id,
@@ -268,6 +269,8 @@ class HrApplicant(models.Model):
             "work_email": self.proposed_work_email or self.email_from,
             "phone": self.personal_phone,
             "employment_type": self.employment_type,
+            "date_of_joining": joining_date,
+            "status": "active",
             "applicant_origin_id": self.id,
             "active": True,
         }

@@ -36,6 +36,24 @@ class PreLitigation(models.Model):
         string="Client Attachments",
         readonly=False,
     )
+    translation_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "qlk_pre_lit_translation_attachment_rel",
+        "pre_litigation_id",
+        "attachment_id",
+        string="Attachments Needing Translation",
+        tracking=True,
+    )
+    translation_status = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("sent", "Sent to Translation"),
+            ("done", "Translated"),
+        ],
+        string="Translation Status",
+        default="draft",
+        tracking=True,
+    )
     opponent_id = fields.Many2one("res.partner", string="Opponent", domain="[('is_opponent', '=', True)]", tracking=True)
     subject = fields.Char(string="Subject", tracking=True)
     description = fields.Text(string="Summary / Notes")
@@ -160,17 +178,25 @@ class PreLitigation(models.Model):
 
     @api.model
     def create(self, vals):
+        if vals.get("translation_attachment_ids") and not vals.get("translation_status"):
+            vals["translation_status"] = "draft"
         if not vals.get("name") or vals.get("name") == "New":
             vals["name"] = self.env["ir.sequence"].next_by_code("qlk.pre.litigation") or _("New Pre-Litigation")
         if not vals.get("company_id"):
             vals["company_id"] = self.env.company.id
         record = super().create(vals)
         record._ensure_translation_subtask()
+        record._sync_translation_request_attachments()
         record._link_back_references()
         return record
 
     def write(self, vals):
+        vals = dict(vals)
+        if "translation_attachment_ids" in vals and "translation_status" not in vals:
+            vals["translation_status"] = "draft"
         result = super().write(vals)
+        if "translation_attachment_ids" in vals and not self.env.context.get("skip_translation_attachment_sync"):
+            self._sync_translation_request_attachments()
         if any(field in vals for field in ("project_id", "case_id")):
             self._link_back_references()
         return result
@@ -192,6 +218,18 @@ class PreLitigation(models.Model):
                         "responsible_id": record.office_manager_id.id or record.lawyer_user_id.id,
                     }
                 )
+
+    def _sync_translation_request_attachments(self):
+        for record in self:
+            record._ensure_translation_subtask()
+            translation_line = record.translation_line_ids[:1]
+            if translation_line:
+                target_ids = set(record.translation_attachment_ids.ids)
+                current_ids = set(translation_line.request_attachment_ids.ids)
+                if current_ids != target_ids:
+                    translation_line.with_context(skip_translation_attachment_back_sync=True).write(
+                        {"request_attachment_ids": [(6, 0, list(target_ids))]}
+                    )
 
     def _notify_office_manager_translation(self, translation, attachment_ids):
         self.ensure_one()
@@ -227,6 +265,39 @@ class PreLitigation(models.Model):
         for record in self:
             if attachment_ids:
                 record.translated_document_ids = [(4, att_id) for att_id in attachment_ids]
+                record.translation_status = "done"
+
+    def action_send_to_translation(self):
+        template = self.env.ref("qlk_management.mail_template_pre_litigation_translation", raise_if_not_found=False)
+        if not template:
+            raise UserError(_("The translation email template could not be found."))
+
+        target_email = "mp.office@alhadhrilawfirm.com"
+        for record in self:
+            if not record.translation_attachment_ids:
+                raise UserError(_("Please add attachments that need translation before sending the request."))
+
+            template.send_mail(
+                record.id,
+                force_send=True,
+                email_values={
+                    "email_to": target_email,
+                    "attachment_ids": [(6, 0, record.translation_attachment_ids.ids)],
+                },
+            )
+            record.write({"translation_status": "sent"})
+            record.message_post(body=_("Translation request sent to MP."))
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Translation Request Sent"),
+                "message": _("Translation request has been sent to MP Office."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def action_view_case(self):
         self.ensure_one()
@@ -414,6 +485,16 @@ class PreLitigationTranslation(models.Model):
             previous_request, previous_translated = before_data.get(record.id, (set(), set()))
             new_request = set(record.request_attachment_ids.ids) - previous_request
             new_translated = set(record.translated_attachment_ids.ids) - previous_translated
+            if (
+                "request_attachment_ids" in vals
+                and not self.env.context.get("skip_translation_attachment_back_sync")
+            ):
+                parent = record.pre_litigation_id
+                request_ids = set(record.request_attachment_ids.ids)
+                if set(parent.translation_attachment_ids.ids) != request_ids:
+                    parent.with_context(skip_translation_attachment_sync=True).write(
+                        {"translation_attachment_ids": [(6, 0, list(request_ids))]}
+                    )
             if new_request:
                 record.pre_litigation_id._notify_office_manager_translation(record, list(new_request))
             if new_translated:

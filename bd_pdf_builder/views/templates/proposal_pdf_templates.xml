@@ -1,2 +1,428 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo/>
+<odoo>
+    <template id="proposal_pdf_style">
+        <style type="text/css">
+            :root {
+                --pp-font-main: "BDLiberationSans", "Liberation Sans", "DejaVu Sans", Arial, sans-serif;
+                --pp-font-mix: "BDLiberationSans", "BDNotoNaskhArabic", "Noto Naskh Arabic", "DejaVu Sans", sans-serif;
+                --pp-ink: #49697f;
+                --pp-soft: #edf3f8;
+                --pp-border: #d8e2ea;
+            }
+
+            .bd-pdf--proposal {
+                font-family: var(--pp-font-mix);
+                color: var(--pp-ink);
+            }
+
+            .bd-pdf--proposal .pp-page {
+                position: relative;
+                width: 210mm;
+                min-height: 297mm;
+                padding: 0;
+                overflow: hidden;
+                page-break-after: always;
+            }
+
+            .bd-pdf--proposal .pp-page:last-child {
+                page-break-after: auto;
+            }
+
+            .bd-pdf--proposal .pp-layout {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+            }
+
+            .bd-pdf--proposal .pp-cover-data,
+            .bd-pdf--proposal .pp-scope-box,
+            .bd-pdf--proposal .pp-fees-box,
+            .bd-pdf--proposal .pp-contact-values,
+            .bd-pdf--proposal .pp-attachments-body {
+                position: relative;
+                z-index: 1;
+            }
+
+            .bd-pdf--proposal .pp-cover-data {
+                padding: 170mm 30mm 0 87mm;
+                color: #fff;
+            }
+
+            .bd-pdf--proposal .pp-cover-client {
+                margin: 0 0 10mm;
+                font-size: 18pt;
+                line-height: 1.2;
+                font-weight: 700;
+                word-break: break-word;
+            }
+
+            .bd-pdf--proposal .pp-cover-meta {
+                width: 82mm;
+                font-size: 12.4pt;
+                line-height: 1.65;
+            }
+
+            .bd-pdf--proposal .pp-cover-meta strong {
+                display: inline-block;
+                min-width: 26mm;
+                font-weight: 700;
+            }
+
+            .bd-pdf--proposal .pp-scope-box {
+                margin: 58mm 20mm 0 20mm;
+                min-height: 173mm;
+                padding: 12mm 10mm;
+                background: transparent;
+                box-sizing: border-box;
+            }
+
+            .bd-pdf--proposal .pp-scope-content {
+                font-size: 12.2pt;
+                line-height: 1.8;
+                white-space: pre-wrap;
+                color: var(--pp-ink);
+            }
+
+            .bd-pdf--proposal .pp-fees-box {
+                margin: 102mm 20mm 0 20mm;
+                min-height: 144mm;
+                padding: 12mm 10mm 8mm;
+                background: rgba(237, 243, 248, 0.96);
+                border-radius: 4mm;
+                box-sizing: border-box;
+            }
+
+            .bd-pdf--proposal .pp-fees-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            .bd-pdf--proposal .pp-fees-table th {
+                padding: 0 0 4mm;
+                font-size: 10pt;
+                line-height: 1.2;
+                text-transform: uppercase;
+                color: #52616f;
+                border-bottom: 1px solid rgba(33, 44, 55, 0.18);
+            }
+
+            .bd-pdf--proposal .pp-fees-table td {
+                padding: 0 0 5mm;
+                font-size: 11.5pt;
+                line-height: 1.25;
+                vertical-align: top;
+                color: var(--pp-ink);
+            }
+
+            .bd-pdf--proposal .pp-fees-table .pp-col-desc {
+                width: 68%;
+                padding-right: 6mm;
+            }
+
+            .bd-pdf--proposal .pp-fees-table .pp-col-amt {
+                width: 32%;
+                text-align: right;
+                white-space: nowrap;
+                font-weight: 700;
+            }
+
+            .bd-pdf--proposal .pp-fees-total-row td {
+                font-size: 14pt;
+                font-weight: 700;
+                padding-bottom: 8mm;
+            }
+
+            .bd-pdf--proposal .pp-fees-empty {
+                font-size: 12pt;
+                line-height: 1.75;
+                color: var(--pp-ink);
+            }
+
+            .bd-pdf--proposal .pp-contact-values {
+                padding: 206mm 28mm 0 104mm;
+                font-size: 10.8pt;
+                line-height: 1;
+                color: #7f8390;
+            }
+
+            .bd-pdf--proposal .pp-contact-line {
+                height: 17.1mm;
+                display: flex;
+                align-items: center;
+                background: rgba(255, 255, 255, 0.82);
+                padding: 0 3mm;
+                box-sizing: border-box;
+            }
+
+            .bd-pdf--proposal .pp-contact-line span {
+                display: block;
+                width: 100%;
+                word-break: break-word;
+            }
+
+            .bd-pdf--proposal .pp-attachments-page {
+                background: #fff;
+                border: 1px solid #edf2f6;
+            }
+
+            .bd-pdf--proposal .pp-attachments-head {
+                position: relative;
+                padding: 18mm 18mm 8mm;
+            }
+
+            .bd-pdf--proposal .pp-attachments-head:before {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 62mm;
+                height: 100%;
+                background: url('/bd_pdf_builder/static/src/img/proposal/section_city.jpeg') no-repeat center center;
+                background-size: cover;
+                opacity: 0.95;
+            }
+
+            .bd-pdf--proposal .pp-attachments-head:after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 82mm;
+                height: 100%;
+                background: url('/bd_pdf_builder/static/src/img/proposal/section_overlay.png') no-repeat left top;
+                background-size: cover;
+                opacity: 0.85;
+            }
+
+            .bd-pdf--proposal .pp-attachments-head-inner {
+                position: relative;
+                z-index: 1;
+                min-height: 44mm;
+            }
+
+            .bd-pdf--proposal .pp-attachments-kicker {
+                margin: 0 0 4mm;
+                font-size: 10pt;
+                color: #7f92a4;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                font-weight: 700;
+            }
+
+            .bd-pdf--proposal .pp-attachments-title {
+                margin: 0;
+                font-size: 25pt;
+                line-height: 1.05;
+                color: var(--pp-ink);
+                font-weight: 700;
+            }
+
+            .bd-pdf--proposal .pp-attachments-intro {
+                position: relative;
+                z-index: 1;
+                width: 102mm;
+                margin: 5mm 0 0;
+                font-size: 11pt;
+                line-height: 1.7;
+                color: #7b8793;
+            }
+
+            .bd-pdf--proposal .pp-attachments-body {
+                padding: 8mm 18mm 18mm;
+                font-size: 0;
+            }
+
+            .bd-pdf--proposal .pp-attachment-card {
+                display: inline-block;
+                width: 47.5%;
+                margin: 0 1.25% 6mm;
+                vertical-align: top;
+                page-break-inside: avoid;
+                background: #fff;
+                border: 1px solid var(--pp-border);
+                border-radius: 4mm;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+
+            .bd-pdf--proposal .pp-attachment-image {
+                height: 63mm;
+                background: var(--pp-soft);
+                text-align: center;
+                line-height: 63mm;
+            }
+
+            .bd-pdf--proposal .pp-attachment-image img {
+                max-width: 100%;
+                max-height: 63mm;
+                vertical-align: middle;
+            }
+
+            .bd-pdf--proposal .pp-attachment-text {
+                padding: 4mm 4.5mm 5mm;
+                font-size: 10.5pt;
+                line-height: 1.45;
+                color: var(--pp-ink);
+            }
+
+            .bd-pdf--proposal .pp-attachment-text strong {
+                display: block;
+                margin-bottom: 1mm;
+                font-size: 11pt;
+                word-break: break-word;
+            }
+
+            .bd-pdf--proposal .pp-attachment-text span {
+                color: #7b8793;
+            }
+        </style>
+    </template>
+
+    <template id="report_proposal_pdf">
+        <t t-name="bd_pdf_builder.report_proposal_pdf">
+            <t t-call="web.html_container">
+                <t t-call="bd_pdf_builder.proposal_pdf_style"/>
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="proposal_date" t-value="doc.date and doc.date.strftime('%d/%m/%Y') or ''"/>
+                    <t t-set="client_name" t-value="doc.partner_id.display_name or '-'"/>
+                    <t t-set="document_number" t-value="doc.code or doc.name or '-'"/>
+                    <t t-set="currency_name" t-value="doc.currency_id.symbol or doc.currency_id.name or ''"/>
+                    <t t-set="fee_total" t-value="doc.total_legal_fees or doc.total_amount or doc.legal_fees or 0.0"/>
+                    <t t-set="website" t-value="(doc.company_id.website or 'www.alhadhrilaw.com').replace('https://', '').replace('http://', '')"/>
+                    <t t-set="phone" t-value="doc.company_id.phone or '+974-6000 5975'"/>
+                    <t t-set="email" t-value="doc.company_id.email or 'dev@alhadhrilawfirm.com'"/>
+                    <t t-set="address" t-value="doc.company_id.partner_id.contact_address or 'Al Baraha Tower, 5th Floor'"/>
+                    <t t-set="image_attachments" t-value="doc._get_report_image_attachments()"/>
+
+                    <div class="page bd-pdf bd-pdf--proposal pp-page">
+                        <img class="pp-layout" t-att-src="'/bd_pdf_builder/static/src/img/proposal/layout_cover.png'"/>
+                        <div class="pp-cover-data">
+                            <div class="pp-cover-client"><t t-esc="client_name"/></div>
+                            <div class="pp-cover-meta">
+                                <div><strong>Date</strong><span t-esc="proposal_date"/></div>
+                                <div><strong>No.</strong><span t-esc="document_number"/></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="page bd-pdf bd-pdf--proposal pp-page">
+                        <img class="pp-layout" t-att-src="'/bd_pdf_builder/static/src/img/proposal/layout_scope.png'"/>
+                        <div class="pp-scope-box">
+                            <div class="pp-scope-content" t-esc="doc.scope_of_work or '-'"/>
+                        </div>
+                    </div>
+
+                    <div class="page bd-pdf bd-pdf--proposal pp-page">
+                        <img class="pp-layout" t-att-src="'/bd_pdf_builder/static/src/img/proposal/layout_fees.png'"/>
+                        <div class="pp-fees-box">
+                            <t t-if="doc.billing_type == 'free'">
+                                <div class="pp-fees-empty">
+                                    This proposal is marked as a pro bono engagement and does not carry billable legal fees.
+                                </div>
+                            </t>
+                            <t t-if="doc.billing_type != 'free'">
+                                <table class="pp-fees-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="pp-col-desc">Service</th>
+                                            <th class="pp-col-amt">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="doc.legal_fees_lines" t-as="line">
+                                            <td class="pp-col-desc">
+                                                <div t-esc="line.service_name or line.description or '-'"/>
+                                                <div t-if="line.service_type" style="font-size: 9.5pt; color: #617181;">
+                                                    <span t-field="line.service_type"/>
+                                                </div>
+                                            </td>
+                                            <td class="pp-col-amt">
+                                                <div>Qty: <t t-esc="'{:,.2f}'.format(line.quantity or 0.0)"/></div>
+                                                <div>Price: <t t-esc="'{:,.3f}'.format(line.unit_price or 0.0)"/> <t t-esc="currency_name"/></div>
+                                                <div>
+                                                    Discount:
+                                                    <t t-if="line.discount_type == 'percent'">
+                                                        <t t-esc="'{:,.2f}'.format(line.discount or 0.0)"/>%
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-esc="'{:,.3f}'.format(line.discount or 0.0)"/> <t t-esc="currency_name"/>
+                                                    </t>
+                                                </div>
+                                                <div style="margin-top: 2mm;">
+                                                    Subtotal:
+                                                    <t t-esc="'{:,.3f}'.format(line.subtotal or line.amount or 0.0)"/>
+                                                    <br/>
+                                                    <t t-esc="currency_name"/>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr t-if="not doc.legal_fees_lines">
+                                            <td class="pp-col-desc">Legal Fees</td>
+                                            <td class="pp-col-amt">
+                                                <div>Qty: 1.00</div>
+                                                <div>Price: <t t-esc="'{:,.3f}'.format(fee_total or 0.0)"/> <t t-esc="currency_name"/></div>
+                                                <div>Discount: 0.00</div>
+                                                <div style="margin-top: 2mm;">
+                                                    Subtotal:
+                                                    <t t-esc="'{:,.3f}'.format(fee_total or 0.0)"/>
+                                                    <br/>
+                                                    <t t-esc="currency_name"/>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="pp-fees-total-row">
+                                            <td class="pp-col-desc">Total Legal Fees</td>
+                                            <td class="pp-col-amt">
+                                                <t t-esc="'{:,.3f}'.format(fee_total or 0.0)"/>
+                                                <br/>
+                                                <t t-esc="currency_name"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="page bd-pdf bd-pdf--proposal pp-page">
+                        <img class="pp-layout" t-att-src="'/bd_pdf_builder/static/src/img/proposal/layout_contact.png'"/>
+                        <div class="pp-contact-values">
+                            <div class="pp-contact-line"><span t-esc="website"/></div>
+                            <div class="pp-contact-line"><span t-esc="phone"/></div>
+                            <div class="pp-contact-line"><span t-esc="email"/></div>
+                            <div class="pp-contact-line"><span>@alhadhrilaw</span></div>
+                            <div class="pp-contact-line"><span t-esc="address"/></div>
+                        </div>
+                    </div>
+
+                    <div class="page bd-pdf bd-pdf--proposal pp-page pp-attachments-page" t-if="image_attachments">
+                        <div class="pp-attachments-head">
+                            <div class="pp-attachments-head-inner">
+                                <div class="pp-attachments-kicker">Proposal Attachments</div>
+                                <h2 class="pp-attachments-title">Attached Images</h2>
+                                <p class="pp-attachments-intro">
+                                    Images linked to the client or the proposal are embedded below as part of the final proposal package.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="pp-attachments-body">
+                            <div class="pp-attachment-card" t-foreach="image_attachments" t-as="attachment">
+                                <div class="pp-attachment-image">
+                                    <img t-att-src="'/web/image/ir.attachment/%s/datas' % attachment.id"
+                                         t-att-alt="attachment.name"/>
+                                </div>
+                                <div class="pp-attachment-text">
+                                    <strong t-esc="attachment.name or 'Attachment'"/>
+                                    <span t-esc="attachment.mimetype or ''"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

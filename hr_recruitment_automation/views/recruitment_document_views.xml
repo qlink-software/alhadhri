@@ -22,13 +22,13 @@
         <field name="arch" type="xml">
             <form string="Document Package">
                 <header>
-                    <button name="action_send_to_manager" type="object" string="Send To Managing Partner" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-primary" invisible="state != 'waiting_manager_approval'" groups="hr_recruitment_automation.group_managing_partner"/>
-                    <button name="action_manager_reject" type="object" string="Manager Reject" class="btn-secondary" invisible="state != 'waiting_manager_approval'" groups="hr_recruitment_automation.group_managing_partner"/>
-                    <button name="action_employee_accept" type="object" string="Employee Accept (Internal)" class="btn-primary" invisible="state != 'employee_pending'" groups="hr.group_hr_user"/>
-                    <button name="action_employee_reject" type="object" string="Employee Reject (Internal)" class="btn-secondary" invisible="state != 'employee_pending'" groups="hr.group_hr_user"/>
+                    <button name="action_send_for_approval" type="object" string="Send for Approval" class="btn-primary" invisible="state != 'draft'" groups="hr.group_hr_user"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary" invisible="state != 'under_review'" groups="hr_recruitment_automation.group_managing_partner"/>
+                    <button name="action_manager_reject" type="object" string="Reject" class="btn-secondary" invisible="state not in ('under_review', 'approved')" groups="hr_recruitment_automation.group_managing_partner"/>
+                    <button name="action_sign" type="object" string="Sign" class="btn-primary" invisible="state != 'approved'" groups="hr.group_hr_user"/>
+                    <button name="action_employee_reject" type="object" string="Reject Sign-Off" class="btn-secondary" invisible="state != 'approved'" groups="hr.group_hr_user"/>
                     <button name="action_reset_to_draft" type="object" string="Reset To Draft" class="btn-secondary" invisible="state == 'draft'" groups="hr.group_hr_user"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_manager_approval,manager_rejected,employee_pending,employee_accepted,employee_rejected"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,under_review,approved,signed,rejected"/>
                 </header>
                 <sheet>
                     <group>
@@ -41,6 +41,9 @@
                         <group>
                             <field name="approve_url" readonly="1"/>
                             <field name="reject_url" readonly="1"/>
+                            <field name="approval_user_id" readonly="1"/>
+                            <field name="approval_date" readonly="1"/>
+                            <field name="signed_date" readonly="1"/>
                             <field name="employee_response_date" readonly="1"/>
                             <field name="access_email_sent" readonly="1"/>
                         </group>
@@ -52,16 +55,16 @@
 
                     <notebook>
                         <page string="Employment Contract (AR)">
-                            <field name="contract_body_ar" widget="html"/>
+                            <field name="contract_body_ar" widget="html" readonly="state != 'draft'"/>
                         </page>
                         <page string="Employment Contract (EN)">
-                            <field name="contract_body_en" widget="html"/>
+                            <field name="contract_body_en" widget="html" readonly="state != 'draft'"/>
                         </page>
                         <page string="NDA (AR)">
-                            <field name="nda_body_ar" widget="html"/>
+                            <field name="nda_body_ar" widget="html" readonly="state != 'draft'"/>
                         </page>
                         <page string="NDA (EN)">
-                            <field name="nda_body_en" widget="html"/>
+                            <field name="nda_body_en" widget="html" readonly="state != 'draft'"/>
                         </page>
                     </notebook>
                 </sheet>

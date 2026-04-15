@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bd_proposal_kanban_bizdev_inherit" model="ir.ui.view">
+        <field name="name">bd.proposal.kanban.bizdev.inherit</field>
+        <field name="model">bd.proposal</field>
+        <field name="inherit_id" ref="qlk_management.view_bd_proposal_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <!-- Required fields for the redesigned BD proposal kanban card. -->
+                <field name="name"/>
+                <field name="code"/>
+                <field name="partner_id"/>
+                <field name="client_code"/>
+                <field name="retainer_type"/>
+                <field name="contract_type"/>
+                <field name="state"/>
+                <field name="lawyer_employee_id"/>
+                <field name="lawyer_user_id"/>
+                <field name="assigned_date"/>
+                <field name="kanban_assignment_date"/>
+            </xpath>
+
+            <xpath expr="//t[@t-name='kanban-box']" position="replace">
+                <t t-name="kanban-box">
+                    <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 o_kanban_record bd_kanban_card bd_state_#{record.state and record.state.raw_value or 'default'} d-flex flex-column h-100">
+
+                        <!-- Header: sequence / reference and status badges. -->
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-semibold text-dark text-truncate"
+                                     t-esc="record.code and record.code.value or record.name and record.name.value or ''"/>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-end gap-1 bd_kanban_badges">
+                                <span t-if="record.contract_type and record.contract_type.raw_value == 'corporate'"
+                                      class="badge rounded-pill text-bg-primary">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.contract_type and record.contract_type.raw_value == 'litigation'"
+                                      class="badge rounded-pill text-bg-danger">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.contract_type and record.contract_type.raw_value == 'arbitration'"
+                                      class="badge rounded-pill text-bg-info">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.contract_type and record.contract_type.value and record.contract_type.raw_value != 'corporate' and record.contract_type.raw_value != 'litigation' and record.contract_type.raw_value != 'arbitration'"
+                                      class="badge rounded-pill text-bg-dark">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.state and record.state.raw_value == 'draft'"
+                                      class="badge rounded-pill text-bg-secondary">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and (record.state.raw_value == 'waiting_manager_approval' or record.state.raw_value == 'waiting_client_approval')"
+                                      class="badge rounded-pill text-bg-warning">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and (record.state.raw_value == 'approved_manager' or record.state.raw_value == 'approved_client')"
+                                      class="badge rounded-pill text-bg-success">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and record.state.raw_value == 'rejected'"
+                                      class="badge rounded-pill text-bg-danger">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and record.state.value and record.state.raw_value != 'draft' and record.state.raw_value != 'waiting_manager_approval' and record.state.raw_value != 'waiting_client_approval' and record.state.raw_value != 'approved_manager' and record.state.raw_value != 'approved_client' and record.state.raw_value != 'rejected'"
+                                      class="badge rounded-pill text-bg-dark">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Body: client identity and service details. -->
+                        <div class="o_kanban_details flex-grow-1">
+                            <div class="fw-semibold text-truncate text-dark">
+                                <field name="partner_id"/>
+                            </div>
+                            <div class="small text-muted text-truncate mt-1"
+                                 t-if="record.client_code and record.client_code.raw_value">
+                                <span class="fw-medium">Client Code:</span>
+                                <field name="client_code"/>
+                            </div>
+                            <div class="mt-3">
+                                <div class="small text-muted text-uppercase">Service Type</div>
+                                <div class="fw-medium text-truncate">
+                                    <field name="retainer_type"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer: assigned lawyer with avatar and assignment date. -->
+                        <div class="o_kanban_footer bd_kanban_footer d-flex justify-content-between align-items-center gap-3 mt-3">
+                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                <t t-if="record.lawyer_user_id and record.lawyer_user_id.raw_value">
+                                    <field name="lawyer_user_id" widget="many2one_avatar_user"/>
+                                </t>
+                                <div class="min-w-0">
+                                    <div class="small text-muted">Assigned Lawyer</div>
+                                    <div class="fw-medium text-truncate" t-if="record.lawyer_employee_id and record.lawyer_employee_id.raw_value">
+                                        <field name="lawyer_employee_id"/>
+                                    </div>
+                                    <div class="fw-medium text-muted" t-else="">Unassigned</div>
+                                </div>
+                            </div>
+                            <div class="text-end text-muted small flex-shrink-0">
+                                <div>Assigned</div>
+                                <div class="fw-medium text-dark">
+                                    <field name="kanban_assignment_date" widget="date"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_bd_engagement_letter_kanban_bizdev_inherit" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.kanban.bizdev.inherit</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="qlk_management.view_bd_engagement_letter_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <!-- Required fields for the redesigned BD engagement card. -->
+                <field name="code"/>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="client_code"/>
+                <field name="retainer_type"/>
+                <field name="contract_type"/>
+                <field name="state"/>
+                <field name="lawyer_employee_id"/>
+                <field name="lawyer_user_id"/>
+                <field name="assigned_date"/>
+                <field name="kanban_assignment_date"/>
+            </xpath>
+
+            <xpath expr="//t[@t-name='kanban-box']" position="replace">
+                <t t-name="kanban-box">
+                    <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 o_kanban_record bd_kanban_card bd_state_#{record.state and record.state.raw_value or 'default'} d-flex flex-column h-100">
+
+                        <!-- Header: engagement reference plus contract and state badges. -->
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-semibold text-dark text-truncate"
+                                     t-esc="record.code and record.code.value or record.reference and record.reference.value or ''"/>
+                                <div class="small text-muted text-truncate mt-1"
+                                     t-if="record.reference and record.reference.raw_value and record.reference.raw_value != record.code.raw_value">
+                                    <field name="reference"/>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-end gap-1 bd_kanban_badges">
+                                <span t-if="record.contract_type and record.contract_type.raw_value == 'retainer'"
+                                      class="badge rounded-pill text-bg-primary">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.contract_type and record.contract_type.raw_value == 'lump_sum'"
+                                      class="badge rounded-pill text-bg-dark">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.contract_type and record.contract_type.value and record.contract_type.raw_value != 'retainer' and record.contract_type.raw_value != 'lump_sum'"
+                                      class="badge rounded-pill text-bg-dark">
+                                    <field name="contract_type"/>
+                                </span>
+                                <span t-if="record.state and record.state.raw_value == 'draft'"
+                                      class="badge rounded-pill text-bg-secondary">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and (record.state.raw_value == 'waiting_manager_approval' or record.state.raw_value == 'waiting_client_approval')"
+                                      class="badge rounded-pill text-bg-warning">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and (record.state.raw_value == 'approved_manager' or record.state.raw_value == 'approved_client')"
+                                      class="badge rounded-pill text-bg-success">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and record.state.raw_value == 'rejected'"
+                                      class="badge rounded-pill text-bg-danger">
+                                    <field name="state"/>
+                                </span>
+                                <span t-if="record.state and record.state.value and record.state.raw_value != 'draft' and record.state.raw_value != 'waiting_manager_approval' and record.state.raw_value != 'waiting_client_approval' and record.state.raw_value != 'approved_manager' and record.state.raw_value != 'approved_client' and record.state.raw_value != 'rejected'"
+                                      class="badge rounded-pill text-bg-dark">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Body: client identity and legal service type. -->
+                        <div class="o_kanban_details flex-grow-1">
+                            <div class="fw-semibold text-truncate text-dark">
+                                <field name="partner_id"/>
+                            </div>
+                            <div class="small text-muted text-truncate mt-1"
+                                 t-if="record.client_code and record.client_code.raw_value">
+                                <span class="fw-medium">Client Code:</span>
+                                <field name="client_code"/>
+                            </div>
+                            <div class="mt-3">
+                                <div class="small text-muted text-uppercase">Service Type</div>
+                                <div class="fw-medium text-truncate">
+                                    <field name="retainer_type"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer: lawyer ownership and date fallback. -->
+                        <div class="o_kanban_footer bd_kanban_footer d-flex justify-content-between align-items-center gap-3 mt-3">
+                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                <t t-if="record.lawyer_user_id and record.lawyer_user_id.raw_value">
+                                    <field name="lawyer_user_id" widget="many2one_avatar_user"/>
+                                </t>
+                                <div class="min-w-0">
+                                    <div class="small text-muted">Assigned Lawyer</div>
+                                    <div class="fw-medium text-truncate" t-if="record.lawyer_employee_id and record.lawyer_employee_id.raw_value">
+                                        <field name="lawyer_employee_id"/>
+                                    </div>
+                                    <div class="fw-medium text-muted" t-else="">Unassigned</div>
+                                </div>
+                            </div>
+                            <div class="text-end text-muted small flex-shrink-0">
+                                <div>Assigned</div>
+                                <div class="fw-medium text-dark">
+                                    <field name="kanban_assignment_date" widget="date"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

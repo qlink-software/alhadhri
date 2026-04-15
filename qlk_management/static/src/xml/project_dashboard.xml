@@ -219,7 +219,7 @@
                             </header>
                             <ul class="qlk-card-list">
                                 <t t-foreach="projectCards" t-as="project" t-key="project.id">
-                                    <li class="project-card" t-on-click="() => openProject(project)">
+                                    <li class="project-card" t-on-click="() => this.openProject(project)">
                                         <div class="project-card__header">
                                             <div>
                                                 <span class="project-card__code" t-esc="project.code || '-'"/>

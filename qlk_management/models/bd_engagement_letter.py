@@ -27,11 +27,17 @@ PAYMENT_STATUS_SELECTION = [
     ("paid", "Paid"),
 ]
 
+TRANSLATION_STATUS_SELECTION = [
+    ("draft", "Draft"),
+    ("sent", "Sent to Translation"),
+    ("done", "Translated"),
+]
+
 
 class BDEngagementLetter(models.Model):
     _name = "bd.engagement.letter"
     _description = "Engagement Letter"
-    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin", "bd.retainer.mixin"]
     _order = "create_date desc"
     _rec_name = "code"
 
@@ -75,6 +81,20 @@ class BDEngagementLetter(models.Model):
         string="Client Attachments",
         readonly=False,
     )
+    translation_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "bd_engagement_translation_attachment_rel",
+        "letter_id",
+        "attachment_id",
+        string="Attachments Needing Translation",
+        tracking=True,
+    )
+    translation_status = fields.Selection(
+        TRANSLATION_STATUS_SELECTION,
+        string="Translation Status",
+        default="draft",
+        tracking=True,
+    )
     client_id = fields.Many2one(
         "res.partner",
         string="Client",
@@ -89,7 +109,12 @@ class BDEngagementLetter(models.Model):
         tracking=True,
     )
     contact_details = fields.Text(string="Contact Details")
-    fee_total = fields.Monetary(string="Fee Total", compute="_compute_fee_total", store=True)
+    fee_total = fields.Monetary(
+        string="Fee Total",
+        currency_field="currency_id",
+        compute="_compute_fee_total",
+        store=True,
+    )
     fee_line_ids = fields.One2many(
         "bd.engagement.letter.fee", "letter_id", string="Fee Breakdown"
     )
@@ -97,6 +122,12 @@ class BDEngagementLetter(models.Model):
         "bd.engagement.letter.fee",
         "letter_id",
         string="Legal Fees Lines",
+    )
+    total_legal_fees = fields.Monetary(
+        string="Total Legal Fees",
+        currency_field="currency_id",
+        compute="_compute_total_fees",
+        store=True,
     )
     scope_of_work = fields.Text(string="Scope of Work")
     currency_id = fields.Many2one(
@@ -124,10 +155,61 @@ class BDEngagementLetter(models.Model):
         tracking=True,
     )
     billing_type = fields.Selection(
-        [("free", "Pro bono"), ("billable", "Paid")],
+        [
+            ("free", "Pro bono"),
+            ("paid", "Paid"),
+        ],
         string="Billing Type",
-        default="billable",
+        default="paid",
         tracking=True,
+    )
+    retainer_period = fields.Selection(
+        [("annual", "Annual"), ("monthly", "Monthly")],
+        string="Retainer Type",
+        tracking=True,
+    )
+    allocated_hours = fields.Float(string="Allocated Hours", tracking=True)
+    used_hours = fields.Float(
+        string="Used Hours",
+        compute="_compute_used_hours",
+        store=True,
+        readonly=True,
+    )
+    remaining_hours = fields.Float(
+        string="Remaining Hours",
+        compute="_compute_remaining_hours",
+        store=True,
+        readonly=True,
+    )
+    monthly_hours_limit = fields.Float(string="Monthly Hours Limit", tracking=True)
+    monthly_used_hours = fields.Float(
+        string="Monthly Used Hours",
+        compute="_compute_monthly_used_hours",
+        readonly=True,
+    )
+    year_start_date = fields.Date(string="Year Start Date", tracking=True)
+    year_end_date = fields.Date(string="Year End Date", tracking=True)
+    exception_approved = fields.Boolean(string="Exception Approved", tracking=True)
+    retainer_usage_percent = fields.Float(
+        string="Retainer Usage %",
+        compute="_compute_retainer_usage_percent",
+        readonly=True,
+    )
+    retainer_usage_state = fields.Selection(
+        [
+            ("normal", "Normal"),
+            ("success", "Healthy"),
+            ("warning", "Warning"),
+            ("danger", "Critical"),
+        ],
+        string="Retainer Usage State",
+        compute="_compute_retainer_usage_percent",
+        readonly=True,
+    )
+    last_retainer_alert_key = fields.Char(
+        string="Last Retainer Alert Period",
+        copy=False,
+        readonly=True,
     )
     allow_project_without_payment = fields.Boolean(
         string="Allow Project Before Payment",
@@ -138,9 +220,13 @@ class BDEngagementLetter(models.Model):
     fee_structure = fields.Char(string="Fee Structure")
     payment_terms = fields.Char(string="Payment Terms")
     legal_note = fields.Text(string="Legal Notes")
-    legal_fee_amount = fields.Float(string="Legal Fees")
-    proposal_legal_fee = fields.Float(
+    legal_fee_amount = fields.Monetary(
+        string="Legal Fees",
+        currency_field="currency_id",
+    )
+    proposal_legal_fee = fields.Monetary(
         string="Proposal Legal Fees",
+        currency_field="currency_id",
         compute="_compute_proposal_legal_fee",
         store=True,
         readonly=True,
@@ -172,6 +258,16 @@ class BDEngagementLetter(models.Model):
             "rejected",
             "cancelled",
         ]
+
+    def init(self):
+        # Normalize legacy billing values introduced during previous customizations.
+        self._cr.execute(
+            """
+            UPDATE bd_engagement_letter
+               SET billing_type = 'paid'
+             WHERE billing_type IN ('billable', 'fixed', 'retainer')
+            """
+        )
     rejection_reason = fields.Text(string="Rejection Reason")
     comments = fields.Text(string="Reason")
     # ------------------------------------------------------------------------------
@@ -209,10 +305,37 @@ class BDEngagementLetter(models.Model):
         inverse="_inverse_lawyer_employee_id",
         store=True,
     )
-    lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
-    hourly_cost = fields.Float(string="Cost Per Hour", readonly=True)
+    lawyer_user_id = fields.Many2one(
+        "res.users",
+        string="Assigned Lawyer User",
+        related="lawyer_employee_id.user_id",
+        store=True,
+        readonly=True,
+    )
+    assigned_date = fields.Datetime(
+        string="Assignment Date",
+        copy=False,
+        tracking=True,
+    )
+    kanban_assignment_date = fields.Datetime(
+        string="Kanban Assignment Date",
+        compute="_compute_kanban_assignment_date",
+    )
+    lawyer_cost_hour = fields.Monetary(
+        string="Lawyer Cost Per Hour",
+        currency_field="currency_id",
+        readonly=True,
+    )
+    hourly_cost = fields.Monetary(
+        string="Cost Per Hour",
+        currency_field="currency_id",
+        readonly=True,
+    )
     planned_hours = fields.Float(string="Planned Hours")
-    total_estimated_cost = fields.Float(string="Total Estimated Cost")
+    total_estimated_cost = fields.Monetary(
+        string="Total Estimated Cost",
+        currency_field="currency_id",
+    )
     invoice_id = fields.Many2one(
         "account.move",
         string="Invoice",
@@ -228,9 +351,10 @@ class BDEngagementLetter(models.Model):
     project_id = fields.Many2one(
         "project.project",
         string="Project",
-        readonly=True,
         copy=False,
         ondelete="set null",
+        tracking=True,
+        domain="[('allow_timesheets', '=', True)]",
     )
     qlk_project_id = fields.Many2one(
         "qlk.project",
@@ -317,6 +441,11 @@ class BDEngagementLetter(models.Model):
         for record in self:
             record.hours_logged_ok = bool(record.time_entry_ids)
 
+    @api.depends("assigned_date", "create_date")
+    def _compute_kanban_assignment_date(self):
+        for record in self:
+            record.kanban_assignment_date = record.assigned_date or record.create_date
+
     @api.onchange("time_entry_ids")
     def _onchange_time_entry_ids(self):
         for record in self:
@@ -337,27 +466,74 @@ class BDEngagementLetter(models.Model):
     # ------------------------------------------------------------------------------
     # دالة تجمع مبالغ سطور الرسوم لإظهار الإجمالي في الهيدر.
     # ------------------------------------------------------------------------------
-    @api.depends("fee_line_ids.amount")
+    @api.depends("total_legal_fees")
     def _compute_fee_total(self):
         for letter in self:
-            letter.fee_total = sum(letter.fee_line_ids.mapped("amount"))
+            letter.fee_total = letter.total_legal_fees
 
-    @api.depends("proposal_id.legal_fees")
+    @api.depends("proposal_id.total_legal_fees", "proposal_id.legal_fees")
     def _compute_proposal_legal_fee(self):
         for letter in self:
-            letter.proposal_legal_fee = letter.proposal_id.legal_fees if letter.proposal_id else 0.0
+            letter.proposal_legal_fee = letter.proposal_id.total_legal_fees if letter.proposal_id else 0.0
 
-    @api.depends("legal_fees_lines.amount", "legal_fee_amount", "billing_type")
+    @api.depends("legal_fees_lines.subtotal", "legal_fee_amount", "billing_type")
+    def _compute_total_fees(self):
+        for letter in self:
+            if letter.billing_type == "free":
+                letter.total_legal_fees = 0.0
+                continue
+            lines_total = sum(letter.legal_fees_lines.mapped("subtotal"))
+            letter.total_legal_fees = lines_total or (letter.legal_fee_amount or 0.0)
+
+    @api.depends("total_legal_fees", "legal_fee_amount", "billing_type")
     def _compute_total_amount(self):
         for letter in self:
             if letter.billing_type == "free":
                 letter.total_amount = 0.0
                 continue
-            lines_total = sum(letter.legal_fees_lines.mapped("amount"))
-            if lines_total:
-                letter.total_amount = lines_total
-            else:
-                letter.total_amount = letter.legal_fee_amount or 0.0
+            letter.total_amount = letter.total_legal_fees or (letter.legal_fee_amount or 0.0)
+
+    # ------------------------------------------------------------------------------
+    # Retainer tracking uses standard project.task timesheets when available and
+    # falls back to qlk.task hours for the current legal project flow.
+    # ------------------------------------------------------------------------------
+    @api.depends(
+        "billing_type",
+        "retainer_period",
+        "year_start_date",
+        "year_end_date",
+        "project_id.task_ids.timesheet_ids.unit_amount",
+        "project_id.task_ids.timesheet_ids.date",
+        "qlk_project_id.task_ids.hours_spent",
+        "qlk_project_id.task_ids.date_start",
+    )
+    def _compute_used_hours(self):
+        self._compute_retainer_used_hours()
+
+    @api.depends("billing_type", "allocated_hours", "used_hours")
+    def _compute_remaining_hours(self):
+        self._compute_retainer_remaining_hours()
+
+    @api.depends(
+        "billing_type",
+        "project_id.task_ids.timesheet_ids.unit_amount",
+        "project_id.task_ids.timesheet_ids.date",
+        "qlk_project_id.task_ids.hours_spent",
+        "qlk_project_id.task_ids.date_start",
+    )
+    def _compute_monthly_used_hours(self):
+        self._compute_retainer_monthly_used_hours()
+
+    @api.depends(
+        "billing_type",
+        "retainer_period",
+        "allocated_hours",
+        "monthly_hours_limit",
+        "used_hours",
+        "monthly_used_hours",
+    )
+    def _compute_retainer_usage_percent(self):
+        self._compute_retainer_usage_visuals()
 
     
     @api.depends("invoice_id", "invoice_state")
@@ -579,6 +755,19 @@ class BDEngagementLetter(models.Model):
     # ------------------------------------------------------------------------------
     # زر الطباعة يستخدم تقرير QWeb بعد التأكد من حالة الموافقة.
     # ------------------------------------------------------------------------------
+    def action_print_excel(self):
+        return self.env.ref("qlk_management.action_bd_engagement_letter_xlsx_report").report_action(self)
+
+    def action_open_report_wizard(self):
+        self.ensure_one()
+        action = self.env.ref("qlk_management.action_bd_report_wizard").read()[0]
+        action["context"] = {
+            "default_record_type": "engagement",
+            "default_date_from": self.date or fields.Date.context_today(self),
+            "default_date_to": self.date or fields.Date.context_today(self),
+        }
+        return action
+
     def action_print_letter(self):
         for letter in self:
             if letter.state != "approved_client":
@@ -605,6 +794,7 @@ class BDEngagementLetter(models.Model):
                 if not vals.get("code") or vals["code"] == "/":
                     vals["code"] = self._generate_letter_code(partner, partner_code)
         records = super().create(vals_list)
+        records._sync_assigned_date()
         records._copy_partner_attachments()
         records._sync_partner_identity()
         records.with_context(skip_proposal_sync=True)._sync_proposal_financials()
@@ -636,20 +826,34 @@ class BDEngagementLetter(models.Model):
                 )
 
     def write(self, vals):
+        vals = dict(vals)
+        if "translation_attachment_ids" in vals and "translation_status" not in vals:
+            vals["translation_status"] = "draft"
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
         # if self._has_new_task_command(vals.get("time_entry_ids")):
         #     return super().write(vals)
         # if self._requires_new_task_on_write(vals):
         #     self._raise_missing_hours_error()
+        previous_assignments = None
+        if (
+            not self.env.context.get("skip_assignment_date_sync")
+            and "assigned_date" not in vals
+            and any(field in vals for field in ("lawyer_id", "lawyer_employee_id"))
+        ):
+            previous_assignments = {
+                letter.id: letter._get_assignment_anchor() for letter in self
+            }
         if "lawyer_id" in vals and vals["lawyer_id"]:
             lawyer_cost = self._get_lawyer_cost(vals["lawyer_id"])
             vals["hourly_cost"] = lawyer_cost
             vals["lawyer_cost_hour"] = lawyer_cost
-        if any(field in vals for field in ("legal_fees_lines", "currency_id", "billing_type")):
+        if self._has_locked_financial_changes(vals):
             for letter in self:
-                if letter.state in {"approved_manager", "waiting_client_approval", "approved_client"}:
-                    raise UserError(_("Financial fields are locked after approval."))
+                if letter.state == "approved_client":
+                    raise UserError(_("Financial fields are locked after client approval."))
         res = super().write(vals)
+        if previous_assignments is not None:
+            self._sync_assigned_date(previous_assignments)
         if "partner_id" in vals:
             self._sync_partner_identity()
         if not self.env.context.get("skip_proposal_sync") and ("proposal_id" in vals or "legal_fee_amount" in vals):
@@ -665,6 +869,37 @@ class BDEngagementLetter(models.Model):
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
         # self._check_hours_logged()
         return res
+
+    def _has_locked_financial_changes(self, vals):
+        financial_fields = (
+            "legal_fees_lines",
+            "currency_id",
+            "billing_type",
+            "retainer_period",
+            "allocated_hours",
+            "monthly_hours_limit",
+            "year_start_date",
+            "year_end_date",
+        )
+        changed_fields = [field_name for field_name in financial_fields if field_name in vals]
+        if not changed_fields:
+            return False
+        for letter in self:
+            for field_name in changed_fields:
+                field = letter._fields.get(field_name)
+                if not field:
+                    continue
+                if field.type in {"one2many", "many2many"}:
+                    return True
+                current_value = letter[field_name]
+                new_value = vals[field_name]
+                if field.type == "many2one":
+                    if (current_value.id or False) != (new_value or False):
+                        return True
+                else:
+                    if current_value != new_value:
+                        return True
+        return False
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
@@ -741,7 +976,7 @@ class BDEngagementLetter(models.Model):
                 continue
             proposal = letter.proposal_id
             vals = {
-                "legal_fee_amount": proposal.legal_fees or 0.0,
+                "legal_fee_amount": proposal.total_legal_fees or proposal.legal_fees or 0.0,
                 "approval_role": proposal.approval_role,
                 "lawyer_id": proposal.lawyer_id.id if proposal.lawyer_id else False,
                 "lawyer_employee_id": proposal.lawyer_employee_id.id if proposal.lawyer_employee_id else False,
@@ -752,11 +987,34 @@ class BDEngagementLetter(models.Model):
                 "estimated_hours": proposal.planned_hours,
                 "total_estimated_cost": proposal.total_estimated_cost,
                 "billing_type": proposal.billing_type,
+                "retainer_period": proposal.retainer_period,
+                "allocated_hours": proposal.allocated_hours,
+                "monthly_hours_limit": proposal.monthly_hours_limit,
+                "year_start_date": proposal.year_start_date,
+                "year_end_date": proposal.year_end_date,
+                "exception_approved": proposal.exception_approved,
+                "project_id": proposal.project_id.id,
                 "scope_of_work": proposal.scope_of_work,
             }
             if proposal.legal_fees_lines:
                 vals["legal_fees_lines"] = [(5, 0, 0)] + [
-                    (0, 0, {"description": line.description, "amount": line.amount, "due_date": line.due_date})
+                    (
+                        0,
+                        0,
+                        {
+                            "service_name": line.service_name,
+                            "description": line.description,
+                            "service_type": line.service_type,
+                            "assigned_lawyer_id": line.assigned_lawyer_id.id,
+                            "quantity": line.quantity,
+                            "unit_price": line.unit_price,
+                            "discount_type": line.discount_type,
+                            "discount": line.discount,
+                            "lawyer_cost": line.lawyer_cost,
+                            "amount": line.amount,
+                            "due_date": line.due_date,
+                        },
+                    )
                     for line in proposal.legal_fees_lines
                 ]
             else:
@@ -835,6 +1093,30 @@ class BDEngagementLetter(models.Model):
         if "address_home_id" in employee._fields and employee.address_home_id:
             return employee.address_home_id
         return self.env["res.partner"]
+
+    def _get_assignment_anchor(self):
+        self.ensure_one()
+        if self.lawyer_employee_id:
+            return self.lawyer_employee_id.id
+        return self._employee_from_partner(self.lawyer_id).id or False
+
+    def _sync_assigned_date(self, previous_assignments=None):
+        if self.env.context.get("skip_assignment_date_sync"):
+            return
+        now = fields.Datetime.now()
+        for record in self:
+            current_assignment = record._get_assignment_anchor()
+            if previous_assignments is None:
+                if current_assignment and not record.assigned_date:
+                    record.with_context(skip_assignment_date_sync=True).write(
+                        {"assigned_date": now}
+                    )
+                continue
+            previous_assignment = previous_assignments.get(record.id)
+            if previous_assignment != current_assignment:
+                record.with_context(skip_assignment_date_sync=True).write(
+                    {"assigned_date": now if current_assignment else False}
+                )
 
     @api.depends("lawyer_id")
     def _compute_lawyer_employee_id(self):
@@ -917,7 +1199,7 @@ class BDEngagementLetter(models.Model):
     def _compute_can_create_project(self):
         for letter in self:
             billing_ready = letter.billing_type == "free" or (
-                letter.billing_type == "billable"
+                letter._is_invoice_billing()
                 and (
                     letter.allow_project_without_payment
                     or (letter.invoice_id and letter.invoice_state == "paid")
@@ -928,8 +1210,8 @@ class BDEngagementLetter(models.Model):
 
     def action_create_invoice(self):
         self.ensure_one()
-        if self.billing_type != "billable":
-            raise UserError(_("Invoices are only required for billable engagements."))
+        if not self._is_invoice_billing():
+            raise UserError(_("Invoices are only required for paid engagements."))
         if self.invoice_id:
             raise UserError(_("An invoice has already been created for this engagement letter."))
         if not self.partner_id:
@@ -958,9 +1240,15 @@ class BDEngagementLetter(models.Model):
                 0,
                 0,
                 {
-                    "name": line.description or _("Legal Fees"),
-                    "quantity": 1.0,
-                    "price_unit": line.amount,
+                    "name": line.service_name or line.description or _("Legal Fees"),
+                    "quantity": line.quantity or 1.0,
+                    # Keep invoice pricing aligned with the document currency and pricing model.
+                    "price_unit": (
+                        (line.subtotal / (line.quantity or 1.0))
+                        if line.discount_type == "fixed"
+                        else (line.unit_price or 0.0)
+                    ),
+                    "discount": line.discount if line.discount_type == "percent" else 0.0,
                     "account_id": income_account.id,
                 },
             )
@@ -1031,7 +1319,7 @@ class BDEngagementLetter(models.Model):
                 raise UserError(_("A project has already been created for this engagement letter."))
             if letter.state != "approved_client":
                 raise UserError(_("Only approved engagement letters can create projects."))
-            if letter.billing_type == "billable":
+            if letter._is_invoice_billing():
                 if not letter.invoice_id:
                     raise UserError(_("You must create an invoice before creating the project."))
                 if not letter.allow_project_without_payment and letter.invoice_state != "paid":
@@ -1060,6 +1348,8 @@ class BDEngagementLetter(models.Model):
             "lawyer_cost_hour": self.lawyer_cost_hour,
             "project_type": self.project_type or "corporate",
             "retainer_type": self.retainer_type or False,
+            "translation_attachment_ids": [(6, 0, self.translation_attachment_ids.ids)],
+            "translation_status": self.translation_status or "draft",
             "company_id": self.company_id.id,
             "estimated_hours": self.planned_hours or self.estimated_hours or 0.0,
             "description": scope_note,
@@ -1079,7 +1369,15 @@ class BDEngagementLetter(models.Model):
         self.ensure_one()
         project_vals = self._prepare_project_vals()
         fee_lines = [
-            (0, 0, {"description": line.description, "amount": line.amount, "due_date": line.due_date})
+            (
+                0,
+                0,
+                {
+                    "description": line.service_name or line.description,
+                    "amount": line.subtotal,
+                    "due_date": line.due_date,
+                },
+            )
             for line in self.legal_fees_lines
         ]
         if fee_lines:
@@ -1119,6 +1417,17 @@ class BDEngagementLetter(models.Model):
             ):
                 raise UserError(_("Only Assistant Managers can approve or reject this document."))
 
+    @api.model
+    def cron_check_retainer_usage(self):
+        letters = self.search(
+            [
+                ("billing_type", "!=", "free"),
+                ("retainer_period", "!=", False),
+                ("state", "not in", ("rejected", "cancelled")),
+            ]
+        )
+        letters._process_retainer_notifications()
+
 
 class BDEngagementLetterFee(models.Model):
     _name = "bd.engagement.letter.fee"
@@ -1127,8 +1436,48 @@ class BDEngagementLetterFee(models.Model):
     letter_id = fields.Many2one(
         "bd.engagement.letter", string="Engagement Letter", required=True, ondelete="cascade", index=True
     )
-    description = fields.Char(string="Description", required=True)
-    amount = fields.Monetary(string="Amount", required=True)
+    service_name = fields.Char(string="Service Name")
+    description = fields.Char(string="Description")
+    service_type = fields.Selection(
+        [
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("litigation_corporate", "Litigation + Corporate"),
+            ("management_corporate", "Management Corporate"),
+            ("management_litigation", "Management Litigation"),
+        ],
+        string="Service Type",
+    )
+    assigned_lawyer_id = fields.Many2one(
+        "hr.employee",
+        string="Assigned Lawyer",
+        index=True,
+    )
+    quantity = fields.Float(string="Quantity", default=1.0)
+    unit_price = fields.Monetary(string="Unit Price")
+    discount_type = fields.Selection(
+        [("fixed", "Fixed"), ("percent", "Percentage")],
+        string="Discount Type",
+        default="fixed",
+    )
+    discount = fields.Float(string="Discount")
+    lawyer_cost = fields.Monetary(
+        string="Lawyer Cost",
+        currency_field="currency_id",
+        copy=False,
+        help="Frozen lawyer cost captured when the line lawyer is selected.",
+    )
+    subtotal = fields.Monetary(
+        string="Subtotal",
+        currency_field="currency_id",
+        compute="_compute_subtotal",
+        store=True,
+    )
+    amount = fields.Monetary(
+        string="Amount",
+        currency_field="currency_id",
+    )
     due_date = fields.Date(string="Due Date")
     currency_id = fields.Many2one(
         related="letter_id.currency_id",
@@ -1136,3 +1485,92 @@ class BDEngagementLetterFee(models.Model):
         store=True,
         readonly=True,
     )
+
+    @api.depends("quantity", "unit_price", "discount", "discount_type", "amount")
+    def _compute_subtotal(self):
+        for line in self:
+            if not line.unit_price and not line.discount and line.amount:
+                line.subtotal = line.amount
+                continue
+            gross_amount = (line.quantity or 0.0) * (line.unit_price or 0.0)
+            if line.discount_type == "percent":
+                discount_amount = gross_amount * ((line.discount or 0.0) / 100.0)
+            else:
+                discount_amount = line.discount or 0.0
+            line.subtotal = gross_amount - discount_amount
+
+    def _get_line_subtotal_from_vals(self, vals):
+        record = self[:1]
+        quantity = vals.get("quantity", record.quantity or 0.0)
+        unit_price = vals.get("unit_price", record.unit_price or 0.0)
+        discount = vals.get("discount", record.discount or 0.0)
+        discount_type = vals.get("discount_type", record.discount_type or "fixed")
+        gross_amount = (quantity or 0.0) * (unit_price or 0.0)
+        if discount_type == "percent":
+            discount_amount = gross_amount * ((discount or 0.0) / 100.0)
+        else:
+            discount_amount = discount or 0.0
+        return gross_amount - discount_amount
+
+    def _get_current_lawyer_cost(self, employee):
+        if not employee:
+            return 0.0
+        if employee.lawyer_hour_cost:
+            return employee.lawyer_hour_cost
+        partner = employee.user_id.partner_id or employee.work_contact_id or employee.address_home_id
+        if not partner:
+            return 0.0
+        cost_record = self.env["lawyer.cost.calculation"].search(
+            [("partner_id", "=", partner.id)],
+            limit=1,
+        )
+        return cost_record.cost_per_hour if cost_record else 0.0
+
+    def _normalize_line_vals(self, vals):
+        if vals.get("service_name") and not vals.get("description"):
+            vals["description"] = vals["service_name"]
+        elif vals.get("description") and not vals.get("service_name"):
+            vals["service_name"] = vals["description"]
+        if vals.get("assigned_lawyer_id") and "lawyer_cost" not in vals:
+            employee = self.env["hr.employee"].browse(vals["assigned_lawyer_id"])
+            vals["lawyer_cost"] = self._get_current_lawyer_cost(employee)
+        pricing_keys = {"quantity", "unit_price", "discount", "discount_type"}
+        if pricing_keys.intersection(vals):
+            vals["amount"] = self._get_line_subtotal_from_vals(vals)
+        return vals
+
+    @api.onchange("assigned_lawyer_id")
+    def _onchange_assigned_lawyer_id(self):
+        for line in self:
+            if line.assigned_lawyer_id and not line.lawyer_cost:
+                line.lawyer_cost = line._get_current_lawyer_cost(line.assigned_lawyer_id)
+
+    @api.onchange("service_name", "quantity", "unit_price", "discount", "discount_type")
+    def _onchange_pricing_fields(self):
+        for line in self:
+            if line.service_name and not line.description:
+                line.description = line.service_name
+            line.amount = line._get_line_subtotal_from_vals({})
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        vals_list = [self._normalize_line_vals(dict(vals)) for vals in vals_list]
+        return super().create(vals_list)
+
+    def write(self, vals):
+        pricing_keys = {"quantity", "unit_price", "discount", "discount_type"}
+        if len(self) > 1 and pricing_keys.intersection(vals):
+            result = True
+            for line in self:
+                result = super(BDEngagementLetterFee, line).write(
+                    line._normalize_line_vals(dict(vals))
+                ) and result
+            return result
+        vals = self._normalize_line_vals(dict(vals))
+        if "assigned_lawyer_id" in vals and "lawyer_cost" not in vals:
+            if vals.get("assigned_lawyer_id"):
+                employee = self.env["hr.employee"].browse(vals["assigned_lawyer_id"])
+                vals["lawyer_cost"] = self._get_current_lawyer_cost(employee)
+            else:
+                vals["lawyer_cost"] = 0.0
+        return super().write(vals)

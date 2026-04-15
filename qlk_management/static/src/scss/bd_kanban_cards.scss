@@ -1,0 +1,47 @@
+.o_kanban_renderer {
+    .bd_kanban_card {
+        min-height: 220px;
+        padding: 1rem;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border-inline-start: 4px solid #cbd5e1;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .bd_kanban_card:hover {
+        transform: translateY(-1px);
+    }
+
+    .bd_kanban_badges .badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    .bd_kanban_footer {
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .bd_state_draft {
+        border-inline-start-color: #9ca3af;
+    }
+
+    .bd_state_waiting_manager_approval,
+    .bd_state_waiting_client_approval {
+        border-inline-start-color: #f59e0b;
+    }
+
+    .bd_state_approved_manager,
+    .bd_state_approved_client {
+        border-inline-start-color: #10b981;
+    }
+
+    .bd_state_rejected {
+        border-inline-start-color: #ef4444;
+    }
+
+    .bd_state_cancelled {
+        border-inline-start-color: #334155;
+    }
+}
