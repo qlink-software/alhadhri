@@ -7,11 +7,16 @@ class QlkCourtDashboardExtension(models.AbstractModel):
     _inherit = "qlk.court.dashboard"
 
     @api.model
+    def _user_has_optional_group(self, user, xmlid):
+        group = self.env.ref(xmlid, raise_if_not_found=False)
+        return bool(group and group in user.groups_id)
+
+    @api.model
     def _has_courts_dashboard_access(self, user):
         return bool(
-            user.has_group("qlk_law.group_courts_menu")
-            or user.has_group("qlk_law.group_qlk_law_manager")
-            or user.has_group("qlk_law.group_qlk_law_admin")
+            self._user_has_optional_group(user, "qlk_law.group_courts_menu")
+            or self._user_has_optional_group(user, "qlk_law.group_qlk_law_manager")
+            or self._user_has_optional_group(user, "qlk_law.group_qlk_law_admin")
         )
 
     @api.model

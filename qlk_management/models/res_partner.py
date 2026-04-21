@@ -7,7 +7,7 @@
 from datetime import datetime
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.osv import expression
 
 
@@ -68,6 +68,50 @@ class ResPartner(models.Model):
         "partner_id",
         string="Company Contact Channels",
     )
+    # هذا الحقل يقدم الهيكل الجديد للأرقام والبريد المتعدد للشركات والعملاء.
+    contact_info_ids = fields.One2many(
+        "res.partner.contact.info",
+        "partner_id",
+        string="Contact Details (Multiple)",
+    )
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تحدد هل السجل يمثل بيانات عميل يجب حمايتها من التعديل العام.
+    # ------------------------------------------------------------------------------
+    def _is_client_partner_record(self):
+        self.ensure_one()
+        commercial_partner = self.commercial_partner_id or self
+        return bool(commercial_partner.customer_rank > 0)
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تحدد هل المستخدم الحالي يملك صلاحية كاملة على بيانات العملاء.
+    # ------------------------------------------------------------------------------
+    def _has_client_management_access(self):
+        user = self.env.user
+        return bool(
+            self.env.is_superuser()
+            or user.has_group("qlk_management.group_client_mp")
+            or user.has_group("qlk_management.group_client_bd")
+            or user.has_group("qlk_management.group_mp")
+            or user.has_group("qlk_management.bd_manager_group")
+            or user.has_group("qlk_management.bd_assistant_manager_group")
+        )
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تمنع إنشاء/تعديل/حذف بيانات العميل إلا للمجموعات المصرح لها.
+    # ------------------------------------------------------------------------------
+    def _check_client_partner_write_access(self):
+        if self.env.context.get("skip_client_partner_security"):
+            return True
+        protected_records = self.filtered(lambda partner: partner._is_client_partner_record())
+        if protected_records and not self._has_client_management_access():
+            raise AccessError(
+                _(
+                    "You do not have permission to modify or delete client information. "
+                    "Only MP and BD teams can manage client records."
+                )
+            )
+        return True
 
     # ------------------------------------------------------------------------------
     # هذه الدالة تربط حقل Individual Client بقيمة company_type بشكل مباشر.
@@ -195,6 +239,18 @@ class ResPartner(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.context.get("skip_client_partner_security") and not self._has_client_management_access():
+            for vals in vals_list:
+                customer_rank = vals.get("customer_rank", 0) or 0
+                parent_id = vals.get("parent_id")
+                parent_partner = parent_id and self.browse(parent_id) or self.env["res.partner"]
+                if customer_rank > 0 or (parent_partner and parent_partner.commercial_partner_id.customer_rank > 0):
+                    raise AccessError(
+                        _(
+                            "You do not have permission to create client information. "
+                            "Only MP and BD teams can create client records."
+                        )
+                    )
         for vals in vals_list:
             client_year = vals.get("client_year") or self._default_client_year()
             client_year = int(client_year)
@@ -245,6 +301,20 @@ class ResPartner(models.Model):
         return sequence_code
 
     def write(self, vals):
+        if not self.env.context.get("skip_client_partner_security") and not self._has_client_management_access():
+            target_customer_rank = vals.get("customer_rank", 0) or 0
+            target_parent_id = vals.get("parent_id")
+            target_parent = target_parent_id and self.browse(target_parent_id) or self.env["res.partner"]
+            if target_customer_rank > 0 or (
+                target_parent and target_parent.commercial_partner_id.customer_rank > 0
+            ):
+                raise AccessError(
+                    _(
+                        "You do not have permission to convert a contact into client information. "
+                        "Only MP and BD teams can manage client records."
+                    )
+                )
+        self._check_client_partner_write_access()
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # if self._has_new_task_command(vals.get("qlk_task_ids")):
         #     return super().write(vals)
@@ -541,6 +611,10 @@ class ResPartner(models.Model):
         projects = self.env["project.project"].sudo().search([("partner_id", "=", self.id)])
         if projects:
             projects._sync_client_code_from_partner()
+
+    def unlink(self):
+        self._check_client_partner_write_access()
+        return super().unlink()
 
 class ContactAttachments(models.Model):
     _name = "contact.attachments"

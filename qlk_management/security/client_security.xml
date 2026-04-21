@@ -7,22 +7,50 @@
             <field name="category_id" ref="base.module_category_hidden"/>
         </record>
 
-        <!-- هذا الربط يضمن أن أدوار MP/BD تحصل تلقائيًا على صلاحية بيانات العملاء. -->
-        <record id="group_mp" model="res.groups">
+        <!-- هذه المجموعات الجديدة تمثل الأدوار المطلوبة لإدارة بيانات العملاء. -->
+        <record id="group_client_mp" model="res.groups">
+            <field name="name">Client MP Team</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
             <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access'))]"/>
         </record>
-        <record id="bd_manager_group" model="res.groups">
+        <record id="group_client_bd" model="res.groups">
+            <field name="name">Client BD Team</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
             <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access'))]"/>
         </record>
-        <record id="bd_assistant_manager_group" model="res.groups">
-            <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access'))]"/>
+        <record id="group_client_view_only" model="res.groups">
+            <field name="name">Client View Only</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
         </record>
 
-        <!-- هذه القاعدة تمنع المستخدمين الداخليين العاديين من رؤية/تعديل سجلات العملاء. -->
-        <record id="rule_res_partner_internal_non_client" model="ir.rule">
-            <field name="name">Internal Users: Non-Client Contacts Only</field>
+        <!-- هذا الربط يضمن أن أدوار MP/BD تحصل تلقائيًا على صلاحية بيانات العملاء. -->
+        <record id="group_mp" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access')), (4, ref('qlk_management.group_client_mp'))]"/>
+        </record>
+        <record id="bd_manager_group" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access')), (4, ref('qlk_management.group_client_bd'))]"/>
+        </record>
+        <record id="bd_assistant_manager_group" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('qlk_management.group_client_data_access')), (4, ref('qlk_management.group_client_bd'))]"/>
+        </record>
+
+        <!-- هذه القاعدة تمنح المستخدمين الداخليين العاديين صلاحية قراءة جميع جهات الاتصال فقط. -->
+        <record id="rule_res_partner_view_only_all" model="ir.rule">
+            <field name="name">Client View Only: Read All Partners</field>
             <field name="model_id" ref="base.model_res_partner"/>
-            <field name="domain_force">[('customer_rank', '=', 0)]</field>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('qlk_management.group_client_view_only'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- هذه القاعدة تسمح للمستخدمين الداخليين بتعديل غير العملاء فقط. -->
+        <record id="rule_res_partner_internal_non_client" model="ir.rule">
+            <field name="name">Internal Users: Write Non-Client Contacts Only</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="domain_force">[('commercial_partner_id.customer_rank', '=', 0)]</field>
             <field name="groups" eval="[(4, ref('base.group_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>

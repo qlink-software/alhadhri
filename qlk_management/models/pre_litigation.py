@@ -344,9 +344,16 @@ class PreLitigation(models.Model):
             "state": "study",
         }
         if self.project_id:
+            available_levels = self.project_id._get_available_litigation_levels()
+            if len(available_levels) != 1:
+                raise UserError(_("Create the litigation case from the related project and select the litigation level."))
             vals.update(
                 {
-                    "name2": self.project_id.code or self.project_id.name,
+                    "project_id": self.project_id.id,
+                    "litigation_level_id": available_levels.id,
+                    "name2": self.project_id._build_litigation_sequence(available_levels.code)
+                    or self.project_id.code
+                    or self.project_id.name,
                     "client_capacity": self.project_id.client_capacity,
                     "currency_id": self.project_id.company_id.currency_id.id,
                     "case_number": self.project_id.litigation_case_number,

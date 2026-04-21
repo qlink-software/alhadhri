@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_contact_info_multi" model="ir.ui.view">
+        <field name="name">res.partner.contact.info.multi</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="qlk_management.inherit_view_id_res_partner"/>
+        <field name="arch" type="xml">
+            <!-- استبدال القنوات القديمة بجدول موحد للجوالات والبريد للشركات. -->
+            <xpath expr="//page[field[@name='company_contact_channel_ids']]" position="replace">
+                <page string="Contact Details (Multiple)" invisible="company_type != 'company'">
+                    <group>
+                        <div class="text-muted">
+                            Mark one mobile or email as primary to sync it with the main client fields.
+                        </div>
+                    </group>
+                    <field name="contact_info_ids" context="{'default_partner_id': id}">
+                        <list editable="bottom">
+                            <field name="contact_type"/>
+                            <field name="value"/>
+                            <field name="is_primary"/>
+                        </list>
+                        <form string="Contact Detail">
+                            <sheet>
+                                <group>
+                                    <field name="contact_type"/>
+                                    <field name="value"/>
+                                    <field name="is_primary"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -11,6 +11,8 @@
                         <group>
                             <field name="project_id" readonly="1"/>
                             <field name="client_id" readonly="1"/>
+                            <field name="available_litigation_level_ids" invisible="1"/>
+                            <field name="litigation_level_id"/>
                             <field name="assigned_employee_id"/>
                             <field name="court_id"/>
                             <field name="case_main_category_id"/>
@@ -22,6 +24,40 @@
                             <field name="filing_date"/>
                             <field name="opponent_id"/>
                             <field name="hearing_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" widget="text"/>
+                    </group>
+                    <footer>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        <button string="Create Case" name="action_confirm" type="object" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_create_litigation_case_form" model="ir.ui.view">
+            <field name="name">qlk.project.create.litigation.case.form</field>
+            <field name="model">qlk.project.create.litigation.case</field>
+            <field name="arch" type="xml">
+                <form string="Create Case" create="false" edit="false">
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="client_id"/>
+                            <field name="available_litigation_level_ids" invisible="1"/>
+                            <field name="litigation_level_id"/>
+                            <field name="assigned_employee_id"/>
+                            <field name="court_id"/>
+                            <field name="case_main_category_id"/>
+                            <field name="case_type_id"/>
+                        </group>
+                        <group>
+                            <field name="case_number"/>
+                            <field name="case_year"/>
+                            <field name="filing_date"/>
+                            <field name="opponent_id"/>
                         </group>
                     </group>
                     <group>

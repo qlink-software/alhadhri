@@ -10,6 +10,10 @@
                 <xpath expr="//form/sheet/group/field[@name='department']" position="after">
                     <field name="project_id" options="{'no_create_edit': True}"/>
                 </xpath>
+                <xpath expr="//form/sheet/group/field[@name='case_id']" position="attributes">
+                    <attribute name="domain">[('project_id', '=', project_id)]</attribute>
+                    <attribute name="context">{'default_project_id': project_id, 'default_department': 'litigation'}</attribute>
+                </xpath>
             </field>
         </record>
 

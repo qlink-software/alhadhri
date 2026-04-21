@@ -42,7 +42,8 @@
                                 modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('pre_litigation_id', '!=', False)]}"/>
                         <button name="action_create_litigation_case" type="object" string="Create Case"
                                 class="btn-primary"
-                                modifiers="{'invisible': ['|', '|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court'), ('case_id', '!=', False)]}"/>
+                                groups="qlk_management.group_legal_user,qlk_management.group_legal_manager"
+                                invisible="not can_create_litigation_case"/>
                         <button name="action_transfer_to_corporate" type="object" string="Create Corporate Case"
                                 class="btn-primary"
                                 invisible="department != 'corporate' or corporate_case_id"/>
@@ -51,6 +52,7 @@
                                 invisible="department != 'arbitration' or arbitration_case_id"/>
                     </header>
                     <sheet>
+                        <field name="can_create_litigation_case" invisible="1"/>
                         <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                         <div class="oe_title">
                             <h1>
@@ -68,6 +70,10 @@
                             <button type="object" class="oe_stat_button" name="action_view_tasks" icon="fa-tasks">
                                 <field name="task_count" string="Tasks"/>
                             </button>
+                            <button type="object" class="oe_stat_button" name="action_view_litigation_cases" icon="fa-balance-scale"
+                                    invisible="department != 'litigation' or not litigation_case_count">
+                                <field name="litigation_case_count" string="Cases"/>
+                            </button>
                             <button type="object" class="oe_stat_button" name="action_open_related_case" icon="fa-external-link"
                                     modifiers="{'invisible': [('related_case_display', '=', False)]}">
                                 <field name="related_case_display" string="Related Matter" readonly="1"/>
@@ -84,6 +90,11 @@
                                 <field name="litigation_stage" modifiers="{'invisible': [('project_type', '!=', 'litigation')]}"/>
                                 <field name="litigation_stage_code" string="Litigation Degree" invisible="1"/>
                                 <field name="litigation_stage_iteration" modifiers="{'invisible': ['|', ('project_type', '!=', 'litigation'), ('litigation_stage', '!=', 'court')]}"/>
+                                <field name="litigation_level_ids" widget="many2many_tags"
+                                       invisible="project_type != 'litigation'"
+                                       required="project_type == 'litigation'"/>
+                                <field name="allow_multiple_cases_per_level" invisible="project_type != 'litigation'"/>
+                                <field name="available_litigation_level_count" readonly="1" invisible="project_type != 'litigation'"/>
                                 <field name="client_id" string="Client Name"/>
                                 <field name="engagement_id" readonly="1"/>
                                 <field name="lawyer_id"/>
@@ -91,7 +102,9 @@
                                 <field name="lawyer_cost_hour" readonly="1"/>
                                 <field name="client_capacity"/>
                                 <field name="litigation_case_number" modifiers="{'readonly': True, 'invisible': [('project_type', '!=', 'litigation')]}"/>
-                                <field name="case_id" invisible="department != 'litigation'"/>
+                                <field name="case_id" invisible="department != 'litigation'"
+                                       domain="[('project_id', '=', id)]"
+                                       context="{'default_project_id': id, 'default_client_id': client_id}"/>
                                 <field name="corporate_case_id"
                                        invisible="department != 'corporate'"
                                        domain="['|', ('project_id', '=', False), ('project_id', '=', id)]"
@@ -110,6 +123,8 @@
                                 <field name="poa_mp_sent_on" readonly="1" invisible="department != 'litigation'"/>
                                 <field name="deadline"/>
                                 <field name="transfer_ready"/>
+                                <field name="total_case_hours" readonly="1" widget="float_time" invisible="project_type != 'litigation'"/>
+                                <field name="total_project_hours" readonly="1" widget="float_time"/>
                             </group>
                         </group>
 
@@ -150,6 +165,21 @@
                                         <field name="date_start"/>
                                         <field name="date_finished"/>
                                         <field name="reviewer_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Litigation Cases" invisible="project_type != 'litigation'">
+                                <field name="case_ids" context="{'default_project_id': id, 'default_client_id': client_id}" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="project_sequence" readonly="1"/>
+                                        <field name="litigation_level_id" domain="[('id', 'in', parent.litigation_level_ids)]"/>
+                                        <field name="litigation_stage_code" readonly="1"/>
+                                        <field name="name"/>
+                                        <field name="case_number"/>
+                                        <field name="case_year"/>
+                                        <field name="case_group"/>
+                                        <field name="second_category"/>
+                                        <field name="total_hours" widget="float_time" readonly="1"/>
                                     </list>
                                 </field>
                             </page>

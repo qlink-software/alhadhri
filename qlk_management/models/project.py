@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
+from .litigation_level import LITIGATION_STAGE_CODE_SELECTION
 
 LITIGATION_WORKFLOW_TEMPLATE = [
     {"key": "translation", "name": "Translation of Documents", "sequence": 5},
@@ -136,6 +137,41 @@ class QlkProject(models.Model):
     )
     lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
+    case_ids = fields.One2many("qlk.case", "project_id", string="قضايا التقاضي")
+    litigation_level_ids = fields.Many2many(
+        "litigation.level",
+        "qlk_project_litigation_level_rel",
+        "project_id",
+        "level_id",
+        string="درجات التقاضي",
+        tracking=True,
+    )
+    allow_multiple_cases_per_level = fields.Boolean(
+        string="السماح بتعدد القضايا لنفس الدرجة",
+        tracking=True,
+    )
+    litigation_case_count = fields.Integer(
+        string="عدد القضايا",
+        compute="_compute_litigation_case_controls",
+    )
+    available_litigation_level_count = fields.Integer(
+        string="درجات متاحة",
+        compute="_compute_litigation_case_controls",
+    )
+    can_create_litigation_case = fields.Boolean(
+        string="Can Create Litigation Case",
+        compute="_compute_litigation_case_controls",
+    )
+    total_case_hours = fields.Float(
+        string="إجمالي ساعات القضايا",
+        compute="_compute_project_case_hours",
+        readonly=True,
+    )
+    total_project_hours = fields.Float(
+        string="إجمالي ساعات المشروع",
+        compute="_compute_project_case_hours",
+        readonly=True,
+    )
     # ------------------------------------------------------------------------------
     # كود القضية (Litigation Project Code)
     # الصيغة: ClientCode/Lxxx-Stage/Code
@@ -145,12 +181,7 @@ class QlkProject(models.Model):
     # ------------------------------------------------------------------------------
     litigation_case_number = fields.Integer(string="Case Number", copy=False, tracking=True)
     litigation_stage_code = fields.Selection(
-        selection=[
-            ("F", "First Instance"),
-            ("A", "Appeal"),
-            ("CA", "Cassation"),
-            ("E", "Enforcement"),
-        ],
+        selection=LITIGATION_STAGE_CODE_SELECTION,
         string="Stage Code",
         default="F",
         tracking=True,
@@ -283,6 +314,42 @@ class QlkProject(models.Model):
         string="Client Documents",
     )
 
+    @api.depends(
+        "project_type",
+        "litigation_stage",
+        "litigation_level_ids",
+        "case_ids",
+        "case_ids.litigation_level_id",
+        "allow_multiple_cases_per_level",
+    )
+    def _compute_litigation_case_controls(self):
+        for project in self:
+            available_levels = project._get_available_litigation_levels()
+            project.litigation_case_count = len(project.case_ids)
+            project.available_litigation_level_count = len(available_levels)
+            project.can_create_litigation_case = bool(
+                project.project_type == "litigation"
+                and project.litigation_stage == "court"
+                and available_levels
+            )
+
+    @api.depends(
+        "case_ids.total_hours",
+        "task_ids.approval_state",
+        "task_ids.hours_spent",
+        "task_ids.case_id",
+    )
+    def _compute_project_case_hours(self):
+        for project in self:
+            case_hours = sum(project.case_ids.mapped("total_hours"))
+            direct_project_hours = sum(
+                task.hours_spent
+                for task in project.task_ids
+                if task.approval_state == "approved" and not task.case_id
+            )
+            project.total_case_hours = round(case_hours, 2)
+            project.total_project_hours = round(case_hours + direct_project_hours, 2)
+
     def _compute_stage_id(self):
         for project in self:
             stage_line = project.stage_line_ids[:1]
@@ -368,15 +435,7 @@ class QlkProject(models.Model):
     def _compute_code(self):
         for project in self:
             if project.project_type == "litigation":
-                client_code = project.client_code or "PRJ"
-                case_number = project.litigation_case_number or project.case_sequence or 1
-                sequence_chunk = f"L{case_number:03d}"
-                if project.litigation_stage_iteration:
-                    sequence_chunk += f"-{project.litigation_stage_iteration}"
-                code = f"{client_code}/{sequence_chunk}"
-                if project.litigation_stage_code:
-                    code = f"{code}/{project.litigation_stage_code}"
-                project.code = code
+                project.code = project._build_litigation_sequence(project.litigation_stage_code)
             else:
                 client_code = project.client_code or "PRJ"
                 sequence = project.case_sequence or 1
@@ -575,16 +634,11 @@ class QlkProject(models.Model):
     # إنشاء القضايا المرتبطة تلقائياً حسب نوع المشروع ومراحله.
     # ------------------------------------------------------------------------------
     def _auto_create_default_cases(self):
-        Case = self.env.get("qlk.case")
         ArbitrationCase = self.env.get("qlk.arbitration.case")
         CorporateCase = self.env.get("qlk.corporate.case")
         for project in self:
             if project.project_type == "litigation":
-                if project.litigation_stage == "court" and not project.case_id and Case:
-                    case_vals = project._prepare_litigation_case_vals()
-                    if case_vals:
-                        case = Case.create(case_vals)
-                        project.case_id = case.id
+                continue
             elif project.project_type == "arbitration":
                 if not project.arbitration_case_id and ArbitrationCase:
                     case_vals = project._prepare_arbitration_case_vals()
@@ -601,17 +655,20 @@ class QlkProject(models.Model):
     # ------------------------------------------------------------------------------
     # تهيئة بيانات القضية الخاصة بالتقاضي بناءً على المشروع الحالي.
     # ------------------------------------------------------------------------------
-    def _prepare_litigation_case_vals(self):
+    def _prepare_litigation_case_vals(self, litigation_level=None):
         self.ensure_one()
         if not self.client_id:
             return False
         lawyer = self._get_primary_employee()
         currency = self.company_id.currency_id
         case_name = self.client_id.display_name or self.name
-        return {
+        stage_code = litigation_level.code if litigation_level else self.litigation_stage_code
+        case_sequence = self._build_litigation_sequence(stage_code)
+        values = {
             "name": case_name,
-            "name2": self.code or case_name,
+            "name2": case_sequence or self.code or case_name,
             "client_id": self.client_id.id,
+            "project_id": self.id,
             "employee_id": lawyer.id if lawyer else False,
             "company_id": self.company_id.id,
             "description": self.description,
@@ -622,6 +679,45 @@ class QlkProject(models.Model):
             "case_group": self.litigation_court_id.id if self.litigation_court_id else False,
             "second_category": self.litigation_case_type_id.id if self.litigation_case_type_id else False,
         }
+        if litigation_level:
+            values["litigation_level_id"] = litigation_level.id
+        return values
+
+    def _build_litigation_sequence(self, stage_code=None):
+        self.ensure_one()
+        client_code = self.client_code or "PRJ"
+        case_number = self.litigation_case_number or self.case_sequence or 1
+        sequence_chunk = f"L{case_number:03d}"
+        if self.litigation_stage_iteration:
+            sequence_chunk += f"-{self.litigation_stage_iteration}"
+        code = f"{client_code}/{sequence_chunk}"
+        if stage_code:
+            code = f"{code}/{stage_code}"
+        return code
+
+    def _get_used_litigation_levels(self):
+        self.ensure_one()
+        return self.case_ids.mapped("litigation_level_id")
+
+    def _get_available_litigation_levels(self):
+        self.ensure_one()
+        if self.allow_multiple_cases_per_level:
+            return self.litigation_level_ids
+        return self.litigation_level_ids - self._get_used_litigation_levels()
+
+    def _ensure_litigation_case_available(self):
+        self.ensure_one()
+        if not self.litigation_level_ids:
+            raise UserError(_("يجب تحديد درجات التقاضي في المشروع قبل إنشاء قضية."))
+        if not self._get_available_litigation_levels():
+            raise UserError(_("تم إنشاء قضايا لكل درجات التقاضي المحددة في المشروع."))
+
+    def _check_litigation_case_create_authority(self):
+        if self.env.is_superuser():
+            return True
+        if self.env.user.has_group("qlk_management.group_legal_user"):
+            return True
+        raise AccessError(_("Only authorized legal users can create litigation cases."))
 
     # ------------------------------------------------------------------------------
     # تهيئة بيانات قضية التحكيم.
@@ -874,6 +970,19 @@ class QlkProject(models.Model):
 
     def _sync_case_project_link(self):
         for project in self:
+            case = project.case_id
+            if case and hasattr(case, "project_id"):
+                existing_project = case.project_id
+                if existing_project and existing_project != project:
+                    raise ValidationError(
+                        _("%(case)s is already linked to project %(project)s.") % {
+                            "case": case.display_name,
+                            "project": existing_project.display_name,
+                        }
+                    )
+                if existing_project != project:
+                    case.with_context(skip_project_primary_case_sync=True).project_id = project.id
+
             corporate_case = project.corporate_case_id
             if corporate_case and hasattr(corporate_case, "project_id"):
                 existing_project = corporate_case.project_id
@@ -1074,11 +1183,52 @@ class QlkProject(models.Model):
         action["context"] = context
         return action
 
-    @api.depends("department", "case_id", "corporate_case_id", "arbitration_case_id")
+    def action_view_litigation_cases(self):
+        self.ensure_one()
+        action = self.env.ref("qlk_law.act_open_qlk_case_view", raise_if_not_found=False)
+        if action:
+            result = action.read()[0]
+        else:
+            result = {
+                "type": "ir.actions.act_window",
+                "name": _("Litigation Cases"),
+                "res_model": "qlk.case",
+                "view_mode": "list,form",
+            }
+        context = result.get("context")
+        if isinstance(context, str):
+            context = safe_eval(context)
+        context = dict(context or {})
+        context.update(
+            {
+                "default_project_id": self.id,
+                "default_client_id": self.client_id.id,
+                "default_litigation_flow": "litigation",
+            }
+        )
+        available_levels = self._get_available_litigation_levels()
+        if len(available_levels) == 1:
+            context["default_litigation_level_id"] = available_levels.id
+        result["context"] = context
+        result["domain"] = [("project_id", "=", self.id)]
+        if len(self.case_ids) == 1:
+            result["res_id"] = self.case_ids.id
+            result["view_mode"] = "form"
+            result["views"] = [(False, "form")]
+        else:
+            list_view = self.env.ref("qlk_management.view_qlk_case_project_list", raise_if_not_found=False)
+            result["view_mode"] = "list,form"
+            if list_view:
+                result["views"] = [(list_view.id, "list"), (False, "form")]
+        return result
+
+    @api.depends("department", "case_id", "case_ids", "corporate_case_id", "arbitration_case_id")
     def _compute_related_case_display(self):
         for project in self:
             if project.department == "litigation" and project.case_id:
                 project.related_case_display = project.case_id.display_name
+            elif project.department == "litigation" and project.case_ids:
+                project.related_case_display = _("قضايا التقاضي: %s") % len(project.case_ids)
             elif project.department == "corporate" and project.corporate_case_id:
                 project.related_case_display = project.corporate_case_id.display_name
             elif project.department == "arbitration" and project.arbitration_case_id:
@@ -1102,6 +1252,8 @@ class QlkProject(models.Model):
                 context.setdefault("default_project_id", self.id)
                 result["context"] = context
                 return result
+        elif self.department == "litigation" and self.case_ids:
+            return self.action_view_litigation_cases()
         elif self.department == "corporate" and self.corporate_case_id:
             action = self.env.ref("qlk_corporate.action_corporate_case", raise_if_not_found=False)
             if action:
@@ -1150,8 +1302,8 @@ class QlkProject(models.Model):
         self.ensure_one()
         if self.project_type != "litigation":
             raise UserError(_("Only litigation projects can be transferred to a court case."))
-        if self.case_id:
-            raise UserError(_("This project is already linked to a litigation case."))
+        self._check_litigation_case_create_authority()
+        self._ensure_litigation_case_available()
         if self.litigation_stage != "pre":
             raise UserError(_("Transfer to litigation is available once the project is in the pre-litigation stage."))
         self._ensure_client_documents_ready()
@@ -1213,20 +1365,26 @@ class QlkProject(models.Model):
         self.ensure_one()
         if self.project_type != "litigation":
             raise UserError(_("Only litigation projects can create litigation cases."))
+        self._check_litigation_case_create_authority()
         if self.litigation_stage != "court":
             raise UserError(_("Litigation cases can be created only in the Litigation stage."))
-        if self.case_id:
-            return self.action_open_related_case()
+        self._ensure_litigation_case_available()
         self._ensure_client_documents_ready()
-        case_vals = self._prepare_litigation_case_vals()
-        if not case_vals:
-            raise UserError(_("Unable to prepare a litigation case from this project."))
-        case_vals.setdefault("state", "study")
-        case = self.env["qlk.case"].create(case_vals)
-        self.case_id = case.id
-        if self.pre_litigation_id and "pre_litigation_id" in case._fields:
-            case.pre_litigation_id = self.pre_litigation_id.id
-        return self.action_open_related_case()
+        available_levels = self._get_available_litigation_levels()
+        context = {
+            "default_project_id": self.id,
+            "default_client_id": self.client_id.id,
+            "default_assigned_employee_id": self.assigned_employee_ids[:1].id if self.assigned_employee_ids else False,
+        }
+        if len(available_levels) == 1:
+            context["default_litigation_level_id"] = available_levels.id
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "qlk.project.create.litigation.case",
+            "view_mode": "form",
+            "target": "new",
+            "context": context,
+        }
 
     def action_transfer_to_corporate(self):
         self.ensure_one()

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_qlk_requests_root"
+              name="Requests"
+              sequence="35"/>
+
+    <menuitem id="menu_qlk_requests_my"
+              name="My Requests"
+              parent="menu_qlk_requests_root"
+              action="qlk_requests.action_qlk_request_my"
+              sequence="10"/>
+
+    <menuitem id="menu_qlk_requests_all"
+              name="All Requests"
+              parent="menu_qlk_requests_root"
+              action="qlk_requests.action_qlk_request_all"
+              groups="qlk_requests.group_qlk_request_manager"
+              sequence="20"/>
+</odoo>

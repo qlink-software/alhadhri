@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <record id="qlk_law_qlink_dashboard.menu_qlk_courts_dashboard" model="ir.ui.menu">
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_law.group_courts_menu'), ref('qlk_law.group_qlk_law_manager'), ref('qlk_law.group_qlk_law_admin')])]"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_law.group_qlk_law_manager'), ref('qlk_law.group_qlk_law_admin')])]"/>
         </record>
     </data>
 </odoo>

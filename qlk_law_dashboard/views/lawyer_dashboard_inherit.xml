@@ -10,6 +10,8 @@
             <t t-set="forms" t-value="hrAlerts.forms or {}"/>
             <t t-set="resignation" t-value="state.data and state.data.resignation_status or {}"/>
             <t t-set="warningAlert" t-value="state.data and state.data.warning_alert"/>
+            <t t-set="myProjectTasks" t-value="state.data and state.data.my_project_tasks or {}"/>
+            <t t-set="myProjectTaskItems" t-value="myProjectTasks.items or []"/>
 
             <section class="qlk-dashboard__section qlk-dashboard__section--warning"
                      t-if="warningAlert">
@@ -40,6 +42,47 @@
                             </div>
                         </div>
                     </div>
+                </article>
+            </section>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--my-tasks">
+                <div class="section-header">
+                    <div>
+                        <h2 t-esc="labels.my_tasks_title" translate="yes"/>
+                        <p t-esc="labels.my_tasks_subtitle" translate="yes"/>
+                    </div>
+                    <button t-if="myProjectTasks.action"
+                            type="button"
+                            class="qlk-link"
+                            t-on-click="() => this.openAction(myProjectTasks.action, myProjectTasks.domain || [])">
+                        <span t-esc="labels.view_all_tasks" translate="yes"/>
+                    </button>
+                </div>
+
+                <article class="qlk-card qlk-my-tasks-card">
+                    <t t-if="myProjectTaskItems.length">
+                        <div class="qlk-my-tasks-table">
+                            <div class="qlk-my-tasks-table__head">
+                                <span t-esc="labels.task_name_title" translate="yes"/>
+                                <span t-esc="labels.task_project_title" translate="yes"/>
+                                <span t-esc="labels.task_deadline_title" translate="yes"/>
+                                <span t-esc="labels.task_status_title" translate="yes"/>
+                            </div>
+                            <t t-foreach="myProjectTaskItems" t-as="task" t-key="task.id">
+                                <button type="button"
+                                        class="qlk-my-tasks-table__row"
+                                        t-on-click="() => this.openRecord(task.url)">
+                                    <span class="item__name" t-esc="task.name"/>
+                                    <span t-esc="task.project or '-'"/>
+                                    <span t-esc="task.deadline or '-'"/>
+                                    <span class="item__badge" t-esc="task.status or '-'"/>
+                                </button>
+                            </t>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="qlk-empty" t-esc="labels.no_project_tasks" translate="yes"/>
+                    </t>
                 </article>
             </section>
 

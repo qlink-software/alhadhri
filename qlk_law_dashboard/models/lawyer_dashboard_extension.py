@@ -216,6 +216,69 @@ class LawyerDashboardExtension(models.AbstractModel):
         return payload
 
     @api.model
+    def _get_my_project_tasks_payload(self, lang):
+        payload = {
+            "items": [],
+            "count": 0,
+            "domain": [],
+            "action": self._action_payload("project.action_view_task")
+            or self._action_payload("project.action_view_all_task"),
+        }
+        if "project.task" not in self.env:
+            return payload
+
+        task_model = self.env["project.task"]
+        if not task_model.check_access_rights("read", raise_exception=False):
+            return payload
+
+        user = self.env.user
+        if "user_id" in task_model._fields:
+            user_domain = [("user_id", "=", user.id)]
+        elif "user_ids" in task_model._fields:
+            user_domain = [("user_ids", "in", [user.id])]
+        else:
+            user_domain = [("create_uid", "=", user.id)]
+
+        domain = list(user_domain)
+        if "is_closed" in task_model._fields:
+            domain.append(("is_closed", "=", False))
+        elif "stage_id" in task_model._fields:
+            stage_model_name = task_model._fields["stage_id"].comodel_name
+            stage_model = self.env.get(stage_model_name)
+            if stage_model and "fold" in stage_model._fields:
+                domain.append(("stage_id.fold", "=", False))
+
+        order_fields = []
+        if "date_deadline" in task_model._fields:
+            order_fields.append("date_deadline asc")
+        order_fields.append("id desc")
+        tasks = task_model.search(domain, order=", ".join(order_fields), limit=5)
+        payload["count"] = task_model.search_count(domain)
+        payload["domain"] = domain
+
+        state_selection = dict(task_model._fields["state"].selection) if "state" in task_model._fields else {}
+        items = []
+        for task in tasks:
+            deadline = ""
+            if "date_deadline" in task._fields and task.date_deadline:
+                deadline = format_date(self.env, task.date_deadline, lang_code=lang)
+            status = task.stage_id.display_name if "stage_id" in task._fields and task.stage_id else ""
+            if not status and "state" in task._fields:
+                status = state_selection.get(task.state, task.state or "")
+            items.append(
+                {
+                    "id": task.id,
+                    "name": task.display_name,
+                    "project": task.project_id.display_name if "project_id" in task._fields and task.project_id else "",
+                    "deadline": deadline,
+                    "status": status or "",
+                    "url": {"res_model": "project.task", "res_id": task.id},
+                }
+            )
+        payload["items"] = items
+        return payload
+
+    @api.model
     def _active_case_domain(self):
         case_model = self.env["qlk.case"]
         return [("active", "=", True)] if "active" in case_model._fields else []
@@ -246,6 +309,7 @@ class LawyerDashboardExtension(models.AbstractModel):
         warnings = self._get_warning_payload(employee, lang)
         hr_forms = self._get_hr_forms_payload(employee)
         resignation_status = self._get_resignation_status_payload(employee, lang)
+        my_project_tasks = self._get_my_project_tasks_payload(lang)
 
         labels = data.get("labels") or {}
         labels.update(
@@ -284,10 +348,19 @@ class LawyerDashboardExtension(models.AbstractModel):
                 "effective_date_title": _("Effective Date"),
                 "latest_warnings_title": _("Latest 3 Warnings"),
                 "no_warning_data": _("No active warnings for this employee."),
+                "my_tasks_title": _("مهامي"),
+                "my_tasks_subtitle": _("المهام المفتوحة المسندة إليك في المشاريع."),
+                "task_name_title": _("Task Name"),
+                "task_project_title": _("Project"),
+                "task_deadline_title": _("Deadline"),
+                "task_status_title": _("Status"),
+                "view_all_tasks": _("View All"),
+                "no_project_tasks": _("لا توجد مهام مفتوحة حالياً."),
             }
         )
         data["labels"] = labels
         data["working_hours"] = working_hours
+        data["my_project_tasks"] = my_project_tasks
         leave_base_domain = [("employee_id", "=", employee.id)] if employee else []
         warning_base_domain = [("employee_id", "=", employee.id)] if employee else []
         resignation_base_domain = [("employee_id", "=", employee.id)] if employee else []

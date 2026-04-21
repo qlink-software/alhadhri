@@ -1,0 +1,126 @@
+.qlk-dashboard__section--requests .section-header h2 {
+  margin-bottom: 0;
+}
+
+.qlk-requests-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.qlk-request-block {
+  min-height: 260px;
+}
+
+.qlk-request-block summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.qlk-request-block summary::-webkit-details-marker {
+  display: none;
+}
+
+.qlk-request-block summary span {
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.qlk-request-block summary strong {
+  color: #0f5ca8;
+  font-size: 28px;
+}
+
+.qlk-request-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.qlk-request-breakdown span {
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 92, 168, 0.08);
+  border-radius: 10px;
+  background: rgba(15, 92, 168, 0.05);
+  color: #475569;
+  font-size: 13px;
+}
+
+.qlk-request-breakdown strong {
+  color: #0f5ca8;
+}
+
+.qlk-request-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qlk-request-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qlk-request-table__head,
+.qlk-request-table__row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.6fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(90px, 0.8fr) minmax(95px, 0.8fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.qlk-request-table__head {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.qlk-request-table__row {
+  width: 100%;
+  border: 1px solid rgba(15, 92, 168, 0.08);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 11px 12px;
+  color: #1f2937;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qlk-request-table__row:hover {
+  border-color: rgba(15, 92, 168, 0.22);
+  box-shadow: 0 10px 22px rgba(15, 92, 168, 0.08);
+}
+
+.qlk-request-table__row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1199px) {
+  .qlk-requests-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .qlk-request-breakdown,
+  .qlk-request-table__row {
+    grid-template-columns: 1fr;
+  }
+
+  .qlk-request-table__head {
+    display: none;
+  }
+
+  .qlk-request-table__row span {
+    white-space: normal;
+  }
+}

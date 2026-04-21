@@ -3,6 +3,9 @@ access_sub_project,sub.project,model_sub_project,,1,1,1,1
 access_task,task,model_task,,1,1,1,1
 access_request_contact,request.contact,model_request_contact,,1,1,1,1
 access_contact_attachments,contact.attachments,model_contact_attachments,,1,1,1,1
+access_res_partner_client_mp,res.partner client mp,base.model_res_partner,qlk_management.group_client_mp,1,1,1,1
+access_res_partner_client_bd,res.partner client bd,base.model_res_partner,qlk_management.group_client_bd,1,1,1,1
+access_res_partner_client_view,res.partner client view,base.model_res_partner,qlk_management.group_client_view_only,1,0,0,0
 access_management_dashboard_user,management.dashboard,model_qlk_management_dashboard,,1,0,0,0
 access_client_document_user,Client Document User,model_qlk_client_document,qlk_management.group_legal_user,1,1,1,0
 access_client_document_manager,Client Document Manager,model_qlk_client_document,qlk_management.group_legal_manager,1,1,1,1
@@ -19,6 +22,10 @@ access_qlk_project_stage_manager,qlk.project.stage manager,model_qlk_project_sta
 access_qlk_project_stage_line,qlk.project.stage.line user,model_qlk_project_stage_line,,1,1,1,0
 access_qlk_project_fee_manager,qlk.project.fee manager,model_qlk_project_fee,,1,1,1,1
 access_qlk_project_fee_user,qlk.project.fee user,model_qlk_project_fee,,1,1,1,0
+access_litigation_level_user,litigation.level user,model_litigation_level,base.group_user,1,0,0,0
+access_litigation_level_manager,litigation.level manager,model_litigation_level,qlk_management.group_legal_manager,1,1,1,1
+access_project_create_litigation_case_wizard,qlk.project.create.litigation.case wizard,model_qlk_project_create_litigation_case,qlk_management.group_legal_user,1,1,1,0
+access_project_transfer_litigation_wizard,qlk.project.transfer.litigation wizard,model_qlk_project_transfer_litigation,qlk_management.group_legal_user,1,1,1,0
 access_pre_litigation_user,qlk.pre.litigation user,model_qlk_pre_litigation,base.group_user,1,1,1,1
 access_pre_litigation_translation_user,qlk.pre.litigation.translation user,model_qlk_pre_litigation_translation,base.group_user,1,1,1,1
 access_pre_litigation_approval_user,qlk.pre.litigation.approval user,model_qlk_pre_litigation_approval,base.group_user,1,1,1,1
@@ -31,7 +38,12 @@ access_employee_document_user,employee.document user,model_qlk_employee_document
 access_employee_document_manager,employee.document manager,model_qlk_employee_document,qlk_management.group_hr_nda_manager,1,1,1,1
 access_employee_document_reject_wizard,employee.document.reject.wizard,model_qlk_employee_document_reject_wizard,qlk_management.group_hr_nda_manager,1,1,1,0
 access_qlk_contact_classification_user,qlk.contact.classification user,model_qlk_contact_classification,base.group_user,1,1,1,1
-access_qlk_company_contact_channel_user,qlk.company.contact.channel user,model_qlk_company_contact_channel,base.group_user,1,1,1,1
+access_qlk_company_contact_channel_mp,qlk.company.contact.channel mp,model_qlk_company_contact_channel,qlk_management.group_client_mp,1,1,1,1
+access_qlk_company_contact_channel_bd,qlk.company.contact.channel bd,model_qlk_company_contact_channel,qlk_management.group_client_bd,1,1,1,1
+access_qlk_company_contact_channel_view,qlk.company.contact.channel view,model_qlk_company_contact_channel,qlk_management.group_client_view_only,1,0,0,0
+access_res_partner_contact_info_mp,res.partner.contact.info mp,model_res_partner_contact_info,qlk_management.group_client_mp,1,1,1,1
+access_res_partner_contact_info_bd,res.partner.contact.info bd,model_res_partner_contact_info,qlk_management.group_client_bd,1,1,1,1
+access_res_partner_contact_info_view,res.partner.contact.info view,model_res_partner_contact_info,qlk_management.group_client_view_only,1,0,0,0
 access_qlk_biometric_device_manager,qlk.biometric.device manager,model_qlk_biometric_device,hr.group_hr_manager,1,1,1,1
 access_qlk_biometric_user_map_manager,qlk.biometric.user.map manager,model_qlk_biometric_user_map,hr.group_hr_manager,1,1,1,1
 access_qlk_biometric_log_manager,qlk.biometric.log manager,model_qlk_biometric_log,hr.group_hr_manager,1,0,0,0

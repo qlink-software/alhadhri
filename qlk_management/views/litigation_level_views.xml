@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_litigation_level_list" model="ir.ui.view">
+        <field name="name">litigation.level.list</field>
+        <field name="model">litigation.level</field>
+        <field name="arch" type="xml">
+            <list string="درجات التقاضي" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_litigation_level_form" model="ir.ui.view">
+        <field name="name">litigation.level.form</field>
+        <field name="model">litigation.level</field>
+        <field name="arch" type="xml">
+            <form string="درجة التقاضي">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_litigation_level" model="ir.actions.act_window">
+        <field name="name">درجات التقاضي</field>
+        <field name="res_model">litigation.level</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_litigation_level"
+              name="درجات التقاضي"
+              parent="qlk_management.menu_qlk_project_projects"
+              action="qlk_management.action_litigation_level"
+              groups="qlk_management.group_legal_manager"
+              sequence="55"/>
+</odoo>

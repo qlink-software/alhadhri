@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="qlk_law_qlink_dashboard.Dashboard" t-inherit-mode="extension">
+        <xpath expr="//section[@class='qlk-dashboard__section'][last()]" position="after">
+            <t t-set="requestData" t-value="state.data and state.data.requests_dashboard or {}"/>
+            <t t-set="myRequests" t-value="requestData.my or {}"/>
+            <t t-set="assignedRequests" t-value="requestData.assigned or {}"/>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--requests" t-if="requestData.my or requestData.assigned">
+                <div class="section-header">
+                    <div>
+                        <h2 t-esc="labels.requests_title" translate="yes"/>
+                        <p t-esc="labels.requests_subtitle" translate="yes"/>
+                    </div>
+                </div>
+
+                <div class="qlk-requests-grid">
+                    <details class="qlk-card qlk-request-block" open="open">
+                        <summary>
+                            <span t-esc="labels.my_requests_title" translate="yes"/>
+                            <strong t-esc="formatCount(myRequests.count || 0)"/>
+                        </summary>
+                        <div class="qlk-request-breakdown">
+                            <span><t t-esc="labels.request_draft_title"/>: <strong t-esc="formatCount((myRequests.breakdown || {}).draft || 0)"/></span>
+                            <span><t t-esc="labels.request_progress_title"/>: <strong t-esc="formatCount((myRequests.breakdown || {}).in_progress || 0)"/></span>
+                            <span><t t-esc="labels.request_done_title"/>: <strong t-esc="formatCount((myRequests.breakdown || {}).done || 0)"/></span>
+                        </div>
+                        <t t-call="qlk_requests.RequestInlineTable">
+                            <t t-set="requestBucket" t-value="myRequests"/>
+                        </t>
+                    </details>
+
+                    <details class="qlk-card qlk-request-block">
+                        <summary>
+                            <span t-esc="labels.assigned_requests_title" translate="yes"/>
+                            <strong t-esc="formatCount(assignedRequests.count || 0)"/>
+                        </summary>
+                        <div class="qlk-request-breakdown">
+                            <span><t t-esc="labels.request_draft_title"/>: <strong t-esc="formatCount((assignedRequests.breakdown || {}).draft || 0)"/></span>
+                            <span><t t-esc="labels.request_progress_title"/>: <strong t-esc="formatCount((assignedRequests.breakdown || {}).in_progress || 0)"/></span>
+                            <span><t t-esc="labels.request_done_title"/>: <strong t-esc="formatCount((assignedRequests.breakdown || {}).done || 0)"/></span>
+                        </div>
+                        <t t-call="qlk_requests.RequestInlineTable">
+                            <t t-set="requestBucket" t-value="assignedRequests"/>
+                        </t>
+                    </details>
+                </div>
+            </section>
+        </xpath>
+    </t>
+
+    <t t-name="qlk_requests.RequestInlineTable">
+        <div class="qlk-request-inline">
+            <div class="qlk-request-table" t-if="(requestBucket.items || []).length">
+                <div class="qlk-request-table__head">
+                    <span t-esc="labels.request_name_title" translate="yes"/>
+                    <span t-esc="labels.request_from_title" translate="yes"/>
+                    <span t-esc="labels.request_to_title" translate="yes"/>
+                    <span t-esc="labels.request_date_title" translate="yes"/>
+                    <span t-esc="labels.request_status_title" translate="yes"/>
+                </div>
+                <t t-foreach="requestBucket.items || []" t-as="request" t-key="request.id">
+                    <button type="button"
+                            class="qlk-request-table__row"
+                            t-on-click="() => this.openRecord(request.url)">
+                        <span class="item__name" t-esc="request.name"/>
+                        <span t-esc="request.from_user || '-'"/>
+                        <span t-esc="request.to_user || '-'"/>
+                        <span t-esc="request.date || '-'"/>
+                        <span class="item__badge" t-esc="request.state_label || '-'"/>
+                    </button>
+                </t>
+            </div>
+            <div class="qlk-empty" t-else="" t-esc="labels.no_requests" translate="yes"/>
+            <div class="qlk-card__footer">
+                <button t-if="requestBucket.action"
+                        class="qlk-link"
+                        type="button"
+                        t-on-click="() => this.openAction(requestBucket.action, requestBucket.domain || [])">
+                    <span t-esc="labels.view_requests" translate="yes"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>
