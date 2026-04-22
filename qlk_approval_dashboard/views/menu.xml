@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_qlk_approval_dashboard" model="ir.actions.client">
+            <field name="name">Approval Dashboard</field>
+            <field name="tag">qlk.approval.dashboard</field>
+            <field name="target">main</field>
+        </record>
+
+        <menuitem id="menu_qlk_approval_dashboard_root"
+                  name="Approval Dashboard"
+                  sequence="11"
+                  action="action_qlk_approval_dashboard"
+                  groups="qlk_approval_dashboard.group_approval_dashboard_manager,qlk_approval_dashboard.group_approval_dashboard_assistant,qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_management.group_mp,qlk_management.group_qlk_lawyers,qlk_management.group_qlk_managers,qlk_management.group_qlk_admin,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager"/>
+    </data>
+</odoo>

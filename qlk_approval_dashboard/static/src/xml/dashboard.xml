@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_approval_dashboard.ApprovalDashboard" owl="1">
+        <div class="qlk-approval-dashboard">
+            <t t-if="state.loading">
+                <section class="qlk-approval__skeleton">
+                    <div class="skeleton skeleton-title"/>
+                    <div class="skeleton-grid">
+                        <div class="skeleton skeleton-card"/>
+                        <div class="skeleton skeleton-card"/>
+                        <div class="skeleton skeleton-card"/>
+                        <div class="skeleton skeleton-card"/>
+                    </div>
+                    <div class="skeleton skeleton-table"/>
+                </section>
+            </t>
+            <t t-else="">
+                <header class="qlk-approval__header">
+                    <div>
+                        <h1>Approval Dashboard</h1>
+                        <p t-if="activeSection">
+                            <t t-esc="activeSection.label"/>
+                        </p>
+                    </div>
+                    <div class="qlk-approval__toolbar">
+                        <div class="segmented" role="group">
+                            <button type="button"
+                                    t-att-class="state.scope === 'mine' ? 'active' : ''"
+                                    t-on-click="() => this.setScope('mine')">My Approvals</button>
+                            <button type="button"
+                                    t-att-class="state.scope === 'team' ? 'active' : ''"
+                                    t-on-click="() => this.setScope('team')">My Team</button>
+                            <button t-if="permissions.can_use_all"
+                                    type="button"
+                                    t-att-class="state.scope === 'all' ? 'active' : ''"
+                                    t-on-click="() => this.setScope('all')">All</button>
+                        </div>
+                        <button class="icon-button"
+                                type="button"
+                                title="Refresh"
+                                t-att-disabled="state.refreshing"
+                                t-on-click="refresh">
+                            <i class="fa fa-refresh" t-att-class="state.refreshing ? 'fa-spin' : ''"/>
+                        </button>
+                    </div>
+                </header>
+
+                <section class="qlk-approval__kpis">
+                    <t t-foreach="kpiCards" t-as="card" t-key="card.key">
+                        <button type="button"
+                                t-att-class="'qlk-approval__kpi tone-' + card.tone"
+                                t-on-click="() => this.openKpi(card.key)">
+                            <span t-esc="card.label"/>
+                            <strong>
+                                <t t-if="card.key === 'hours'" t-esc="formatHours(card.value)"/>
+                                <t t-else="" t-esc="formatNumber(card.value)"/>
+                            </strong>
+                        </button>
+                    </t>
+                </section>
+
+                <t t-if="sections.length">
+                    <section class="qlk-approval__tabs">
+                        <t t-foreach="sections" t-as="section" t-key="section.model">
+                            <button type="button"
+                                    t-att-class="section.model === state.activeModel ? 'active' : ''"
+                                    t-on-click="() => this.selectSection(section.model)">
+                                <span t-esc="section.label"/>
+                                <b t-esc="formatNumber(section.counts.pending)"/>
+                            </button>
+                        </t>
+                    </section>
+
+                    <section class="qlk-approval__charts">
+                        <article class="qlk-panel chart-panel">
+                            <header>
+                                <h2>Status Mix</h2>
+                            </header>
+                            <div class="donut-wrap">
+                                <svg viewBox="0 0 100 100" class="donut" t-if="pieSegments.length">
+                                    <circle class="donut-bg" cx="50" cy="50" r="42"/>
+                                    <t t-foreach="pieSegments" t-as="segment" t-key="segment.key">
+                                        <circle class="donut-segment"
+                                                cx="50"
+                                                cy="50"
+                                                r="42"
+                                                t-att-stroke="segment.color"
+                                                t-att-stroke-dasharray="segment.dash"
+                                                t-att-stroke-dashoffset="segment.offset"
+                                                t-on-click="() => this.openPieSegment(segment)"/>
+                                    </t>
+                                </svg>
+                                <div class="donut-empty" t-else="">No approvals available</div>
+                                <ul class="chart-legend">
+                                    <t t-foreach="pieSegments" t-as="segment" t-key="segment.key">
+                                        <li t-on-click="() => this.openPieSegment(segment)">
+                                            <i t-att-style="'background:' + segment.color"/>
+                                            <span t-esc="segment.label"/>
+                                            <b t-esc="formatNumber(segment.count)"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </article>
+
+                        <article class="qlk-panel chart-panel">
+                            <header>
+                                <h2>Hours per User</h2>
+                            </header>
+                            <div class="bar-list" t-if="hoursRows.length">
+                                <t t-foreach="hoursRows" t-as="row" t-key="row.user_id">
+                                    <button type="button" class="bar-row" t-on-click="() => this.openUserHours(row)">
+                                        <span class="bar-name" t-esc="row.name"/>
+                                        <span class="bar-track">
+                                            <i t-att-style="'width:' + ((row.hours / maxUserHours) * 100) + '%'"/>
+                                        </span>
+                                        <b t-esc="formatHours(row.hours)"/>
+                                    </button>
+                                </t>
+                            </div>
+                            <div class="empty-inline" t-else="">No approvals available</div>
+                        </article>
+                    </section>
+
+                    <section class="qlk-panel qlk-approval__records">
+                        <header>
+                            <div>
+                                <h2 t-esc="activeSection.label"/>
+                                <small>
+                                    <t t-esc="formatNumber(activeSection.counts.pending)"/> pending
+                                </small>
+                            </div>
+                            <button class="text-button" type="button" t-on-click="() => this.openSection(activeSection)">
+                                <i class="fa fa-external-link"/>
+                                <span>Open Full View</span>
+                            </button>
+                        </header>
+
+                        <div class="records-table" t-if="records.length">
+                            <div class="records-head">
+                                <span>Name</span>
+                                <span>Client</span>
+                                <span>Assigned User</span>
+                                <span>Status</span>
+                                <span>Hours</span>
+                                <span/>
+                            </div>
+                            <t t-foreach="records" t-as="record" t-key="record.model + '-' + record.id">
+                                <div class="records-row">
+                                    <span class="record-name" t-esc="record.name"/>
+                                    <span t-esc="record.client || '-'"/>
+                                    <span t-esc="record.assigned_user || '-'"/>
+                                    <span>
+                                        <i t-att-class="'status-pill status-' + record.status.category"
+                                           t-esc="record.status.label"/>
+                                    </span>
+                                    <span t-esc="formatHours(record.hours)"/>
+                                    <span class="record-actions">
+                                        <button type="button"
+                                                class="approve"
+                                                t-att-disabled="!record.can_approve"
+                                                t-on-click="() => this.decide(record, 'approve')">Approve</button>
+                                        <button type="button"
+                                                class="reject"
+                                                t-att-disabled="!record.can_reject"
+                                                t-on-click="() => this.decide(record, 'reject')">Reject</button>
+                                    </span>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="empty-state" t-else="">
+                            No approvals available
+                        </div>
+                    </section>
+                </t>
+                <section class="empty-state empty-state--page" t-else="">
+                    No approvals available
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>
