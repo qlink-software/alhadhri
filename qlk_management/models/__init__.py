@@ -19,6 +19,7 @@ from . import project_project
 from . import project_task_security
 from . import ir_attachment
 from . import ir_model
+from . import ir_rule
 from . import bd_retainer_mixin
 from . import bd_proposal
 from . import bd_engagement_letter

@@ -15,6 +15,7 @@ request summaries directly in the lawyer dashboard.
     "license": "OPL-1",
     "depends": [
         "mail",
+        "qlk_management",
         "qlk_law_dashboard",
     ],
     "data": [
