@@ -20,16 +20,29 @@ RETAINER_TYPE_SELECTION = [
     ("management_litigation", "Management Litigation"),
 ]
 
+PROJECT_CONTRACT_TYPE_SELECTION = [
+    ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
+    ("combined", "Combined"),
+    ("arbitration", "Arbitration"),
+]
+
 
 class ProjectProject(models.Model):
     _inherit = "project.project"
 
+    # The standard project partner is used here as a lawyer selector in the legal workflow.
+    partner_id = fields.Many2one("res.partner", domain=[("is_lawyer", "=", True)])
     cost_calculation_id = fields.Many2one("cost.calculation", string="Cost Calculation")
     client_document_ids = fields.One2many(
         related="partner_id.client_document_ids",
         string="Client Documents",
     )
-    lawyer_id = fields.Many2one("hr.employee", string="Lawyer")
+    lawyer_id = fields.Many2one(
+        "hr.employee",
+        string="Lawyer",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+    )
     lawyer_hour_cost = fields.Float(string="Lawyer Hour Cost", compute="_compute_lawyer_costs", store=True)
     lawyer_hours = fields.Float(string="Lawyer Hours")
     lawyer_total_cost = fields.Float(string="Lawyer Total Cost", compute="_compute_totals", store=True)
@@ -40,6 +53,11 @@ class ProjectProject(models.Model):
         string="Engagement Letter",
         index=True,
         ondelete="set null",
+    )
+    contract_type = fields.Selection(
+        selection=PROJECT_CONTRACT_TYPE_SELECTION,
+        string="Contract Type",
+        copy=False,
     )
     billing_type = fields.Selection(
         [("free", "Pro bono"), ("paid", "Paid")],
@@ -120,6 +138,9 @@ class ProjectProject(models.Model):
     def create(self, vals_list):
         sequence_cache = {}
         for vals in vals_list:
+            engagement = vals.get("engagement_letter_id") and self.env["bd.engagement.letter"].browse(vals["engagement_letter_id"])
+            if engagement and not vals.get("contract_type"):
+                vals["contract_type"] = self._get_contract_type_from_engagement(engagement)
             partner_id = vals.get("partner_id")
             partner = partner_id and self.env["res.partner"].browse(partner_id) or False
             if partner:
@@ -173,6 +194,8 @@ class ProjectProject(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        if "contract_type" in vals and not self.env.context.get("allow_project_contract_type_update"):
+            raise UserError(_("Contract Type is locked after project creation."))
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
         # if self._has_new_task_command(vals.get("qlk_task_ids")):
         #     return super().write(vals)
@@ -196,6 +219,17 @@ class ProjectProject(models.Model):
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
         # self._check_hours_logged()
         return res
+
+    def _get_contract_type_from_engagement(self, engagement):
+        # Engagement billing type is retainer/lump sum, so the project contract category is derived from service type.
+        service_type = engagement.retainer_type or engagement.engagement_type or "corporate"
+        if service_type == "litigation_corporate":
+            return "combined"
+        if "arbitration" in service_type:
+            return "arbitration"
+        if "litigation" in service_type:
+            return "litigation"
+        return "corporate"
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name

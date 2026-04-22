@@ -106,6 +106,14 @@ class QlkCase(models.Model):
         string="Pre-Litigation Workflow",
         tracking=True,
     )
+    lawyer_id = fields.Many2one(
+        "res.users",
+        string="Primary Lawyer User",
+        related="employee_id.user_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
     completion_identification = fields.Float(string="Identification", compute="_compute_completion_metrics", store=False)
     completion_timeline = fields.Float(string="Timeline", compute="_compute_completion_metrics", store=False)
     completion_parties = fields.Float(string="Parties", compute="_compute_completion_metrics", store=False)

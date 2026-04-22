@@ -51,6 +51,9 @@
                             invisible="state not in ('rejected', 'cancelled')"/>
                     <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
                             invisible="state != 'approved_client' or qlk_project_id or (billing_type != 'free' and not allow_project_without_payment and invoice_state != 'paid')"/>
+                    <button name="action_create_project_direct" type="object" string="Create Project"
+                            class="btn-secondary"
+                            invisible="state != 'approved_client' or qlk_project_id or billing_type == 'free' or allow_project_without_payment or invoice_state == 'paid'"/>
                     <button name="action_allow_project_without_payment" type="object"
                             string="Allow Project Before Payment"
                             class="btn-secondary"
@@ -79,8 +82,9 @@
                                    modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
                         </group>
                         <group>
-                            <field name="lawyer_employee_id"/>
-                            <field name="lawyer_ids" widget="many2many_tags"/>
+                            <field name="lawyer_employee_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
+                            <field name="lawyer_ids" widget="many2many_tags"
+                                   domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                             <field name="lawyer_cost_hour" readonly="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
@@ -126,7 +130,7 @@
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="service_name"/>
                                     <field name="service_type"/>
-                                    <field name="assigned_lawyer_id"/>
+                                    <field name="assigned_lawyer_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                                     <field name="quantity"/>
                                     <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     <field name="discount_type"/>

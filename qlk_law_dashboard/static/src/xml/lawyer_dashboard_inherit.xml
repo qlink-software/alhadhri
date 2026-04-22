@@ -50,6 +50,7 @@
                     <div>
                         <h2 t-esc="labels.my_tasks_title" translate="yes"/>
                         <p t-esc="labels.my_tasks_subtitle" translate="yes"/>
+                        <span class="item__badge" t-esc="formatCount(myProjectTasks.count || 0)"/>
                     </div>
                     <button t-if="myProjectTasks.action"
                             type="button"

@@ -86,8 +86,9 @@
                     </group>
                     <group modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                         <group>
-                            <field name="lawyer_employee_id"/>
-                            <field name="lawyer_ids" widget="many2many_tags"/>
+                            <field name="lawyer_employee_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
+                            <field name="lawyer_ids" widget="many2many_tags"
+                                   domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                             <field name="hourly_cost" readonly="1" groups="account.group_account_user"/>
                             <field name="planned_hours"/>
                             <field name="total_estimated_cost" readonly="1" groups="account.group_account_user"/>
@@ -133,7 +134,7 @@
                                         <field name="currency_id" column_invisible="1"/>
                                         <field name="service_name"/>
                                         <field name="service_type"/>
-                                        <field name="assigned_lawyer_id"/>
+                                        <field name="assigned_lawyer_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                                         <field name="quantity"/>
                                         <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                         <field name="discount_type"/>

@@ -24,12 +24,14 @@
               name="BD"
               web_icon="crm,static/description/icon.png"
               action="action_bd_dashboard"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
               sequence="30"/>
 
     <menuitem id="menu_bd_dashboard"
               name="Business Development Dashboard"
               parent="menu_management_root"
               action="action_bd_dashboard"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
               sequence="1"/>
 
     <!-- <menuitem id="menu_management_dashboard"
@@ -42,24 +44,28 @@
         name="Client Data"
         action="action_bd_client_data"
         parent="menu_management_root"
+        groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
         sequence="2"/>
 
     <menuitem id="menu_management_pipeline"
               name="Pipeline"
               parent="menu_management_root"
               action="crm.crm_lead_action_pipeline"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
               sequence="20"/>
 
     <menuitem id="qlk_bd_menu_proposal"
               name="Proposal"
               parent="menu_management_root"
               action="action_bd_proposal"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
               sequence="40"/>
 
     <menuitem id="qlk_bd_menu_engagement"
               name="Engagement Letter"
               parent="menu_management_root"
               action="action_bd_engagement_letter"
+              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group,qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
               sequence="50"/>
 
     <!-- <menuitem id="qlk_bd_menu_client_poa"

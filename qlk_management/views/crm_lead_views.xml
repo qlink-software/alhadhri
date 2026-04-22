@@ -36,20 +36,69 @@
         <field name="arch" type="xml">
             <xpath expr="//t[@t-name='card']" position="replace">
                 <t t-name="card">
-                    <div class="o_kanban_record">
-                        <field class="fw-bold fs-5" name="name"/>
-                        <div class="text-muted">
-                            <span>Stage: </span>
-                            <field name="state"/>
+                    <div t-attf-class="oe_kanban_global_click o_kanban_record card shadow-sm border-0 h-100 pr_stage_#{record.state and record.state.raw_value or 'new'}">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <div class="fw-semibold fs-6 text-truncate">
+                                    <t t-esc="record.client_name and record.client_name.value or record.partner_id and record.partner_id.value or record.name.value"/>
+                                </div>
+                                <div class="small text-muted text-truncate" t-if="record.client_code and record.client_code.raw_value">
+                                    <span>Code: </span><field name="client_code"/>
+                                </div>
+                            </div>
+                            <field name="user_id" widget="many2one_avatar_user" class="flex-shrink-0"/>
                         </div>
-                        <div>
-                            <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span t-if="record.state and record.state.raw_value == 'new'" class="badge rounded-pill text-bg-secondary">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and (record.state.raw_value == 'interested' or record.state.raw_value == 'follow_up')" class="badge rounded-pill text-bg-warning">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and record.state.raw_value == 'send'" class="badge rounded-pill text-bg-success">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and record.state.raw_value == 'not_interested'" class="badge rounded-pill text-bg-danger">
+                                <field name="state"/>
+                            </span>
+                            <span class="badge rounded-pill text-bg-primary" t-if="record.contract_type and record.contract_type.raw_value == 'litigation'">
+                                <field name="contract_type"/>
+                            </span>
+                            <span class="badge rounded-pill text-bg-info" t-if="record.contract_type and record.contract_type.raw_value == 'corporate'">
+                                <field name="contract_type"/>
+                            </span>
+                            <span class="badge rounded-pill text-bg-dark" t-if="record.contract_type and (record.contract_type.raw_value == 'combined' or record.contract_type.raw_value == 'arbitration')">
+                                <field name="contract_type"/>
+                            </span>
                         </div>
-                        <div class="pt-1">
-                            <field name="priority_selection"
-                                decoration-danger="priority == 'high'"
-                                decoration-warning="priority == 'medium'"
-                                decoration-success="priority == 'low'"/>
+
+                        <div class="d-grid gap-2 small">
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Service</span>
+                                <span class="fw-medium text-truncate"><field name="opportunity_type"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Lawyer</span>
+                                <span class="fw-medium text-truncate"><field name="user_id"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Amount</span>
+                                <span class="fw-medium"><field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/></span>
+                            </div>
+                        </div>
+
+                        <footer class="d-flex justify-content-between align-items-center border-top pt-2 mt-3 small">
+                            <span class="text-muted">Expected Closing</span>
+                            <span class="fw-medium">
+                                <field name="date_deadline"/>
+                            </span>
+                        </footer>
+                        <div class="pt-2">
+                            <field name="priority_selection" widget="badge"
+                                   decoration-danger="priority_selection == 'high'"
+                                   decoration-warning="priority_selection == 'medium'"
+                                   decoration-success="priority_selection == 'low'"/>
                         </div>
                     </div>
                 </t>

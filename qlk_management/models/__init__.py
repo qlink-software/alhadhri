@@ -5,6 +5,7 @@
 # from . import qlk_agreement
 from . import qlk_dashboard
 from . import client_contact
+from . import department
 from . import res_partner
 from . import sub_project
 from . import task
@@ -15,6 +16,7 @@ from . import hr_resignation_request
 from . import biometric_integration
 from . import hr_automation
 from . import project_project
+from . import project_task_security
 from . import ir_attachment
 from . import ir_model
 from . import bd_retainer_mixin
@@ -39,3 +41,4 @@ from . import project_stage
 from . import project_workflow
 from . import qlk_project_task
 from . import employee_document
+from . import access_control

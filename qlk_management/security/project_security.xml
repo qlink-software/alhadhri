@@ -5,6 +5,7 @@
             <field name="name">QLK Project Manager Access</field>
             <field name="model_id" ref="model_qlk_project"/>
             <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_qlk_managers'), ref('qlk_management.group_qlk_admin')])]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -12,9 +13,10 @@
         </record>
 
         <record id="rule_qlk_project_member" model="ir.rule">
-            <field name="name">QLK Project Member Access</field>
+            <field name="name">QLK Project Lawyer Isolation</field>
             <field name="model_id" ref="model_qlk_project"/>
-            <field name="domain_force">['|', ('assigned_employee_ids.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="domain_force">['|', ('assigned_lawyer_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_qlk_lawyers')])]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -25,6 +27,7 @@
             <field name="name">QLK Project Viewer Access</field>
             <field name="model_id" ref="model_qlk_project"/>
             <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_qlk_managers'), ref('qlk_management.group_qlk_admin')])]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>

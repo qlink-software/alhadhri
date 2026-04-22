@@ -15,10 +15,27 @@ class Crm(models.Model):
     ], string='Priority', tracking=True)
 
     client_name = fields.Char(string="Client")
+    client_code = fields.Char(
+        string="Client Code",
+        compute="_compute_client_code",
+        store=True,
+        readonly=True,
+    )
 
     opportunity_type = fields.Selection([
         ('litigation', 'Litigation'),('corporate','Corporate'),('arbitration','Arbitration'),
     ], default="litigation", string='Opportunity Type')
+    contract_type = fields.Selection(
+        [
+            ("litigation", "Litigation"),
+            ("corporate", "Corporate"),
+            ("combined", "Combined"),
+            ("arbitration", "Arbitration"),
+        ],
+        string="Contract Type",
+        default="litigation",
+        tracking=True,
+    )
     task_ids = fields.One2many('task', 'crm_id', string='Tasks')
     qlk_task_ids = fields.One2many("qlk.task", "lead_id", string="Tasks / Hours")
     hours_logged_ok = fields.Boolean(
@@ -38,6 +55,13 @@ class Crm(models.Model):
     def _compute_proposal(self):
         for lead in self:
             lead.proposal_count = self.env['bd.proposal'].search_count([('lead_id', '=', lead.id)])
+
+    @api.depends("partner_id", "partner_id.code", "partner_id.ref", "partner_id.bd_client_code")
+    def _compute_client_code(self):
+        # Keep PR cards fast by storing the client code instead of recomputing it in QWeb.
+        for lead in self:
+            partner = lead.partner_id
+            lead.client_code = partner and (partner.bd_client_code or partner.code or partner.ref or "") or ""
 
     @api.depends("qlk_task_ids.hours_spent")
     def _compute_total_task_hours(self):

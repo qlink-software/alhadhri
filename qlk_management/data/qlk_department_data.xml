@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <record id="module_qlk_department_access" model="ir.module.category">
+        <field name="name">QLink Department Access</field>
+        <field name="sequence" eval="35"/>
+    </record>
+
+    <record id="department_litigation" model="qlk.department">
+        <field name="name">التقاضي</field>
+        <field name="code">litigation</field>
+        <field name="sequence" eval="10"/>
+        <field name="user_group_id" ref="qlk_management.group_legal_user"/>
+        <field name="manager_group_id" ref="qlk_management.group_legal_manager"/>
+    </record>
+    <record id="department_corporate" model="qlk.department">
+        <field name="name">الشركات</field>
+        <field name="code">corporate</field>
+        <field name="sequence" eval="20"/>
+        <field name="user_group_id" ref="qlk_corporate.group_corporate_user"/>
+        <field name="manager_group_id" ref="qlk_corporate.group_corporate_manager"/>
+    </record>
+    <record id="department_arbitration" model="qlk.department">
+        <field name="name">التحكيم</field>
+        <field name="code">arbitration</field>
+        <field name="sequence" eval="30"/>
+        <field name="user_group_id" ref="qlk_arbitration.group_arbitration_user"/>
+        <field name="manager_group_id" ref="qlk_arbitration.group_arbitration_manager"/>
+    </record>
+    <record id="department_mp" model="qlk.department">
+        <field name="name">الإدارة / الشركاء</field>
+        <field name="code">mp</field>
+        <field name="sequence" eval="40"/>
+        <field name="user_group_id" ref="qlk_management.group_mp"/>
+        <field name="manager_group_id" ref="qlk_management.group_mp"/>
+    </record>
+
+    <function model="qlk.department" name="_sync_access_control_after_data"/>
+</odoo>

@@ -59,13 +59,19 @@ class QlkApprovalDashboard(models.AbstractModel):
         "button_reject",
     )
 
+    def _has_existing_group(self, xmlid):
+        group = self.env.ref(xmlid, raise_if_not_found=False)
+        return bool(group and group.id in self.env.user._get_group_ids())
+
+    def _has_any_existing_group(self, group_xmlids):
+        return any(self._has_existing_group(xmlid) for xmlid in group_xmlids)
+
     def _ensure_dashboard_access(self):
-        user = self.env.user
-        if not any(user.has_group(group) for group in self.DASHBOARD_ACCESS_GROUPS):
+        if not self._has_any_existing_group(self.DASHBOARD_ACCESS_GROUPS):
             raise AccessError(_("You do not have access to the approval dashboard."))
 
     def _is_manager(self):
-        return any(self.env.user.has_group(group) for group in self.DASHBOARD_MANAGER_GROUPS)
+        return self._has_any_existing_group(self.DASHBOARD_MANAGER_GROUPS)
 
     def _all_approval_states(self):
         return self.PENDING_STATES | self.APPROVED_STATES | self.REJECTED_STATES

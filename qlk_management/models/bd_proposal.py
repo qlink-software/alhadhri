@@ -238,18 +238,25 @@ class BDProposal(models.Model):
     # ------------------------------------------------------------------------------
     # الحقول المالية: المحامي، تكلفة الساعة، ساعات التنفيذ، التكاليف الإضافية ونطاق المشروع.
     # ------------------------------------------------------------------------------
-    lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer", tracking=True)
+    lawyer_id = fields.Many2one(
+        "res.partner",
+        string="Assigned Lawyer",
+        tracking=True,
+        domain=[("is_lawyer", "=", True)],
+    )
     lawyer_ids = fields.Many2many(
         "hr.employee",
         "bd_proposal_lawyer_rel",
         "proposal_id",
         "employee_id",
         string="Assigned Lawyers",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         tracking=True,
     )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         compute="_compute_lawyer_employee_id",
         inverse="_inverse_lawyer_employee_id",
         store=True,
@@ -1202,6 +1209,7 @@ class BDProposalLegalFee(models.Model):
     assigned_lawyer_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         index=True,
     )
     quantity = fields.Float(string="Quantity", default=1.0)

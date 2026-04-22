@@ -5,6 +5,7 @@
         <menuitem id="menu_qlk_project_projects"
                   name="Projects"
                   parent="qlk_management.menu_management_root"
+                  groups="qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
                   sequence="60"/>
 
         <menuitem id="menu_qlk_project_projects_list"
@@ -40,6 +41,7 @@
         <menuitem id="menu_qlk_project_dashboards_root"
                   name="Dashboards"
                   parent="qlk_management.menu_management_root"
+                  groups="qlk_management.group_legal_user,qlk_management.group_legal_manager,qlk_corporate.group_corporate_user,qlk_corporate.group_corporate_manager,qlk_arbitration.group_arbitration_user,qlk_arbitration.group_arbitration_manager,qlk_management.group_mp,qlk_management.group_qlk_admin"
                   sequence="55"/>
 
         

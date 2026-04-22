@@ -8,6 +8,17 @@ from odoo import _, api, fields, models
 class BDEngagementLetter(models.Model):
     _inherit = "bd.engagement.letter"
 
+    def _get_project_contract_type(self):
+        self.ensure_one()
+        service_type = self.retainer_type or self.engagement_type or "corporate"
+        if service_type == "litigation_corporate":
+            return "combined"
+        if "arbitration" in service_type:
+            return "arbitration"
+        if "litigation" in service_type:
+            return "litigation"
+        return "corporate"
+
     def _prepare_project_vals(self):
         vals = super()._prepare_project_vals()
         retainer = self.retainer_type or "corporate"
@@ -31,6 +42,8 @@ class BDEngagementLetter(models.Model):
                 "owner_id": self.reviewer_id.id or self.env.user.id,
                 "reference": self.code,
                 "scope_of_work": self.scope_of_work,
+                # Store the legal contract category on the project at creation time.
+                "contract_type": self._get_project_contract_type(),
             }
         )
         employee_ids = self.lawyer_ids.ids if self.lawyer_ids else []

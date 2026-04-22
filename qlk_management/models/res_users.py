@@ -1,9 +1,92 @@
 # -*- coding: utf-8 -*-
-from odoo import _, api, models
+from odoo import _, api, fields, models
+from odoo.fields import Command
 
 
 class ResUsers(models.Model):
     _inherit = "res.users"
+
+    department_role_ids = fields.One2many(
+        "qlk.user.department.role",
+        "user_id",
+        string="Department Roles",
+    )
+    department_ids = fields.Many2many(
+        "qlk.department",
+        "qlk_user_department_rel",
+        "user_id",
+        "department_id",
+        string="Departments",
+        compute="_compute_department_access",
+        store=True,
+    )
+    manager_department_ids = fields.Many2many(
+        "qlk.department",
+        "qlk_user_manager_department_rel",
+        "user_id",
+        "department_id",
+        string="Managed Departments",
+        compute="_compute_department_access",
+        store=True,
+    )
+    user_department_ids = fields.Many2many(
+        "qlk.department",
+        "qlk_user_member_department_rel",
+        "user_id",
+        "department_id",
+        string="User Departments",
+        compute="_compute_department_access",
+        store=True,
+    )
+    qlk_access_group_ids = fields.Many2many(
+        "res.groups",
+        string="Operational Access Groups",
+        compute="_compute_qlk_access_group_ids",
+        help="Shows the existing operational groups used by QLink access control.",
+    )
+
+    @api.depends("department_role_ids.department_id", "department_role_ids.role_type")
+    def _compute_department_access(self):
+        for user in self:
+            roles = user.department_role_ids
+            departments = roles.mapped("department_id")
+            manager_departments = roles.filtered(lambda role: role.role_type == "manager").mapped("department_id")
+            user_departments = roles.filtered(lambda role: role.role_type == "user").mapped("department_id")
+            user.department_ids = [Command.set(departments.ids)]
+            user.manager_department_ids = [Command.set(manager_departments.ids)]
+            user.user_department_ids = [Command.set(user_departments.ids)]
+
+    @api.depends("groups_id")
+    def _compute_qlk_access_group_ids(self):
+        group_xmlids = [
+            "qlk_management.bd_manager_group",
+            "qlk_management.bd_assistant_manager_group",
+            "qlk_management.group_legal_user",
+            "qlk_management.group_legal_manager",
+            "qlk_law.group_qlk_law_lawyer",
+            "qlk_law.group_qlk_law_manager",
+            "qlk_corporate.group_corporate_user",
+            "qlk_corporate.group_corporate_responsible",
+            "qlk_corporate.group_corporate_manager",
+            "qlk_arbitration.group_arbitration_user",
+            "qlk_arbitration.group_arbitration_responsible",
+            "qlk_arbitration.group_arbitration_manager",
+            "qlk_management.group_mp",
+            "qlk_management.group_qlk_admin",
+        ]
+        access_groups = self.env["res.groups"]
+        for xmlid in group_xmlids:
+            group = self.env.ref(xmlid, raise_if_not_found=False)
+            if group:
+                access_groups |= group
+        for user in self:
+            user.qlk_access_group_ids = [Command.set((user.groups_id & access_groups).ids)]
+
+    def write(self, vals):
+        result = super().write(vals)
+        if "department_role_ids" in vals and not self.env.context.get("skip_department_group_sync"):
+            self.env["qlk.user.department.role"]._sync_user_groups(self)
+        return result
 
     # ------------------------------------------------------------------------------
     # هذه الدالة تحدد هل المستخدم يمتلك صلاحية عرض جميع بيانات الداشبورد
@@ -11,10 +94,7 @@ class ResUsers(models.Model):
     # ------------------------------------------------------------------------------
     def _qlk_can_view_all_dashboards(self):
         self.ensure_one()
-        return bool(
-            self.has_group("qlk_management.group_mp")
-            or self.has_group("qlk_management.bd_manager_group")
-        )
+        return bool(self.manager_department_ids)
 
     # ------------------------------------------------------------------------------
     # هذه الدالة تحدد أكشن الداشبورد الافتراضي للمستخدم بعد تسجيل الدخول.

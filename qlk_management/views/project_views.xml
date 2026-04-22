@@ -6,10 +6,11 @@
             <field name="name">qlk.project.list</field>
             <field name="model">qlk.project</field>
             <field name="type">list</field>
-            <field name="arch" type="xml">
+                    <field name="arch" type="xml">
                 <list string="Projects" default_order="create_date desc">
                     <field name="code"/>
                     <field name="name"/>
+                    <field name="contract_type" widget="badge"/>
                     <field name="department" widget="badge" invisible="1"/>
                     <field name="client_id"/>
                     <field name="related_case_display" string="Related Matter"/>
@@ -84,6 +85,7 @@
                             <group>
                                 <field name="department" invisible="1"/>
                                 <field name="project_type"/>
+                                <field name="contract_type" readonly="id"/>
                                 <field name="retainer_type"/>
                                 <field name="estimated_hours"/>
                                 <field name="notify_datetime"/>
@@ -97,8 +99,9 @@
                                 <field name="available_litigation_level_count" readonly="1" invisible="project_type != 'litigation'"/>
                                 <field name="client_id" string="Client Name"/>
                                 <field name="engagement_id" readonly="1"/>
-                                <field name="lawyer_id"/>
-                                <field name="lawyer_ids" widget="many2many_tags"/>
+                                <field name="lawyer_id" domain="[('is_lawyer', '=', True)]"/>
+                                <field name="lawyer_ids" widget="many2many_tags"
+                                       domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                                 <field name="lawyer_cost_hour" readonly="1"/>
                                 <field name="client_capacity"/>
                                 <field name="litigation_case_number" modifiers="{'readonly': True, 'invisible': [('project_type', '!=', 'litigation')]}"/>
@@ -113,7 +116,8 @@
                                        invisible="department != 'arbitration'"
                                        domain="['|', ('project_id', '=', False), ('project_id', '=', id)]"
                                        context="{'default_project_id': id, 'default_client_id': client_id}"/>
-                                <field name="assigned_employee_ids" widget="many2many_tags"/>
+                                <field name="assigned_employee_ids" widget="many2many_tags"
+                                       domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                                 <field name="owner_id"/>
                             </group>
                             <group>

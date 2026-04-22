@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Department menu visibility is driven by the user-friendly Access Control tab. -->
+    <record id="qlk_law.menu_qlk_case_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_legal_user'), ref('qlk_management.group_legal_manager'), ref('qlk_law.group_qlk_law_lawyer'), ref('qlk_law.group_qlk_law_manager'), ref('qlk_management.group_qlk_admin')])]"/>
+    </record>
+
+    <record id="qlk_corporate.menu_corporate_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('qlk_corporate.group_corporate_user'), ref('qlk_corporate.group_corporate_manager'), ref('qlk_management.group_qlk_admin')])]"/>
+    </record>
+
+    <record id="qlk_arbitration.menu_arbitration_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user'), ref('qlk_arbitration.group_arbitration_manager'), ref('qlk_management.group_qlk_admin')])]"/>
+    </record>
+
+    <!-- Case/settings administration is isolated from operational lawyer and BD menus. -->
+    <record id="qlk_law.menu_qlk_law_main_case_settings" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_qlk_admin')])]"/>
+    </record>
+</odoo>

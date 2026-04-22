@@ -15,6 +15,13 @@ LITIGATION_WORKFLOW_TEMPLATE = [
     {"key": "fee_payment", "name": "Fee Payment", "sequence": 70},
 ]
 
+PROJECT_CONTRACT_TYPE_SELECTION = [
+    ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
+    ("combined", "Combined"),
+    ("arbitration", "Arbitration"),
+]
+
 
 class QlkProject(models.Model):
     _name = "qlk.project"
@@ -29,7 +36,7 @@ class QlkProject(models.Model):
         "arbitration": "arbitration_case_id",
     }
 
-    name = fields.Char(required=True, tracking=True)
+    name = fields.Char( tracking=True)
     code = fields.Char(string="Project Code", compute="_compute_code", store=True, tracking=True)
     reference = fields.Char(string="Reference", copy=False, tracking=True)
     department = fields.Selection(
@@ -126,14 +133,35 @@ class QlkProject(models.Model):
         tracking=True,
     )
     client_capacity = fields.Char(string="Client Capacity", tracking=True)
-    lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer", tracking=True)
+    lawyer_id = fields.Many2one(
+        "res.partner",
+        string="Assigned Lawyer",
+        tracking=True,
+        domain=[("is_lawyer", "=", True)],
+    )
     lawyer_ids = fields.Many2many(
         "hr.employee",
         "qlk_project_lawyer_rel",
         "project_id",
         "employee_id",
         string="Assigned Lawyers",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         tracking=True,
+    )
+    assigned_lawyer_id = fields.Many2one(
+        "res.users",
+        string="Primary Lawyer User",
+        compute="_compute_assigned_lawyer_id",
+        store=True,
+        index=True,
+        readonly=True,
+    )
+    contract_type = fields.Selection(
+        selection=PROJECT_CONTRACT_TYPE_SELECTION,
+        string="Contract Type",
+        tracking=True,
+        copy=False,
+        help="Legal contract category inherited from the approved engagement letter.",
     )
     lawyer_cost_hour = fields.Float(string="Lawyer Cost Per Hour", readonly=True)
     case_id = fields.Many2one("qlk.case", string="Linked Court Case", tracking=True, ondelete="set null")
@@ -227,6 +255,7 @@ class QlkProject(models.Model):
         relation="qlk_project_employee_rel",
         column1="project_id",
         column2="employee_id",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         tracking=True,
     )
     owner_id = fields.Many2one("res.users", string="Project Owner", default=lambda self: self.env.user, tracking=True)
@@ -354,6 +383,13 @@ class QlkProject(models.Model):
         for project in self:
             stage_line = project.stage_line_ids[:1]
             project.stage_id = stage_line.stage_id if stage_line else False
+
+    @api.depends("assigned_employee_ids.user_id", "lawyer_ids.user_id")
+    def _compute_assigned_lawyer_id(self):
+        # Security rules need a stored user field; the business assignment remains on hr.employee.
+        for project in self:
+            employee = project.assigned_employee_ids[:1] or project.lawyer_ids[:1]
+            project.assigned_lawyer_id = employee.user_id if employee else False
 
     _sql_constraints = [
         ("qlk_project_code_unique", "unique(code)", "The project code must be unique."),
@@ -900,6 +936,8 @@ class QlkProject(models.Model):
         return projects
     def write(self, vals):
         prepared_vals = self._prepare_project_type_values(vals) if "project_type" in vals else vals
+        if "contract_type" in prepared_vals and not self.env.context.get("allow_project_contract_type_update"):
+            raise UserError(_("Contract Type is locked after project creation."))
         if "translation_attachment_ids" in prepared_vals and "translation_status" not in prepared_vals:
             prepared_vals["translation_status"] = "draft"
         case_fields = tuple(self._department_case_field_map.values())

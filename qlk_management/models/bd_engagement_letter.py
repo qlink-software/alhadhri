@@ -290,17 +290,23 @@ class BDEngagementLetter(models.Model):
     )
     signed_on = fields.Datetime(string="Signed On", readonly=True)
     client_code_generated = fields.Boolean(string="Client Code Generated", readonly=True, copy=False)
-    lawyer_id = fields.Many2one("res.partner", string="Assigned Lawyer")
+    lawyer_id = fields.Many2one(
+        "res.partner",
+        string="Assigned Lawyer",
+        domain=[("is_lawyer", "=", True)],
+    )
     lawyer_ids = fields.Many2many(
         "hr.employee",
         "bd_engagement_letter_lawyer_rel",
         "letter_id",
         "employee_id",
         string="Assigned Lawyers",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
     )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         compute="_compute_lawyer_employee_id",
         inverse="_inverse_lawyer_employee_id",
         store=True,
@@ -1299,6 +1305,15 @@ class BDEngagementLetter(models.Model):
             result_action = letter._get_project_action(project.id)
         return result_action
 
+    def action_create_project_direct(self):
+        result_action = None
+        for letter in self:
+            letter._ensure_project_creation_ready(skip_billing=True)
+            project = letter._create_qlk_project_from_engagement()
+            letter.with_context(skip_hours_check=True).write({"qlk_project_id": project.id})
+            result_action = letter._get_project_action(project.id)
+        return result_action
+
     def action_open_project(self):
         self.ensure_one()
         if not self.qlk_project_id:
@@ -1313,12 +1328,14 @@ class BDEngagementLetter(models.Model):
             raise UserError(_("Only approved engagement letters can be exempted."))
         self.write({"allow_project_without_payment": True})
 
-    def _ensure_project_creation_ready(self):
+    def _ensure_project_creation_ready(self, skip_billing=False):
         for letter in self:
             if letter.qlk_project_id:
                 raise UserError(_("A project has already been created for this engagement letter."))
             if letter.state != "approved_client":
                 raise UserError(_("Only approved engagement letters can create projects."))
+            if skip_billing:
+                continue
             if letter._is_invoice_billing():
                 if not letter.invoice_id:
                     raise UserError(_("You must create an invoice before creating the project."))
@@ -1452,6 +1469,7 @@ class BDEngagementLetterFee(models.Model):
     assigned_lawyer_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
+        domain=[("user_id.partner_id.is_lawyer", "=", True)],
         index=True,
     )
     quantity = fields.Float(string="Quantity", default=1.0)
