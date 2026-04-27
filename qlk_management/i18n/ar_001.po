@@ -1199,11 +1199,6 @@ msgid "BD"
 msgstr "تطوير الأعمال"
 
 #. module: qlk_management
-#: model:res.groups,name:qlk_management.bd_assistant_manager_group
-msgid "BD Assistant Manager"
-msgstr "مساعد مدير تطوير الأعمال"
-
-#. module: qlk_management
 #: model:ir.actions.server,name:qlk_management.ir_cron_bd_engagement_retainer_usage_ir_actions_server
 msgid "BD Engagement Retainer Check"
 msgstr "فحص ريتينر خطاب الارتباط"
@@ -1214,11 +1209,6 @@ msgstr "فحص ريتينر خطاب الارتباط"
 #: model:ir.actions.report,name:qlk_management.action_bd_report_xlsx_wizard
 msgid "BD Excel Report"
 msgstr "تقرير تطوير الأعمال - إكسل"
-
-#. module: qlk_management
-#: model:res.groups,name:qlk_management.bd_manager_group
-msgid "BD Manager"
-msgstr "مدير تطوير الأعمال"
 
 #. module: qlk_management
 #: model:ir.model.fields,field_description:qlk_management.field_project_project__bd_user_id
@@ -1670,11 +1660,6 @@ msgstr ""
 #: model:ir.ui.menu,name:qlk_management.res_partner_management_contacts
 msgid "Client Data"
 msgstr "بيانات العميل"
-
-#. module: qlk_management
-#: model:res.groups,name:qlk_management.group_client_data_access
-msgid "Client Data Access"
-msgstr ""
 
 #. module: qlk_management
 #. odoo-python
@@ -3039,11 +3024,6 @@ msgid "Group By"
 msgstr ""
 
 #. module: qlk_management
-#: model:res.groups,name:qlk_management.group_hr_nda_manager
-msgid "HR Contracts & NDA Manager"
-msgstr ""
-
-#. module: qlk_management
 #. odoo-javascript
 #: code:addons/qlk_management/static/src/xml/project_dashboard.xml:0
 msgid "HR documents"
@@ -3629,11 +3609,6 @@ msgid "Legal Fees Lines"
 msgstr ""
 
 #. module: qlk_management
-#: model:res.groups,name:qlk_management.group_legal_manager
-msgid "Legal Manager"
-msgstr ""
-
-#. module: qlk_management
 #: model:ir.model.fields,field_description:qlk_management.field_bd_engagement_letter__legal_note
 msgid "Legal Notes"
 msgstr ""
@@ -3641,11 +3616,6 @@ msgstr ""
 #. module: qlk_management
 #: model:ir.model,name:qlk_management.model_qlk_project
 msgid "Legal Project"
-msgstr ""
-
-#. module: qlk_management
-#: model:res.groups,name:qlk_management.group_legal_user
-msgid "Legal User"
 msgstr ""
 
 #. module: qlk_management
@@ -3832,7 +3802,6 @@ msgstr ""
 
 #. module: qlk_management
 #: model:ir.ui.menu,name:qlk_management.menu_mp_root
-#: model:res.groups,name:qlk_management.group_mp
 msgid "MP"
 msgstr "MP"
 

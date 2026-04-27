@@ -110,8 +110,7 @@ class QlkAnalysisDashboard(models.AbstractModel):
         def scoped_domain(model_name, base_domain=None):
             return self._scoped_domain(model_name, user, employee_ids, allow_all, base_domain)
 
-        project_domain = scoped_domain("qlk.project")
-        task_domain = scoped_domain("qlk.task", [("project_id", "!=", False)])
+        task_domain = scoped_domain("qlk.task", [])
         approved_task_domain = task_domain + [("approval_state", "=", "approved")]
 
         totals = {
@@ -119,7 +118,7 @@ class QlkAnalysisDashboard(models.AbstractModel):
             "hearings": self._summaries("qlk.hearing", scoped_domain("qlk.hearing")),
             "consultations": self._summaries("qlk.consulting", scoped_domain("qlk.consulting")) if "qlk.consulting" in self.env else 0,
             "complaints": self._summaries("qlk.police.complaint", scoped_domain("qlk.police.complaint")) if "qlk.police.complaint" in self.env else 0,
-            "projects": self._summaries("qlk.project", project_domain),
+            "engagements": self._summaries("bd.engagement.letter", scoped_domain("bd.engagement.letter")),
         }
 
         task_hours_group = self.env["qlk.task"].read_group(approved_task_domain, ["hours_spent"], [])
@@ -170,25 +169,6 @@ class QlkAnalysisDashboard(models.AbstractModel):
                     }
                 )
 
-        project_progress = []
-        if "qlk.project" in self.env:
-            project_model = self.env["qlk.project"]
-            selection = dict(project_model._fields["department"].selection)
-            grouped = project_model.read_group(project_domain, ["department"], ["department"])
-            for entry in grouped:
-                dept = entry.get("department")
-                if not dept:
-                    continue
-                local_domain = project_domain + [("department", "=", dept)]
-                project_progress.append(
-                    {
-                        "label": selection.get(dept, dept),
-                        "value": entry.get("department_count", 0),
-                        "domain": self._normalize_domain(local_domain),
-                        "action": "projects",
-                    }
-                )
-
         task_department = []
         if "qlk.task" in self.env:
             task_model = self.env["qlk.task"]
@@ -221,11 +201,10 @@ class QlkAnalysisDashboard(models.AbstractModel):
                 "hearings": safe_aggregate("qlk.hearing", scoped_domain("qlk.hearing"), date_field="date", action="hearings"),
                 "consultations": safe_aggregate("qlk.consulting", scoped_domain("qlk.consulting"), date_field="date", action="consultations") if "qlk.consulting" in self.env else [],
                 "complaints": safe_aggregate("qlk.police.complaint", scoped_domain("qlk.police.complaint"), date_field="date", action="complaints") if "qlk.police.complaint" in self.env else [],
-                "projects": safe_aggregate("qlk.project", project_domain, date_field="create_date", action="projects"),
+                "engagements": safe_aggregate("bd.engagement.letter", scoped_domain("bd.engagement.letter"), date_field="date", action="engagements"),
                 "task_hours": safe_aggregate("qlk.task", approved_task_domain, date_field="date_start", value_field="hours_spent", value_type="sum", action="tasks"),
                 "case_status": case_status,
                 "hearing_stage": hearing_stage,
-                "project_progress": project_progress,
                 "task_department": task_department,
             },
             "actions": {
@@ -233,8 +212,8 @@ class QlkAnalysisDashboard(models.AbstractModel):
                 "hearings": self._action_ref("qlk_law.act_open_qlk_hearing_view"),
                 "consultations": self._action_ref("qlk_law.act_open_qlk_consulting_view"),
                 "complaints": self._action_ref("qlk_law_police.act_open_qlk_police_complaint_view"),
-                "projects": self._action_ref("qlk_management.action_qlk_project"),
-                "tasks": self._action_ref("qlk_management.action_qlk_project_tasks"),
+                "engagements": self._action_ref("qlk_management.action_bd_engagement_letter"),
+                "tasks": self._action_ref("qlk_task_management.action_qlk_task_all"),
             },
         }
         return data

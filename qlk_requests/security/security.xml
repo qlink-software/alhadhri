@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="group_request_user" model="res.groups">
+            <field name="name">Internal Requests User</field>
+            <field name="category_id" ref="qlk_security_base.qlk_management_security_category"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        <record id="group_request_manager" model="res.groups">
+            <field name="name">Internal Requests Manager</field>
+            <field name="category_id" ref="qlk_security_base.qlk_management_security_category"/>
+            <field name="implied_ids" eval="[(4, ref('qlk_requests.group_request_user'))]"/>
+        </record>
+    </data>
+</odoo>

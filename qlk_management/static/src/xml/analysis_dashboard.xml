@@ -15,7 +15,7 @@
                 <section class="qlk-analysis__hero">
                     <div class="hero__info">
                         <h1>Comprehensive Analytics Dashboard</h1>
-                        <p>Explore insights for cases, hearings, consultations, complaints, and projects.</p>
+                        <p>Explore insights for cases, hearings, consultations, complaints, and engagements.</p>
                     </div>
                     <div class="hero__filters">
                         <span>Time Range</span>
@@ -47,8 +47,8 @@
                             <strong t-esc="totals.complaints || 0"/>
                         </div>
                         <div class="metric-card">
-                            <span>Projects</span>
-                            <strong t-esc="totals.projects || 0"/>
+                            <span>Engagements</span>
+                            <strong t-esc="totals.engagements || 0"/>
                         </div>
                     </div>
                 </section>
@@ -117,21 +117,21 @@
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>New Projects</h2>
+                                <h2>New Engagements</h2>
                             </div>
-                            <button t-if="state.data.actions.projects" class="qlk-link" t-on-click="() => openAction(state.data.actions.projects)">
-                                View Projects
+                            <button t-if="state.data.actions.engagements" class="qlk-link" t-on-click="() => openAction(state.data.actions.engagements)">
+                                View Engagements
                             </button>
                         </header>
                         <div class="chart-wrapper">
-                            <canvas t-ref="projectsCanvas"></canvas>
+                            <canvas t-ref="engagementsCanvas"></canvas>
                         </div>
                     </article>
 
                     <article class="qlk-card">
                         <header>
                             <div>
-                                <h2>Approved Project Hours</h2>
+                                <h2>Approved Task Hours</h2>
                             </div>
                             <button t-if="state.data.actions.tasks" class="qlk-link" t-on-click="() => openAction(state.data.actions.tasks)">
                                 View Tasks
@@ -164,19 +164,6 @@
                             </header>
                             <div class="chart-wrapper">
                                 <canvas t-ref="hearingStageCanvas"></canvas>
-                            </div>
-                        </article>
-                    </t>
-
-                    <t t-if="series.project_progress and series.project_progress.length">
-                        <article class="qlk-card">
-                            <header>
-                                <div>
-                                    <h2>Projects by Department</h2>
-                                </div>
-                            </header>
-                            <div class="chart-wrapper">
-                                <canvas t-ref="projectProgressCanvas"></canvas>
                             </div>
                         </article>
                     </t>

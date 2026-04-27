@@ -2,47 +2,17 @@
 <odoo>
     <data>
 
-        <record id="view_qlk_task_form_project_inherit" model="ir.ui.view">
-            <field name="name">qlk.task.form.project.inherit</field>
-            <field name="model">qlk.task</field>
-            <field name="inherit_id" ref="qlk_task_management.view_qlk_task_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//form/sheet/group/field[@name='department']" position="after">
-                    <field name="project_id" options="{'no_create_edit': True}"/>
-                </xpath>
-                <xpath expr="//form/sheet/group/field[@name='case_id']" position="attributes">
-                    <attribute name="domain">[('project_id', '=', project_id)]</attribute>
-                    <attribute name="context">{'default_project_id': project_id, 'default_department': 'litigation'}</attribute>
-                </xpath>
-            </field>
-        </record>
-
-        <record id="view_qlk_task_list_project_inherit" model="ir.ui.view">
-            <field name="name">qlk.task.list.project.inherit</field>
-            <field name="model">qlk.task</field>
-            <field name="inherit_id" ref="qlk_task_management.view_qlk_task_list"/>
-            <field name="arch" type="xml">
-                <xpath expr="//list/field[@name='department']" position="after">
-                    <field name="project_id"/>
-                </xpath>
-            </field>
-        </record>
-
         <record id="view_qlk_task_search_project_inherit" model="ir.ui.view">
             <field name="name">qlk.task.search.project.inherit</field>
             <field name="model">qlk.task</field>
             <field name="inherit_id" ref="qlk_task_management.view_qlk_task_search"/>
             <field name="arch" type="xml">
-                <xpath expr="//search/field[@name='department']" position="after">
-                    <field name="project_id"/>
-                </xpath>
                 <xpath expr="//search/filter[@name='filter_waiting']" position="after">
                     <filter name="filter_corporate" string="Corporate" domain="[('department', '=', 'corporate')]"/>
                     <filter name="filter_litigation" string="Litigation" domain="[('department', '=', 'litigation')]"/>
                     <filter name="filter_arbitration" string="Arbitration" domain="[('department', '=', 'arbitration')]"/>
                 </xpath>
                 <xpath expr="//search/group" position="inside">
-                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
                     <filter name="group_employee" string="Lawyer" context="{'group_by': 'assigned_user_id'}"/>
                     <filter name="group_task_date" string="Date" context="{'group_by': 'date_start'}"/>
                 </xpath>

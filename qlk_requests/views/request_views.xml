@@ -8,7 +8,7 @@
                 <field name="name"/>
                 <field name="requested_by"/>
                 <field name="assigned_to"/>
-                <field name="project_id"/>
+                <field name="engagement_id"/>
                 <field name="case_id"/>
                 <field name="hours_spent" widget="float_time" sum="Total Hours"/>
                 <field name="request_date"/>
@@ -31,7 +31,7 @@
                 <field name="name"/>
                 <field name="requested_by"/>
                 <field name="assigned_to"/>
-                <field name="project_id"/>
+                <field name="engagement_id"/>
                 <field name="case_id"/>
                 <field name="hours_spent"/>
                 <field name="state"/>
@@ -69,7 +69,7 @@
                             <field name="requested_by"/>
                             <field name="assigned_to"/>
                             <field name="request_date"/>
-                            <field name="project_id"/>
+                            <field name="engagement_id"/>
                             <field name="case_id"/>
                         </group>
                         <group>
@@ -97,7 +97,7 @@
                 <field name="name"/>
                 <field name="requested_by"/>
                 <field name="assigned_to"/>
-                <field name="project_id"/>
+                <field name="engagement_id"/>
                 <field name="case_id"/>
                 <field name="request_date"/>
                 <field name="hours_spent"/>
@@ -113,7 +113,7 @@
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_requested_by" string="Requested By" context="{'group_by': 'requested_by'}"/>
                     <filter name="group_assigned_to" string="Assigned To" context="{'group_by': 'assigned_to'}"/>
-                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_engagement" string="Engagement" context="{'group_by': 'engagement_id'}"/>
                     <filter name="group_case" string="Case" context="{'group_by': 'case_id'}"/>
                     <filter name="group_date" string="Date" context="{'group_by': 'request_date'}"/>
                 </group>
@@ -132,8 +132,16 @@
         <field name="name">My Requests</field>
         <field name="res_model">qlk.internal.request</field>
         <field name="view_mode">list,calendar,form</field>
-        <field name="domain">['|', ('requested_by', '=', uid), ('assigned_to', '=', uid)]</field>
+        <field name="domain">[('requested_by', '=', uid)]</field>
         <field name="context">{'search_default_filter_my_requests': 1}</field>
+    </record>
+
+    <record id="action_qlk_request_assigned_to_me" model="ir.actions.act_window">
+        <field name="name">Assigned To Me</field>
+        <field name="res_model">qlk.internal.request</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="domain">[('assigned_to', '=', uid)]</field>
+        <field name="context">{'search_default_filter_assigned_to_me': 1}</field>
     </record>
 
     <record id="action_qlk_request_all" model="ir.actions.act_window">

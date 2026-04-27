@@ -45,9 +45,9 @@ class QlkInternalRequest(models.Model):
         index=True,
         tracking=True,
     )
-    project_id = fields.Many2one(
-        "qlk.project",
-        string="المشروع",
+    engagement_id = fields.Many2one(
+        "bd.engagement.letter",
+        string="الاتفاقية",
         ondelete="set null",
         index=True,
         tracking=True,
@@ -78,23 +78,17 @@ class QlkInternalRequest(models.Model):
         tracking=True,
     )
 
-    @api.onchange("project_id")
-    def _onchange_project_id(self):
+    @api.onchange("engagement_id")
+    def _onchange_engagement_id(self):
         for request in self:
-            project = request.project_id
-            if not project:
-                request.case_id = False
-                continue
-            if project.case_id:
-                request.case_id = project.case_id.id
-            elif request.case_id and request.case_id.project_id != project:
+            if request.engagement_id and request.case_id and request.case_id.engagement_id != request.engagement_id:
                 request.case_id = False
 
     @api.onchange("case_id")
     def _onchange_case_id(self):
         for request in self:
-            if request.case_id and request.case_id.project_id:
-                request.project_id = request.case_id.project_id.id
+            if request.case_id and request.case_id.engagement_id:
+                request.engagement_id = request.case_id.engagement_id.id
 
     @api.constrains("hours_spent")
     def _check_hours_spent(self):
@@ -102,16 +96,16 @@ class QlkInternalRequest(models.Model):
             if request.hours_spent < 0:
                 raise ValidationError(_("Hours cannot be negative."))
 
-    @api.constrains("project_id", "case_id")
+    @api.constrains("engagement_id", "case_id")
     def _check_project_case_consistency(self):
         for request in self:
             if (
-                request.project_id
+                request.engagement_id
                 and request.case_id
-                and request.case_id.project_id
-                and request.case_id.project_id != request.project_id
+                and request.case_id.engagement_id
+                and request.case_id.engagement_id != request.engagement_id
             ):
-                raise ValidationError(_("The selected case must belong to the selected project."))
+                raise ValidationError(_("The selected case must belong to the selected engagement letter."))
 
     def _notify_user(self, user, body):
         if user and user.partner_id:

@@ -10,20 +10,19 @@
                 </xpath>
 
                 <xpath expr="//field[@name='is_new']/.." position="before">
-                    <group string="بيانات المشروع">
-                        <field name="project_litigation_level_ids" invisible="1"/>
-                        <field name="project_id" options="{'no_create_edit': True}"/>
-                        <field name="project_sequence" readonly="1"/>
-                        <field name="litigation_level_id"
-                               domain="[('id', 'in', project_litigation_level_ids)]"
-                               required="project_id"/>
-                        <field name="litigation_stage_code" readonly="1"/>
-                        <field name="total_hours" readonly="1" widget="float_time"/>
+                    <group string="Engagement / Case Engine">
+                        <field name="allowed_litigation_degree_ids" invisible="1"/>
+                        <field name="engagement_id" required="1"/>
+                        <field name="litigation_degree" invisible="1"/>
+                        <field name="litigation_degree_id"
+                               string="Litigation Degree"
+                               domain="[('id', 'in', allowed_litigation_degree_ids)]"
+                               required="engagement_id"/>
                     </group>
                 </xpath>
 
                 <xpath expr="//sheet//notebook" position="inside">
-                    <page string="Client Documents" groups="qlk_management.group_legal_user">
+                    <page string="Client Documents" groups="qlk_management.group_pre_litigation_user">
                         <group>
                         <!-- <field name="client_document_warning"
                                nolabel="1"
@@ -59,17 +58,14 @@
             <field name="priority">90</field>
             <field name="arch" type="xml">
                 <list string="Cases" default_order="create_date desc">
-                    <field name="project_sequence"/>
-                    <field name="project_id"/>
-                    <field name="litigation_level_id"/>
-                    <field name="litigation_stage_code"/>
+                    <field name="engagement_id"/>
+                    <field name="litigation_degree_id" string="Litigation Degree"/>
                     <field name="name"/>
                     <field name="case_number"/>
                     <field name="case_year"/>
                     <field name="client_id"/>
                     <field name="case_group"/>
                     <field name="second_category"/>
-                    <field name="total_hours" widget="float_time" sum="Total Hours"/>
                 </list>
             </field>
         </record>

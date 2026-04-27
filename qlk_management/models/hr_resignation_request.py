@@ -88,7 +88,7 @@ class HrResignationRequest(models.Model):
             return True
         return bool(
             user.has_group("hr.group_hr_manager")
-            or user.has_group("qlk_management.group_mp")
+            or user.has_group("qlk_management.group_pre_litigation_manager")
         )
 
     @api.depends("manager_id")

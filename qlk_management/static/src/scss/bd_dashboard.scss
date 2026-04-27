@@ -1,8 +1,160 @@
 .qlk-bd-dashboard {
-    @extend .qlk-project-dashboard;
+    --qlk-primary: #0F5CA8;
+    --qlk-accent: #22B6C8;
+    --qlk-muted: #0D3E7A;
+    --qlk-success: #27AE60;
+    background: #f7f9fc;
+    min-height: 100%;
+    padding: 24px;
 
-    .qlk-project-dashboard__hero {
+    .qlk-dashboard__loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 60px 0;
+        color: var(--qlk-muted);
+    }
+
+    .qlk-bd-dashboard__hero {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
         background: linear-gradient(135deg, rgba(15, 92, 168, 0.9), rgba(34, 182, 200, 0.9));
+        border-radius: 16px;
+        padding: 24px 32px;
+        color: #fff;
+        margin-bottom: 24px;
+
+        .hero__info {
+            h1 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            p {
+                margin: 0;
+                font-size: 16px;
+                opacity: 0.85;
+            }
+        }
+
+        .hero__metrics {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            min-width: 280px;
+
+            .metric-card {
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+                backdrop-filter: blur(4px);
+
+                span {
+                    font-size: 13px;
+                    opacity: 0.85;
+                }
+
+                strong {
+                    font-size: 22px;
+                    font-weight: 700;
+                }
+            }
+        }
+    }
+
+    .qlk-bd-dashboard__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .qlk-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid rgba(15, 92, 168, 0.08);
+        box-shadow: 0 10px 25px rgba(15, 92, 168, 0.08);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            h2 {
+                font-size: 18px;
+                margin: 0;
+                color: var(--qlk-muted);
+            }
+
+            small {
+                display: block;
+                color: #6f7a8c;
+                font-size: 13px;
+            }
+
+            .qlk-link {
+                background: none;
+                border: none;
+                color: var(--qlk-primary);
+                font-weight: 600;
+                cursor: pointer;
+                padding: 0;
+            }
+        }
+    }
+
+    .qlk-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .qlk-list__item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(15, 92, 168, 0.04);
+            cursor: pointer;
+            transition: background 0.2s ease;
+
+            &:hover {
+                background: rgba(15, 92, 168, 0.08);
+            }
+
+            .item__meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .item__name {
+                font-weight: 600;
+                color: var(--qlk-muted);
+            }
+
+            .item__badge {
+                background: rgba(34, 182, 200, 0.12);
+                color: var(--qlk-accent);
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+            }
+        }
     }
 
     .qlk-empty {

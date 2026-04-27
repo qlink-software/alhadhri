@@ -15,11 +15,13 @@ hours, and lets authorized users approve or reject records from a single OWL vie
     "depends": [
         "base",
         "web",
+        "qlk_security_base",
         "qlk_management",
     ],
     "data": [
         "security/groups.xml",
         "security/ir.model.access.csv",
+        "security/record_rules.xml",
         "views/menu.xml",
     ],
     "assets": {

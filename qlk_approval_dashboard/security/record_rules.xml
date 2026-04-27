@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Approval dashboard is an action-client service without stored records to scope by ir.rule. -->
+    </data>
+</odoo>

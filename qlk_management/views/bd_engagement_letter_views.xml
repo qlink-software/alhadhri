@@ -10,8 +10,10 @@
                 <field name="client_code"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <field name="project_type"/>
+                <field name="service_type"/>
                 <field name="date"/>
+                <field name="total_cases"/>
+                <field name="total_hours_used" widget="float_time"/>
                 <field name="total_amount"/>
                 <field name="state"/>
             </list>
@@ -29,16 +31,16 @@
                             class="btn-primary"
                             invisible="state != 'draft'"/>
                     <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
-                            groups="qlk_management.bd_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state != 'waiting_manager_approval' or approval_role != 'manager'"/>
                     <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
-                            groups="qlk_management.bd_assistant_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state != 'waiting_manager_approval' or approval_role != 'assistant_manager'"/>
                     <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
-                            groups="qlk_management.bd_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'manager'"/>
                     <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
-                            groups="qlk_management.bd_assistant_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'assistant_manager'"/>
                     <button name="action_send_client_approval" type="object" string="Send to Client Approval"
                             class="btn-primary"
@@ -49,28 +51,36 @@
                             invisible="state != 'waiting_client_approval'"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state not in ('rejected', 'cancelled')"/>
-                    <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
-                            invisible="state != 'approved_client' or qlk_project_id or (billing_type != 'free' and not allow_project_without_payment and invoice_state != 'paid')"/>
-                    <button name="action_create_project_direct" type="object" string="Create Project"
-                            class="btn-secondary"
-                            invisible="state != 'approved_client' or qlk_project_id or billing_type == 'free' or allow_project_without_payment or invoice_state == 'paid'"/>
-                    <button name="action_allow_project_without_payment" type="object"
-                            string="Allow Project Before Payment"
-                            class="btn-secondary"
-                            groups="qlk_management.bd_manager_group"
-                            invisible="state != 'approved_client' or billing_type == 'free' or allow_project_without_payment or invoice_state == 'paid'"/>
+                    <button name="action_create_case" type="object" string="Create Case" class="btn-primary"
+                            invisible="state != 'approved_client' or service_type not in ('litigation', 'mixed')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>
                 <sheet>
                     <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
-                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_open_cases" class="oe_stat_button" icon="fa-balance-scale">
+                            <field name="case_count" widget="statinfo" string="Cases"/>
+                        </button>
+                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="pre_litigation_count" widget="statinfo" string="Pre-Litigation"/>
+                        </button>
+                        <button type="object" name="action_open_arbitration_cases" class="oe_stat_button" icon="fa-gavel">
+                            <field name="arbitration_count" widget="statinfo" string="Arbitration"/>
+                        </button>
+                        <button type="object" name="action_open_corporate_cases" class="oe_stat_button" icon="fa-building-o">
+                            <field name="corporate_count" widget="statinfo" string="Corporate"/>
+                        </button>
+                    </div>
                     <group string="Client &amp; General Info">
                         <group>
                             <field name="code" readonly="1"/>
                             <field name="date"/>
                             <field name="currency_id"/>
                             <field name="contract_type"/>
+                            <field name="service_type"/>
+                            <field name="litigation_degree_ids" widget="many2many_tags"
+                                   invisible="service_type not in ('litigation', 'mixed')"/>
                             <field name="retainer_type"/>
                             <field name="retainer_period"
                                    modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer')]}"/>
@@ -80,6 +90,8 @@
                             <field name="notify_datetime"/>
                             <field name="estimated_hours"
                                    modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
+                            <field name="agreed_hours" widget="float_time" invisible="contract_type != 'hours'"/>
+                            <field name="agreed_case_count" invisible="contract_type != 'cases'"/>
                         </group>
                         <group>
                             <field name="lawyer_employee_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
@@ -89,13 +101,21 @@
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
                             <field name="reviewer_id"/>
+                            <field name="total_hours_used" readonly="1" widget="float_time"/>
+                            <field name="remaining_hours" readonly="1" widget="float_time"
+                                   decoration-danger="remaining_hours &lt; 0"/>
+                            <field name="total_cases" readonly="1"/>
+                            <field name="remaining_cases" readonly="1"
+                                   decoration-danger="remaining_cases &lt; 0"/>
+                            <field name="consumption_label" readonly="1" widget="badge"
+                                   decoration-danger="over_consumed"
+                                   invisible="not over_consumed"/>
                         </group>
                     </group>
                     <group string="Retainer Tracking" modifiers="{'invisible': ['|', '|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer'), ('retainer_period', '=', False)]}">
                         <group>
                             <!-- Standard Odoo project is the primary source for task timesheets. -->
                             <field name="project_id"/>
-                            <field name="qlk_project_id" readonly="1" options="{'no_create': True}"/>
                             <field name="allocated_hours"/>
                             <field name="used_hours" readonly="1"/>
                             <field name="remaining_hours" readonly="1"/>
@@ -206,10 +226,9 @@
                             <button name="action_create_invoice" type="object" string="Create Invoice"
                                     class="btn-secondary"
                                     modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('invoice_id', '!=', False)]}"/>
-                            <button name="action_open_project" type="object" string="Open Project" class="btn-secondary"
-                                    modifiers="{'invisible': ['|', ('state', '!=', 'approved_client'), ('qlk_project_id', '=', False)]}"/>
                         </group>
                     </group>
+                    <field name="over_consumed" invisible="1"/>
                     <field name="can_approve" invisible="1"/>
                     </sheet>
                     <chatter/>
@@ -226,11 +245,12 @@
                 <field name="client_code"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <field name="project_type"/>
+                <field name="service_type"/>
                 <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_manager_approval')]"/>
                 <filter name="approved" string="Approved" domain="[('state','=','approved_client')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_contract" string="Contract Type" domain="[]" context="{'group_by': 'contract_type'}"/>
+                    <filter name="group_service" string="Service Type" domain="[]" context="{'group_by': 'service_type'}"/>
                     <filter name="group_state" string="State" domain="[]" context="{'group_by': 'state'}"/>
                 </group>
             </search>

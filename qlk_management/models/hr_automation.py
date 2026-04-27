@@ -80,7 +80,7 @@ class QlkHrAutomation(models.AbstractModel):
     # هذه الدالة تسترجع مستخدمي مجموعة MP لإرسال تنبيه الساعات الأسبوعية لهم.
     # ------------------------------------------------------------------------------
     def _get_mp_users(self):
-        mp_group = self.env.ref("qlk_management.group_mp", raise_if_not_found=False)
+        mp_group = self.env.ref("qlk_management.group_pre_litigation_manager", raise_if_not_found=False)
         if not mp_group:
             return self.env["res.users"]
         return mp_group.users.filtered(lambda user: user.active and (user.partner_id.email or user.email))

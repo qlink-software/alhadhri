@@ -11,6 +11,6 @@
                   name="Executive Dashboard"
                   sequence="10"
                   action="action_qlk_executive_dashboard"
-                  groups="qlk_executive_dashboard.group_qlk_executive_manager,qlk_executive_dashboard.group_qlk_executive_assistant"/>
+                  groups="qlk_executive_dashboard.group_qlk_executive_dashboard_user,qlk_executive_dashboard.group_qlk_executive_dashboard_manager"/>
     </data>
 </odoo>

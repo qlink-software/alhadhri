@@ -4,48 +4,18 @@
         <!-- Main workspace menu for MP-related navigation only. -->
         <menuitem id="menu_mp_workspace_root"
                   name="MP"
-                  groups="qlk_management.group_mp,qlk_management.group_qlk_admin"
+                  groups="qlk_task_management.group_task_user,qlk_task_management.group_task_manager"
                   sequence="35"/>
 
-        <!-- Existing MP operational menu moves under the new MP root. -->
-        <!-- Project dashboard is exposed directly under the MP root. -->
-        <record id="menu_project_dashboard_entry" model="ir.ui.menu">
-            <field name="parent_id" ref="qlk_management.menu_mp_workspace_root"/>
-            <field name="sequence">10</field>
-        </record>
         <menuitem id="menu_mp_root"
                   name="MP"
                   parent="qlk_management.menu_mp_workspace_root"
                   sequence="20"
-                  groups="qlk_management.group_mp,qlk_management.group_qlk_admin"/>
-
-        <!-- Projects remain under BD; access is controlled by lawyer/manager groups. -->
-        <record id="menu_qlk_project_projects" model="ir.ui.menu">
-            <field name="parent_id" ref="qlk_management.menu_management_root"/>
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_legal_user'), ref('qlk_management.group_legal_manager'), ref('qlk_corporate.group_corporate_user'), ref('qlk_corporate.group_corporate_manager'), ref('qlk_arbitration.group_arbitration_user'), ref('qlk_arbitration.group_arbitration_manager'), ref('qlk_management.group_mp'), ref('qlk_management.group_qlk_admin')])]"/>
-            <field name="sequence">60</field>
-        </record>
-
-        
-
-        <record id="menu_qlk_project_working_hours" model="ir.ui.menu">
-            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp'), ref('qlk_management.group_qlk_admin')])]"/>
-        </record>
-
-        <record id="menu_qlk_project_tasks" model="ir.ui.menu">
-            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp'), ref('qlk_management.group_qlk_admin')])]"/>
-        </record>
-
-        <record id="menu_qlk_project_hours" model="ir.ui.menu">
-            <field name="parent_id" ref="qlk_management.menu_mp_root"/>
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp'), ref('qlk_management.group_qlk_admin')])]"/>
-        </record>
+                  groups="qlk_task_management.group_task_user,qlk_task_management.group_task_manager"/>
 
         <record id="qlk_task_management.menu_task_management_root" model="ir.ui.menu">
             <field name="parent_id" ref="qlk_management.menu_mp_root"/>
-            <field name="groups_id" eval="[(6, 0, [ref('qlk_management.group_mp'), ref('qlk_management.group_qlk_admin')])]"/>
+            <field name="groups_id" eval="[(6, 0, [ref('qlk_task_management.group_task_user'), ref('qlk_task_management.group_task_manager')])]"/>
         </record>
     </data>
 </odoo>

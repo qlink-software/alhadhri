@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="qlk_arbitration.view_arbitration_case_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//form/sheet/group/group[1]/field[@name='arbitration_center']" position="after">
-                    <field name="project_id"/>
+                    <field name="engagement_id" required="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/group/group[2]" position="inside">
                     <field name="agreement_hours"/>
@@ -24,13 +24,13 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-clock-o"
-                                invisible="not project_id">
+                                invisible="not engagement_id">
                             <field name="actual_hours_total" string="Approved Hours"/>
                         </button>
                     </div>
                 </xpath>
                 <xpath expr="//form/sheet/notebook" position="inside">
-                    <page string="Client Documents" groups="qlk_management.group_legal_user">
+                    <page string="Client Documents" groups="qlk_management.group_pre_litigation_user">
                         <group>
                             <!-- <field name="client_document_warning"
                                    nolabel="1"
@@ -62,7 +62,7 @@
             <field name="inherit_id" ref="qlk_arbitration.view_arbitration_case_list"/>
             <field name="arch" type="xml">
                 <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
-                    <field name="project_id"/>
+                    <field name="engagement_id"/>
                     <field name="actual_hours_total"/>
                     <field name="over_hours"/>
                 </xpath>

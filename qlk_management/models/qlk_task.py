@@ -12,17 +12,16 @@ class QlkTask(models.Model):
     )
     partner_id = fields.Many2one("res.partner", string="Partner", ondelete="cascade", index=True)
     lead_id = fields.Many2one("crm.lead", string="Opportunity", ondelete="cascade", index=True)
-    project_id = fields.Many2one("qlk.project", string="Project", ondelete="set null", index=True)
 
-    @api.constrains("department", "case_id", "project_id")
+    @api.constrains("department", "case_id", "engagement_id")
     def _check_litigation_links(self):
         for task in self:
             if task.department != "litigation":
                 continue
-            if not task.case_id and not task.project_id:
+            if not task.case_id and not task.engagement_id:
                 raise ValidationError(
                     _(
-                        "يجب ربط مهام التقاضي بقضية أو مشروع تقاضي.\n"
-                        "Litigation tasks must be linked to a litigation case or litigation project."
+                        "يجب ربط مهام التقاضي بقضية أو اتفاقية تقاضي.\n"
+                        "Litigation tasks must be linked to a litigation case or engagement letter."
                     )
                 )

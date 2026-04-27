@@ -37,12 +37,12 @@
               name="Reports"
               parent="qlk_management.menu_management_root"
               sequence="60"
-              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"/>
+              groups="qlk_management.group_bd_manager"/>
 
     <menuitem id="menu_bd_report_wizard"
               name="BD Reports"
               parent="menu_bd_reports_root"
               action="action_bd_report_wizard"
               sequence="10"
-              groups="qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"/>
+              groups="qlk_management.group_bd_manager"/>
 </odoo>

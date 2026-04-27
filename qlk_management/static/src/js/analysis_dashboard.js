@@ -22,7 +22,7 @@ class AnalysisDashboard extends Component {
             hearings: useRef("hearingsCanvas"),
             consultations: useRef("consultationsCanvas"),
             complaints: useRef("complaintsCanvas"),
-            projects: useRef("projectsCanvas"),
+            engagements: useRef("engagementsCanvas"),
             taskHours: useRef("taskHoursCanvas"),
         };
         this.charts = {};
@@ -125,15 +125,15 @@ class AnalysisDashboard extends Component {
                 type: "line",
                 actionKey: "complaints",
             },
-            projects: {
-                title: _t("New Projects"),
-                dataset: this.series.projects,
+            engagements: {
+                title: _t("New Engagements"),
+                dataset: this.series.engagements,
                 color: this.palette.muted || "#0D3E7A",
                 type: "bar",
-                actionKey: "projects",
+                actionKey: "engagements",
             },
             taskHours: {
-                title: _t("Approved Project Hours"),
+                title: _t("Approved Task Hours"),
                 dataset: this.series.task_hours,
                 color: this.palette.success || "#27AE60",
                 type: "bar",
@@ -152,13 +152,6 @@ class AnalysisDashboard extends Component {
                 color: ["#22B6C8", "#0F5CA8", "#F39C12", "#C0392B"],
                 type: "doughnut",
                 actionKey: "hearings",
-            },
-            projectProgress: {
-                title: _t("Projects by Department"),
-                dataset: this.series.project_progress || [],
-                color: this.palette.muted || "#0D3E7A",
-                type: "bar",
-                actionKey: "projects",
             },
             taskDepartment: {
                 title: _t("Tasks by Department"),

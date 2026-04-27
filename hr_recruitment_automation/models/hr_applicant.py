@@ -126,7 +126,7 @@ class HrApplicant(models.Model):
 
     @api.depends_context("uid")
     def _compute_can_manage_offer(self):
-        has_permission = self.env.user.has_group("hr_recruitment_automation.group_managing_partner")
+        has_permission = self.env.user.has_group("qlk_management.group_hr_manager")
         for applicant in self:
             applicant.can_manage_offer = has_permission
 
@@ -169,7 +169,7 @@ class HrApplicant(models.Model):
             applicant.offer_state = "waiting_manager_approval"
 
     def _check_manager_approval_permission(self):
-        if not self.env.user.has_group("hr_recruitment_automation.group_managing_partner"):
+        if not self.env.user.has_group("qlk_management.group_hr_manager"):
             raise UserError(_("Only Managing Partner can approve or reject job offers."))
 
     def action_offer_approve(self):

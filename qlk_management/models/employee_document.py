@@ -105,7 +105,7 @@ class QLKEmployeeDocument(models.Model):
         return super().create(vals)
 
     def _check_manager_group(self):
-        if not self.env.user.has_group("qlk_management.group_hr_nda_manager"):
+        if not self.env.user.has_group("qlk_management.group_hr_manager"):
             raise AccessError(_("You are not allowed to approve or reject documents."))
 
     def action_submit_for_approval(self):
@@ -163,7 +163,7 @@ class QLKEmployeeDocument(models.Model):
                         raise UserError(
                             _("Approved or signed documents are read-only except attachments.")
                         )
-                if not self.env.user.has_group("qlk_management.group_hr_nda_manager"):
+                if not self.env.user.has_group("qlk_management.group_hr_manager"):
                     if record.requested_by != self.env.user:
                         raise AccessError(_("You can only modify your own documents."))
                     if record.status != "draft":

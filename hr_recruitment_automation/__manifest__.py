@@ -14,6 +14,7 @@
         "hr_contract",
         "hr_holidays",
         "hr_attendance",
+        "qlk_management",
     ],
     "data": [
         "security/security.xml",

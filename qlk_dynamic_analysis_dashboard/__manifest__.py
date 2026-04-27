@@ -15,10 +15,14 @@ through static charts, responsive layouts, and curated insights for partners.
         "base",
         "web",
         "qlk_law",
+        "qlk_security_base",
         "qlk_management",
         "qlk_task_management",
     ],
     "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "security/record_rules.xml",
         "views/dynamic_analysis_menu.xml",
     ],
     "assets": {

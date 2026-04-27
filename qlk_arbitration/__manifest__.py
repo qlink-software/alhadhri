@@ -12,10 +12,13 @@
         "base",
         "mail",
         "hr",
+        "qlk_security_base",
         "qlk_law",
     ],
     "data": [
+        "security/security.xml",
         "security/access_rules.xml",
+        "security/record_rules.xml",
         "security/ir.model.access.csv",
         "views/arbitration_menu_views.xml",
     ],

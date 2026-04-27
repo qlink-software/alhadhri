@@ -40,9 +40,16 @@
                             <span><t t-esc="labels.request_progress_title"/>: <strong t-esc="formatCount((assignedRequests.breakdown || {}).in_progress || 0)"/></span>
                             <span><t t-esc="labels.request_done_title"/>: <strong t-esc="formatCount((assignedRequests.breakdown || {}).done || 0)"/></span>
                         </div>
-                        <t t-call="qlk_requests.RequestInlineTable">
-                            <t t-set="requestBucket" t-value="assignedRequests"/>
-                        </t>
+                        <div class="qlk-request-inline">
+                            <div class="qlk-card__footer">
+                                <button t-if="assignedRequests.action"
+                                        class="qlk-link"
+                                        type="button"
+                                        t-on-click="() => this.openAction(assignedRequests.action, assignedRequests.domain || [])">
+                                    <span t-esc="labels.view_requests" translate="yes"/>
+                                </button>
+                            </div>
+                        </div>
                     </details>
                 </div>
             </section>

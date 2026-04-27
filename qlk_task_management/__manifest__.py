@@ -15,11 +15,14 @@ provides approval workflows, and surfaces hour summaries in related records.
     "depends": [
         "mail",
         "hr",
+        "qlk_security_base",
         "qlk_law",
     ],
     "data": [
+        "security/security.xml",
         "security/task_security.xml",
         "security/ir.model.access.csv",
+        "security/record_rules.xml",
         "views/task_views.xml",
         "views/case_views.xml",
         "views/hr_employee_views.xml",

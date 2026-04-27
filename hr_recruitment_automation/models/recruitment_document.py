@@ -86,7 +86,7 @@ class RecruitmentDocumentPackage(models.Model):
         return records
 
     def _check_managing_partner_access(self):
-        if not self.env.user.has_group("hr_recruitment_automation.group_managing_partner"):
+        if not self.env.user.has_group("qlk_management.group_hr_manager"):
             raise UserError(_("Only Managing Partner can approve or reject document packages."))
 
     def _generate_password(self, length=12):
@@ -166,7 +166,7 @@ class RecruitmentDocumentPackage(models.Model):
             if package.state != "draft":
                 raise UserError(_("Documents can only be sent for approval from Draft."))
             package.state = "under_review"
-            recipients = package.env.ref("hr_recruitment_automation.group_managing_partner").users.filtered(lambda u: u.email)
+            recipients = package.env.ref("qlk_management.group_hr_manager").users.filtered(lambda u: u.email)
             if recipients:
                 package._send_template(
                     "hr_recruitment_automation.mail_template_documents_for_manager_approval",

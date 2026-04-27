@@ -27,7 +27,6 @@
                 <field name="priority_selection" />
                 <field name="notify_datetime"/>
                 <field name="opportunity_type" />
-                <field name="contract_type" />
             </xpath>
             <!-- hide those fields in crm form view -->
             <xpath expr="//h2" position="attributes">
@@ -126,7 +125,6 @@
                             'default_team_id': team_id,
                             'show_vat': True}"/>
                         <field name="opportunity_type"  />
-                        <field name="contract_type"  />
                         <field name="email_from" string="Email" placeholder='e.g. "email@address.com"' />
                         <field name="phone" string="Phone" placeholder='e.g. "0123456789"' />
                         <field name="priority_selection" string="Priority"/>
@@ -165,6 +163,87 @@
                 </form>
             </field>
         </record>
+    <record id="view_crm_lead_kanban_hide_partner" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.hide.partner</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/templates" position="before">
+                <field name="name"/>
+                <field name="client_name"/>
+                <field name="client_code"/>
+                <field name="opportunity_type"/>
+                <field name="state"/>
+                <field name="priority_selection"/>
+                <field name="date_deadline"/>
+                <field name="expected_revenue"/>
+                <field name="company_currency"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card">
+                    <div t-attf-class="oe_kanban_global_click o_kanban_record card shadow-sm border-0 h-100 pr_stage_#{record.state and record.state.raw_value or 'new'}">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <div class="fw-semibold fs-6 text-truncate">
+                                    <t t-esc="record.client_name and record.client_name.value or record.name.value"/>
+                                </div>
+                                <div class="small text-muted text-truncate" t-if="record.name and record.name.raw_value">
+                                    <field name="name"/>
+                                </div>
+                                <div class="small text-muted text-truncate" t-if="record.client_code and record.client_code.raw_value">
+                                    <span>Code: </span><field name="client_code"/>
+                                </div>
+                            </div>
+                            <field name="user_id" widget="many2one_avatar_user" class="flex-shrink-0"/>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span t-if="record.state and record.state.raw_value == 'new'" class="badge rounded-pill text-bg-secondary">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and (record.state.raw_value == 'interested' or record.state.raw_value == 'follow_up')" class="badge rounded-pill text-bg-warning">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and record.state.raw_value == 'send'" class="badge rounded-pill text-bg-success">
+                                <field name="state"/>
+                            </span>
+                            <span t-if="record.state and record.state.raw_value == 'not_interested'" class="badge rounded-pill text-bg-danger">
+                                <field name="state"/>
+                            </span>
+                        </div>
+
+                        <div class="d-grid gap-2 small">
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Service</span>
+                                <span class="fw-medium text-truncate"><field name="opportunity_type"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Lawyer</span>
+                                <span class="fw-medium text-truncate"><field name="user_id"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Amount</span>
+                                <span class="fw-medium"><field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/></span>
+                            </div>
+                        </div>
+
+                        <footer class="d-flex justify-content-between align-items-center border-top pt-2 mt-3 small">
+                            <span class="text-muted">Expected Closing</span>
+                            <span class="fw-medium">
+                                <field name="date_deadline"/>
+                            </span>
+                        </footer>
+                        <div class="pt-2">
+                            <field name="priority_selection" widget="badge"
+                                   decoration-danger="priority_selection == 'high'"
+                                   decoration-warning="priority_selection == 'medium'"
+                                   decoration-success="priority_selection == 'low'"/>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
     <record id="inherit_view_id_inherit_kanban" model="ir.ui.view">
         <field name="name">crm.lead.view.kanban.inherit</field>
         <field name="model">crm.lead</field>
@@ -176,10 +255,10 @@
             </xpath>
             <xpath expr="//kanban/templates" position="before">
                 <!-- Extra fields used by the inherited PR card without replacing the full kanban view. -->
+                <field name="name"/>
                 <field name="client_name"/>
                 <field name="client_code"/>
                 <field name="opportunity_type"/>
-                <field name="contract_type"/>
                 <field name="state"/>
                 <field name="priority_selection"/>
                 <field name="date_deadline"/>

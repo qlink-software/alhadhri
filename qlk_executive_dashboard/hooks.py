@@ -19,9 +19,9 @@ def post_init_hook(env_or_cr, registry=None):
     else:
         return
 
-    group_manager = env.ref("qlk_executive_dashboard.group_qlk_manager", raise_if_not_found=False)
-    group_assistant = env.ref("qlk_executive_dashboard.group_qlk_assistant_manager", raise_if_not_found=False)
-    group_ids = [group.id for group in (group_manager, group_assistant) if group]
+    group_manager = env.ref("qlk_executive_dashboard.group_qlk_executive_dashboard_manager", raise_if_not_found=False)
+    group_user = env.ref("qlk_executive_dashboard.group_qlk_executive_dashboard_user", raise_if_not_found=False)
+    group_ids = [group.id for group in (group_manager, group_user) if group]
     if not group_ids:
         return
 

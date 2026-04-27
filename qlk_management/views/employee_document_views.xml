@@ -33,18 +33,18 @@
                                 type="object"
                                 string="Approve"
                                 class="btn-primary"
-                                groups="qlk_management.group_hr_nda_manager"
+                                groups="qlk_management.group_hr_manager"
                                 modifiers="{'invisible':[('status','!=','waiting_approval')]}"/>
                         <button name="action_reject"
                                 type="object"
                                 string="Reject"
-                                groups="qlk_management.group_hr_nda_manager"
+                                groups="qlk_management.group_hr_manager"
                                 modifiers="{'invisible':[('status','!=','waiting_approval')]}"/>
                         <button name="action_mark_signed"
                                 type="object"
                                 string="Mark as Signed"
                                 class="btn-secondary"
-                                groups="qlk_management.group_hr_nda_manager"
+                                groups="qlk_management.group_hr_manager"
                                 modifiers="{'invisible':[('status','!=','approved')]}"/>
                         <field name="status" widget="statusbar" statusbar_visible="draft,waiting_approval,approved,rejected,signed"/>
                     </header>
@@ -103,6 +103,7 @@
                   name="Employee Documents"
                   parent="hr.menu_hr_employee"
                   action="action_employee_documents"
+                  groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"
                   sequence="60"/>
 
         <record id="view_hr_employee_form_contracts_nda" model="ir.ui.view">

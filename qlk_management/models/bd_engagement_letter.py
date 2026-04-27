@@ -45,10 +45,35 @@ class BDEngagementLetter(models.Model):
     reference = fields.Char(string="Reference", tracking=True)
     code = fields.Char(string="Engagement Letter Code", default="/", copy=False, readonly=True)
     contract_type = fields.Selection(
-        [("retainer", "Retainer"), ("lump_sum", "Lump Sum")],
+        [
+            ("hours", "Hours Based"),
+            ("cases", "Case Based"),
+            ("retainer", "Retainer (Legacy)"),
+            ("lump_sum", "Lump Sum (Legacy)"),
+        ],
         string="Contract Type",
         required=True,
-        default="retainer",
+        default="hours",
+        tracking=True,
+    )
+    service_type = fields.Selection(
+        [
+            ("litigation", "Litigation"),
+            ("pre_litigation", "Pre-Litigation"),
+            ("corporate", "Corporate"),
+            ("arbitration", "Arbitration"),
+            ("mixed", "Mixed"),
+        ],
+        string="Service Type",
+        default="corporate",
+        tracking=True,
+    )
+    litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        "bd_engagement_litigation_degree_rel",
+        "engagement_id",
+        "degree_id",
+        string="Allowed Litigation Degrees",
         tracking=True,
     )
     retainer_type = fields.Selection(
@@ -69,6 +94,8 @@ class BDEngagementLetter(models.Model):
         string="Yearly Hours", compute="_compute_yearly_hours", store=True
     )
     litigation_cases_limit = fields.Integer(string="Litigation Cases Limit")
+    agreed_hours = fields.Float(string="Agreed Hours", tracking=True)
+    agreed_case_count = fields.Integer(string="Agreed Case Count", tracking=True)
     partner_id = fields.Many2one(
         "res.partner", string="Client", required=True, index=True, tracking=True
     )
@@ -181,6 +208,60 @@ class BDEngagementLetter(models.Model):
         store=True,
         readonly=True,
     )
+    total_hours_used = fields.Float(
+        string="Total Hours Used",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    over_consumed = fields.Boolean(
+        string="Over Consumed",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    consumption_label = fields.Char(
+        string="Consumption Status",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    total_cases = fields.Integer(
+        string="Total Cases",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    remaining_cases = fields.Integer(
+        string="Remaining Cases",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    case_count = fields.Integer(
+        string="Cases",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    pre_litigation_count = fields.Integer(
+        string="Pre-Litigation",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    corporate_count = fields.Integer(
+        string="Corporate",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
+    arbitration_count = fields.Integer(
+        string="Arbitration",
+        compute="_compute_engagement_consumption",
+        store=True,
+        readonly=True,
+    )
     monthly_hours_limit = fields.Float(string="Monthly Hours Limit", tracking=True)
     monthly_used_hours = fields.Float(
         string="Monthly Used Hours",
@@ -210,11 +291,6 @@ class BDEngagementLetter(models.Model):
         string="Last Retainer Alert Period",
         copy=False,
         readonly=True,
-    )
-    allow_project_without_payment = fields.Boolean(
-        string="Allow Project Before Payment",
-        default=False,
-        tracking=True,
     )
     estimated_hours = fields.Float(string="Estimated Hours")
     fee_structure = fields.Char(string="Fee Structure")
@@ -362,13 +438,6 @@ class BDEngagementLetter(models.Model):
         tracking=True,
         domain="[('allow_timesheets', '=', True)]",
     )
-    qlk_project_id = fields.Many2one(
-        "qlk.project",
-        string="Project",
-        readonly=True,
-        copy=False,
-        ondelete="set null",
-    )
     total_amount = fields.Monetary(
         string="Total Amount",
         currency_field="currency_id",
@@ -390,6 +459,16 @@ class BDEngagementLetter(models.Model):
         "qlk.task",
         "engagement_id",
         string="Hours / Time Entries",
+    )
+    case_ids = fields.One2many("qlk.case", "engagement_id", string="Cases")
+    pre_litigation_ids = fields.One2many(
+        "qlk.pre.litigation", "engagement_id", string="Pre-Litigation"
+    )
+    corporate_case_ids = fields.One2many(
+        "qlk.corporate.case", "engagement_id", string="Corporate Cases"
+    )
+    arbitration_case_ids = fields.One2many(
+        "qlk.arbitration.case", "engagement_id", string="Arbitration Cases"
     )
     hours_logged_ok = fields.Boolean(
         string="Hours Logged?",
@@ -469,6 +548,72 @@ class BDEngagementLetter(models.Model):
         for letter in self:
             letter.yearly_hours = (letter.monthly_corporate_hours or 0.0) * 12.0
 
+    @api.onchange("retainer_type", "engagement_type", "project_type")
+    def _onchange_legacy_service_type(self):
+        for letter in self:
+            if letter.service_type:
+                continue
+            letter.service_type = letter._infer_service_type()
+
+    def _infer_service_type(self):
+        self.ensure_one()
+        source = self.retainer_type or self.engagement_type or self.project_type or "corporate"
+        if source in {"litigation_corporate", "management_litigation", "management_corporate"}:
+            return "mixed"
+        if source == "litigation":
+            return "litigation"
+        if source == "arbitration":
+            return "arbitration"
+        if source == "pre_litigation":
+            return "pre_litigation"
+        return "corporate"
+
+    def _service_allows(self, service):
+        self.ensure_one()
+        if self.service_type == "mixed":
+            return True
+        return self.service_type == service
+
+    @api.depends(
+        "contract_type",
+        "agreed_hours",
+        "agreed_case_count",
+        "case_ids.total_hours",
+        "pre_litigation_ids.hours_used",
+        "corporate_case_ids.actual_hours_total",
+        "arbitration_case_ids.actual_hours_total",
+    )
+    def _compute_engagement_consumption(self):
+        for letter in self:
+            case_hours = sum(letter.case_ids.mapped("total_hours"))
+            pre_hours = sum(letter.pre_litigation_ids.mapped("hours_used"))
+            corporate_hours = sum(letter.corporate_case_ids.mapped("actual_hours_total"))
+            arbitration_hours = sum(letter.arbitration_case_ids.mapped("actual_hours_total"))
+            total_hours = round(case_hours + pre_hours + corporate_hours + arbitration_hours, 2)
+
+            case_count = len(letter.case_ids)
+            pre_count = len(letter.pre_litigation_ids)
+            corporate_count = len(letter.corporate_case_ids)
+            arbitration_count = len(letter.arbitration_case_ids)
+            total_cases = case_count + pre_count + corporate_count + arbitration_count
+
+            letter.total_hours_used = total_hours
+            letter.case_count = case_count
+            letter.pre_litigation_count = pre_count
+            letter.corporate_count = corporate_count
+            letter.arbitration_count = arbitration_count
+            letter.total_cases = total_cases
+            letter.remaining_cases = (letter.agreed_case_count or 0) - total_cases
+            letter.over_consumed = (
+                (letter.contract_type == "hours" and bool(letter.agreed_hours) and total_hours > letter.agreed_hours)
+                or (
+                    letter.contract_type == "cases"
+                    and bool(letter.agreed_case_count)
+                    and total_cases > letter.agreed_case_count
+                )
+            )
+            letter.consumption_label = _("Over Consumed") if letter.over_consumed else False
+
     # ------------------------------------------------------------------------------
     # دالة تجمع مبالغ سطور الرسوم لإظهار الإجمالي في الهيدر.
     # ------------------------------------------------------------------------------
@@ -499,10 +644,6 @@ class BDEngagementLetter(models.Model):
                 continue
             letter.total_amount = letter.total_legal_fees or (letter.legal_fee_amount or 0.0)
 
-    # ------------------------------------------------------------------------------
-    # Retainer tracking uses standard project.task timesheets when available and
-    # falls back to qlk.task hours for the current legal project flow.
-    # ------------------------------------------------------------------------------
     @api.depends(
         "billing_type",
         "retainer_period",
@@ -510,22 +651,25 @@ class BDEngagementLetter(models.Model):
         "year_end_date",
         "project_id.task_ids.timesheet_ids.unit_amount",
         "project_id.task_ids.timesheet_ids.date",
-        "qlk_project_id.task_ids.hours_spent",
-        "qlk_project_id.task_ids.date_start",
     )
     def _compute_used_hours(self):
         self._compute_retainer_used_hours()
 
-    @api.depends("billing_type", "allocated_hours", "used_hours")
+    @api.depends("billing_type", "allocated_hours", "used_hours", "contract_type", "agreed_hours", "total_hours_used")
     def _compute_remaining_hours(self):
-        self._compute_retainer_remaining_hours()
+        legacy_records = self.browse()
+        for letter in self:
+            if letter.contract_type == "hours":
+                letter.remaining_hours = (letter.agreed_hours or 0.0) - (letter.total_hours_used or 0.0)
+            else:
+                legacy_records |= letter
+        if legacy_records:
+            legacy_records._compute_retainer_remaining_hours()
 
     @api.depends(
         "billing_type",
         "project_id.task_ids.timesheet_ids.unit_amount",
         "project_id.task_ids.timesheet_ids.date",
-        "qlk_project_id.task_ids.hours_spent",
-        "qlk_project_id.task_ids.date_start",
     )
     def _compute_monthly_used_hours(self):
         self._compute_retainer_monthly_used_hours()
@@ -560,9 +704,9 @@ class BDEngagementLetter(models.Model):
         user = self.env.user
         for record in self:
             if record.approval_role == "manager":
-                record.can_approve = user.has_group("qlk_management.bd_manager_group")
+                record.can_approve = user.has_group("qlk_management.group_bd_manager")
             elif record.approval_role == "assistant_manager":
-                record.can_approve = user.has_group("qlk_management.bd_assistant_manager_group")
+                record.can_approve = user.has_group("qlk_management.group_bd_manager")
             else:
                 record.can_approve = False
 
@@ -1157,11 +1301,6 @@ class BDEngagementLetter(models.Model):
         return cost
 
     # ------------------------------------------------------------------------------
-    # زر إنشاء مشروع بعد موافقة العميل يقوم بإنشاء qlk.project وربطه بالاتفاقية.
-    # ------------------------------------------------------------------------------
-    # (project creation is handled inside qlk_management)
-
-    # ------------------------------------------------------------------------------
     # بعد الموافقة ورفع النسخة الموقعة يتم إنشاء client_code بصيغة C-2025-0001.
     # ------------------------------------------------------------------------------
     def _generate_client_code(self):
@@ -1193,26 +1332,6 @@ class BDEngagementLetter(models.Model):
             except (ValueError, IndexError):
                 next_number = 1
         return f"{prefix}{next_number:03d}"
-
-    @api.depends(
-        "billing_type",
-        "invoice_state",
-        "invoice_id",
-        "qlk_project_id",
-        "state",
-        "allow_project_without_payment",
-    )
-    def _compute_can_create_project(self):
-        for letter in self:
-            billing_ready = letter.billing_type == "free" or (
-                letter._is_invoice_billing()
-                and (
-                    letter.allow_project_without_payment
-                    or (letter.invoice_id and letter.invoice_state == "paid")
-                )
-            )
-            eligible = letter.state == "approved_client" and billing_ready
-            letter.can_create_project = bool(eligible and not letter.qlk_project_id)
 
     def action_create_invoice(self):
         self.ensure_one()
@@ -1296,114 +1415,65 @@ class BDEngagementLetter(models.Model):
             "target": "current",
         }
 
-    def action_create_project(self):
-        result_action = None
-        for letter in self:
-            letter._ensure_project_creation_ready()
-            project = letter._create_qlk_project_from_engagement()
-            letter.with_context(skip_hours_check=True).write({"qlk_project_id": project.id})
-            result_action = letter._get_project_action(project.id)
-        return result_action
-
-    def action_create_project_direct(self):
-        result_action = None
-        for letter in self:
-            letter._ensure_project_creation_ready(skip_billing=True)
-            project = letter._create_qlk_project_from_engagement()
-            letter.with_context(skip_hours_check=True).write({"qlk_project_id": project.id})
-            result_action = letter._get_project_action(project.id)
-        return result_action
-
-    def action_open_project(self):
+    def action_create_case(self):
         self.ensure_one()
-        if not self.qlk_project_id:
-            raise UserError(_("No project has been created for this engagement letter yet."))
-        return self._get_project_action(self.qlk_project_id.id)
-
-    def action_allow_project_without_payment(self):
-        self.ensure_one()
-        if not self.env.user.has_group("qlk_management.bd_manager_group"):
-            raise UserError(_("Only Managers can allow project creation before payment."))
         if self.state != "approved_client":
-            raise UserError(_("Only approved engagement letters can be exempted."))
-        self.write({"allow_project_without_payment": True})
-
-    def _ensure_project_creation_ready(self, skip_billing=False):
-        for letter in self:
-            if letter.qlk_project_id:
-                raise UserError(_("A project has already been created for this engagement letter."))
-            if letter.state != "approved_client":
-                raise UserError(_("Only approved engagement letters can create projects."))
-            if skip_billing:
-                continue
-            if letter._is_invoice_billing():
-                if not letter.invoice_id:
-                    raise UserError(_("You must create an invoice before creating the project."))
-                if not letter.allow_project_without_payment and letter.invoice_state != "paid":
-                    raise UserError(_("The invoice must be fully paid before creating the project."))
-
-    def _prepare_project_vals(self):
-        self.ensure_one()
-        partner = self.partner_id
-        scope_note = self.description or self.services_description
-        primary_employee = self.lawyer_employee_id
-        if not primary_employee and self.lawyer_ids:
-            primary_employee = self.lawyer_ids[:1]
-        primary_partner = False
-        if primary_employee:
-            if primary_employee.user_id and primary_employee.user_id.partner_id:
-                primary_partner = primary_employee.user_id.partner_id
-            elif "work_contact_id" in primary_employee._fields and primary_employee.work_contact_id:
-                primary_partner = primary_employee.work_contact_id
-            elif "address_home_id" in primary_employee._fields and primary_employee.address_home_id:
-                primary_partner = primary_employee.address_home_id
-        return {
-            "client_id": partner.id if partner else False,
-            "engagement_id": self.id,
-            "lawyer_id": primary_partner.id if primary_partner else False,
-            "assigned_employee_ids": [(6, 0, self.lawyer_ids.ids)] if self.lawyer_ids else False,
-            "lawyer_cost_hour": self.lawyer_cost_hour,
-            "project_type": self.project_type or "corporate",
-            "retainer_type": self.retainer_type or False,
-            "translation_attachment_ids": [(6, 0, self.translation_attachment_ids.ids)],
-            "translation_status": self.translation_status or "draft",
-            "company_id": self.company_id.id,
-            "estimated_hours": self.planned_hours or self.estimated_hours or 0.0,
-            "description": scope_note,
-        }
-
-    def _get_project_action(self, project_id):
+            raise UserError(_("Only approved engagement letters can create cases."))
+        if not self._service_allows("litigation"):
+            raise UserError(_("This engagement letter does not allow litigation case creation."))
+        degree = self.litigation_degree_ids[:1]
+        if not degree:
+            raise UserError(_("Select at least one allowed litigation degree before creating a case."))
+        if self.contract_type == "cases" and self.agreed_case_count and self.remaining_cases <= 0:
+            raise UserError(_("Case limit exceeded for this engagement letter."))
         return {
             "type": "ir.actions.act_window",
-            "name": _("Project"),
-            "res_model": "qlk.project",
-            "res_id": project_id,
+            "name": _("Create Case"),
+            "res_model": "qlk.case",
             "view_mode": "form",
             "target": "current",
+            "context": {
+                "default_engagement_id": self.id,
+                "default_client_id": self.partner_id.id,
+                "default_client_ids": self.partner_id.ids,
+                "default_employee_id": self.lawyer_employee_id.id,
+                "default_litigation_degree_id": degree.id,
+                "default_litigation_level_id": degree.level_id.id,
+                "default_litigation_flow": "litigation",
+            },
         }
 
-    def _create_qlk_project_from_engagement(self):
+    def _action_open_related_records(self, model_name, domain, name):
+        return {
+            "type": "ir.actions.act_window",
+            "name": name,
+            "res_model": model_name,
+            "view_mode": "list,form",
+            "domain": domain,
+            "context": {"default_engagement_id": self.id},
+        }
+
+    def action_open_cases(self):
         self.ensure_one()
-        project_vals = self._prepare_project_vals()
-        fee_lines = [
-            (
-                0,
-                0,
-                {
-                    "description": line.service_name or line.description,
-                    "amount": line.subtotal,
-                    "due_date": line.due_date,
-                },
-            )
-            for line in self.legal_fees_lines
-        ]
-        if fee_lines:
-            project_vals["legal_fee_line_ids"] = fee_lines
-        project = self.env["qlk.project"].create(project_vals)
-        tasks = self.env["qlk.task"].search([("engagement_id", "=", self.id)])
-        if tasks:
-            tasks.write({"engagement_id": False, "project_id": project.id})
-        return project
+        return self._action_open_related_records("qlk.case", [("engagement_id", "=", self.id)], _("Cases"))
+
+    def action_open_pre_litigation(self):
+        self.ensure_one()
+        return self._action_open_related_records(
+            "qlk.pre.litigation", [("engagement_id", "=", self.id)], _("Pre-Litigation")
+        )
+
+    def action_open_corporate_cases(self):
+        self.ensure_one()
+        return self._action_open_related_records(
+            "qlk.corporate.case", [("engagement_id", "=", self.id)], _("Corporate")
+        )
+
+    def action_open_arbitration_cases(self):
+        self.ensure_one()
+        return self._action_open_related_records(
+            "qlk.arbitration.case", [("engagement_id", "=", self.id)], _("Arbitration")
+        )
 
     def action_view_client_attachments(self):
         self.ensure_one()
@@ -1426,11 +1496,11 @@ class BDEngagementLetter(models.Model):
     def _check_approval_rights(self):
         for letter in self:
             if letter.approval_role == "manager" and not self.env.user.has_group(
-                "qlk_management.bd_manager_group"
+                "qlk_management.group_bd_manager"
             ):
                 raise UserError(_("Only Managers can approve or reject this document."))
             if letter.approval_role == "assistant_manager" and not self.env.user.has_group(
-                "qlk_management.bd_assistant_manager_group"
+                "qlk_management.group_bd_manager"
             ):
                 raise UserError(_("Only Assistant Managers can approve or reject this document."))
 

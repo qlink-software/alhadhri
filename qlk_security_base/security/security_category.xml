@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="qlk_management_security_category" model="ir.module.category">
+            <field name="name">الإدارة</field>
+            <field name="sequence" eval="40"/>
+        </record>
+    </data>
+</odoo>

@@ -39,6 +39,7 @@
               name="Contact Classifications"
               parent="contacts.res_partner_menu_config"
               action="action_qlk_contact_classification"
+              groups="qlk_management.group_bd_user,qlk_management.group_bd_manager"
               sequence="25"/>
 
     <!-- هذا الامتداد يضيف التصنيف في بحث العملاء لتسهيل الفلترة. -->

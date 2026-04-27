@@ -469,9 +469,9 @@ class BDProposal(models.Model):
         user = self.env.user
         for record in self:
             if record.approval_role == "manager":
-                record.can_approve = user.has_group("qlk_management.bd_manager_group")
+                record.can_approve = user.has_group("qlk_management.group_bd_manager")
             elif record.approval_role == "assistant_manager":
-                record.can_approve = user.has_group("qlk_management.bd_assistant_manager_group")
+                record.can_approve = user.has_group("qlk_management.group_bd_manager")
             else:
                 record.can_approve = False
 
@@ -1162,11 +1162,11 @@ class BDProposal(models.Model):
     def _check_approval_rights(self):
         for proposal in self:
             if proposal.approval_role == "manager" and not self.env.user.has_group(
-                "qlk_management.bd_manager_group"
+                "qlk_management.group_bd_manager"
             ):
                 raise UserError(_("Only Managers can approve or reject this document."))
             if proposal.approval_role == "assistant_manager" and not self.env.user.has_group(
-                "qlk_management.bd_assistant_manager_group"
+                "qlk_management.group_bd_manager"
             ):
                 raise UserError(_("Only Assistant Managers can approve or reject this document."))
 

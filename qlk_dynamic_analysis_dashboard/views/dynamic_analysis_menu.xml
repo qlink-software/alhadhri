@@ -10,12 +10,14 @@
 
         <menuitem id="menu_dynamic_analysis_root"
                   name="Dynamic Analytics"
+                  groups="qlk_dynamic_analysis_dashboard.group_qlk_dynamic_analysis_dashboard_user,qlk_dynamic_analysis_dashboard.group_qlk_dynamic_analysis_dashboard_manager"
                   sequence="90"/>
 
         <menuitem id="menu_dynamic_analysis_dashboard"
                   name="Overview"
                   parent="menu_dynamic_analysis_root"
                   action="action_dynamic_analysis_dashboard"
+                  groups="qlk_dynamic_analysis_dashboard.group_qlk_dynamic_analysis_dashboard_user,qlk_dynamic_analysis_dashboard.group_qlk_dynamic_analysis_dashboard_manager"
                   sequence="1"/>
 
     </data>

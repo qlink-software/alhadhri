@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Dynamic analysis dashboard is an action-client service; menu groups are the effective control point here. -->
+    </data>
+</odoo>

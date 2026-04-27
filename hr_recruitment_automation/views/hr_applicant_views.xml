@@ -15,42 +15,42 @@
                         string="Send To Manager"
                         class="btn-secondary"
                         invisible="offer_state != 'draft'"
-                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+                        groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"/>
 
                 <button name="action_offer_approve"
                         type="object"
                         string="Approve Offer"
                         class="btn-primary"
                         invisible="offer_state != 'waiting_manager_approval'"
-                        groups="hr_recruitment_automation.group_managing_partner"/>
+                        groups="qlk_management.group_hr_manager"/>
 
                 <button name="action_reset_offer_to_draft"
                         type="object"
                         string="Send To Draft"
                         class="btn-secondary"
                         invisible="offer_state != 'approved'"
-                        groups="hr_recruitment_automation.group_managing_partner"/>
+                        groups="qlk_management.group_hr_manager"/>
 
                 <button name="action_open_offer_reject_wizard"
                         type="object"
                         string="Reject Offer"
                         class="btn-secondary"
                         invisible="offer_state not in ('waiting_manager_approval','approved')"
-                        groups="hr_recruitment_automation.group_managing_partner"/>
+                        groups="qlk_management.group_hr_manager"/>
 
                 <button name="action_mark_offer_accepted"
                         type="object"
                         string="Mark As Accepted"
                         class="btn-primary"
                         invisible="offer_state != 'approved'"
-                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+                        groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"/>
 
                 <button name="action_generate_documents"
                         type="object"
                         string="Generate Documents"
                         class="btn-secondary"
                         invisible="not employee_created_id"
-                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager"/>
+                        groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"/>
 
                 <field name="offer_state" widget="statusbar" statusbar_visible="draft,waiting_manager_approval,approved,accepted,rejected"/>
             </xpath>

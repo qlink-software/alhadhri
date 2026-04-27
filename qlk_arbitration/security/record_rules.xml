@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="rule_qlk_arbitration_case_user" model="ir.rule">
+            <field name="name">Arbitration User</field>
+            <field name="model_id" ref="model_qlk_arbitration_case"/>
+            <field name="domain_force">[('responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_qlk_arbitration_case_manager" model="ir.rule">
+            <field name="name">Arbitration Manager</field>
+            <field name="model_id" ref="model_qlk_arbitration_case"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
+
+        <record id="rule_qlk_arbitration_session_user" model="ir.rule">
+            <field name="name">Arbitration Session User</field>
+            <field name="model_id" ref="model_qlk_arbitration_session"/>
+            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_qlk_arbitration_session_manager" model="ir.rule">
+            <field name="name">Arbitration Session Manager</field>
+            <field name="model_id" ref="model_qlk_arbitration_session"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
+
+        <record id="rule_qlk_arbitration_memo_user" model="ir.rule">
+            <field name="name">Arbitration Memo User</field>
+            <field name="model_id" ref="model_qlk_arbitration_memo"/>
+            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_qlk_arbitration_memo_manager" model="ir.rule">
+            <field name="name">Arbitration Memo Manager</field>
+            <field name="model_id" ref="model_qlk_arbitration_memo"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
+
+        <record id="rule_qlk_arbitration_award_user" model="ir.rule">
+            <field name="name">Arbitration Award User</field>
+            <field name="model_id" ref="model_qlk_arbitration_award"/>
+            <field name="domain_force">[('case_id.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_qlk_arbitration_award_manager" model="ir.rule">
+            <field name="name">Arbitration Award Manager</field>
+            <field name="model_id" ref="model_qlk_arbitration_award"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
+
+        <record id="rule_qlk_arbitration_arbitrator_user" model="ir.rule">
+            <field name="name">Arbitrator Register User</field>
+            <field name="model_id" ref="model_qlk_arbitration_arbitrator"/>
+            <field name="domain_force">[('case_ids.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_qlk_arbitration_arbitrator_manager" model="ir.rule">
+            <field name="name">Arbitrator Register Manager</field>
+            <field name="model_id" ref="model_qlk_arbitration_arbitrator"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
+    </data>
+</odoo>

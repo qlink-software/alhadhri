@@ -30,16 +30,16 @@
                         class="btn-primary"
                         invisible="state != 'draft'"/>
                     <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
-                            groups="qlk_management.bd_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state != 'waiting_manager_approval' or approval_role != 'manager'"/>
                     <button name="action_manager_approve" type="object" string="Manager Approve" class="btn-success"
-                            groups="qlk_management.bd_assistant_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state != 'waiting_manager_approval' or approval_role != 'assistant_manager'"/>
                     <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
-                            groups="qlk_management.bd_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'manager'"/>
                     <button name="action_manager_reject" type="object" string="Reject with Reason" class="btn-danger"
-                            groups="qlk_management.bd_assistant_manager_group"
+                            groups="qlk_management.group_bd_manager"
                             invisible="state not in ('waiting_manager_approval', 'approved_manager') or approval_role != 'assistant_manager'"/>
                     <button name="action_send_client_approval" type="object" string="Send to Client Approval"
                             class="btn-primary"

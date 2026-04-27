@@ -1,43 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="module_category_qlk_executive_dashboard" model="ir.module.category">
-            <field name="name">Executive Dashboard</field>
-            <field name="sequence">120</field>
+        <record id="group_qlk_executive_dashboard_user" model="res.groups">
+            <field name="name">Executive Dashboard User</field>
+            <field name="category_id" ref="qlk_security_base.qlk_management_security_category"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
-        <record id="group_qlk_executive_manager" model="res.groups">
-            <field name="name">Managing Director</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
-            <field name="implied_ids" eval="[(4, ref('qlk_management.bd_manager_group'))]"/>
-        </record>
-
-        <record id="group_qlk_executive_assistant" model="res.groups">
-            <field name="name">Assistant Manager (Executive)</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
-            <field name="implied_ids" eval="[(4, ref('qlk_management.bd_assistant_manager_group'))]"/>
-        </record>
-
-        <record id="group_qlk_manager" model="res.groups">
-            <field name="name">Executive Manager</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
-            <field name="implied_ids" eval="[(4, ref('qlk_executive_dashboard.group_qlk_executive_manager'))]"/>
-        </record>
-
-        <record id="group_qlk_assistant_manager" model="res.groups">
-            <field name="name">Assistant Manager</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
-            <field name="implied_ids" eval="[(4, ref('qlk_executive_dashboard.group_qlk_executive_assistant'))]"/>
-        </record>
-
-        <record id="group_qlk_exec" model="res.groups">
-            <field name="name">Executive</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
-        </record>
-
-        <record id="group_qlk_lawyer" model="res.groups">
-            <field name="name">Lawyer</field>
-            <field name="category_id" ref="module_category_qlk_executive_dashboard"/>
+        <record id="group_qlk_executive_dashboard_manager" model="res.groups">
+            <field name="name">Executive Dashboard Manager</field>
+            <field name="category_id" ref="qlk_security_base.qlk_management_security_category"/>
+            <field name="implied_ids" eval="[(4, ref('qlk_executive_dashboard.group_qlk_executive_dashboard_user'))]"/>
         </record>
     </data>
 </odoo>

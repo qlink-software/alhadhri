@@ -104,6 +104,7 @@
                   name="Resignation Requests"
                   parent="hr.menu_hr_employee"
                   action="action_hr_resignation_requests"
+                  groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"
                   sequence="70"/>
     </data>
 </odoo>

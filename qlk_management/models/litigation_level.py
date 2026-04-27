@@ -42,3 +42,25 @@ class LitigationLevel(models.Model):
             if level:
                 level.code = code
         self.search([("code", "=", False)]).write({"code": "F"})
+
+
+class QlkLitigationDegree(models.Model):
+    _name = "qlk.litigation.degree"
+    _description = "Litigation Degree"
+    _order = "sequence, id"
+
+    name = fields.Char(string="Litigation Degree", required=True, translate=True)
+    code = fields.Selection(
+        selection=LITIGATION_STAGE_CODE_SELECTION,
+        string="Degree Code",
+        required=True,
+        default="F",
+    )
+    level_id = fields.Many2one(
+        "litigation.level",
+        string="Legacy Litigation Level",
+        ondelete="set null",
+        index=True,
+    )
+    sequence = fields.Integer(default=10)
+    active = fields.Boolean(default=True)

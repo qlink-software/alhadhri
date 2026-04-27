@@ -29,13 +29,13 @@ class Crm(models.Model):
         [
             ("litigation", "Litigation"),
             ("corporate", "Corporate"),
-            ("combined", "Combined"),
             ("arbitration", "Arbitration"),
+            ("combined", "Combined"),
         ],
         string="Contract Type",
-        default="litigation",
-        tracking=True,
+        help="Legacy compatibility field kept only to avoid upgrade failures from old CRM views.",
     )
+    
     task_ids = fields.One2many('task', 'crm_id', string='Tasks')
     qlk_task_ids = fields.One2many("qlk.task", "lead_id", string="Tasks / Hours")
     hours_logged_ok = fields.Boolean(

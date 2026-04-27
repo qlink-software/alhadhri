@@ -11,6 +11,6 @@
                   name="Approval Dashboard"
                   sequence="11"
                   action="action_qlk_approval_dashboard"
-                  groups="base.group_user"/>
+                  groups="qlk_approval_dashboard.group_qlk_approval_dashboard_user,qlk_approval_dashboard.group_qlk_approval_dashboard_manager"/>
     </data>
 </odoo>

@@ -1,4 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_qlk_approval_dashboard_user,qlk.approval.dashboard user,model_qlk_approval_dashboard,base.group_user,1,0,0,0
-access_qlk_approval_dashboard_manager,qlk.approval.dashboard manager,model_qlk_approval_dashboard,qlk_approval_dashboard.group_approval_dashboard_manager,1,0,0,0
-access_qlk_approval_dashboard_assistant,qlk.approval.dashboard assistant,model_qlk_approval_dashboard,qlk_approval_dashboard.group_approval_dashboard_assistant,1,0,0,0
+access_qlk_approval_dashboard_user,qlk.approval.dashboard user,model_qlk_approval_dashboard,qlk_approval_dashboard.group_qlk_approval_dashboard_user,1,0,1,0
+access_qlk_approval_dashboard_manager,qlk.approval.dashboard manager,model_qlk_approval_dashboard,qlk_approval_dashboard.group_qlk_approval_dashboard_manager,1,1,1,1

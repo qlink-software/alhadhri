@@ -11,14 +11,14 @@
                         string="Print Job Offer"
                         class="btn-secondary"
                         invisible="offer_state != 'approved'"
-                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager,hr_recruitment_automation.group_managing_partner"/>
+                        groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"/>
 
                 <button name="action_send_job_offer"
                         type="object"
                         string="Send Job Offer"
                         class="btn-primary"
                         invisible="offer_state != 'approved'"
-                        groups="hr_recruitment_automation.group_recruitment_officer,hr_recruitment_automation.group_office_manager,hr_recruitment_automation.group_managing_partner"/>
+                        groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"/>
             </xpath>
 
             <xpath expr="//group[field[@name='nationality_id']]" position="inside">

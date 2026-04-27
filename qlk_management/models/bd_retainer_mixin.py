@@ -2,8 +2,7 @@
 # ------------------------------------------------------------------------------
 # Shared Retainer helpers for BD Proposal and Engagement Letter.
 # Keeps the hours, countdown, and notification logic consistent between both
-# documents while respecting the current codebase split between project.project
-# timesheets and qlk.project task-hour tracking.
+# documents while using standard project.project timesheets.
 # ------------------------------------------------------------------------------
 import calendar
 
@@ -40,15 +39,6 @@ class BDRetainerMixin(models.AbstractModel):
         self.ensure_one()
         return self.project_id if "project_id" in self._fields else self.env["project.project"]
 
-    def _get_qlk_project(self):
-        self.ensure_one()
-        return self.qlk_project_id if "qlk_project_id" in self._fields else self.env["qlk.project"]
-
-    def _get_qlk_project_ids(self, records):
-        if not records or "qlk_project_id" not in getattr(records, "_fields", {}):
-            return []
-        return [record.qlk_project_id.id for record in records if record.qlk_project_id]
-
     def _get_project_timesheet_hours_map(self, project_ids, date_from=None, date_to=None):
         if not project_ids:
             return {}
@@ -71,25 +61,6 @@ class BDRetainerMixin(models.AbstractModel):
             if item.get("project_id")
         }
 
-    def _get_qlk_project_hours_map(self, project_ids, date_from=None, date_to=None):
-        if not project_ids:
-            return {}
-        domain = [("project_id", "in", project_ids)]
-        if date_from:
-            domain.append(("date_start", ">=", date_from))
-        if date_to:
-            domain.append(("date_start", "<=", date_to))
-        grouped = self.env["qlk.task"].read_group(
-            domain,
-            ["hours_spent", "project_id"],
-            ["project_id"],
-        )
-        return {
-            item["project_id"][0]: item.get("hours_spent", 0.0) or 0.0
-            for item in grouped
-            if item.get("project_id")
-        }
-
     def _get_record_hours(self, record, date_from=None, date_to=None):
         standard_project = record._get_standard_project()
         if standard_project:
@@ -98,32 +69,15 @@ class BDRetainerMixin(models.AbstractModel):
                 date_from=date_from,
                 date_to=date_to,
             ).get(standard_project.id, 0.0)
-        qlk_project = record._get_qlk_project()
-        if qlk_project:
-            return record._get_qlk_project_hours_map(
-                [qlk_project.id],
-                date_from=date_from,
-                date_to=date_to,
-            ).get(qlk_project.id, 0.0)
         return 0.0
 
     def _compute_retainer_used_hours(self):
-        has_qlk_project_field = "qlk_project_id" in self._fields
         standard_records = self.filtered(
             lambda rec: rec._is_retainer_billing()
             and rec.retainer_period != "annual"
             and rec._get_standard_project()
         )
-        qlk_records = self.browse()
-        if has_qlk_project_field:
-            qlk_records = self.filtered(
-                lambda rec: rec._is_retainer_billing()
-                and rec.retainer_period != "annual"
-                and not rec._get_standard_project()
-                and rec._get_qlk_project()
-            )
         standard_map = self._get_project_timesheet_hours_map(standard_records.mapped("project_id").ids)
-        qlk_map = self._get_qlk_project_hours_map(self._get_qlk_project_ids(qlk_records))
 
         for record in self:
             if not record._is_retainer_billing():
@@ -140,8 +94,7 @@ class BDRetainerMixin(models.AbstractModel):
             if standard_project:
                 record.used_hours = standard_map.get(standard_project.id, 0.0)
                 continue
-            qlk_project = record._get_qlk_project()
-            record.used_hours = qlk_map.get(qlk_project.id, 0.0) if qlk_project else 0.0
+            record.used_hours = 0.0
 
     def _compute_retainer_remaining_hours(self):
         for record in self:
@@ -152,24 +105,11 @@ class BDRetainerMixin(models.AbstractModel):
 
     def _compute_retainer_monthly_used_hours(self):
         month_start, month_end = self._get_retainer_month_range()
-        has_qlk_project_field = "qlk_project_id" in self._fields
         standard_records = self.filtered(
             lambda rec: rec._is_retainer_billing() and rec._get_standard_project()
         )
-        qlk_records = self.browse()
-        if has_qlk_project_field:
-            qlk_records = self.filtered(
-                lambda rec: rec._is_retainer_billing()
-                and not rec._get_standard_project()
-                and rec._get_qlk_project()
-            )
         standard_map = self._get_project_timesheet_hours_map(
             standard_records.mapped("project_id").ids,
-            date_from=month_start,
-            date_to=month_end,
-        )
-        qlk_map = self._get_qlk_project_hours_map(
-            self._get_qlk_project_ids(qlk_records),
             date_from=month_start,
             date_to=month_end,
         )
@@ -181,8 +121,7 @@ class BDRetainerMixin(models.AbstractModel):
             if standard_project:
                 record.monthly_used_hours = standard_map.get(standard_project.id, 0.0)
                 continue
-            qlk_project = record._get_qlk_project()
-            record.monthly_used_hours = qlk_map.get(qlk_project.id, 0.0) if qlk_project else 0.0
+            record.monthly_used_hours = 0.0
 
     def _compute_retainer_usage_visuals(self):
         for record in self:
@@ -213,8 +152,8 @@ class BDRetainerMixin(models.AbstractModel):
         self.ensure_one()
         users = self.env["res.users"]
         xmlids = (
-            "qlk_management.bd_manager_group",
-            "qlk_management.bd_assistant_manager_group",
+            "qlk_management.group_bd_manager",
+            "qlk_management.group_bd_manager",
             "account.group_account_user",
         )
         for xmlid in xmlids:
@@ -270,7 +209,7 @@ class BDRetainerMixin(models.AbstractModel):
                 continue
             if getattr(record, "state", False) in {"rejected", "cancelled"}:
                 continue
-            if not (record._get_standard_project() or record._get_qlk_project()):
+            if not record._get_standard_project():
                 continue
             limit = record.monthly_hours_limit or record.allocated_hours or 0.0
             if limit <= 0:

@@ -38,8 +38,8 @@
 
     <menuitem id="menu_litigation_level"
               name="درجات التقاضي"
-              parent="qlk_management.menu_qlk_project_projects"
+              parent="qlk_management.menu_management_root"
               action="qlk_management.action_litigation_level"
-              groups="qlk_management.group_legal_manager"
+              groups="qlk_management.group_pre_litigation_manager"
               sequence="55"/>
 </odoo>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="qlk.project.removal.cleanup" name="cleanup_removed_project_models"/>
+</odoo>

@@ -153,9 +153,7 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
         )
         engagement_action = self._action_payload("qlk_management.action_bd_engagement_letter")
         opportunity_action = self._action_payload("crm.crm_lead_action_pipeline")
-        project_action = self._action_payload("qlk_management.action_qlk_project") or self._action_payload(
-            "project.open_view_project_all"
-        )
+        project_action = self._action_payload("project.open_view_project_all")
 
         proposal_groups, proposal_total = self._build_group_cards(
             proposal_model,

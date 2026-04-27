@@ -250,9 +250,9 @@ class ExecutiveDashboard(models.AbstractModel):
         user = self.env.user
         lang = user.lang or "en_US"
         today = fields.Date.context_today(self)
-        is_manager = user.has_group("qlk_executive_dashboard.group_qlk_executive_manager")
-        is_assistant = user.has_group("qlk_executive_dashboard.group_qlk_executive_assistant")
-        if not (is_manager or is_assistant):
+        is_manager = user.has_group("qlk_executive_dashboard.group_qlk_executive_dashboard_manager")
+        is_user = user.has_group("qlk_executive_dashboard.group_qlk_executive_dashboard_user")
+        if not (is_manager or is_user):
             raise AccessError("You do not have access to the executive dashboard.")
 
         palette = {
@@ -275,7 +275,7 @@ class ExecutiveDashboard(models.AbstractModel):
 
         proposal_model = self._safe_model("bd.proposal")
         engagement_model = self._safe_model("bd.engagement.letter")
-        project_model = self._safe_model("qlk.project") or self._safe_model("project.project")
+        project_model = self._safe_model("project.project")
         case_model = self._safe_model("qlk.case")
         hearing_model = self._safe_model("qlk.hearing")
         leave_model = self._safe_model("hr.leave")
@@ -882,7 +882,7 @@ class ExecutiveDashboard(models.AbstractModel):
 
     @api.model
     def action_approve_record(self, model_name, res_id):
-        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_manager")
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_dashboard_manager")
         config = self._approval_model_config().get(model_name)
         if not config:
             raise AccessError("Unsupported approval model.")
@@ -898,7 +898,7 @@ class ExecutiveDashboard(models.AbstractModel):
 
     @api.model
     def action_reject_record(self, model_name, res_id, reason):
-        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_manager")
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_dashboard_manager")
         reason = (reason or "").strip()
         if not reason:
             raise AccessError("Rejection reason is required.")
@@ -917,7 +917,7 @@ class ExecutiveDashboard(models.AbstractModel):
 
     @api.model
     def action_assistant_recommend(self, model_name, res_id, recommendation, note=None):
-        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_assistant")
+        self._ensure_group("qlk_executive_dashboard.group_qlk_executive_dashboard_user")
         record = self.env[model_name].browse(res_id)
         if not record.exists():
             raise AccessError("Record not found.")

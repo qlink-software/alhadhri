@@ -8,8 +8,9 @@
                 <list string="Pre-Litigation Cases">
                     <field name="name"/>
                     <field name="client_id"/>
-                    <field name="project_id"/>
+                    <field name="engagement_id"/>
                     <field name="lawyer_employee_id"/>
+                    <field name="hours_used" widget="float_time" sum="Total Hours"/>
                     <field name="state"/>
                     <field name="case_id"/>
                 </list>
@@ -40,7 +41,7 @@
                                 string="Send to Translation (MP)"
                                 class="btn-secondary"
                                 type="object"
-                                groups="qlk_management.group_legal_user,qlk_management.bd_manager_group,qlk_management.bd_assistant_manager_group"
+                                groups="qlk_management.group_pre_litigation_user,qlk_management.group_bd_manager"
                                 invisible="not translation_attachment_ids"/>
                         <button name="action_to_memo"
                                 string="Send to Memo"
@@ -103,8 +104,9 @@
                                 <field name="client_id"/>
                                 <field name="opponent_id"/>
                                 <field name="subject"/>
-                                <field name="project_id"/>
+                                <field name="engagement_id" required="1"/>
                                 <field name="case_id" readonly="1" context="{'default_pre_litigation_id': id}"/>
+                                <field name="hours_used" widget="float_time"/>
                             </group>
                             <group>
                                 <field name="lawyer_employee_id"/>
@@ -278,6 +280,7 @@
                   name="Pre-Litigation Cases"
                   parent="qlk_law.menu_qlk_case_root"
                   sequence="3"
+                  groups="qlk_management.group_pre_litigation_user,qlk_management.group_pre_litigation_manager"
                   action="action_pre_litigation"/>
     </data>
 </odoo>

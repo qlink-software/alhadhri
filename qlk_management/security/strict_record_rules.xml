@@ -1,289 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!--
-        Department security domain:
-        - Department manager: sees all records in managed departments.
-        - Department user: sees only records assigned to their user.
-        This is server-side security and applies to list, kanban, form, search, export, reports and RPC.
-    -->
+    <data>
+        <record id="rule_task_user" model="ir.rule">
+            <field name="name">Working Hours User</field>
+            <field name="model_id" ref="model_task"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('employee_ids.user_id', 'in', [user.id])]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_task_management.group_task_user')])]"/>
+        </record>
+        <record id="rule_task_manager" model="ir.rule">
+            <field name="name">Working Hours Manager</field>
+            <field name="model_id" ref="model_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_task_management.group_task_manager')])]"/>
+        </record>
 
-    <function name="write" model="ir.model.data">
-        <value model="ir.model.data" search="[('module', '=', 'qlk_management'), ('name', 'in', ['rule_qlk_project_manager', 'rule_qlk_project_member', 'rule_qlk_project_viewer'])]"/>
-        <value eval="{'noupdate': False}"/>
-    </function>
+        <record id="rule_bd_proposal_user" model="ir.rule">
+            <field name="name">Business Proposal User</field>
+            <field name="model_id" ref="model_bd_proposal"/>
+            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_user')])]"/>
+        </record>
+        <record id="rule_bd_proposal_manager" model="ir.rule">
+            <field name="name">Business Proposal Manager</field>
+            <field name="model_id" ref="model_bd_proposal"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_manager')])]"/>
+        </record>
 
-    <!-- Disable older broad rules only when their XML IDs exist in the target database. -->
-    <function model="ir.rule" name="_qlk_disable_legacy_rules"/>
+        <record id="rule_bd_engagement_letter_user" model="ir.rule">
+            <field name="name">Engagement Letter User</field>
+            <field name="model_id" ref="model_bd_engagement_letter"/>
+            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_el_user')])]"/>
+        </record>
+        <record id="rule_bd_engagement_letter_manager" model="ir.rule">
+            <field name="name">Engagement Letter Manager</field>
+            <field name="model_id" ref="model_bd_engagement_letter"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_el_manager')])]"/>
+        </record>
 
-    <record id="rule_qlk_project_member" model="ir.rule">
-        <field name="name">QLK Project Department Isolation</field>
-        <field name="model_id" ref="model_qlk_project"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
+        <record id="rule_qlk_pre_litigation_user" model="ir.rule">
+            <field name="name">Pre-Litigation User</field>
+            <field name="model_id" ref="model_qlk_pre_litigation"/>
+            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('office_manager_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_pre_litigation_user')])]"/>
+        </record>
+        <record id="rule_qlk_pre_litigation_manager" model="ir.rule">
+            <field name="name">Pre-Litigation Manager</field>
+            <field name="model_id" ref="model_qlk_pre_litigation"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_pre_litigation_manager')])]"/>
+        </record>
 
-    <record id="rule_qlk_case_lawyer_isolation" model="ir.rule">
-        <field name="name">QLK Case Department Isolation</field>
-        <field name="model_id" ref="qlk_law.model_qlk_case"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
+        <record id="rule_cost_calculation_user" model="ir.rule">
+            <field name="name">Cost Calculation User</field>
+            <field name="model_id" ref="model_cost_calculation"/>
+            <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_hr_user')])]"/>
+        </record>
+        <record id="rule_cost_calculation_manager" model="ir.rule">
+            <field name="name">Cost Calculation Manager</field>
+            <field name="model_id" ref="model_cost_calculation"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_hr_manager')])]"/>
+        </record>
 
-    <record id="rule_qlk_task_lawyer_isolation" model="ir.rule">
-        <field name="name">QLK Task Department Isolation</field>
-        <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
+        <record id="rule_qlk_contact_classification_user" model="ir.rule">
+            <field name="name">Contact Classification User</field>
+            <field name="model_id" ref="model_qlk_contact_classification"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_user')])]"/>
+        </record>
+        <record id="rule_qlk_contact_classification_manager" model="ir.rule">
+            <field name="name">Contact Classification Manager</field>
+            <field name="model_id" ref="model_qlk_contact_classification"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_manager')])]"/>
+        </record>
 
-    <record id="rule_project_task_lawyer_isolation" model="ir.rule">
-        <field name="name">Project Task Department Isolation</field>
-        <field name="model_id" ref="project.model_project_task"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_management_task_user_isolation" model="ir.rule">
-        <field name="name">Working Hours Department Isolation</field>
-        <field name="model_id" ref="model_task"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_project_project_department_isolation" model="ir.rule">
-        <field name="name">Project App Department Isolation</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_crm_lead_department_isolation" model="ir.rule">
-        <field name="name">CRM PR Department Isolation</field>
-        <field name="model_id" ref="crm.model_crm_lead"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_bd_proposal_department_isolation" model="ir.rule">
-        <field name="name">Proposal Department Isolation</field>
-        <field name="model_id" ref="model_bd_proposal"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_bd_engagement_department_isolation" model="ir.rule">
-        <field name="name">Engagement Letter Department Isolation</field>
-        <field name="model_id" ref="model_bd_engagement_letter"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_corporate_case_department_isolation" model="ir.rule">
-        <field name="name">Corporate Case Department Isolation</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_case"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_corporate_contract_department_isolation" model="ir.rule">
-        <field name="name">Corporate Contract Department Isolation</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_contract"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_corporate_memo_department_isolation" model="ir.rule">
-        <field name="name">Corporate Memo Department Isolation</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_memo"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_corporate_consultation_department_isolation" model="ir.rule">
-        <field name="name">Corporate Consultation Department Isolation</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_consultation"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_corporate_document_department_isolation" model="ir.rule">
-        <field name="name">Corporate Document Department Isolation</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_document"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_arbitration_case_department_isolation" model="ir.rule">
-        <field name="name">Arbitration Case Department Isolation</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_case"/>
-        <field name="domain_force">['|', ('department_id', 'in', user.manager_department_ids.ids), '&amp;', ('department_id', 'in', user.department_ids.ids), '|', ('access_lawyer_id', '=', user.id), ('access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_arbitration_session_department_isolation" model="ir.rule">
-        <field name="name">Arbitration Session Department Isolation</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_session"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_arbitration_memo_department_isolation" model="ir.rule">
-        <field name="name">Arbitration Memo Department Isolation</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_memo"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <record id="rule_arbitration_award_department_isolation" model="ir.rule">
-        <field name="name">Arbitration Award Department Isolation</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_award"/>
-        <field name="domain_force">['|', ('case_id.department_id', 'in', user.manager_department_ids.ids), '&amp;', ('case_id.department_id', 'in', user.department_ids.ids), '|', ('case_id.access_lawyer_id', '=', user.id), ('case_id.access_lawyer_ids', 'in', [user.id])]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
-    </record>
-
-    <!-- Technical administrators keep full access for support and data correction. -->
-    <record id="rule_qlk_admin_project_all" model="ir.rule">
-        <field name="name">QLK Admin Project All</field>
-        <field name="model_id" ref="model_qlk_project"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_case_all" model="ir.rule">
-        <field name="name">QLK Admin Case All</field>
-        <field name="model_id" ref="qlk_law.model_qlk_case"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_task_all" model="ir.rule">
-        <field name="name">QLK Admin Task All</field>
-        <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_project_task_all" model="ir.rule">
-        <field name="name">QLK Admin Project Task All</field>
-        <field name="model_id" ref="project.model_project_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_project_project_all" model="ir.rule">
-        <field name="name">QLK Admin Project App All</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_management_task_all" model="ir.rule">
-        <field name="name">QLK Admin Working Hours All</field>
-        <field name="model_id" ref="model_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_crm_all" model="ir.rule">
-        <field name="name">QLK Admin CRM All</field>
-        <field name="model_id" ref="crm.model_crm_lead"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_proposal_all" model="ir.rule">
-        <field name="name">QLK Admin Proposal All</field>
-        <field name="model_id" ref="model_bd_proposal"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_engagement_all" model="ir.rule">
-        <field name="name">QLK Admin Engagement All</field>
-        <field name="model_id" ref="model_bd_engagement_letter"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_corporate_case_all" model="ir.rule">
-        <field name="name">QLK Admin Corporate Case All</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_case"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_corporate_contract_all" model="ir.rule">
-        <field name="name">QLK Admin Corporate Contract All</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_contract"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_corporate_memo_all" model="ir.rule">
-        <field name="name">QLK Admin Corporate Memo All</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_memo"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_corporate_consultation_all" model="ir.rule">
-        <field name="name">QLK Admin Corporate Consultation All</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_consultation"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_corporate_document_all" model="ir.rule">
-        <field name="name">QLK Admin Corporate Document All</field>
-        <field name="model_id" ref="qlk_corporate.model_qlk_corporate_document"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_arbitration_case_all" model="ir.rule">
-        <field name="name">QLK Admin Arbitration Case All</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_case"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_arbitration_session_all" model="ir.rule">
-        <field name="name">QLK Admin Arbitration Session All</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_session"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_arbitration_memo_all" model="ir.rule">
-        <field name="name">QLK Admin Arbitration Memo All</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_memo"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
-    <record id="rule_qlk_admin_arbitration_award_all" model="ir.rule">
-        <field name="name">QLK Admin Arbitration Award All</field>
-        <field name="model_id" ref="qlk_arbitration.model_qlk_arbitration_award"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('base.group_system'), ref('qlk_management.group_qlk_admin')])]"/>
-    </record>
+    </data>
 </odoo>

@@ -15,11 +15,13 @@
         "hr",
         "hr_attendance",
         "hr_holidays",
+        "qlk_security_base",
         "qlk_management",
     ],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
+        "security/record_rules.xml",
         "views/executive_dashboard_menu.xml",
     ],
     "assets": {

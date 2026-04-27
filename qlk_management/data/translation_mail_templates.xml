@@ -19,7 +19,7 @@
                 <p><strong>Client Details:</strong></p>
                 <ul>
                     <li><strong>Client Name:</strong> {{ object.client_id.name or '' }}</li>
-                    <li><strong>Client Code:</strong> {{ object.project_id.client_code or object.client_id.code or '' }}</li>
+                    <li><strong>Client Code:</strong> {{ object.engagement_id.client_code or object.client_id.code or '' }}</li>
                 </ul>
 
                 <p><strong>Case / Reference:</strong></p>

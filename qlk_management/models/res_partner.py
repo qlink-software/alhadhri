@@ -83,18 +83,13 @@ class ResPartner(models.Model):
         commercial_partner = self.commercial_partner_id or self
         return bool(commercial_partner.customer_rank > 0)
 
-    # ------------------------------------------------------------------------------
-    # هذه الدالة تحدد هل المستخدم الحالي يملك صلاحية كاملة على بيانات العملاء.
-    # ------------------------------------------------------------------------------
     def _has_client_management_access(self):
         user = self.env.user
         return bool(
             self.env.is_superuser()
-            or user.has_group("qlk_management.group_client_mp")
-            or user.has_group("qlk_management.group_client_bd")
-            or user.has_group("qlk_management.group_mp")
-            or user.has_group("qlk_management.bd_manager_group")
-            or user.has_group("qlk_management.bd_assistant_manager_group")
+            or user.has_group("qlk_management.group_bd_user")
+            or user.has_group("qlk_management.group_pre_litigation_manager")
+            or user.has_group("qlk_management.group_bd_manager")
         )
 
     # ------------------------------------------------------------------------------

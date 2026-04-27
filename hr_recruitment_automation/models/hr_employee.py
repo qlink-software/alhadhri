@@ -243,7 +243,7 @@ class HrEmployee(models.Model):
         if not missing_lines:
             return
 
-        group = self.env.ref("hr_recruitment_automation.group_managing_partner", raise_if_not_found=False)
+        group = self.env.ref("qlk_management.group_hr_manager", raise_if_not_found=False)
         if not group:
             _logger.warning("Managing Partner group not found, weekly reminder skipped.")
             return

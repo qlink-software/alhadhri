@@ -9,8 +9,6 @@ class IrRule(models.Model):
     @api.model
     def _qlk_disable_legacy_rules(self):
         xmlids = (
-            "qlk_management.rule_qlk_project_manager",
-            "qlk_management.rule_qlk_project_viewer",
             "qlk_management.rule_qlk_case_manager_all",
             "qlk_task_management.rule_qlk_task_all_users",
             "qlk_management.rule_project_task_manager_all",

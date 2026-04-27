@@ -12,10 +12,10 @@
                 </div>
             </t>
             <t t-else="">
-                <section class="qlk-project-dashboard__hero">
+                <section class="qlk-bd-dashboard__hero">
                     <div class="hero__info">
                         <h1>Business Development Dashboard</h1>
-                        <p>Monitor opportunities, proposals, engagement letters, and projects.</p>
+                        <p>Monitor opportunities, proposals, engagement letters, and delivery projects.</p>
                     </div>
                     <div class="hero__metrics">
                         <div class="metric-card">
@@ -31,13 +31,13 @@
                             <strong t-esc="formatNumber(kpis.engagements)"/>
                         </div>
                         <div class="metric-card">
-                            <span>Projects</span>
+                            <span>Delivery Projects</span>
                             <strong t-esc="formatNumber(kpis.projects)"/>
                         </div>
                     </div>
                 </section>
 
-                <section class="qlk-project-dashboard__grid">
+                <section class="qlk-bd-dashboard__grid">
                     <t t-foreach="sections" t-as="section" t-key="section.key">
                         <article class="qlk-card">
                             <header>

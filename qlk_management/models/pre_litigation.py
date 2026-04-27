@@ -28,7 +28,13 @@ class PreLitigation(models.Model):
         default=lambda self: self.env.company,
         required=True,
     )
-    project_id = fields.Many2one("qlk.project", string="Related Project", tracking=True)
+    engagement_id = fields.Many2one(
+        "bd.engagement.letter",
+        string="Engagement Letter",
+        ondelete="cascade",
+        index=True,
+        tracking=True,
+    )
     case_id = fields.Many2one("qlk.case", string="Litigation Case", tracking=True)
     client_id = fields.Many2one("res.partner", string="Client", required=True, tracking=True, domain="[('customer_rank', '>', 0)]")
     client_attachment_ids = fields.Many2many(
@@ -96,6 +102,7 @@ class PreLitigation(models.Model):
     fee_payment_note = fields.Text(string="Fee Payment Notes", tracking=True)
     fee_payment_amount = fields.Monetary(string="Fee Amount")
     fee_payment_reference = fields.Char(string="Fee Payment Reference")
+    hours_used = fields.Float(string="Hours Used", tracking=True, digits="Product Unit of Measure")
     currency_id = fields.Many2one("res.currency", string="Currency", default=lambda self: self.env.company.currency_id)
     lawyer_note = fields.Html(string="Lawyer Notes")
     translated_count = fields.Integer(string="Translated Files", compute="_compute_translated_count")
@@ -104,6 +111,17 @@ class PreLitigation(models.Model):
     def _compute_translated_count(self):
         for record in self:
             record.translated_count = len(record.translated_document_ids)
+
+    @api.onchange("engagement_id")
+    def _onchange_engagement_id(self):
+        for record in self:
+            engagement = record.engagement_id
+            if not engagement:
+                continue
+            if engagement.partner_id and not record.client_id:
+                record.client_id = engagement.partner_id.id
+            if engagement.lawyer_employee_id and not record.lawyer_employee_id:
+                record.lawyer_employee_id = engagement.lawyer_employee_id.id
 
     @api.depends("approval_line_ids.state", "approvals_submitted")
     def _compute_approval_status(self):
@@ -184,6 +202,7 @@ class PreLitigation(models.Model):
             vals["name"] = self.env["ir.sequence"].next_by_code("qlk.pre.litigation") or _("New Pre-Litigation")
         if not vals.get("company_id"):
             vals["company_id"] = self.env.company.id
+        self._validate_engagement_service(vals)
         record = super().create(vals)
         record._ensure_translation_subtask()
         record._sync_translation_request_attachments()
@@ -194,19 +213,31 @@ class PreLitigation(models.Model):
         vals = dict(vals)
         if "translation_attachment_ids" in vals and "translation_status" not in vals:
             vals["translation_status"] = "draft"
+        if "engagement_id" in vals:
+            self._validate_engagement_service(vals)
         result = super().write(vals)
         if "translation_attachment_ids" in vals and not self.env.context.get("skip_translation_attachment_sync"):
             self._sync_translation_request_attachments()
-        if any(field in vals for field in ("project_id", "case_id")):
+        if any(field in vals for field in ("case_id", "engagement_id")):
             self._link_back_references()
         return result
+
+    def _validate_engagement_service(self, vals):
+        if self.env.context.get("skip_engagement_service_validation"):
+            return
+        engagement_id = vals.get("engagement_id")
+        if not engagement_id:
+            return
+        engagement = self.env["bd.engagement.letter"].browse(engagement_id)
+        if engagement.service_type not in ("pre_litigation", "mixed"):
+            raise UserError(_("This engagement letter does not allow pre-litigation records."))
 
     def _link_back_references(self):
         for record in self:
             if record.case_id and "pre_litigation_id" in record.case_id._fields:
                 record.case_id.pre_litigation_id = record.id
-            if record.project_id and "pre_litigation_id" in record.project_id._fields and not record.project_id.pre_litigation_id:
-                record.project_id.pre_litigation_id = record.id
+            if record.case_id and not record.case_id.engagement_id and record.engagement_id:
+                record.case_id.with_context(skip_engagement_case_validation=True).engagement_id = record.engagement_id.id
 
     def _ensure_translation_subtask(self):
         for record in self:
@@ -322,8 +353,6 @@ class PreLitigation(models.Model):
         self.case_id = case.id
         if "pre_litigation_id" in case._fields:
             case.pre_litigation_id = self.id
-        if self.project_id and not self.project_id.case_id:
-            self.project_id.case_id = case.id
         self.state = "done"
         self.message_post(
             body=_("Litigation case %(case)s has been created from this pre-litigation.", case=case.display_name)
@@ -343,24 +372,14 @@ class PreLitigation(models.Model):
             "litigation_flow": "litigation",
             "state": "study",
         }
-        if self.project_id:
-            available_levels = self.project_id._get_available_litigation_levels()
-            if len(available_levels) != 1:
-                raise UserError(_("Create the litigation case from the related project and select the litigation level."))
-            vals.update(
-                {
-                    "project_id": self.project_id.id,
-                    "litigation_level_id": available_levels.id,
-                    "name2": self.project_id._build_litigation_sequence(available_levels.code)
-                    or self.project_id.code
-                    or self.project_id.name,
-                    "client_capacity": self.project_id.client_capacity,
-                    "currency_id": self.project_id.company_id.currency_id.id,
-                    "case_number": self.project_id.litigation_case_number,
-                    "case_group": self.project_id.litigation_court_id.id if self.project_id.litigation_court_id else False,
-                    "second_category": self.project_id.litigation_case_type_id.id if self.project_id.litigation_case_type_id else False,
-                }
-            )
+        if self.engagement_id:
+            vals["engagement_id"] = self.engagement_id.id
+            degree = self.engagement_id.litigation_degree_ids[:1]
+            if degree:
+                vals["litigation_degree_id"] = degree.id
+                vals["litigation_level_id"] = degree.level_id.id
+            if self.engagement_id.currency_id:
+                vals["currency_id"] = self.engagement_id.currency_id.id
         if self.lawyer_employee_id:
             vals["employee_id"] = self.lawyer_employee_id.id
         return vals

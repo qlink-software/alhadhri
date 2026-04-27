@@ -270,7 +270,7 @@ class DynamicAnalysisDashboard(models.AbstractModel):
         return charts
 
     def _task_scope_domain(self, allow_all, employee_ids, user):
-        domain = [("project_id", "!=", False)]
+        domain = []
         if allow_all:
             return domain
         if employee_ids:

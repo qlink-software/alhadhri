@@ -61,35 +61,44 @@ class QlkCase(models.Model):
         tracking=True,
     )
     client_capacity = fields.Char(string="Client Capacity/Title")
-    project_id = fields.Many2one(
-        "qlk.project",
-        string="المشروع",
-        ondelete="set null",
+    engagement_id = fields.Many2one(
+        "bd.engagement.letter",
+        string="Engagement Letter",
+        ondelete="cascade",
         index=True,
         tracking=True,
     )
-    project_sequence = fields.Char(
-        string="رقم المشروع",
-        compute="_compute_project_sequence",
-        store=True,
-        readonly=True,
+    litigation_degree = fields.Selection(
+        [
+            ("first", "First Instance"),
+            ("appeal", "Appeal"),
+            ("cassation", "Cassation"),
+        ],
+        string="Legacy Litigation Degree",
+        tracking=True,
     )
     litigation_level_id = fields.Many2one(
         "litigation.level",
-        string="درجة التقاضي",
+        string="Legacy Litigation Level",
         tracking=True,
         index=True,
+    )
+    litigation_degree_id = fields.Many2one(
+        "qlk.litigation.degree",
+        string="Litigation Degree",
+        tracking=True,
+        index=True,
+    )
+    allowed_litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        string="Allowed Litigation Degrees",
+        related="engagement_id.litigation_degree_ids",
+        readonly=True,
     )
     litigation_stage_code = fields.Selection(
         selection=LITIGATION_STAGE_CODE_SELECTION,
         string="Stage Code",
         related="litigation_level_id.code",
-        readonly=True,
-    )
-    project_litigation_level_ids = fields.Many2many(
-        "litigation.level",
-        string="درجات المشروع المتاحة",
-        related="project_id.litigation_level_ids",
         readonly=True,
     )
     total_hours = fields.Float(
@@ -122,25 +131,6 @@ class QlkCase(models.Model):
     completion_overall = fields.Float(string="Overall Completion", compute="_compute_completion_metrics", store=False)
 
     @api.depends(
-        "project_id.client_code",
-        "project_id.litigation_case_number",
-        "project_id.case_sequence",
-        "project_id.litigation_stage_iteration",
-        "project_id.litigation_stage_code",
-        "litigation_stage_code",
-        "litigation_level_id.code",
-    )
-    def _compute_project_sequence(self):
-        for record in self:
-            project = record.project_id
-            if not project:
-                record.project_sequence = False
-                continue
-            stage_code = record.litigation_stage_code or project.litigation_stage_code
-            record.project_sequence = project._build_litigation_sequence(stage_code)
-
-    @api.depends(
-        "project_id",
         "litigation_level_id",
         "task_ids.approval_state",
         "task_ids.hours_spent",
@@ -174,94 +164,147 @@ class QlkCase(models.Model):
         for record in self:
             record.total_hours = round(totals.get(record.id, 0.0), 2)
 
-    @api.onchange("project_id")
-    def _onchange_project_id(self):
+    @api.onchange("engagement_id")
+    def _onchange_engagement_id(self):
         for record in self:
-            project = record.project_id
-            if not project:
+            engagement = record.engagement_id
+            if not engagement:
                 continue
-            if project.client_id and not record.client_id:
-                record.client_id = project.client_id
-            if project.company_id and "company_id" in record._fields:
-                record.company_id = project.company_id
-            if project.company_id.currency_id and "currency_id" in record._fields and not record.currency_id:
-                record.currency_id = project.company_id.currency_id
-            lawyer = project._get_primary_employee()
-            if lawyer and "employee_id" in record._fields and not record.employee_id:
-                record.employee_id = lawyer
-            if record.litigation_level_id and record.litigation_level_id not in project.litigation_level_ids:
-                record.litigation_level_id = False
-            if "name2" in record._fields and record.litigation_level_id:
-                record.name2 = project._build_litigation_sequence(record.litigation_level_id.code)
+            if engagement.partner_id and not record.client_id:
+                record.client_id = engagement.partner_id.id
+            if engagement.company_id and "company_id" in record._fields:
+                record.company_id = engagement.company_id.id
+            if engagement.lawyer_employee_id and "employee_id" in record._fields and not record.employee_id:
+                record.employee_id = engagement.lawyer_employee_id.id
+            if not record.litigation_degree_id and engagement.litigation_degree_ids:
+                record.litigation_degree_id = engagement.litigation_degree_ids[:1].id
 
-    @api.onchange("litigation_level_id")
-    def _onchange_litigation_level_id(self):
+    @api.onchange("litigation_degree_id")
+    def _onchange_litigation_degree_id(self):
         for record in self:
-            if record.project_id and record.litigation_level_id and "name2" in record._fields:
-                record.name2 = record.project_id._build_litigation_sequence(record.litigation_level_id.code)
+            degree = record.litigation_degree_id
+            if degree and degree.level_id:
+                record.litigation_level_id = degree.level_id.id
+            record.litigation_degree = record._legacy_litigation_degree_from_degree(degree)
 
-    @api.constrains("project_id", "litigation_level_id")
-    def _check_project_litigation_level(self):
+    @api.onchange("litigation_degree")
+    def _onchange_legacy_litigation_degree(self):
         for record in self:
-            project = record.project_id
-            if not project:
-                continue
-            if not record.litigation_level_id:
-                raise ValidationError(_("يجب اختيار درجة التقاضي عند ربط القضية بمشروع."))
-            if record.litigation_level_id not in project.litigation_level_ids:
-                raise ValidationError(
-                    _(
-                        "درجة التقاضي المختارة غير متاحة في المشروع %(project)s.",
-                        project=project.display_name,
-                    )
+            if record.litigation_degree and not record.litigation_degree_id:
+                degree = record._degree_from_legacy_litigation_degree(record.litigation_degree)
+                if degree:
+                    record.litigation_degree_id = degree.id
+                    record.litigation_level_id = degree.level_id.id
+
+    @api.constrains("engagement_id", "litigation_degree_id", "litigation_level_id")
+    def _check_engagement_case_rules(self):
+        if self.env.context.get("skip_engagement_case_validation"):
+            return
+        for record in self:
+            engagement = record.engagement_id
+            if not engagement:
+                if record.env.context.get("allow_case_without_engagement"):
+                    continue
+                raise ValidationError(_("Cases must be created from an engagement letter."))
+            if engagement.service_type not in ("litigation", "mixed"):
+                raise ValidationError(_("This engagement letter does not allow litigation case creation."))
+            degree = record.litigation_degree_id
+            if not degree and record.litigation_level_id:
+                degree = self.env["qlk.litigation.degree"].search(
+                    [("level_id", "=", record.litigation_level_id.id)],
+                    limit=1,
                 )
-            if project.allow_multiple_cases_per_level:
-                continue
-            duplicate_domain = [
-                ("id", "!=", record.id),
-                ("project_id", "=", project.id),
-                ("litigation_level_id", "=", record.litigation_level_id.id),
-            ]
-            if self.search_count(duplicate_domain):
-                raise ValidationError(
-                    _(
-                        "لا يمكن إنشاء أكثر من قضية لنفس درجة التقاضي %(level)s في المشروع %(project)s.",
-                        level=record.litigation_level_id.display_name,
-                        project=project.display_name,
-                    )
-                )
+            if not degree:
+                raise ValidationError(_("Select a litigation degree for this case."))
+            if engagement.litigation_degree_ids and degree not in engagement.litigation_degree_ids:
+                raise ValidationError(_("The selected litigation degree is not allowed for this engagement letter."))
+            if record.litigation_level_id and degree.level_id and record.litigation_level_id != degree.level_id:
+                raise ValidationError(_("The selected litigation degree does not match the litigation level."))
+            if engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
+                raise ValidationError(_("Case limit exceeded for this engagement letter."))
+
+    @api.model
+    def _normalize_litigation_degree_vals(self, vals):
+        if vals.get("litigation_degree") and not vals.get("litigation_degree_id"):
+            degree = self._degree_from_legacy_litigation_degree(vals["litigation_degree"])
+            if degree:
+                vals["litigation_degree_id"] = degree.id
+                if degree.level_id:
+                    vals["litigation_level_id"] = degree.level_id.id
+        if vals.get("litigation_degree_id"):
+            degree = self.env["qlk.litigation.degree"].browse(vals["litigation_degree_id"])
+            if degree.exists() and degree.level_id:
+                vals["litigation_level_id"] = degree.level_id.id
+            if degree.exists():
+                vals["litigation_degree"] = self._legacy_litigation_degree_from_degree(degree)
+        elif vals.get("litigation_level_id") and not vals.get("litigation_degree_id"):
+            degree = self.env["qlk.litigation.degree"].search(
+                [("level_id", "=", vals["litigation_level_id"])],
+                limit=1,
+            )
+            if degree:
+                vals["litigation_degree_id"] = degree.id
+                vals["litigation_degree"] = self._legacy_litigation_degree_from_degree(degree)
+        return vals
+
+    @api.model
+    def _degree_from_legacy_litigation_degree(self, legacy_degree):
+        xmlids = {
+            "first": "qlk_management.qlk_litigation_degree_first_instance",
+            "appeal": "qlk_management.qlk_litigation_degree_appeal",
+            "cassation": "qlk_management.qlk_litigation_degree_cassation",
+        }
+        xmlid = xmlids.get(legacy_degree)
+        return self.env.ref(xmlid, raise_if_not_found=False) if xmlid else self.env["qlk.litigation.degree"]
+
+    @api.model
+    def _legacy_litigation_degree_from_degree(self, degree):
+        if not degree:
+            return False
+        if degree.code == "F":
+            return "first"
+        if degree.code == "A":
+            return "appeal"
+        if degree.code == "CA":
+            return "cassation"
+        return False
+
+    @api.model
+    def sync_legacy_litigation_degrees(self):
+        cases = self.search([
+            ("litigation_degree", "!=", False),
+            ("litigation_degree_id", "=", False),
+        ])
+        for case in cases:
+            degree = case._degree_from_legacy_litigation_degree(case.litigation_degree)
+            if degree:
+                case.with_context(skip_engagement_case_validation=True).write({
+                    "litigation_degree_id": degree.id,
+                    "litigation_level_id": degree.level_id.id if degree.level_id else False,
+                })
+        cases_without_legacy = self.search([
+            ("litigation_degree_id", "!=", False),
+            ("litigation_degree", "=", False),
+        ])
+        for case in cases_without_legacy:
+            legacy_degree = case._legacy_litigation_degree_from_degree(case.litigation_degree_id)
+            if legacy_degree:
+                case.with_context(skip_engagement_case_validation=True).write({
+                    "litigation_degree": legacy_degree,
+                })
+        return True
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            self._normalize_litigation_degree_vals(vals)
         records = super().create(vals_list)
-        records._sync_project_primary_case()
         return records
 
     def write(self, vals):
-        old_projects = {record.id: record.project_id for record in self}
-        result = super().write(vals)
-        if {"project_id", "litigation_level_id"}.intersection(vals):
-            self._sync_project_primary_case(old_projects=old_projects)
-        return result
-
-    def _sync_project_primary_case(self, old_projects=None):
-        if self.env.context.get("skip_project_primary_case_sync"):
-            return
-        for record in self:
-            project = record.project_id
-            if project and not project.case_id:
-                project.with_context(skip_project_primary_case_sync=True).write({"case_id": record.id})
-
-            old_project = old_projects and old_projects.get(record.id)
-            if old_project and old_project != project and old_project.case_id == record:
-                replacement = self.search(
-                    [("project_id", "=", old_project.id), ("id", "!=", record.id)],
-                    order="id",
-                    limit=1,
-                )
-                old_project.with_context(skip_project_primary_case_sync=True).write(
-                    {"case_id": replacement.id if replacement else False}
-                )
+        if {"litigation_degree_id", "litigation_level_id"}.intersection(vals):
+            self._normalize_litigation_degree_vals(vals)
+        return super().write(vals)
 
     @api.depends(*COMPLETION_DEPENDS)
     def _compute_completion_metrics(self):

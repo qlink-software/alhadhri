@@ -14,7 +14,9 @@ class QlkCourtDashboardExtension(models.AbstractModel):
     @api.model
     def _has_courts_dashboard_access(self, user):
         return bool(
-            self._user_has_optional_group(user, "qlk_law.group_courts_menu")
+            self._user_has_optional_group(user, "qlk_law_dashboard.group_qlk_law_dashboard_user")
+            or self._user_has_optional_group(user, "qlk_law_dashboard.group_qlk_law_dashboard_manager")
+            or self._user_has_optional_group(user, "qlk_law.group_courts_menu")
             or self._user_has_optional_group(user, "qlk_law.group_qlk_law_manager")
             or self._user_has_optional_group(user, "qlk_law.group_qlk_law_admin")
         )

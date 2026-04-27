@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class CorporateCaseProject(models.Model):
     _inherit = "qlk.corporate.case"
 
-    project_id = fields.Many2one(
-        "qlk.project",
-        string="Linked Project",
-        domain="[('department', '=', 'corporate')]",
+    engagement_id = fields.Many2one(
+        "bd.engagement.letter",
+        string="Engagement Letter",
+        ondelete="cascade",
+        index=True,
         tracking=True,
     )
     agreement_hours = fields.Float(string="Agreement Hours", tracking=True)
@@ -25,7 +27,7 @@ class CorporateCaseProject(models.Model):
     #     readonly=True,
     # )
 
-    @api.depends("project_id", "agreement_hours")
+    @api.depends("engagement_id", "agreement_hours")
     def _compute_project_hours(self):
         Task = self.env["qlk.task"]
         approved_states = {"approved"}
@@ -35,12 +37,11 @@ class CorporateCaseProject(models.Model):
             record.actual_hours_total = 0.0
             record.actual_hours_month = 0.0
             record.over_hours = False
-            if not record.project_id:
+            domain = []
+            if not record.engagement_id:
                 continue
-            domain = [
-                ("project_id", "=", record.project_id.id),
-                ("approval_state", "in", list(approved_states)),
-            ]
+            domain = [("engagement_id", "=", record.engagement_id.id)]
+            domain.append(("approval_state", "in", list(approved_states)))
             tasks = Task.search(domain)
             total = sum(tasks.mapped("hours_spent"))
             month_hours = sum(
@@ -55,12 +56,40 @@ class CorporateCaseProject(models.Model):
 
     def action_open_project_hours(self):
         self.ensure_one()
-        if not self.project_id:
+        if not self.engagement_id:
             return False
+        domain = [("engagement_id", "=", self.engagement_id.id)]
         return {
             "type": "ir.actions.act_window",
-            "name": _("Project Tasks"),
+            "name": _("Hours"),
             "res_model": "qlk.task",
             "view_mode": "list,form",
-            "domain": [("project_id", "=", self.project_id.id)],
+            "domain": domain,
         }
+
+    @api.onchange("engagement_id")
+    def _onchange_engagement_id(self):
+        for record in self:
+            engagement = record.engagement_id
+            if not engagement:
+                continue
+            if engagement.partner_id and not record.client_id:
+                record.client_id = engagement.partner_id.id
+            if engagement.lawyer_employee_id and not record.responsible_employee_id:
+                record.responsible_employee_id = engagement.lawyer_employee_id.id
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.context.get("skip_engagement_service_validation"):
+            for vals in vals_list:
+                engagement = self.env["bd.engagement.letter"].browse(vals.get("engagement_id"))
+                if engagement and engagement.service_type not in ("corporate", "mixed"):
+                    raise UserError(_("This engagement letter does not allow corporate records."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get("engagement_id") and not self.env.context.get("skip_engagement_service_validation"):
+            engagement = self.env["bd.engagement.letter"].browse(vals["engagement_id"])
+            if engagement and engagement.service_type not in ("corporate", "mixed"):
+                raise UserError(_("This engagement letter does not allow corporate records."))
+        return super().write(vals)
