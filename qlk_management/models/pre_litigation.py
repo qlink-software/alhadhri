@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class PreLitigation(models.Model):
@@ -35,6 +35,14 @@ class PreLitigation(models.Model):
         index=True,
         tracking=True,
     )
+    project_id = fields.Many2one(
+        "qlk.project",
+        string="Project",
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
+    service_code = fields.Char(string="Service Code", readonly=True, copy=False)
     case_id = fields.Many2one("qlk.case", string="Litigation Case", tracking=True)
     client_id = fields.Many2one("res.partner", string="Client", required=True, tracking=True, domain="[('customer_rank', '>', 0)]")
     client_attachment_ids = fields.Many2many(
@@ -123,6 +131,22 @@ class PreLitigation(models.Model):
             if engagement.lawyer_employee_id and not record.lawyer_employee_id:
                 record.lawyer_employee_id = engagement.lawyer_employee_id.id
 
+    @api.onchange("project_id")
+    def _onchange_project_id(self):
+        for record in self:
+            project = record.project_id
+            if not project:
+                continue
+            if project.engagement_letter_id and not record.engagement_id:
+                record.engagement_id = project.engagement_letter_id.id
+            if project.client_id and not record.client_id:
+                record.client_id = project.client_id.id
+            if project.lawyer_id and not record.lawyer_employee_id:
+                record.lawyer_employee_id = project.lawyer_id.id
+            service_code = getattr(project, "service_code", False)
+            if service_code and not record.service_code:
+                record.service_code = service_code
+
     @api.depends("approval_line_ids.state", "approvals_submitted")
     def _compute_approval_status(self):
         for record in self:
@@ -196,6 +220,11 @@ class PreLitigation(models.Model):
 
     @api.model
     def create(self, vals):
+        if not vals.get("project_id"):
+            raise ValidationError(_("Pre-litigation records must be created from a project."))
+        if vals.get("project_id"):
+            self._ensure_project_manager()
+        self._apply_project_defaults(vals)
         if vals.get("translation_attachment_ids") and not vals.get("translation_status"):
             vals["translation_status"] = "draft"
         if not vals.get("name") or vals.get("name") == "New":
@@ -211,6 +240,11 @@ class PreLitigation(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        if "project_id" in vals:
+            if not vals.get("project_id"):
+                raise ValidationError(_("Pre-litigation records must be linked to a project."))
+            self._ensure_project_manager()
+            self._apply_project_defaults(vals)
         if "translation_attachment_ids" in vals and "translation_status" not in vals:
             vals["translation_status"] = "draft"
         if "engagement_id" in vals:
@@ -231,6 +265,38 @@ class PreLitigation(models.Model):
         engagement = self.env["bd.engagement.letter"].browse(engagement_id)
         if engagement.service_type not in ("pre_litigation", "mixed"):
             raise UserError(_("This engagement letter does not allow pre-litigation records."))
+
+    def _apply_project_defaults(self, vals):
+        project_id = vals.get("project_id")
+        if not project_id:
+            return vals
+        project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
+        if project.exists():
+            vals.setdefault("engagement_id", project.engagement_letter_id.id)
+            vals.setdefault("client_id", project.client_id.id)
+            vals.setdefault("service_code", getattr(project, "service_code", False))
+            vals.setdefault("lawyer_employee_id", project.lawyer_id.id)
+        return vals
+
+    def _ensure_project_manager(self):
+        project_model = self.env[self._fields["project_id"].comodel_name]
+        if hasattr(project_model, "_ensure_legal_manager"):
+            return project_model._ensure_legal_manager()
+        return True
+
+    @api.constrains("project_id")
+    def _check_project_service_rules(self):
+        for record in self:
+            if not record.project_id:
+                raise ValidationError(_("Pre-litigation records must be created from a project."))
+            if record.project_id.service_type != "pre_litigation":
+                raise ValidationError(_("This project does not allow pre-litigation records."))
+            duplicate = self.search_count([
+                ("project_id", "=", record.project_id.id),
+                ("id", "!=", record.id),
+            ])
+            if duplicate:
+                raise ValidationError(_("A pre-litigation record already exists for this project."))
 
     def _link_back_references(self):
         for record in self:
@@ -370,6 +436,7 @@ class PreLitigation(models.Model):
             "description": self.description,
             "company_id": self.company_id.id,
             "litigation_flow": "litigation",
+            "pre_litigation_id": self.id,
             "state": "study",
         }
         if self.engagement_id:
@@ -382,6 +449,9 @@ class PreLitigation(models.Model):
                 vals["currency_id"] = self.engagement_id.currency_id.id
         if self.lawyer_employee_id:
             vals["employee_id"] = self.lawyer_employee_id.id
+        if self.project_id:
+            vals["project_id"] = self.project_id.id
+            vals["service_code"] = self.service_code
         return vals
 
 

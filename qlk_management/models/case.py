@@ -50,6 +50,17 @@ COMPLETION_DEPENDS = sorted({field for values in COMPLETION_SECTIONS.values() fo
 class QlkCase(models.Model):
     _inherit = "qlk.case"
 
+    task_ids = fields.One2many(
+        "project.task",
+        "case_id",
+        string="Tasks",
+    )
+    case_hours = fields.Float(
+        string="Case Hours",
+        compute="_compute_case_hours",
+        store=True,
+        readonly=True,
+    )
     litigation_flow = fields.Selection(
         selection=[
             ("pre_litigation", "Pre-Litigation"),
@@ -68,6 +79,14 @@ class QlkCase(models.Model):
         index=True,
         tracking=True,
     )
+    project_id = fields.Many2one(
+        "qlk.project",
+        string="Project",
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
+    service_code = fields.Char(string="Service Code", readonly=True, copy=False)
     litigation_degree = fields.Selection(
         [
             ("first", "First Instance"),
@@ -130,39 +149,27 @@ class QlkCase(models.Model):
     completion_documents = fields.Float(string="Documents", compute="_compute_completion_metrics", store=False)
     completion_overall = fields.Float(string="Overall Completion", compute="_compute_completion_metrics", store=False)
 
-    @api.depends(
-        "litigation_level_id",
-        "task_ids.approval_state",
-        "task_ids.hours_spent",
-    )
-    def _compute_total_hours(self):
+    @api.depends("task_ids.effective_hours", "task_ids.timesheet_ids.unit_amount")
+    def _compute_case_hours(self):
         cases = self.filtered("id")
         totals = {case.id: 0.0 for case in cases}
-        if cases and "qlk.task" in self.env:
-            Task = self.env["qlk.task"]
-            task_domain = [("case_id", "in", cases.ids), ("department", "=", "litigation")]
-            if "approval_state" in Task._fields:
-                task_domain.append(("approval_state", "=", "approved"))
-            task_groups = Task.read_group(task_domain, ["hours_spent", "case_id"], ["case_id"])
-            for group in task_groups:
-                case_ref = group.get("case_id")
-                if case_ref:
-                    totals[case_ref[0]] = totals.get(case_ref[0], 0.0) + (group.get("hours_spent", 0.0) or 0.0)
-
-        analytic_model = self.env.get("account.analytic.line")
-        if cases and analytic_model and "case_id" in analytic_model._fields and "unit_amount" in analytic_model._fields:
-            analytic_groups = analytic_model.read_group(
+        if cases:
+            groups = self.env["project.task"].read_group(
                 [("case_id", "in", cases.ids)],
-                ["unit_amount", "case_id"],
+                ["effective_hours", "case_id"],
                 ["case_id"],
             )
-            for group in analytic_groups:
+            for group in groups:
                 case_ref = group.get("case_id")
                 if case_ref:
-                    totals[case_ref[0]] = totals.get(case_ref[0], 0.0) + (group.get("unit_amount", 0.0) or 0.0)
-
+                    totals[case_ref[0]] = group.get("effective_hours", 0.0) or 0.0
         for record in self:
-            record.total_hours = round(totals.get(record.id, 0.0), 2)
+            record.case_hours = round(totals.get(record.id, 0.0), 2)
+
+    @api.depends("case_hours")
+    def _compute_total_hours(self):
+        for record in self:
+            record.total_hours = record.case_hours
 
     @api.onchange("engagement_id")
     def _onchange_engagement_id(self):
@@ -178,6 +185,24 @@ class QlkCase(models.Model):
                 record.employee_id = engagement.lawyer_employee_id.id
             if not record.litigation_degree_id and engagement.litigation_degree_ids:
                 record.litigation_degree_id = engagement.litigation_degree_ids[:1].id
+
+    @api.onchange("project_id")
+    def _onchange_project_id(self):
+        for record in self:
+            project = record.project_id
+            if not project:
+                continue
+            if project.client_id and not record.client_id:
+                record.client_id = project.client_id.id
+            if project.client_id and not record.client_ids:
+                record.client_ids = [(6, 0, project.client_id.ids)]
+            if project.engagement_letter_id and not record.engagement_id:
+                record.engagement_id = project.engagement_letter_id.id
+            if project.lawyer_id and "employee_id" in record._fields and not record.employee_id:
+                record.employee_id = project.lawyer_id.id
+            service_code = getattr(project, "service_code", False)
+            if service_code and not record.service_code:
+                record.service_code = service_code
 
     @api.onchange("litigation_degree_id")
     def _onchange_litigation_degree_id(self):
@@ -196,32 +221,38 @@ class QlkCase(models.Model):
                     record.litigation_degree_id = degree.id
                     record.litigation_level_id = degree.level_id.id
 
-    @api.constrains("engagement_id", "litigation_degree_id", "litigation_level_id")
+    @api.constrains("project_id", "engagement_id", "litigation_degree_id", "litigation_level_id")
     def _check_engagement_case_rules(self):
         if self.env.context.get("skip_engagement_case_validation"):
             return
         for record in self:
-            engagement = record.engagement_id
-            if not engagement:
-                if record.env.context.get("allow_case_without_engagement"):
-                    continue
-                raise ValidationError(_("Cases must be created from an engagement letter."))
-            if engagement.service_type not in ("litigation", "mixed"):
-                raise ValidationError(_("This engagement letter does not allow litigation case creation."))
+            if not record.project_id:
+                raise ValidationError(_("Cases must be created from a project."))
+            if record.project_id.service_type != "litigation" and not (
+                record.project_id.service_type == "pre_litigation" and record.pre_litigation_id
+            ):
+                raise ValidationError(_("This project does not allow litigation case creation."))
+            engagement = record.engagement_id or record.project_id.engagement_letter_id
             degree = record.litigation_degree_id
             if not degree and record.litigation_level_id:
                 degree = self.env["qlk.litigation.degree"].search(
                     [("level_id", "=", record.litigation_level_id.id)],
                     limit=1,
                 )
-            if not degree:
+            if engagement and not degree:
                 raise ValidationError(_("Select a litigation degree for this case."))
-            if engagement.litigation_degree_ids and degree not in engagement.litigation_degree_ids:
+            if engagement and engagement.litigation_degree_ids and degree not in engagement.litigation_degree_ids:
                 raise ValidationError(_("The selected litigation degree is not allowed for this engagement letter."))
-            if record.litigation_level_id and degree.level_id and record.litigation_level_id != degree.level_id:
+            if degree and record.litigation_level_id and degree.level_id and record.litigation_level_id != degree.level_id:
                 raise ValidationError(_("The selected litigation degree does not match the litigation level."))
-            if engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
+            if engagement and engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
                 raise ValidationError(_("Case limit exceeded for this engagement letter."))
+            duplicate = self.search_count([
+                ("project_id", "=", record.project_id.id),
+                ("id", "!=", record.id),
+            ])
+            if duplicate:
+                raise ValidationError(_("A litigation case already exists for this project."))
 
     @api.model
     def _normalize_litigation_degree_vals(self, vals):
@@ -297,14 +328,62 @@ class QlkCase(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if not vals.get("project_id"):
+                raise ValidationError(_("Cases must be created from a project."))
+            if vals.get("project_id"):
+                self._ensure_project_manager()
+            self._apply_project_defaults(vals)
             self._normalize_litigation_degree_vals(vals)
         records = super().create(vals_list)
         return records
 
     def write(self, vals):
+        if "project_id" in vals:
+            if not vals.get("project_id"):
+                raise ValidationError(_("Cases must be linked to a project."))
+            self._ensure_project_manager()
+            self._apply_project_defaults(vals)
         if {"litigation_degree_id", "litigation_level_id"}.intersection(vals):
             self._normalize_litigation_degree_vals(vals)
         return super().write(vals)
+
+    def _apply_project_defaults(self, vals):
+        project_id = vals.get("project_id")
+        if not project_id:
+            return vals
+        project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
+        if project.exists():
+            vals.setdefault("engagement_id", project.engagement_letter_id.id)
+            vals.setdefault("client_id", project.client_id.id)
+            vals.setdefault("client_ids", [(6, 0, project.client_id.ids)] if project.client_id else False)
+            vals.setdefault("employee_id", project.lawyer_id.id)
+            vals.setdefault("service_code", getattr(project, "service_code", False))
+            if not vals.get("litigation_degree_id") and project.engagement_letter_id.litigation_degree_ids:
+                degree = project.engagement_letter_id.litigation_degree_ids[:1]
+                vals["litigation_degree_id"] = degree.id
+                vals["litigation_level_id"] = degree.level_id.id if degree.level_id else False
+        return vals
+
+    def _ensure_project_manager(self):
+        project_model = self.env[self._fields["project_id"].comodel_name]
+        if hasattr(project_model, "_ensure_legal_manager"):
+            return project_model._ensure_legal_manager()
+        return True
+
+    def action_open_project_tasks(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Tasks"),
+            "res_model": "project.task",
+            "view_mode": "list,form",
+            "domain": [("case_id", "=", self.id)],
+            "context": {
+                "default_case_id": self.id,
+                "default_partner_id": self.client_id.id,
+                "qlk_require_case_id": True,
+            },
+        }
 
     @api.depends(*COMPLETION_DEPENDS)
     def _compute_completion_metrics(self):

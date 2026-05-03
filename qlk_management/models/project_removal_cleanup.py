@@ -8,7 +8,6 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
     _description = "QLK Project Removal Cleanup"
 
     OBSOLETE_MODELS = (
-        "qlk.project",
         "qlk.project.fee",
         "qlk.project.stage",
         "qlk.project.stage.line",
@@ -24,7 +23,6 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
 
     OBSOLETE_XMLIDS = (
         "qlk_management.action_project_dashboard",
-        "qlk_management.action_qlk_project",
         "qlk_management.action_qlk_project_tasks",
         "qlk_management.action_qlk_project_hours",
         "qlk_management.action_qlk_project_stage",
@@ -50,9 +48,6 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
         "qlk_management.rule_qlk_project_stage_manager",
         "qlk_management.seq_qlk_project",
         "qlk_management.mail_template_project_mp_assignment",
-        "qlk_management.view_qlk_project_list",
-        "qlk_management.view_qlk_project_form",
-        "qlk_management.view_qlk_project_search",
         "qlk_management.view_qlk_project_stage_list",
         "qlk_management.view_qlk_project_stage_form",
         "qlk_management.view_qlk_project_stage_search",
@@ -84,11 +79,11 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
 
     REMOVED_COLUMNS = {
         "bd_engagement_letter": ("qlk_project_id", "allow_project_without_payment", "can_create_project", "department_id"),
-        "qlk_case": ("project_id", "project_sequence", "project_litigation_level_ids", "department_id"),
-        "qlk_task": ("project_id", "department_id"),
-        "qlk_pre_litigation": ("project_id",),
-        "qlk_corporate_case": ("project_id", "department_id"),
-        "qlk_arbitration_case": ("project_id", "department_id"),
+        "qlk_case": ("project_sequence", "project_litigation_level_ids", "department_id"),
+        "qlk_task": ("department_id",),
+        "qlk_pre_litigation": (),
+        "qlk_corporate_case": ("department_id",),
+        "qlk_arbitration_case": ("department_id",),
         "qlk_internal_request": ("project_id",),
         "res_users": ("department_role_ids",),
         "project_task": ("department_id",),
@@ -99,11 +94,11 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
     }
     REMOVED_FIELD_METADATA = {
         "bd.engagement.letter": ("qlk_project_id", "allow_project_without_payment", "can_create_project", "department_id"),
-        "qlk.case": ("project_id", "project_sequence", "project_litigation_level_ids", "department_id"),
-        "qlk.task": ("project_id", "department_id"),
-        "qlk.pre.litigation": ("project_id",),
-        "qlk.corporate.case": ("project_id", "department_id"),
-        "qlk.arbitration.case": ("project_id", "department_id"),
+        "qlk.case": ("project_sequence", "project_litigation_level_ids", "department_id"),
+        "qlk.task": ("department_id",),
+        "qlk.pre.litigation": (),
+        "qlk.corporate.case": ("department_id",),
+        "qlk.arbitration.case": ("department_id",),
         "qlk.internal.request": ("project_id",),
         "res.users": ("department_role_ids", "department_ids", "manager_department_ids", "user_department_ids"),
         "project.task": ("department_id",),
@@ -114,7 +109,6 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
     }
 
     OBSOLETE_TABLES = (
-        "qlk_project",
         "qlk_project_fee",
         "qlk_project_stage",
         "qlk_project_stage_line",
@@ -585,13 +579,8 @@ class QlkProjectRemovalCleanup(models.AbstractModel):
             DELETE FROM ir_model_data
              WHERE module = 'qlk_management'
                AND (
-                    name LIKE 'model_qlk_project%%'
-                 OR name LIKE 'field_qlk_project%%'
-                 OR name LIKE 'selection__qlk_project%%'
-                 OR name LIKE 'access_qlk_project%%'
-                 OR name LIKE 'access_project_transfer%%'
+                    name LIKE 'access_project_transfer%%'
                  OR name LIKE 'access_project_create_litigation_case%%'
-                 OR name LIKE 'rule_qlk_project%%'
                  OR name LIKE 'field_qlk_department%%'
                  OR name LIKE 'model_qlk_department%%'
                  OR name LIKE 'access_qlk_department%%'

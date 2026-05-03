@@ -8,6 +8,8 @@
                 <list string="Pre-Litigation Cases">
                     <field name="name"/>
                     <field name="client_id"/>
+                    <field name="project_id"/>
+                    <field name="service_code"/>
                     <field name="engagement_id"/>
                     <field name="lawyer_employee_id"/>
                     <field name="hours_used" widget="float_time" sum="Total Hours"/>
@@ -104,7 +106,9 @@
                                 <field name="client_id"/>
                                 <field name="opponent_id"/>
                                 <field name="subject"/>
-                                <field name="engagement_id" required="1"/>
+                                <field name="project_id" required="1"/>
+                                <field name="service_code" readonly="1"/>
+                                <field name="engagement_id" readonly="1"/>
                                 <field name="case_id" readonly="1" context="{'default_pre_litigation_id': id}"/>
                                 <field name="hours_used" widget="float_time"/>
                             </group>

@@ -24,6 +24,7 @@
                 <attribute name="string">Responsible</attribute>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
+                <field name="client_name" />
                 <field name="priority_selection" />
                 <field name="notify_datetime"/>
                 <field name="opportunity_type" />

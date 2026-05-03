@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_qlk_project_list" model="ir.ui.view">
+        <field name="name">qlk.project.list</field>
+        <field name="model">qlk.project</field>
+        <field name="arch" type="xml">
+            <list string="Projects" default_order="create_date desc">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="service_code"/>
+                <field name="service_type"/>
+                <field name="contract_type"/>
+                <field name="lawyer_id"/>
+                <field name="planned_hours" widget="float_time"/>
+                <field name="consumed_hours" widget="float_time"/>
+                <field name="remaining_hours" widget="float_time"/>
+                <field name="engagement_letter_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_qlk_project_form" model="ir.ui.view">
+        <field name="name">qlk.project.form</field>
+        <field name="model">qlk.project</field>
+        <field name="arch" type="xml">
+            <form string="Project">
+                <header>
+                    <button name="action_create_litigation_case"
+                            type="object"
+                            string="Create Litigation Case"
+                            class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="service_type != 'litigation'"/>
+                    <button name="action_create_corporate"
+                            type="object"
+                            string="Create Corporate"
+                            class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="service_type != 'corporate'"/>
+                    <button name="action_create_arbitration"
+                            type="object"
+                            string="Create Arbitration"
+                            class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="service_type != 'arbitration'"/>
+                    <button name="action_create_pre_litigation"
+                            type="object"
+                            string="Create Pre-litigation"
+                            class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="service_type != 'pre_litigation'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_open_cases" class="oe_stat_button">
+                            <field name="case_count" widget="statinfo" string="Cases"/>
+                        </button>
+                        <button type="object" name="action_open_project_tasks" class="oe_stat_button">
+                            <field name="task_count" widget="statinfo" string="Tasks"/>
+                        </button>
+                        <button type="object" name="action_open_project_timesheets" class="oe_stat_button">
+                            <field name="consumed_hours" widget="statinfo" string="Consumed Hours"/>
+                        </button>
+                        <button type="object" name="action_open_project_tasks" class="oe_stat_button">
+                            <field name="remaining_hours" widget="statinfo" string="Remaining Hours"/>
+                        </button>
+                        <button type="object" name="action_open_corporate" class="oe_stat_button">
+                            <field name="corporate_count" widget="statinfo" string="Corporate"/>
+                        </button>
+                        <button type="object" name="action_open_arbitration" class="oe_stat_button">
+                            <field name="arbitration_count" widget="statinfo" string="Arbitration"/>
+                        </button>
+                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button">
+                            <field name="pre_litigation_count" widget="statinfo" string="Pre-litigation"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group string="General Info">
+                        <group>
+                            <field name="client_id"/>
+                            <field name="service_code" readonly="1"/>
+                            <field name="service_type"/>
+                            <field name="engagement_letter_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="lawyer_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Contract">
+                            <group>
+                                <group>
+                                    <field name="contract_type"/>
+                                    <field name="billing_type"/>
+                                    <field name="agreed_hours" widget="float_time"/>
+                                </group>
+                                <group>
+                                    <field name="total_hours" widget="float_time"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="description"/>
+                                <field name="scope_details"/>
+                            </group>
+                        </page>
+
+                        <page string="Hours">
+                            <group>
+                                <group>
+                                    <field name="planned_hours" widget="float_time"/>
+                                    <field name="manual_consumed_hours" widget="float_time"/>
+                                </group>
+                                <group>
+                                    <field name="consumed_hours" widget="float_time" readonly="1"/>
+                                    <field name="remaining_hours"
+                                           widget="float_time"
+                                           readonly="1"
+                                           decoration-danger="remaining_hours &lt; 0"/>
+                                </group>
+                            </group>
+                            <field name="project_task_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="case_id"/>
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="effective_hours" widget="float_time"/>
+                                    <field name="remaining_hours" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Client Profile">
+                            <group>
+                                <group>
+                                    <field name="client_name" readonly="1"/>
+                                    <field name="client_code" readonly="1"/>
+                                    <field name="mobile" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="email" readonly="1"/>
+                                    <field name="qid_cr" readonly="1"/>
+                                    <field name="address" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Litigation" invisible="service_type != 'litigation'">
+                            <group>
+                                <field name="litigation_degree_ids"
+                                       widget="many2many_tags"
+                                       required="service_type == 'litigation'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_qlk_project_search" model="ir.ui.view">
+        <field name="name">qlk.project.search</field>
+        <field name="model">qlk.project</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="service_type"/>
+                <field name="lawyer_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_service_type" string="Service Type" context="{'group_by': 'service_type'}"/>
+                    <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="group_lawyer" string="Lawyer" context="{'group_by': 'lawyer_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_qlk_project" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">qlk.project</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_qlk_project"
+              name="Projects"
+              parent="qlk_management.menu_management_root"
+              action="action_qlk_project"
+              groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+              sequence="60"/>
+
+    <record id="view_bd_engagement_letter_form_inherit_qlk_project" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.form.qlk.project</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="qlk_management.view_bd_engagement_letter_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="replace"/>
+            <xpath expr="//field[@name='allocated_hours']/ancestor::group[2]" position="replace"/>
+            <xpath expr="//field[@name='time_entry_ids']/ancestor::page[1]" position="replace"/>
+            <xpath expr="//field[@name='total_hours_used']" position="replace"/>
+            <xpath expr="//field[@name='remaining_hours']" position="replace"/>
+            <xpath expr="//field[@name='total_cases']" position="replace"/>
+            <xpath expr="//field[@name='remaining_cases']" position="replace"/>
+            <xpath expr="//field[@name='consumption_label']" position="replace"/>
+            <xpath expr="//header/button[@name='action_create_project']" position="attributes">
+                <attribute name="string">Create Project</attribute>
+                <attribute name="groups">qlk_management.group_bd_manager,qlk_management.group_el_manager</attribute>
+                <attribute name="invisible">state != 'approved_client' or project_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_bd_engagement_letter_list_inherit_qlk_project" model="ir.ui.view">
+        <field name="name">bd.engagement.letter.list.qlk.project</field>
+        <field name="model">bd.engagement.letter</field>
+        <field name="inherit_id" ref="qlk_management.view_bd_engagement_letter_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='total_cases']" position="replace"/>
+            <xpath expr="//field[@name='total_hours_used']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="view_qlk_case_form_inherit_qlk_project" model="ir.ui.view">
+        <field name="name">qlk.case.form.qlk.project</field>
+        <field name="model">qlk.case</field>
+        <field name="inherit_id" ref="qlk_management.view_qlk_case_stage_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='service_code']" position="after">
+                <field name="case_hours" readonly="1" widget="float_time"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_qlk_task_form_inherit_qlk_project" model="ir.ui.view">
+        <field name="name">qlk.task.form.qlk.project</field>
+        <field name="model">qlk.task</field>
+        <field name="inherit_id" ref="qlk_task_management.view_qlk_task_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='case_id']" position="after">
+                <field name="project_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

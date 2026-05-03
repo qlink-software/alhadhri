@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 PROJECT_TYPE_SELECTION = [
     ("cm", "CM"),
@@ -21,11 +21,34 @@ RETAINER_TYPE_SELECTION = [
 ]
 
 PROJECT_CONTRACT_TYPE_SELECTION = [
+    ("hours", "Hours Based"),
+    ("cases", "Case Based"),
+    ("retainer", "Retainer"),
+    ("lump_sum", "Lump Sum"),
     ("litigation", "Litigation"),
     ("corporate", "Corporate"),
     ("combined", "Combined"),
     ("arbitration", "Arbitration"),
 ]
+
+LEGAL_SERVICE_TYPE_SELECTION = [
+    ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
+    ("arbitration", "Arbitration"),
+    ("pre_litigation", "Pre-Litigation"),
+]
+
+LEGAL_SERVICE_CODE_PREFIX = {
+    "litigation": "L",
+    "arbitration": "A",
+    "corporate": "C",
+    "pre_litigation": "P",
+}
+
+LEGAL_MANAGER_GROUPS = (
+    "qlk_management.group_bd_manager",
+    "qlk_management.group_el_manager",
+)
 
 
 class ProjectProject(models.Model):
@@ -34,8 +57,19 @@ class ProjectProject(models.Model):
     # The standard project partner is used here as a lawyer selector in the legal workflow.
     partner_id = fields.Many2one("res.partner", domain=[("is_lawyer", "=", True)])
     cost_calculation_id = fields.Many2one("cost.calculation", string="Cost Calculation")
+    client_id = fields.Many2one(
+        "res.partner",
+        string="Client",
+        index=True,
+        tracking=True,
+        domain="[('customer_rank', '>', 0)]",
+    )
+    client_mobile = fields.Char(string="Mobile", related="client_id.mobile", readonly=True)
+    client_email = fields.Char(string="Email", related="client_id.email", readonly=True)
+    client_qid_cr = fields.Char(string="QID / CR Number", compute="_compute_client_profile_fields")
+    client_address = fields.Text(string="Address", compute="_compute_client_profile_fields")
     client_document_ids = fields.One2many(
-        related="partner_id.client_document_ids",
+        related="client_id.client_document_ids",
         string="Client Documents",
     )
     lawyer_id = fields.Many2one(
@@ -83,6 +117,21 @@ class ProjectProject(models.Model):
     )
     code = fields.Char(string="Project Code", default="/", copy=False, readonly=True)
     client_code = fields.Char(string="Client Code", copy=False, readonly=True)
+    service_type = fields.Selection(
+        selection=LEGAL_SERVICE_TYPE_SELECTION,
+        string="Service Type",
+        copy=False,
+        tracking=True,
+    )
+    service_code = fields.Char(
+        string="Service Code",
+        readonly=True,
+        copy=False,
+    )
+    litigation_case_count = fields.Integer(string="Cases", compute="_compute_service_counts")
+    corporate_case_count = fields.Integer(string="Corporate", compute="_compute_service_counts")
+    arbitration_case_count = fields.Integer(string="Arbitration", compute="_compute_service_counts")
+    pre_litigation_count = fields.Integer(string="Pre-Litigation", compute="_compute_service_counts")
     project_type = fields.Selection(
         selection=PROJECT_TYPE_SELECTION,
         string="Project Type",
@@ -115,6 +164,88 @@ class ProjectProject(models.Model):
     lawyer_assigned = fields.Boolean(string="Lawyer Confirmed", default=False, copy=False)
     is_mp_user = fields.Boolean(compute="_compute_user_permissions", string="Is Current MP")
 
+    def _build_service_code(self, client_code, service_type):
+        if not client_code or not service_type:
+            return False
+        return "%s%s" % (
+            LEGAL_SERVICE_CODE_PREFIX.get(service_type, ""),
+            self._get_service_client_sequence(client_code),
+        )
+
+    @api.model
+    def _get_service_client_sequence(self, client_code):
+        code = (client_code or "").strip()
+        for separator in ("/", "-"):
+            if separator in code:
+                parts = [part for part in code.split(separator) if part]
+                if parts:
+                    return parts[-1]
+        return code
+
+    def _compute_service_counts(self):
+        project_ids = self.ids
+        count_maps = {
+            "litigation_case_count": self._read_project_count("qlk.case", project_ids),
+            "corporate_case_count": self._read_project_count("qlk.corporate.case", project_ids),
+            "arbitration_case_count": self._read_project_count("qlk.arbitration.case", project_ids),
+            "pre_litigation_count": self._read_project_count("qlk.pre.litigation", project_ids),
+        }
+        for project in self:
+            for field_name, count_map in count_maps.items():
+                project[field_name] = count_map.get(project.id, 0)
+
+    @api.depends(
+        "client_id",
+        "client_id.vat",
+        "client_id.company_registry",
+        "client_id.ref",
+        "client_id.street",
+        "client_id.street2",
+        "client_id.city",
+        "client_id.state_id",
+        "client_id.zip",
+        "client_id.country_id",
+    )
+    def _compute_client_profile_fields(self):
+        for project in self:
+            client = project.client_id
+            if not client:
+                project.client_qid_cr = False
+                project.client_address = False
+                continue
+            project.client_qid_cr = client.vat or client.company_registry or client.ref
+            project.client_address = client._display_address() or False
+
+    def _read_project_count(self, model_name, project_ids):
+        if not project_ids or model_name not in self.env:
+            return {}
+        model = self.env[model_name]
+        if "project_id" not in model._fields:
+            return {}
+        table = model._table
+        self.env.cr.execute(
+            """
+            SELECT 1
+              FROM information_schema.columns
+             WHERE table_name = %s
+               AND column_name = 'project_id'
+             LIMIT 1
+            """,
+            [table],
+        )
+        if not self.env.cr.fetchone():
+            return {}
+        groups = model.read_group(
+            [("project_id", "in", project_ids)],
+            ["project_id"],
+            ["project_id"],
+        )
+        return {
+            group["project_id"][0]: group.get("__count", 0)
+            for group in groups
+            if group.get("project_id")
+        }
+
     @api.depends("lawyer_id")
     def _compute_lawyer_costs(self):
         for project in self:
@@ -139,15 +270,29 @@ class ProjectProject(models.Model):
         sequence_cache = {}
         for vals in vals_list:
             engagement = vals.get("engagement_letter_id") and self.env["bd.engagement.letter"].browse(vals["engagement_letter_id"])
-            if engagement and not vals.get("contract_type"):
-                vals["contract_type"] = self._get_contract_type_from_engagement(engagement)
-            partner_id = vals.get("partner_id")
-            partner = partner_id and self.env["res.partner"].browse(partner_id) or False
-            if partner:
-                vals.setdefault("client_code", partner._get_client_code())
-            if partner and (not vals.get("code") or vals.get("code") == "/"):
-                client_code = vals.get("client_code") or partner._get_client_code()
-                vals["code"] = self._generate_project_code(partner.id, client_code, sequence_cache)
+            if vals.get("engagement_letter_id") or vals.get("service_type"):
+                self._ensure_legal_manager()
+            if engagement and self.with_context(active_test=False).search_count([("engagement_letter_id", "=", engagement.id)]):
+                raise UserError(_("A project has already been created for this engagement letter."))
+            if engagement:
+                vals.setdefault("client_id", engagement.partner_id.id)
+                vals.setdefault("contract_type", engagement.contract_type)
+                vals.setdefault("service_type", self._get_service_type_from_engagement(engagement))
+                vals.setdefault("lawyer_id", engagement.lawyer_employee_id.id)
+                vals.setdefault("legal_fee_amount", engagement.legal_fee_amount or engagement.total_amount)
+                vals.setdefault("engagement_reference", engagement.code)
+                vals.setdefault("billing_type", engagement.billing_type)
+                vals.setdefault("retainer_type", engagement.retainer_type)
+            client_id = vals.get("client_id")
+            client = client_id and self.env["res.partner"].browse(client_id) or False
+            if client:
+                vals.setdefault("client_code", client._get_client_code())
+            if client and (not vals.get("code") or vals.get("code") == "/"):
+                client_code = vals.get("client_code") or client._get_client_code()
+                vals["code"] = self._generate_project_code(client.id, client_code, sequence_cache)
+            if client and vals.get("service_type") and not vals.get("service_code"):
+                client_code = vals.get("client_code") or client._get_client_code()
+                vals["service_code"] = self._build_service_code(client_code, vals["service_type"])
         projects = super().create(vals_list)
         projects._handle_translation_notifications()
         projects._copy_partner_attachments()
@@ -161,7 +306,7 @@ class ProjectProject(models.Model):
         if cache_value is None:
             last_project = (
                 self.with_context(active_test=False)
-                .search([("partner_id", "=", partner_id), ("code", "like", f"{prefix}%")], order="code desc", limit=1)
+                .search([("client_id", "=", partner_id), ("code", "like", f"{prefix}%")], order="code desc", limit=1)
             )
             last_number = 0
             if last_project and last_project.code:
@@ -177,10 +322,10 @@ class ProjectProject(models.Model):
 
     def _sync_client_code_from_partner(self):
         for project in self:
-            partner = project.partner_id
-            if not partner:
+            client = project.client_id
+            if not client:
                 continue
-            client_code = partner._get_client_code()
+            client_code = client._get_client_code()
             updates = {"client_code": client_code}
             code = project.code or ""
             if code and "/PRJ" in code:
@@ -188,7 +333,7 @@ class ProjectProject(models.Model):
                 if suffix:
                     updates["code"] = f"{client_code}/PRJ{suffix}"
             else:
-                updates["code"] = project._generate_project_code(partner.id, client_code, {})
+                updates["code"] = project._generate_project_code(client.id, client_code, {})
             project.with_context(skip_project_code_sync=True).write(updates)
 
 
@@ -220,16 +365,182 @@ class ProjectProject(models.Model):
         # self._check_hours_logged()
         return res
 
-    def _get_contract_type_from_engagement(self, engagement):
-        # Engagement billing type is retainer/lump sum, so the project contract category is derived from service type.
-        service_type = engagement.retainer_type or engagement.engagement_type or "corporate"
-        if service_type == "litigation_corporate":
-            return "combined"
+    def _get_service_type_from_engagement(self, engagement):
+        service_type = engagement.service_type or engagement.retainer_type or engagement.engagement_type or "corporate"
+        if service_type == "mixed":
+            return False
+        if service_type in LEGAL_SERVICE_CODE_PREFIX:
+            return service_type
         if "arbitration" in service_type:
             return "arbitration"
         if "litigation" in service_type:
             return "litigation"
         return "corporate"
+
+    def _ensure_legal_manager(self):
+        if self.env.is_superuser():
+            return True
+        if any(self.env.user.has_group(group) for group in LEGAL_MANAGER_GROUPS):
+            return True
+        raise UserError(_("Only Managers or Assistant Managers can perform this action."))
+
+    @api.constrains("client_id", "engagement_letter_id", "service_type")
+    def _check_legal_project_client(self):
+        for project in self:
+            if (project.engagement_letter_id or project.service_type) and not project.client_id:
+                raise ValidationError(_("A legal project cannot be created without a client."))
+            if project.engagement_letter_id:
+                duplicate = self.with_context(active_test=False).search_count([
+                    ("engagement_letter_id", "=", project.engagement_letter_id.id),
+                    ("id", "!=", project.id),
+                ])
+                if duplicate:
+                    raise ValidationError(_("A project has already been created for this engagement letter."))
+
+    def _ensure_project_ready_for_service(self, service_type):
+        self.ensure_one()
+        self._ensure_legal_manager()
+        if not self.client_id:
+            raise UserError(_("Set a client before creating service records."))
+        if not self.service_type:
+            raise UserError(_("Set a service type before creating service records."))
+        if self.service_type != service_type:
+            raise UserError(_("This project service type does not allow this service record."))
+        if not self.service_code:
+            client_code = self.client_code or self.client_id._get_client_code()
+            service_code = self._build_service_code(client_code, self.service_type)
+            if service_code:
+                self.write({"service_code": service_code})
+        return True
+
+    def _service_duplicate(self, model_name):
+        return self.env[model_name].search([("project_id", "=", self.id)], limit=1)
+
+    def _service_action(self, model_name, record, title):
+        return {
+            "type": "ir.actions.act_window",
+            "name": title,
+            "res_model": model_name,
+            "res_id": record.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def _service_default_context(self):
+        self.ensure_one()
+        return {
+            "default_project_id": self.id,
+            "default_client_id": self.client_id.id,
+            "default_service_code": self.service_code,
+            "default_engagement_id": self.engagement_letter_id.id,
+        }
+
+    def action_create_litigation_case(self):
+        self._ensure_project_ready_for_service("litigation")
+        existing = self._service_duplicate("qlk.case")
+        if existing:
+            raise UserError(_("A litigation case already exists for this project."))
+        degree = self.engagement_letter_id.litigation_degree_ids[:1] if self.engagement_letter_id else False
+        context = self._service_default_context()
+        context.update(
+            {
+                "default_name": self.service_code or self.name,
+                "default_name2": self.name,
+                "default_client_ids": self.client_id.ids,
+                "default_employee_id": self.lawyer_id.id,
+                "default_litigation_flow": "litigation",
+                "default_litigation_degree_id": degree.id if degree else False,
+                "default_litigation_level_id": degree.level_id.id if degree and degree.level_id else False,
+            }
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Create Litigation Case"),
+            "res_model": "qlk.case",
+            "view_mode": "form",
+            "target": "current",
+            "context": context,
+        }
+
+    def action_create_corporate_case(self):
+        self._ensure_project_ready_for_service("corporate")
+        existing = self._service_duplicate("qlk.corporate.case")
+        if existing:
+            raise UserError(_("A corporate record already exists for this project."))
+        if not self.lawyer_id:
+            raise UserError(_("Assign a lawyer before creating a corporate record."))
+        record = self.env["qlk.corporate.case"].create(
+            {
+                "name": self.service_code or self.name,
+                "project_id": self.id,
+                "engagement_id": self.engagement_letter_id.id,
+                "client_id": self.client_id.id,
+                "service_code": self.service_code,
+                "responsible_employee_id": self.lawyer_id.id,
+            }
+        )
+        return self._service_action("qlk.corporate.case", record, _("Corporate"))
+
+    def action_create_arbitration_case(self):
+        self._ensure_project_ready_for_service("arbitration")
+        existing = self._service_duplicate("qlk.arbitration.case")
+        if existing:
+            raise UserError(_("An arbitration record already exists for this project."))
+        record = self.env["qlk.arbitration.case"].create(
+            {
+                "name": self.service_code or self.name,
+                "project_id": self.id,
+                "engagement_id": self.engagement_letter_id.id,
+                "claimant_id": self.client_id.id,
+                "service_code": self.service_code,
+                "responsible_employee_id": self.lawyer_id.id,
+            }
+        )
+        return self._service_action("qlk.arbitration.case", record, _("Arbitration"))
+
+    def action_create_pre_litigation(self):
+        self._ensure_project_ready_for_service("pre_litigation")
+        existing = self._service_duplicate("qlk.pre.litigation")
+        if existing:
+            raise UserError(_("A pre-litigation record already exists for this project."))
+        record = self.env["qlk.pre.litigation"].create(
+            {
+                "name": self.service_code or _("New Pre-Litigation"),
+                "project_id": self.id,
+                "engagement_id": self.engagement_letter_id.id,
+                "client_id": self.client_id.id,
+                "service_code": self.service_code,
+                "lawyer_employee_id": self.lawyer_id.id,
+                "subject": self.name,
+            }
+        )
+        return self._service_action("qlk.pre.litigation", record, _("Pre-Litigation"))
+
+    def action_open_litigation_cases(self):
+        self.ensure_one()
+        return self._action_open_project_records("qlk.case", _("Cases"))
+
+    def action_open_corporate_cases(self):
+        self.ensure_one()
+        return self._action_open_project_records("qlk.corporate.case", _("Corporate"))
+
+    def action_open_arbitration_cases(self):
+        self.ensure_one()
+        return self._action_open_project_records("qlk.arbitration.case", _("Arbitration"))
+
+    def action_open_pre_litigation(self):
+        self.ensure_one()
+        return self._action_open_project_records("qlk.pre.litigation", _("Pre-Litigation"))
+
+    def _action_open_project_records(self, model_name, title):
+        return {
+            "type": "ir.actions.act_window",
+            "name": title,
+            "res_model": model_name,
+            "view_mode": "list,form",
+            "domain": [("project_id", "=", self.id)],
+            "context": dict(self._service_default_context()),
+        }
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
@@ -365,7 +676,7 @@ class ProjectProject(models.Model):
 
     def action_view_client_attachments(self):
         self.ensure_one()
-        partner = self.partner_id
+        partner = self.client_id
         if not partner:
             raise UserError(_("Please select a client before opening attachments."))
         return {
@@ -384,7 +695,7 @@ class ProjectProject(models.Model):
 
     def _copy_partner_attachments(self):
         Attachment = self.env["ir.attachment"].sudo()
-        partners = self.mapped("partner_id")
+        partners = self.mapped("client_id")
         if not partners:
             return
         partner_attachments = Attachment.search(
@@ -394,7 +705,7 @@ class ProjectProject(models.Model):
         for attachment in partner_attachments:
             attachments_by_partner.setdefault(attachment.res_id, []).append(attachment)
         for project in self:
-            partner = project.partner_id
+            partner = project.client_id
             if not partner:
                 continue
             for attachment in attachments_by_partner.get(partner.id, []):

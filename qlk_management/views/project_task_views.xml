@@ -8,4 +8,30 @@
             <xpath expr="//field[@name='user_skill_ids']" position="replace"/>
         </field>
     </record>
+
+    <record id="view_project_task_form_qlk_case_hours" model="ir.ui.view">
+        <field name="name">project.task.form.qlk.case.hours</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="case_id"
+                       context="{'default_litigation_flow': 'litigation'}"
+                       required="context.get('qlk_require_case_id')"/>
+                <field name="qlk_project_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_project_task_list_qlk_case_hours" model="ir.ui.view">
+        <field name="name">project.task.list.qlk.case.hours</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.project_task_view_tree_main_base"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="qlk_project_id" optional="hide"/>
+                <field name="case_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

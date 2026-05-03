@@ -38,3 +38,4 @@ from . import pre_litigation
 from . import employee_document
 from . import access_control
 from . import project_removal_cleanup
+from . import qlk_project

@@ -433,8 +433,7 @@ class BDProposal(models.Model):
         "retainer_period",
         "year_start_date",
         "year_end_date",
-        "project_id.task_ids.timesheet_ids.unit_amount",
-        "project_id.task_ids.timesheet_ids.date",
+        "project_id",
     )
     def _compute_used_hours(self):
         self._compute_retainer_used_hours()
@@ -445,8 +444,7 @@ class BDProposal(models.Model):
 
     @api.depends(
         "billing_type",
-        "project_id.task_ids.timesheet_ids.unit_amount",
-        "project_id.task_ids.timesheet_ids.date",
+        "project_id",
     )
     def _compute_monthly_used_hours(self):
         self._compute_retainer_monthly_used_hours()

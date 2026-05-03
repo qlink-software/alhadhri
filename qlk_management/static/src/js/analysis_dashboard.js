@@ -6,6 +6,13 @@ import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 import { loadJS } from "@web/core/assets";
 
+const emptyDashboardData = () => ({
+    palette: {},
+    totals: {},
+    series: {},
+    actions: {},
+});
+
 class AnalysisDashboard extends Component {
     setup() {
         this.orm = useService("orm");
@@ -13,7 +20,7 @@ class AnalysisDashboard extends Component {
         this.notification = useService("notification");
         this.state = useState({
             loading: true,
-            data: null,
+            data: emptyDashboardData(),
         });
         this.filters = useState({ months: 6 });
 
@@ -24,6 +31,9 @@ class AnalysisDashboard extends Component {
             complaints: useRef("complaintsCanvas"),
             engagements: useRef("engagementsCanvas"),
             taskHours: useRef("taskHoursCanvas"),
+            caseStatus: useRef("caseStatusCanvas"),
+            hearingStage: useRef("hearingStageCanvas"),
+            taskDepartment: useRef("taskDepartmentCanvas"),
         };
         this.charts = {};
 
@@ -41,9 +51,10 @@ class AnalysisDashboard extends Component {
         this.state.loading = true;
         try {
             const payload = await this.orm.call("qlk.analysis.dashboard", "get_dashboard_data", [this.filters.months]);
-            this.state.data = payload;
+            this.state.data = payload || emptyDashboardData();
         } catch (error) {
             console.error("Failed to load analytics dashboard", error);
+            this.state.data = emptyDashboardData();
             this.notification.add(_t("Failed to load the analytics dashboard"), {
                 type: "danger",
             });
@@ -62,6 +73,10 @@ class AnalysisDashboard extends Component {
 
     get series() {
         return this.state.data?.series || {};
+    }
+
+    get actions() {
+        return this.state.data?.actions || {};
     }
 
     get periods() {

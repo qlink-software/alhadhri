@@ -603,7 +603,7 @@ class ResPartner(models.Model):
         letters = self.env["bd.engagement.letter"].sudo().search([("partner_id", "=", self.id)])
         if letters:
             letters._sync_client_code_from_partner()
-        projects = self.env["project.project"].sudo().search([("partner_id", "=", self.id)])
+        projects = self.env["project.project"].sudo().search([("client_id", "=", self.id)])
         if projects:
             projects._sync_client_code_from_partner()
 

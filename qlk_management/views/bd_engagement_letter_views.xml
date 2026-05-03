@@ -51,8 +51,9 @@
                             invisible="state != 'waiting_client_approval'"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state not in ('rejected', 'cancelled')"/>
-                    <button name="action_create_case" type="object" string="Create Case" class="btn-primary"
-                            invisible="state != 'approved_client' or service_type not in ('litigation', 'mixed')"/>
+                    <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="state != 'approved_client' or project_id"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>

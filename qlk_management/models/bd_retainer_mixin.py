@@ -37,7 +37,11 @@ class BDRetainerMixin(models.AbstractModel):
 
     def _get_standard_project(self):
         self.ensure_one()
-        return self.project_id if "project_id" in self._fields else self.env["project.project"]
+        if "project_id" not in self._fields:
+            return self.env["project.project"]
+        if self._fields["project_id"].comodel_name != "project.project":
+            return self.env["project.project"]
+        return self.project_id
 
     def _get_project_timesheet_hours_map(self, project_ids, date_from=None, date_to=None):
         if not project_ids:

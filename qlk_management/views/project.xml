@@ -54,13 +54,11 @@
                     </span>
                 </div>
             </xpath>
-            <xpath expr="//sheet" position="inside">
-                <div class="oe_button_box" name="button_box"/>
-            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Engagement Info">
                     <group>
                         <group>
+                            <field name="engagement_letter_id"/>
                             <field name="project_type"/>
                             <field name="contract_type" readonly="id"/>
                             <field name="retainer_type"/>

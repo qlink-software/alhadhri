@@ -57,3 +57,16 @@ access_project_task_lawyer,project.task lawyer,project.model_project_task,qlk_ta
 access_project_task_manager,project.task manager,project.model_project_task,qlk_task_management.group_task_manager,1,1,1,1
 access_qlk_task_lawyer_role,qlk.task lawyer role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_user,1,1,1,0
 access_qlk_task_manager_role,qlk.task manager role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_manager,1,1,1,1
+access_project_project_bd_manager,project.project bd manager,project.model_project_project,qlk_management.group_bd_manager,1,1,1,0
+access_project_project_el_manager,project.project engagement manager,project.model_project_project,qlk_management.group_el_manager,1,1,1,0
+access_qlk_case_bd_manager,qlk.case bd manager,qlk_law.model_qlk_case,qlk_management.group_bd_manager,1,1,1,0
+access_qlk_case_el_manager,qlk.case engagement manager,qlk_law.model_qlk_case,qlk_management.group_el_manager,1,1,1,0
+access_qlk_corporate_case_bd_manager,qlk.corporate.case bd manager,qlk_corporate.model_qlk_corporate_case,qlk_management.group_bd_manager,1,1,1,0
+access_qlk_corporate_case_el_manager,qlk.corporate.case engagement manager,qlk_corporate.model_qlk_corporate_case,qlk_management.group_el_manager,1,1,1,0
+access_qlk_arbitration_case_bd_manager,qlk.arbitration.case bd manager,qlk_arbitration.model_qlk_arbitration_case,qlk_management.group_bd_manager,1,1,1,0
+access_qlk_arbitration_case_el_manager,qlk.arbitration.case engagement manager,qlk_arbitration.model_qlk_arbitration_case,qlk_management.group_el_manager,1,1,1,0
+access_pre_litigation_bd_manager,qlk.pre.litigation bd manager,model_qlk_pre_litigation,qlk_management.group_bd_manager,1,1,1,0
+access_pre_litigation_el_manager,qlk.pre.litigation engagement manager,model_qlk_pre_litigation,qlk_management.group_el_manager,1,1,1,0
+access_qlk_project_user,qlk.project user,model_qlk_project,base.group_user,1,0,0,0
+access_qlk_project_bd_manager,qlk.project bd manager,model_qlk_project,qlk_management.group_bd_manager,1,1,1,0
+access_qlk_project_el_manager,qlk.project engagement manager,model_qlk_project,qlk_management.group_el_manager,1,1,1,0

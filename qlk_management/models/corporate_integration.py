@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class CorporateCaseProject(models.Model):
@@ -14,6 +14,14 @@ class CorporateCaseProject(models.Model):
         index=True,
         tracking=True,
     )
+    project_id = fields.Many2one(
+        "qlk.project",
+        string="Project",
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
+    service_code = fields.Char(string="Service Code", readonly=True, copy=False)
     agreement_hours = fields.Float(string="Agreement Hours", tracking=True)
     agreement_start_date = fields.Date(string="Agreement Start Date", tracking=True)
     agreement_end_date = fields.Date(string="Agreement End Date", tracking=True)
@@ -78,8 +86,30 @@ class CorporateCaseProject(models.Model):
             if engagement.lawyer_employee_id and not record.responsible_employee_id:
                 record.responsible_employee_id = engagement.lawyer_employee_id.id
 
+    @api.onchange("project_id")
+    def _onchange_project_id(self):
+        for record in self:
+            project = record.project_id
+            if not project:
+                continue
+            if project.engagement_letter_id and not record.engagement_id:
+                record.engagement_id = project.engagement_letter_id.id
+            if project.client_id and not record.client_id:
+                record.client_id = project.client_id.id
+            if project.lawyer_id and not record.responsible_employee_id:
+                record.responsible_employee_id = project.lawyer_id.id
+            service_code = getattr(project, "service_code", False)
+            if service_code and not record.service_code:
+                record.service_code = service_code
+
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("project_id"):
+                raise ValidationError(_("Corporate records must be created from a project."))
+            if vals.get("project_id"):
+                self._ensure_project_manager()
+            self._apply_project_defaults(vals)
         if not self.env.context.get("skip_engagement_service_validation"):
             for vals in vals_list:
                 engagement = self.env["bd.engagement.letter"].browse(vals.get("engagement_id"))
@@ -88,8 +118,45 @@ class CorporateCaseProject(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        if "project_id" in vals:
+            if not vals.get("project_id"):
+                raise ValidationError(_("Corporate records must be linked to a project."))
+            self._ensure_project_manager()
+            self._apply_project_defaults(vals)
         if vals.get("engagement_id") and not self.env.context.get("skip_engagement_service_validation"):
             engagement = self.env["bd.engagement.letter"].browse(vals["engagement_id"])
             if engagement and engagement.service_type not in ("corporate", "mixed"):
                 raise UserError(_("This engagement letter does not allow corporate records."))
         return super().write(vals)
+
+    def _apply_project_defaults(self, vals):
+        project_id = vals.get("project_id")
+        if not project_id:
+            return vals
+        project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
+        if project.exists():
+            vals.setdefault("engagement_id", project.engagement_letter_id.id)
+            vals.setdefault("client_id", project.client_id.id)
+            vals.setdefault("service_code", getattr(project, "service_code", False))
+            vals.setdefault("responsible_employee_id", project.lawyer_id.id)
+        return vals
+
+    def _ensure_project_manager(self):
+        project_model = self.env[self._fields["project_id"].comodel_name]
+        if hasattr(project_model, "_ensure_legal_manager"):
+            return project_model._ensure_legal_manager()
+        return True
+
+    @api.constrains("project_id")
+    def _check_project_service_rules(self):
+        for record in self:
+            if not record.project_id:
+                raise ValidationError(_("Corporate records must be created from a project."))
+            if record.project_id.service_type != "corporate":
+                raise ValidationError(_("This project does not allow corporate records."))
+            duplicate = self.search_count([
+                ("project_id", "=", record.project_id.id),
+                ("id", "!=", record.id),
+            ])
+            if duplicate:
+                raise ValidationError(_("A corporate record already exists for this project."))

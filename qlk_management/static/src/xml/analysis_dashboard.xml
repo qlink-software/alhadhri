@@ -59,7 +59,7 @@
                             <div>
                                 <h2>Monthly Cases</h2>
                             </div>
-                            <button t-if="state.data.actions.cases" class="qlk-link" t-on-click="() => openAction(state.data.actions.cases)">
+                            <button t-if="actions.cases" class="qlk-link" t-on-click="() => openAction(actions.cases)">
                                 View Cases
                             </button>
                         </header>
@@ -73,7 +73,7 @@
                             <div>
                                 <h2>Hearings</h2>
                             </div>
-                            <button t-if="state.data.actions.hearings" class="qlk-link" t-on-click="() => openAction(state.data.actions.hearings)">
+                            <button t-if="actions.hearings" class="qlk-link" t-on-click="() => openAction(actions.hearings)">
                                 View Hearings
                             </button>
                         </header>
@@ -88,7 +88,7 @@
                                 <div>
                                     <h2>Consultations</h2>
                                 </div>
-                                <button t-if="state.data.actions.consultations" class="qlk-link" t-on-click="() => openAction(state.data.actions.consultations)">
+                                <button t-if="actions.consultations" class="qlk-link" t-on-click="() => openAction(actions.consultations)">
                                     View Consultations
                                 </button>
                             </header>
@@ -104,7 +104,7 @@
                                 <div>
                                     <h2>Police Complaints</h2>
                                 </div>
-                                <button t-if="state.data.actions.complaints" class="qlk-link" t-on-click="() => openAction(state.data.actions.complaints)">
+                                <button t-if="actions.complaints" class="qlk-link" t-on-click="() => openAction(actions.complaints)">
                                     View Complaints
                                 </button>
                             </header>
@@ -119,7 +119,7 @@
                             <div>
                                 <h2>New Engagements</h2>
                             </div>
-                            <button t-if="state.data.actions.engagements" class="qlk-link" t-on-click="() => openAction(state.data.actions.engagements)">
+                            <button t-if="actions.engagements" class="qlk-link" t-on-click="() => openAction(actions.engagements)">
                                 View Engagements
                             </button>
                         </header>
@@ -133,7 +133,7 @@
                             <div>
                                 <h2>Approved Task Hours</h2>
                             </div>
-                            <button t-if="state.data.actions.tasks" class="qlk-link" t-on-click="() => openAction(state.data.actions.tasks)">
+                            <button t-if="actions.tasks" class="qlk-link" t-on-click="() => openAction(actions.tasks)">
                                 View Tasks
                             </button>
                         </header>
