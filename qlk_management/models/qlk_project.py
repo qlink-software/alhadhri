@@ -56,6 +56,12 @@ class QlkProject(models.Model):
         default="draft",
         tracking=True,
     )
+
+    def init(self):
+        # حماية أثناء الترقية: إذا توقفت ترقية سابقة قبل إنشاء عمود الحالة لا نكسر فتح النظام.
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS state varchar")
+        self.env.cr.execute("UPDATE qlk_project SET state = 'draft' WHERE state IS NULL")
+
     client_id = fields.Many2one(
         "res.partner",
         string="Client",
