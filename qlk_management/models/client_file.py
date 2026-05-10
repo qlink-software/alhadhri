@@ -52,7 +52,12 @@ def _column_exists(cr, table_name, column_name):
 def _migrate_legacy_legal_services(env, source_table, relation_table, owner_column):
     """Populate new legal-service tags from legacy service fields without dropping data."""
     cr = env.cr
-    cr.execute("SELECT to_regclass(%s), to_regclass(%s)", [source_table, relation_table])
+    # أثناء ترقية الموديول قد يستدعي Odoo init قبل اكتمال إنشاء جدول أنواع الخدمات.
+    # لذلك نتحقق من كل الجداول المطلوبة قبل تنفيذ SQL حتى لا تتوقف عملية الترقية.
+    cr.execute(
+        "SELECT to_regclass(%s), to_regclass(%s), to_regclass(%s)",
+        [source_table, relation_table, "qlk_legal_service_type"],
+    )
     if not all(cr.fetchone() or []):
         return
 
