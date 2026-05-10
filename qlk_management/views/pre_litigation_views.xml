@@ -12,6 +12,9 @@
                     <field name="service_code"/>
                     <field name="engagement_id"/>
                     <field name="lawyer_employee_id"/>
+                    <field name="planned_hours" widget="float_time"/>
+                    <field name="consumed_hours" widget="float_time"/>
+                    <field name="remaining_hours" widget="float_time"/>
                     <field name="hours_used" widget="float_time" sum="Total Hours"/>
                     <field name="state"/>
                     <field name="case_id"/>
@@ -110,6 +113,9 @@
                                 <field name="service_code" readonly="1"/>
                                 <field name="engagement_id" readonly="1"/>
                                 <field name="case_id" readonly="1" context="{'default_pre_litigation_id': id}"/>
+                                <field name="planned_hours" readonly="1" widget="float_time"/>
+                                <field name="consumed_hours" readonly="1" widget="float_time"/>
+                                <field name="remaining_hours" readonly="1" widget="float_time" decoration-danger="remaining_hours &lt; 0"/>
                                 <field name="hours_used" widget="float_time"/>
                             </group>
                             <group>

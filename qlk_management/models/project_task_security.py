@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
+from odoo.addons.project.models.project_task import CLOSED_STATES
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
 
@@ -7,6 +8,22 @@ from odoo.fields import Command
 class ProjectTask(models.Model):
     _inherit = "project.task"
 
+    receive_date = fields.Datetime(string="Receive Date", tracking=True)
+    delivery_date = fields.Datetime(string="Delivery Date", tracking=True)
+    required_hours = fields.Float(
+        string="Required Hours",
+        required=True,
+        default=0.0,
+        tracking=True,
+        digits="Product Unit of Measure",
+    )
+    attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "project_task_ir_attachments_rel",
+        "task_id",
+        "attachment_id",
+        string="Attachments",
+    )
     case_id = fields.Many2one(
         "qlk.case",
         string="Litigation Case",
@@ -42,6 +59,10 @@ class ProjectTask(models.Model):
         for task in self:
             task.user_ids = [Command.set([task.user_id.id])] if task.user_id else [Command.clear()]
 
+    def init(self):
+        # Existing databases may already contain project tasks before this required field exists.
+        self.env.cr.execute("UPDATE project_task SET required_hours = 0 WHERE required_hours IS NULL")
+
     @api.onchange("case_id")
     def _onchange_case_id(self):
         for task in self:
@@ -55,13 +76,26 @@ class ProjectTask(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             self._apply_legal_case_defaults(vals)
-        return super().create(vals_list)
+        tasks = super().create(vals_list)
+        tasks._ensure_required_hours()
+        for task in tasks.filtered("user_ids"):
+            task._send_assignment_email(task.user_ids)
+        return tasks
 
     def write(self, vals):
+        old_assignees = {task.id: set(task.user_ids.ids) for task in self}
         vals = dict(vals)
         if vals.get("case_id") and not vals.get("project_id"):
             self._apply_legal_case_defaults(vals)
-        return super().write(vals)
+        self._check_required_hours_before_closing(vals)
+        result = super().write(vals)
+        self._ensure_required_hours()
+        if "user_id" in vals or "user_ids" in vals:
+            for task in self:
+                new_users = task.user_ids.filtered(lambda user: user.id not in old_assignees.get(task.id, set()))
+                if new_users:
+                    task._send_assignment_email(new_users)
+        return result
 
     def _apply_legal_case_defaults(self, vals):
         case_id = vals.get("case_id")
@@ -84,3 +118,53 @@ class ProjectTask(models.Model):
         for task in self:
             if not task.case_id:
                 raise ValidationError(_("Tasks created from legal cases must be linked to a case."))
+
+    @api.constrains("required_hours")
+    def _check_required_hours(self):
+        for task in self:
+            if task.required_hours <= 0:
+                raise ValidationError(_("Required Hours must be strictly positive."))
+
+    def _ensure_required_hours(self):
+        missing = self.filtered(lambda task: task.required_hours <= 0)
+        if missing:
+            raise ValidationError(_("Required Hours must be strictly positive before saving or closing a task."))
+
+    def _check_required_hours_before_closing(self, vals):
+        closing_state = vals.get("state") in CLOSED_STATES
+        closing_stage = False
+        if vals.get("stage_id"):
+            closing_stage = bool(self.env["project.task.type"].browse(vals["stage_id"]).fold)
+        if not closing_state and not closing_stage:
+            return
+        missing = self.filtered(lambda task: vals.get("required_hours", task.required_hours) <= 0)
+        if missing:
+            raise ValidationError(_("Required Hours must be entered before moving the task to Done."))
+
+    @api.constrains("receive_date", "delivery_date")
+    def _check_receive_delivery_dates(self):
+        for task in self:
+            if task.receive_date and task.delivery_date and task.delivery_date < task.receive_date:
+                raise ValidationError(_("Delivery Date cannot be before Receive Date."))
+
+    def _send_assignment_email(self, users=None):
+        template = self.env.ref("qlk_management.mail_template_project_task_assignment", raise_if_not_found=False)
+        if not template:
+            return
+        activity_type = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
+        for task in self:
+            recipients = users or task.user_ids
+            for user in recipients.filtered(lambda item: item.active and (item.partner_id.email or item.email)):
+                # Queue emails to avoid delaying task create/write transactions.
+                template.send_mail(
+                    task.id,
+                    force_send=False,
+                    email_values={"email_to": user.partner_id.email or user.email},
+                )
+                if activity_type:
+                    task.activity_schedule(
+                        activity_type_id=activity_type.id,
+                        user_id=user.id,
+                        summary=_("New assigned task"),
+                        note=_("You have been assigned to task: %s") % task.display_name,
+                    )

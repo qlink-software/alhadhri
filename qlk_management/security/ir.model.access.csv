@@ -67,6 +67,16 @@ access_qlk_arbitration_case_bd_manager,qlk.arbitration.case bd manager,qlk_arbit
 access_qlk_arbitration_case_el_manager,qlk.arbitration.case engagement manager,qlk_arbitration.model_qlk_arbitration_case,qlk_management.group_el_manager,1,1,1,0
 access_pre_litigation_bd_manager,qlk.pre.litigation bd manager,model_qlk_pre_litigation,qlk_management.group_bd_manager,1,1,1,0
 access_pre_litigation_el_manager,qlk.pre.litigation engagement manager,model_qlk_pre_litigation,qlk_management.group_el_manager,1,1,1,0
-access_qlk_project_user,qlk.project user,model_qlk_project,base.group_user,1,0,0,0
+access_qlk_project_user,qlk.project user,model_qlk_project,qlk_management.group_project_user,1,0,0,0
+access_qlk_project_role_user,qlk.project role user,model_qlk_project,qlk_management.group_project_user,1,0,0,0
+access_qlk_project_role_manager,qlk.project role manager,model_qlk_project,qlk_management.group_project_manager,1,1,1,1
 access_qlk_project_bd_manager,qlk.project bd manager,model_qlk_project,qlk_management.group_bd_manager,1,1,1,0
 access_qlk_project_el_manager,qlk.project engagement manager,model_qlk_project,qlk_management.group_el_manager,1,1,1,0
+access_qlk_legal_service_type_user,qlk.legal.service.type user,model_qlk_legal_service_type,base.group_user,1,0,0,0
+access_qlk_legal_service_type_manager,qlk.legal.service.type manager,model_qlk_legal_service_type,qlk_management.group_el_manager,1,1,1,1
+access_qlk_client_file_user,qlk.client.file user,model_qlk_client_file,qlk_management.group_client_file_user,1,1,0,0
+access_qlk_client_file_role_user,qlk.client.file role user,model_qlk_client_file,qlk_management.group_client_file_user,1,1,0,0
+access_qlk_client_file_role_manager,qlk.client.file role manager,model_qlk_client_file,qlk_management.group_client_file_manager,1,1,1,1
+access_qlk_client_file_el_manager,qlk.client.file engagement manager,model_qlk_client_file,qlk_management.group_el_manager,1,1,1,1
+access_qlk_client_file_bd_manager,qlk.client.file bd manager,model_qlk_client_file,qlk_management.group_bd_manager,1,1,1,1
+access_qlk_client_file_pre_litigation_manager,qlk.client.file pre litigation manager,model_qlk_client_file,qlk_management.group_pre_litigation_manager,1,1,1,1

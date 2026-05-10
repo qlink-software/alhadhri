@@ -24,6 +24,7 @@ request summaries directly in the lawyer dashboard.
         "security/request_security.xml",
         "security/ir.model.access.csv",
         "security/record_rules.xml",
+        "data/request_mail_templates.xml",
         "views/request_views.xml",
         "views/request_menu.xml",
     ],

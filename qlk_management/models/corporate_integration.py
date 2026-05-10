@@ -113,7 +113,7 @@ class CorporateCaseProject(models.Model):
         if not self.env.context.get("skip_engagement_service_validation"):
             for vals in vals_list:
                 engagement = self.env["bd.engagement.letter"].browse(vals.get("engagement_id"))
-                if engagement and engagement.service_type not in ("corporate", "mixed"):
+                if engagement and not engagement._service_allows("corporate"):
                     raise UserError(_("This engagement letter does not allow corporate records."))
         return super().create(vals_list)
 
@@ -121,11 +121,12 @@ class CorporateCaseProject(models.Model):
         if "project_id" in vals:
             if not vals.get("project_id"):
                 raise ValidationError(_("Corporate records must be linked to a project."))
-            self._ensure_project_manager()
-            self._apply_project_defaults(vals)
+            if vals.get("project_id"):
+                self._ensure_project_manager()
+                self._apply_project_defaults(vals)
         if vals.get("engagement_id") and not self.env.context.get("skip_engagement_service_validation"):
             engagement = self.env["bd.engagement.letter"].browse(vals["engagement_id"])
-            if engagement and engagement.service_type not in ("corporate", "mixed"):
+            if engagement and not engagement._service_allows("corporate"):
                 raise UserError(_("This engagement letter does not allow corporate records."))
         return super().write(vals)
 
@@ -135,6 +136,7 @@ class CorporateCaseProject(models.Model):
             return vals
         project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
         if project.exists():
+            vals.setdefault("client_file_id", project.client_file_id.id if "client_file_id" in project._fields else False)
             vals.setdefault("engagement_id", project.engagement_letter_id.id)
             vals.setdefault("client_id", project.client_id.id)
             vals.setdefault("service_code", getattr(project, "service_code", False))
@@ -152,7 +154,12 @@ class CorporateCaseProject(models.Model):
         for record in self:
             if not record.project_id:
                 raise ValidationError(_("Corporate records must be created from a project."))
-            if record.project_id.service_type != "corporate":
+            allowed = (
+                record.project_id._allows_legal_service("corporate")
+                if hasattr(record.project_id, "_allows_legal_service")
+                else record.project_id.service_type == "corporate"
+            )
+            if not allowed:
                 raise ValidationError(_("This project does not allow corporate records."))
             duplicate = self.search_count([
                 ("project_id", "=", record.project_id.id),

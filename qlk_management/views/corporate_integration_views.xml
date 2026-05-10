@@ -14,6 +14,9 @@
                         <field name="agreement_end_date"/>
                         <field name="actual_hours_total" readonly="1"/>
                         <field name="actual_hours_month" readonly="1"/>
+                        <field name="planned_hours" readonly="1" widget="float_time"/>
+                        <field name="consumed_hours" readonly="1" widget="float_time"/>
+                        <field name="remaining_hours" readonly="1" widget="float_time" decoration-danger="remaining_hours &lt; 0"/>
                         <field name="over_hours" readonly="1"/>
                     </group>
                 </xpath>
@@ -57,6 +60,9 @@
                     <field name="service_code"/>
                     <field name="engagement_id"/>
                     <field name="agreement_hours"/>
+                    <field name="planned_hours"/>
+                    <field name="consumed_hours"/>
+                    <field name="remaining_hours"/>
                     <field name="actual_hours_total"/>
                     <field name="over_hours"/>
                 </xpath>

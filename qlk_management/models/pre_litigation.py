@@ -243,8 +243,9 @@ class PreLitigation(models.Model):
         if "project_id" in vals:
             if not vals.get("project_id"):
                 raise ValidationError(_("Pre-litigation records must be linked to a project."))
-            self._ensure_project_manager()
-            self._apply_project_defaults(vals)
+            if vals.get("project_id"):
+                self._ensure_project_manager()
+                self._apply_project_defaults(vals)
         if "translation_attachment_ids" in vals and "translation_status" not in vals:
             vals["translation_status"] = "draft"
         if "engagement_id" in vals:
@@ -263,7 +264,7 @@ class PreLitigation(models.Model):
         if not engagement_id:
             return
         engagement = self.env["bd.engagement.letter"].browse(engagement_id)
-        if engagement.service_type not in ("pre_litigation", "mixed"):
+        if engagement and not engagement._service_allows("pre_litigation"):
             raise UserError(_("This engagement letter does not allow pre-litigation records."))
 
     def _apply_project_defaults(self, vals):
@@ -272,6 +273,7 @@ class PreLitigation(models.Model):
             return vals
         project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
         if project.exists():
+            vals.setdefault("client_file_id", project.client_file_id.id if "client_file_id" in project._fields else False)
             vals.setdefault("engagement_id", project.engagement_letter_id.id)
             vals.setdefault("client_id", project.client_id.id)
             vals.setdefault("service_code", getattr(project, "service_code", False))
@@ -289,7 +291,12 @@ class PreLitigation(models.Model):
         for record in self:
             if not record.project_id:
                 raise ValidationError(_("Pre-litigation records must be created from a project."))
-            if record.project_id.service_type != "pre_litigation":
+            allowed = (
+                record.project_id._allows_legal_service("pre_litigation")
+                if hasattr(record.project_id, "_allows_legal_service")
+                else record.project_id.service_type == "pre_litigation"
+            )
+            if not allowed:
                 raise ValidationError(_("This project does not allow pre-litigation records."))
             duplicate = self.search_count([
                 ("project_id", "=", record.project_id.id),

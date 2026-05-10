@@ -53,5 +53,14 @@
         <field name="company_id" eval="False"></field>
     </record>
 
+    <record id="seq_qlk_project" model="ir.sequence">
+        <field name="name">QLK Project</field>
+        <field name="code">qlk.project</field>
+        <field name="prefix">PRJ-</field>
+        <field name="padding">4</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"></field>
+    </record>
+
 
 </odoo>

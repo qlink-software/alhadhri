@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_qlk_project_hours_report" model="ir.actions.report">
+        <field name="name">Project Hours Report</field>
+        <field name="model">qlk.project</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.report_qlk_project_hours</field>
+        <field name="report_file">qlk_management.report_qlk_project_hours</field>
+        <field name="binding_model_id" ref="model_qlk_project"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_qlk_project_services_report" model="ir.actions.report">
+        <field name="name">Legal Services Summary</field>
+        <field name="model">qlk.project</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.report_qlk_legal_services_summary</field>
+        <field name="report_file">qlk_management.report_qlk_legal_services_summary</field>
+        <field name="binding_model_id" ref="model_qlk_project"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_qlk_project_remaining_hours_report" model="ir.actions.report">
+        <field name="name">Remaining Hours Report</field>
+        <field name="model">qlk.project</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.report_qlk_remaining_hours</field>
+        <field name="report_file">qlk_management.report_qlk_remaining_hours</field>
+        <field name="binding_model_id" ref="model_qlk_project"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_qlk_client_full_activity_report" model="ir.actions.report">
+        <field name="name">Client Full Activity Report</field>
+        <field name="model">qlk.client.file</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">qlk_management.report_qlk_client_full_activity</field>
+        <field name="report_file">qlk_management.report_qlk_client_full_activity</field>
+        <field name="binding_model_id" ref="model_qlk_client_file"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_qlk_project_hours">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="project">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Project Hours Report</h2>
+                        <p><strong>Project:</strong> <span t-field="project.name"/></p>
+                        <p><strong>Client:</strong> <span t-field="project.client_id"/></p>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Planned</th>
+                                    <th>Consumed</th>
+                                    <th>Remaining</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span t-field="project.planned_hours"/></td>
+                                    <td><span t-field="project.consumed_hours"/></td>
+                                    <td><span t-field="project.remaining_hours"/></td>
+                                    <td><span t-field="project.hours_state"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_qlk_legal_services_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="project">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Legal Services Summary</h2>
+                        <p><strong>Project:</strong> <span t-field="project.name"/></p>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Litigation</th>
+                                    <th>Pre-Litigation</th>
+                                    <th>Corporate</th>
+                                    <th>Arbitration</th>
+                                    <th>Tasks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span t-field="project.case_count"/></td>
+                                    <td><span t-field="project.pre_litigation_count"/></td>
+                                    <td><span t-field="project.corporate_count"/></td>
+                                    <td><span t-field="project.arbitration_count"/></td>
+                                    <td><span t-field="project.task_count"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_qlk_remaining_hours">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="project">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Remaining Hours Report</h2>
+                        <p><strong>Project:</strong> <span t-field="project.name"/></p>
+                        <p><strong>Remaining Hours:</strong> <span t-field="project.remaining_hours"/></p>
+                        <p><strong>Overconsumed Hours:</strong> <span t-field="project.overconsumed_hours"/></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_qlk_client_full_activity">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="client_file">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Client Full Activity Report</h2>
+                        <p><strong>Client:</strong> <span t-field="client_file.partner_id"/></p>
+                        <p><strong>Projects:</strong> <span t-field="client_file.project_count"/></p>
+                        <p><strong>Agreements:</strong> <span t-field="client_file.agreement_count"/></p>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Services</th>
+                                    <th>Planned</th>
+                                    <th>Consumed</th>
+                                    <th>Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="client_file.project_ids" t-as="project">
+                                    <td><span t-field="project.name"/></td>
+                                    <td><span t-field="project.legal_service_type_ids"/></td>
+                                    <td><span t-field="project.planned_hours"/></td>
+                                    <td><span t-field="project.consumed_hours"/></td>
+                                    <td><span t-field="project.remaining_hours"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
-from odoo.tools.misc import format_date
+from odoo.tools.misc import format_datetime
 
 
 class LawyerDashboardRequests(models.AbstractModel):
@@ -27,20 +27,21 @@ class LawyerDashboardRequests(models.AbstractModel):
         Request = self.env["qlk.internal.request"]
         action = self._request_action_payload(action_xmlid)
         breakdown = {}
-        for state in ("draft", "submitted", "in_progress", "done", "cancelled"):
+        for state in ("draft", "in_progress", "done", "cancelled"):
             breakdown[state] = Request.search_count(domain + [("state", "=", state)])
 
         items = []
         if include_items:
-            requests = Request.search(domain, order="request_date desc, id desc", limit=5)
+            requests = Request.search(domain, order="receive_date desc, request_date desc, id desc", limit=5)
             for request in requests:
                 items.append(
                     {
                         "id": request.id,
                         "name": request.display_name,
                         "from_user": request.requested_by.name or "",
-                        "to_user": request.assigned_to.name or "",
-                        "date": request.request_date and format_date(self.env, request.request_date, lang_code=lang) or "",
+                        "to_user": ", ".join(request.employee_ids.mapped("name")) or request.assigned_to.name or "",
+                        "date": request.delivery_date and format_datetime(self.env, request.delivery_date, lang_code=lang) or "",
+                        "hours": request.required_hours or 0.0,
                         "state": request.state,
                         "state_label": self._selection_label(request, "state"),
                         "priority": request.priority or "",
@@ -66,7 +67,11 @@ class LawyerDashboardRequests(models.AbstractModel):
 
         user = self.env.user
         my_domain = [("requested_by", "=", user.id)]
-        assigned_domain = [("assigned_to", "=", user.id)]
+        assigned_domain = ["|", ("assigned_to", "=", user.id), ("assigned_user_ids", "in", [user.id])]
+        delayed_domain = [
+            ("delivery_date", "<", fields.Datetime.now()),
+            ("state", "not in", ["done", "cancelled"]),
+        ]
         return {
             "my": self._get_request_bucket(
                 my_domain,
@@ -79,6 +84,38 @@ class LawyerDashboardRequests(models.AbstractModel):
                 action_xmlid="qlk_requests.action_qlk_request_assigned_to_me",
                 include_items=False,
             ),
+            "kpis": {
+                "total": self._get_request_bucket(
+                    [],
+                    lang,
+                    action_xmlid="qlk_requests.action_qlk_request_list",
+                    include_items=False,
+                ),
+                "in_progress": self._get_request_bucket(
+                    [("state", "=", "in_progress")],
+                    lang,
+                    action_xmlid="qlk_requests.action_qlk_request_list",
+                    include_items=False,
+                ),
+                "done": self._get_request_bucket(
+                    [("state", "=", "done")],
+                    lang,
+                    action_xmlid="qlk_requests.action_qlk_request_list",
+                    include_items=False,
+                ),
+                "delayed": self._get_request_bucket(
+                    delayed_domain,
+                    lang,
+                    action_xmlid="qlk_requests.action_qlk_request_list",
+                    include_items=False,
+                ),
+                "my": self._get_request_bucket(
+                    my_domain,
+                    lang,
+                    action_xmlid="qlk_requests.action_qlk_request_list",
+                    include_items=False,
+                ),
+            },
         }
 
     @api.model
@@ -98,10 +135,12 @@ class LawyerDashboardRequests(models.AbstractModel):
                 "request_date_title": _("Date"),
                 "request_status_title": _("Status"),
                 "request_draft_title": _("Draft"),
-                "request_sent_title": _("Submitted"),
                 "request_progress_title": _("In Progress"),
                 "request_done_title": _("Done"),
                 "request_cancelled_title": _("Cancelled"),
+                "request_total_title": _("Total Requests"),
+                "request_delayed_title": _("Delayed"),
+                "request_hours_title": _("Hours"),
                 "view_requests": _("View All"),
                 "no_requests": _("لا توجد طلبات مطابقة."),
             }

@@ -10,7 +10,7 @@
                 <field name="client_code"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <field name="service_type"/>
+                <field name="legal_service_type_ids" widget="many2many_tags"/>
                 <field name="date"/>
                 <field name="total_cases"/>
                 <field name="total_hours_used" widget="float_time"/>
@@ -58,6 +58,10 @@
                            statusbar_visible="draft,waiting_manager_approval,approved_manager,waiting_client_approval,approved_client,rejected,cancelled"/>
                 </header>
                 <sheet>
+                    <field name="has_litigation_service" invisible="1"/>
+                    <field name="has_pre_litigation_service" invisible="1"/>
+                    <field name="has_arbitration_service" invisible="1"/>
+                    <field name="has_corporate_service" invisible="1"/>
                     <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                     <div class="oe_button_box" name="button_box">
                         <button type="object" name="action_open_cases" class="oe_stat_button" icon="fa-balance-scale">
@@ -79,10 +83,11 @@
                             <field name="date"/>
                             <field name="currency_id"/>
                             <field name="contract_type"/>
-                            <field name="service_type"/>
+                            <field name="legal_service_type_ids" widget="many2many_tags"/>
+                            <field name="service_type" invisible="1"/>
                             <field name="litigation_degree_ids" widget="many2many_tags"
-                                   invisible="service_type not in ('litigation', 'mixed')"/>
-                            <field name="retainer_type"/>
+                                   invisible="not has_litigation_service"/>
+                            <field name="retainer_type" invisible="1"/>
                             <field name="retainer_period"
                                    modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer')]}"/>
                             <field name="approval_role"/>
@@ -246,12 +251,11 @@
                 <field name="client_code"/>
                 <field name="partner_id"/>
                 <field name="contract_type"/>
-                <field name="service_type"/>
+                <field name="legal_service_type_ids"/>
                 <filter name="waiting" string="Waiting Approval" domain="[('state','=','waiting_manager_approval')]"/>
                 <filter name="approved" string="Approved" domain="[('state','=','approved_client')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_contract" string="Contract Type" domain="[]" context="{'group_by': 'contract_type'}"/>
-                    <filter name="group_service" string="Service Type" domain="[]" context="{'group_by': 'service_type'}"/>
                     <filter name="group_state" string="State" domain="[]" context="{'group_by': 'state'}"/>
                 </group>
             </search>

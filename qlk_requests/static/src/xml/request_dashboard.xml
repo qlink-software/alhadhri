@@ -5,6 +5,7 @@
             <t t-set="requestData" t-value="state.data and state.data.requests_dashboard or {}"/>
             <t t-set="myRequests" t-value="requestData.my or {}"/>
             <t t-set="assignedRequests" t-value="requestData.assigned or {}"/>
+            <t t-set="requestKpis" t-value="requestData.kpis or {}"/>
 
             <section class="qlk-dashboard__section qlk-dashboard__section--requests" t-if="requestData.my or requestData.assigned">
                 <div class="section-header">
@@ -12,6 +13,34 @@
                         <h2 t-esc="labels.requests_title" translate="yes"/>
                         <p t-esc="labels.requests_subtitle" translate="yes"/>
                     </div>
+                </div>
+
+                <div class="qlk-request-kpis">
+                    <button t-if="(requestKpis.total || {}).action" type="button" class="qlk-request-kpi qlk-request-kpi--total"
+                            t-on-click="() => this.openAction((requestKpis.total || {}).action, (requestKpis.total || {}).domain || [])">
+                        <span t-esc="labels.request_total_title" translate="yes"/>
+                        <strong t-esc="formatCount((requestKpis.total || {}).count || 0)"/>
+                    </button>
+                    <button t-if="(requestKpis.in_progress || {}).action" type="button" class="qlk-request-kpi qlk-request-kpi--progress"
+                            t-on-click="() => this.openAction((requestKpis.in_progress || {}).action, (requestKpis.in_progress || {}).domain || [])">
+                        <span t-esc="labels.request_progress_title" translate="yes"/>
+                        <strong t-esc="formatCount((requestKpis.in_progress || {}).count || 0)"/>
+                    </button>
+                    <button t-if="(requestKpis.done || {}).action" type="button" class="qlk-request-kpi qlk-request-kpi--done"
+                            t-on-click="() => this.openAction((requestKpis.done || {}).action, (requestKpis.done || {}).domain || [])">
+                        <span t-esc="labels.request_done_title" translate="yes"/>
+                        <strong t-esc="formatCount((requestKpis.done || {}).count || 0)"/>
+                    </button>
+                    <button t-if="(requestKpis.delayed || {}).action" type="button" class="qlk-request-kpi qlk-request-kpi--delayed"
+                            t-on-click="() => this.openAction((requestKpis.delayed || {}).action, (requestKpis.delayed || {}).domain || [])">
+                        <span t-esc="labels.request_delayed_title" translate="yes"/>
+                        <strong t-esc="formatCount((requestKpis.delayed || {}).count || 0)"/>
+                    </button>
+                    <button t-if="(requestKpis.my || {}).action" type="button" class="qlk-request-kpi qlk-request-kpi--my"
+                            t-on-click="() => this.openAction((requestKpis.my || {}).action, (requestKpis.my || {}).domain || [])">
+                        <span t-esc="labels.my_requests_title" translate="yes"/>
+                        <strong t-esc="formatCount((requestKpis.my || {}).count || 0)"/>
+                    </button>
                 </div>
 
                 <div class="qlk-requests-grid">
@@ -64,6 +93,7 @@
                     <span t-esc="labels.request_from_title" translate="yes"/>
                     <span t-esc="labels.request_to_title" translate="yes"/>
                     <span t-esc="labels.request_date_title" translate="yes"/>
+                    <span t-esc="labels.request_hours_title" translate="yes"/>
                     <span t-esc="labels.request_status_title" translate="yes"/>
                 </div>
                 <t t-foreach="requestBucket.items || []" t-as="request" t-key="request.id">
@@ -74,6 +104,7 @@
                         <span t-esc="request.from_user || '-'"/>
                         <span t-esc="request.to_user || '-'"/>
                         <span t-esc="request.date || '-'"/>
+                        <span t-esc="request.hours || '0'"/>
                         <span class="item__badge" t-esc="request.state_label || '-'"/>
                     </button>
                 </t>

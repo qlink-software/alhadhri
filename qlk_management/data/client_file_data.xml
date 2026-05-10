@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_client_file_litigation" model="ir.sequence">
+        <field name="name">Client File - Litigation</field>
+        <field name="code">qlk.client.file.litigation</field>
+        <field name="prefix">L-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+    <record id="seq_client_file_arbitration" model="ir.sequence">
+        <field name="name">Client File - Arbitration</field>
+        <field name="code">qlk.client.file.arbitration</field>
+        <field name="prefix">A-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+    <record id="seq_client_file_corporate" model="ir.sequence">
+        <field name="name">Client File - Corporate</field>
+        <field name="code">qlk.client.file.corporate</field>
+        <field name="prefix">C-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+    <record id="seq_legal_service_litigation" model="ir.sequence">
+        <field name="name">Legal Service - Litigation</field>
+        <field name="code">qlk.legal.service.litigation</field>
+        <field name="prefix">L-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+    <record id="seq_legal_service_arbitration" model="ir.sequence">
+        <field name="name">Legal Service - Arbitration</field>
+        <field name="code">qlk.legal.service.arbitration</field>
+        <field name="prefix">A-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+    <record id="seq_legal_service_corporate" model="ir.sequence">
+        <field name="name">Legal Service - Corporate</field>
+        <field name="code">qlk.legal.service.corporate</field>
+        <field name="prefix">C-</field>
+        <field name="padding">3</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <record id="service_type_litigation" model="qlk.legal.service.type">
+        <field name="name">Litigation</field>
+        <field name="code">litigation</field>
+        <field name="prefix">L</field>
+        <field name="color">1</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="service_type_pre_litigation" model="qlk.legal.service.type">
+        <field name="name">Pre-Litigation</field>
+        <field name="code">pre_litigation</field>
+        <field name="prefix">L</field>
+        <field name="color">2</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="service_type_arbitration" model="qlk.legal.service.type">
+        <field name="name">Arbitration</field>
+        <field name="code">arbitration</field>
+        <field name="prefix">A</field>
+        <field name="color">4</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="service_type_corporate" model="qlk.legal.service.type">
+        <field name="name">Corporate</field>
+        <field name="code">corporate</field>
+        <field name="prefix">C</field>
+        <field name="color">10</field>
+        <field name="sequence">40</field>
+    </record>
+</odoo>

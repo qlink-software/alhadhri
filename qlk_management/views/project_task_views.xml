@@ -14,11 +14,45 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='tag_ids']" position="after">
+            <xpath expr="//header/field[@name='stage_id']" position="replace"/>
+            <xpath expr="//header/field[@name='personal_stage_type_id']" position="replace"/>
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <group string="Task Status / حالة المهمة">
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1'}" invisible="not project_id and not stage_id"/>
+                    <field name="personal_stage_type_id" widget="statusbar" options="{'clickable': '1'}" invisible="project_id" domain="[('user_id', '=', uid)]" string="Personal Stage"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='user_ids' and hasclass('o_task_user_field')]" position="after">
+                <field name="stage_id" readonly="1" widget="badge"/>
                 <field name="case_id"
                        context="{'default_litigation_flow': 'litigation'}"
                        required="context.get('qlk_require_case_id')"/>
                 <field name="qlk_project_id" readonly="1"/>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="after">
+                <group string="Schedule &amp; Hours / المواعيد والساعات">
+                    <group>
+                        <field name="receive_date"/>
+                        <field name="delivery_date"/>
+                    </group>
+                    <group>
+                        <field name="required_hours" required="1" widget="float_time" options="{'displaySeconds': True}"/>
+                        <field name="user_ids" string="Assigned User" widget="many2many_avatar_user" readonly="1"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//page[@name='description_page']" position="after">
+                <page name="qlk_attachments_page" string="Attachments / المرفقات">
+                    <field name="attachment_ids" nolabel="1" context="{'default_res_model': 'project.task', 'default_res_id': id}">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="datas" string="Preview / Download" filename="name" widget="binary"/>
+                            <field name="create_date" string="Upload Date" readonly="1"/>
+                            <field name="create_uid" string="Uploaded By" readonly="1"/>
+                            <field name="mimetype" readonly="1"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
@@ -31,6 +65,35 @@
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="qlk_project_id" optional="hide"/>
                 <field name="case_id" optional="show"/>
+                <field name="receive_date" optional="show"/>
+                <field name="delivery_date" optional="show"/>
+                <field name="required_hours" optional="show" widget="float_time" sum="Required Hours"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_project_task_kanban_qlk_schedule" model="ir.ui.view">
+        <field name="name">project.task.kanban.qlk.schedule</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="receive_date"/>
+                <field name="delivery_date"/>
+                <field name="required_hours"/>
+                <field name="user_id"/>
+                <field name="user_ids"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']//field[@name='name']" position="after">
+                <div class="qlk_task_meta mt-2">
+                    <span><i class="fa fa-user-o me-1" title="Assigned User"/> <field name="user_ids" widget="many2many_tags"/></span>
+                    <span><i class="fa fa-inbox me-1" title="Receive Date"/> <field name="receive_date" widget="datetime"/></span>
+                    <span><i class="fa fa-paper-plane-o me-1" title="Delivery Date"/> <field name="delivery_date" widget="datetime"/></span>
+                    <span class="qlk_task_hours"><i class="fa fa-clock-o me-1" title="Required Hours"/> <field name="required_hours" widget="float_time"/></span>
+                    <span t-attf-class="badge rounded-pill qlk_task_badge qlk_task_badge_#{record.state.raw_value or '01_in_progress'}">
+                        <i class="fa fa-tasks me-1" title="Status"/> <field name="state"/>
+                    </span>
+                </div>
             </xpath>
         </field>
     </record>

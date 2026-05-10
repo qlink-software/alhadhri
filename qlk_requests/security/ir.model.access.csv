@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_qlk_internal_request_user,qlk.internal.request user,model_qlk_internal_request,qlk_requests.group_request_user,1,1,1,0
 access_qlk_internal_request_manager,qlk.internal.request manager,model_qlk_internal_request,qlk_requests.group_request_manager,1,1,1,1
+access_qlk_internal_request_mp,qlk.internal.request mp,model_qlk_internal_request,qlk_management.group_pre_litigation_manager,1,1,1,1

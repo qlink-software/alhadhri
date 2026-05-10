@@ -8,6 +8,11 @@ class HREmployee(models.Model):
     _inherit = "hr.employee"
 
     lawyer_hour_cost = fields.Float(string="Lawyer Hour Cost")
+    is_mp = fields.Boolean(
+        string="MP",
+        tracking=True,
+        help="Marks employees who should receive Managing Partner request notifications.",
+    )
     employee_code = fields.Char(
         string="Employee Code",
         readonly=True,

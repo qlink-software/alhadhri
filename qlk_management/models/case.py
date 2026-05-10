@@ -228,9 +228,17 @@ class QlkCase(models.Model):
         for record in self:
             if not record.project_id:
                 raise ValidationError(_("Cases must be created from a project."))
-            if record.project_id.service_type != "litigation" and not (
-                record.project_id.service_type == "pre_litigation" and record.pre_litigation_id
-            ):
+            allows_litigation = (
+                record.project_id._allows_legal_service("litigation")
+                if hasattr(record.project_id, "_allows_legal_service")
+                else record.project_id.service_type == "litigation"
+            )
+            allows_pre_litigation = (
+                record.project_id._allows_legal_service("pre_litigation")
+                if hasattr(record.project_id, "_allows_legal_service")
+                else record.project_id.service_type == "pre_litigation"
+            )
+            if not allows_litigation and not (allows_pre_litigation and record.pre_litigation_id):
                 raise ValidationError(_("This project does not allow litigation case creation."))
             engagement = record.engagement_id or record.project_id.engagement_letter_id
             degree = record.litigation_degree_id
@@ -247,12 +255,6 @@ class QlkCase(models.Model):
                 raise ValidationError(_("The selected litigation degree does not match the litigation level."))
             if engagement and engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
                 raise ValidationError(_("Case limit exceeded for this engagement letter."))
-            duplicate = self.search_count([
-                ("project_id", "=", record.project_id.id),
-                ("id", "!=", record.id),
-            ])
-            if duplicate:
-                raise ValidationError(_("A litigation case already exists for this project."))
 
     @api.model
     def _normalize_litigation_degree_vals(self, vals):
@@ -341,8 +343,9 @@ class QlkCase(models.Model):
         if "project_id" in vals:
             if not vals.get("project_id"):
                 raise ValidationError(_("Cases must be linked to a project."))
-            self._ensure_project_manager()
-            self._apply_project_defaults(vals)
+            if vals.get("project_id"):
+                self._ensure_project_manager()
+                self._apply_project_defaults(vals)
         if {"litigation_degree_id", "litigation_level_id"}.intersection(vals):
             self._normalize_litigation_degree_vals(vals)
         return super().write(vals)
@@ -353,6 +356,7 @@ class QlkCase(models.Model):
             return vals
         project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
         if project.exists():
+            vals.setdefault("client_file_id", project.client_file_id.id if "client_file_id" in project._fields else False)
             vals.setdefault("engagement_id", project.engagement_letter_id.id)
             vals.setdefault("client_id", project.client_id.id)
             vals.setdefault("client_ids", [(6, 0, project.client_id.ids)] if project.client_id else False)

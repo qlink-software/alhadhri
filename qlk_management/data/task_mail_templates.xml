@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_template_qlk_task_assignment" model="mail.template">
+        <field name="name">QLK Task Assignment</field>
+        <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+        <field name="subject">New Task Assigned: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.create_uid.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear <t t-out="object.assigned_user_id.name or object.employee_id.name"/>,</p>
+                <p>A task has been assigned to you.</p>
+                <ul>
+                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Project:</strong> <t t-out="object.project_id.display_name if object.project_id else '-'"/></li>
+                    <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
+                    <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=qlk.task&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Open Task
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_project_task_assignment" model="mail.template">
+        <field name="name">Project Task Assignment</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="subject">New Project Task Assigned: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.create_uid.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear <t t-out="object.user_id.name"/>,</p>
+                <p>A project task has been assigned to you.</p>
+                <ul>
+                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Project:</strong> <t t-out="object.project_id.display_name if object.project_id else '-'"/></li>
+                    <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
+                    <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=project.task&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Open Task
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_management_task_assignment" model="mail.template">
+        <field name="name">Management Task Assignment</field>
+        <field name="model_id" ref="model_task"/>
+        <field name="subject">New Task Assigned: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.create_uid.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear <t t-out="object.user_id.name"/>,</p>
+                <p>A task has been assigned to you.</p>
+                <ul>
+                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Project:</strong> <t t-out="object.sub_project_id.display_name if object.sub_project_id else '-'"/></li>
+                    <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
+                    <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                </ul>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

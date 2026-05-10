@@ -1,0 +1,75 @@
+.o_kanban_renderer {
+    .qlk_task_card {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 8px;
+        padding: 14px;
+        background: #ffffff;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .qlk_task_state_waiting,
+    .qlk_task_state_confrim {
+        border-inline-start: 4px solid #d97706;
+    }
+
+    .qlk_task_state_approved,
+    .qlk_task_state_done {
+        border-inline-start: 4px solid #15803d;
+    }
+
+    .qlk_task_state_rejected,
+    .qlk_task_state_reject,
+    .qlk_task_state_cancel {
+        border-inline-start: 4px solid #b91c1c;
+    }
+
+    .qlk_task_state_draft {
+        border-inline-start: 4px solid #2563eb;
+    }
+
+    .qlk_task_badge_draft {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .qlk_task_badge_01_in_progress {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .qlk_task_badge_waiting,
+    .qlk_task_badge_confrim,
+    .qlk_task_badge_04_waiting_normal,
+    .qlk_task_badge_02_changes_requested {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .qlk_task_badge_approved,
+    .qlk_task_badge_done,
+    .qlk_task_badge_03_approved,
+    .qlk_task_badge_1_done {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .qlk_task_badge_rejected,
+    .qlk_task_badge_reject,
+    .qlk_task_badge_cancel,
+    .qlk_task_badge_1_canceled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .qlk_task_meta {
+        display: grid;
+        gap: 8px;
+        color: #475569;
+        font-size: 13px;
+    }
+
+    .qlk_task_hours {
+        color: #0f172a;
+        font-weight: 700;
+    }
+}

@@ -7,8 +7,7 @@
             <list string="Projects" default_order="create_date desc">
                 <field name="name"/>
                 <field name="client_id"/>
-                <field name="service_code"/>
-                <field name="service_type"/>
+                <field name="legal_service_type_ids" widget="many2many_tags"/>
                 <field name="contract_type"/>
                 <field name="lawyer_id"/>
                 <field name="planned_hours" widget="float_time"/>
@@ -30,27 +29,38 @@
                             string="Create Litigation Case"
                             class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
-                            invisible="service_type != 'litigation'"/>
+                            invisible="not has_litigation_service"/>
                     <button name="action_create_corporate"
                             type="object"
                             string="Create Corporate"
                             class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
-                            invisible="service_type != 'corporate'"/>
+                            invisible="not has_corporate_service"/>
                     <button name="action_create_arbitration"
                             type="object"
                             string="Create Arbitration"
                             class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
-                            invisible="service_type != 'arbitration'"/>
+                            invisible="not has_arbitration_service"/>
                     <button name="action_create_pre_litigation"
                             type="object"
                             string="Create Pre-litigation"
                             class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
-                            invisible="service_type != 'pre_litigation'"/>
+                            invisible="not has_pre_litigation_service"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,on_hold,done,cancelled"/>
                 </header>
                 <sheet>
+                    <field name="has_litigation_service" invisible="1"/>
+                    <field name="has_pre_litigation_service" invisible="1"/>
+                    <field name="has_arbitration_service" invisible="1"/>
+                    <field name="has_corporate_service" invisible="1"/>
+                    <div class="alert alert-danger" role="alert" invisible="hours_state != 'danger'">
+                        Planned hours have been exceeded. Manager review is required.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="hours_state != 'warning'">
+                        Planned hours are close to being fully consumed.
+                    </div>
                     <div class="oe_button_box" name="button_box">
                         <button type="object" name="action_open_cases" class="oe_stat_button">
                             <field name="case_count" widget="statinfo" string="Cases"/>
@@ -86,13 +96,32 @@
                         <group>
                             <field name="client_id"/>
                             <field name="service_code" readonly="1"/>
-                            <field name="service_type"/>
+                            <field name="legal_service_type_ids" widget="many2many_tags"/>
+                            <field name="service_type" invisible="1"/>
                             <field name="engagement_letter_id" readonly="1"/>
+                            <field name="client_file_id" readonly="1"/>
+                            <field name="currency_id"/>
                         </group>
                         <group>
                             <field name="lawyer_id"/>
+                            <field name="responsible_user_ids" widget="many2many_tags"/>
                             <field name="start_date"/>
                             <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <group string="Hours Dashboard">
+                        <group>
+                            <field name="planned_hours" widget="float_time"/>
+                            <field name="consumed_hours" widget="float_time" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="remaining_hours" widget="float_time" readonly="1" decoration-danger="remaining_hours &lt; 0"/>
+                            <field name="hours_usage_percent" widget="progressbar" options="{'max_value': 100}"/>
+                            <field name="hours_state" widget="badge"
+                                   decoration-success="hours_state == 'normal'"
+                                   decoration-warning="hours_state == 'warning'"
+                                   decoration-danger="hours_state == 'danger'"/>
                         </group>
                     </group>
 
@@ -103,14 +132,22 @@
                                     <field name="contract_type"/>
                                     <field name="billing_type"/>
                                     <field name="agreed_hours" widget="float_time"/>
+                                    <field name="retainer_type"/>
+                                    <field name="payment_terms"/>
                                 </group>
                                 <group>
                                     <field name="total_hours" widget="float_time"/>
+                                    <field name="overconsumed_hours" widget="float_time" readonly="1"
+                                           decoration-danger="overconsumed_hours &gt; 0"/>
+                                    <field name="phone"/>
                                 </group>
                             </group>
                             <group>
+                                <field name="contact_person_ids" widget="many2many_tags"/>
                                 <field name="description"/>
                                 <field name="scope_details"/>
+                                <field name="contract_terms"/>
+                                <field name="notes"/>
                             </group>
                         </page>
 
@@ -137,6 +174,30 @@
                                     <field name="remaining_hours" widget="float_time"/>
                                 </list>
                             </field>
+                            <field name="qlk_task_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="employee_id"/>
+                                    <field name="approval_state"/>
+                                    <field name="planned_hours" widget="float_time"/>
+                                    <field name="consumed_hours" widget="float_time"/>
+                                    <field name="remaining_hours" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Dashboard">
+                            <group>
+                                <group>
+                                    <field name="task_count" readonly="1"/>
+                                    <field name="case_count" readonly="1"/>
+                                    <field name="hearing_count" readonly="1"/>
+                                    <field name="memo_count" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="recent_activity_summary" readonly="1"/>
+                                </group>
+                            </group>
                         </page>
 
                         <page string="Client Profile">
@@ -154,12 +215,16 @@
                             </group>
                         </page>
 
-                        <page string="Litigation" invisible="service_type != 'litigation'">
+                        <page string="Litigation" invisible="not has_litigation_service">
                             <group>
                                 <field name="litigation_degree_ids"
                                        widget="many2many_tags"
-                                       required="service_type == 'litigation'"/>
+                                       required="has_litigation_service"/>
                             </group>
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                            <field name="translation_attachment_ids" widget="many2many_binary" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -175,10 +240,9 @@
             <search>
                 <field name="name"/>
                 <field name="client_id"/>
-                <field name="service_type"/>
+                <field name="legal_service_type_ids"/>
                 <field name="lawyer_id"/>
                 <group expand="0" string="Group By">
-                    <filter name="group_service_type" string="Service Type" context="{'group_by': 'service_type'}"/>
                     <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
                     <filter name="group_lawyer" string="Lawyer" context="{'group_by': 'lawyer_id'}"/>
                 </group>
@@ -196,7 +260,7 @@
               name="Projects"
               parent="qlk_management.menu_management_root"
               action="action_qlk_project"
-              groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+              groups="qlk_management.group_project_user,qlk_management.group_project_manager"
               sequence="60"/>
 
     <record id="view_bd_engagement_letter_form_inherit_qlk_project" model="ir.ui.view">
@@ -215,7 +279,7 @@
             <xpath expr="//header/button[@name='action_create_project']" position="attributes">
                 <attribute name="string">Create Project</attribute>
                 <attribute name="groups">qlk_management.group_bd_manager,qlk_management.group_el_manager</attribute>
-                <attribute name="invisible">state != 'approved_client' or project_id</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

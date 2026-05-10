@@ -1441,51 +1441,7 @@ class BDEngagementLetter(models.Model):
         }
 
     def action_create_project(self):
-        self.ensure_one()
-        self.env["project.project"]._ensure_legal_manager()
-        if self.state != "approved_client":
-            raise UserError(_("Only approved engagement letters can create projects."))
-        if not self.partner_id:
-            raise UserError(_("Please select a client before creating a project."))
-        if self.project_id:
-            raise UserError(_("A project has already been created for this engagement letter."))
-        existing_project = self.env["project.project"].search(
-            [("engagement_letter_id", "=", self.id)],
-            limit=1,
-        )
-        if existing_project:
-            self.project_id = existing_project.id
-            raise UserError(_("A project has already been created for this engagement letter."))
-        service_type = self.env["project.project"]._get_service_type_from_engagement(self)
-        if not service_type:
-            raise UserError(_("Select a specific legal service type before creating a project."))
-
-        project = self.env["project.project"].create(
-            {
-                "name": self.code or _("Engagement Project"),
-                "client_id": self.partner_id.id,
-                "engagement_letter_id": self.id,
-                "service_type": service_type,
-                "contract_type": self.contract_type,
-                "lawyer_id": self.lawyer_employee_id.id,
-                "company_id": self.company_id.id,
-                "legal_fee_amount": self.legal_fee_amount or self.total_amount,
-                "engagement_reference": self.code,
-                "billing_type": self.billing_type,
-                "retainer_type": self.retainer_type,
-                "fee_structure": self.fee_structure,
-                "payment_terms": self.payment_terms,
-            }
-        )
-        self.project_id = project.id
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Project"),
-            "res_model": "project.project",
-            "res_id": project.id,
-            "view_mode": "form",
-            "target": "current",
-        }
+        raise UserError(_("Projects must be created from the related Client File."))
 
     def _action_open_related_records(self, model_name, domain, name):
         return {

@@ -20,6 +20,14 @@ class Tasks(models.Model):
     description = fields.Html('description')
     start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
+    receive_date = fields.Datetime(string="Receive Date", tracking=True)
+    delivery_date = fields.Datetime(string="Delivery Date", tracking=True)
+    required_hours = fields.Float(
+        string="Required Hours",
+        required=True,
+        tracking=True,
+        digits="Product Unit of Measure",
+    )
     priority = fields.Selection([
         ('high', 'High'),('medium', 'Medium'),('low', 'Low'),
     ], string='Priority', tracking=True)
@@ -69,6 +77,58 @@ class Tasks(models.Model):
             if not record.work_hours:
                 raise ValidationError("You Have to enter your Working Hours for' %s 'task" %record.name)
 
+    @api.constrains("required_hours")
+    def _check_required_hours(self):
+        for record in self:
+            if record.required_hours <= 0:
+                raise ValidationError("Required Hours must be strictly positive for '%s' task" % record.name)
+
+    def _ensure_required_hours(self):
+        missing = self.filtered(lambda record: record.required_hours <= 0)
+        if missing:
+            raise ValidationError("Required Hours must be strictly positive before saving or closing a task")
+
+    @api.constrains("receive_date", "delivery_date")
+    def _check_receive_delivery_dates(self):
+        for record in self:
+            if record.receive_date and record.delivery_date and record.delivery_date < record.receive_date:
+                raise ValidationError("Delivery Date cannot be before Receive Date for '%s' task" % record.name)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._ensure_required_hours()
+        records._send_assignment_email()
+        return records
+
+    def write(self, vals):
+        old_users = {record.id: record.user_id for record in self}
+        result = super().write(vals)
+        self._ensure_required_hours()
+        if "user_id" in vals:
+            for record in self:
+                if record.user_id and old_users.get(record.id) != record.user_id:
+                    record._send_assignment_email()
+        return result
+
+    def _send_assignment_email(self):
+        template = self.env.ref("qlk_management.mail_template_management_task_assignment", raise_if_not_found=False)
+        if not template:
+            return
+        activity_type = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
+        for record in self.filtered("user_id"):
+            email_to = record.user_id.partner_id.email or record.user_id.email
+            if not email_to:
+                continue
+            template.send_mail(record.id, force_send=False, email_values={"email_to": email_to})
+            if activity_type:
+                record.activity_schedule(
+                    activity_type_id=activity_type.id,
+                    user_id=record.user_id.id,
+                    summary="New assigned task",
+                    note="You have been assigned to task: %s" % record.display_name,
+                )
+
 
     def confirm_acrion(self):
         for rec in self:
@@ -76,6 +136,7 @@ class Tasks(models.Model):
 
     def done_acrion(self):
         for rec in self:
+            rec._ensure_required_hours()
             rec.state = "done"
     
     def reject_acrion(self):

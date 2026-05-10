@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_template_internal_request_created_mp" model="mail.template">
+        <field name="name">Internal Request Created - MP</field>
+        <field name="model_id" ref="model_qlk_internal_request"/>
+        <field name="subject">New Internal Request: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.requested_by.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear MP,</p>
+                <p>A new internal request has been created.</p>
+                <ul>
+                    <li><strong>Requested By:</strong> <t t-out="object.requested_by.name"/></li>
+                    <li><strong>Request:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Employees:</strong> <t t-out="', '.join(object.employee_ids.mapped('name')) or '-'"/></li>
+                    <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
+                </ul>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_internal_request_done_creator" model="mail.template">
+        <field name="name">Internal Request Done - Creator</field>
+        <field name="model_id" ref="model_qlk_internal_request"/>
+        <field name="subject">Internal Request Completed: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.completed_by.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Dear <t t-out="object.requested_by.name"/>,</p>
+                <p>Your request has been completed.</p>
+                <ul>
+                    <li><strong>Request:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Done Date:</strong> <t t-out="format_datetime(object.done_date) if object.done_date else '-'"/></li>
+                    <li><strong>Completed By:</strong> <t t-out="object.completed_by.name if object.completed_by else '-'"/></li>
+                    <li><strong>Hours:</strong> <t t-out="object.hours_spent or object.required_hours or 0.0"/></li>
+                    <li><strong>Completion Notes:</strong> <t t-out="object.completion_notes or '-'"/></li>
+                </ul>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

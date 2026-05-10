@@ -41,6 +41,7 @@ class QlkTaskHoursWizard(models.TransientModel):
                 "name": self.name,
                 "description": self.name,
                 "hours_spent": self.hours,
+                "required_hours": self.hours,
                 "date_start": self.date,
                 "employee_id": employee.id,
                 "department": "management",
