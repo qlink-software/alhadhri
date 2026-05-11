@@ -302,7 +302,12 @@ class QlkClientFile(models.Model):
             ]):
                 existing += 1
                 code = "%s%03d" % (prefix, existing + 1)
-        self.sudo().write({field_name: code})
+        # أثناء ترقية الموديول قد لا تكون جداول Many2many أنشئت بعد؛ لذلك نتجنب ORM write والتتبع هنا.
+        self.env.cr.execute(
+            "UPDATE qlk_client_file SET %s = %%s WHERE id = %%s" % field_name,
+            [code, self.id],
+        )
+        self.invalidate_recordset([field_name])
         return code
 
     def _next_project_number(self, service_code):
