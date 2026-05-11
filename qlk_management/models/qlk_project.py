@@ -327,13 +327,37 @@ class QlkProject(models.Model):
             return self.service_code
         if not self.client_file_id:
             raise ValidationError(_("Cannot generate service code without a client file."))
+        self._ensure_client_file_code_columns()
         service_code = self._primary_service_code()
         code = self.client_file_id._next_project_service_code(service_code)
         self.sudo().with_context(mail_notrack=True).write({"service_code": code, "name": code})
         return code
 
     @api.model
+    def _ensure_client_file_code_columns(self):
+        """Upgrade guard: qlk.project backfill may run before qlk.client.file init."""
+        cr = self.env.cr
+        cr.execute("SELECT to_regclass('qlk_client_file')")
+        if not cr.fetchone()[0]:
+            return
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
+        cr.execute(
+            """
+            UPDATE qlk_client_file
+               SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
+                   corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
+                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1)
+            """
+        )
+
+    @api.model
     def backfill_legal_codes(self):
+        self._ensure_client_file_code_columns()
         projects = self.sudo().search([("client_file_id", "!=", False)], order="id").filtered(
             lambda project: (
                 not project.service_code
