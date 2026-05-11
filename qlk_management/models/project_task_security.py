@@ -69,13 +69,17 @@ class ProjectTask(models.Model):
             case = task.case_id
             if case and case.client_id and not task.partner_id:
                 task.partner_id = case.client_id.id
-            if case and case.project_id and case.project_id.timesheet_project_id and not task.project_id:
-                task.project_id = case.project_id.timesheet_project_id.id
+            if case and case.project_id and not task.project_id:
+                task.project_id = case.project_id._get_or_create_timesheet_project().id
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             self._apply_legal_case_defaults(vals)
+            if vals.get("case_id") and not vals.get("user_ids"):
+                case = self.env["qlk.case"].browse(vals["case_id"])
+                if case.exists() and case.employee_id.user_id:
+                    vals["user_ids"] = [Command.set([case.employee_id.user_id.id])]
         tasks = super().create(vals_list)
         tasks._ensure_required_hours()
         for task in tasks.filtered("user_ids"):

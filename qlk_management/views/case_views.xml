@@ -9,13 +9,8 @@
                 <xpath expr="//form/header" position="inside">
                 </xpath>
 
-                <xpath expr="//sheet" position="inside">
-                    <div class="oe_title">
-                        <label for="service_code" string="Service Code"/>
-                        <h1>
-                            <field name="service_code" readonly="1" class="oe_inline"/>
-                        </h1>
-                    </div>
+                <xpath expr="//div[@id='collapseBasic']//field[@name='name2']" position="before">
+                    <field name="service_code" readonly="1"/>
                 </xpath>
 
                 <xpath expr="//field[@name='is_new']/.." position="before">
@@ -31,7 +26,6 @@
                                string="Litigation Degree"
                                domain="[('id', 'in', allowed_litigation_degree_ids)]"
                                required="project_id"/>
-                        <field name="service_code" readonly="1"/>
                     </group>
                 </xpath>
 
@@ -44,31 +38,90 @@
                     <attribute name="domain">['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]</attribute>
                 </xpath>
 
-                <xpath expr="//field[@name='task_ids']/ancestor::page[1]" position="replace">
-                    <page string="Tasks &amp; Hours">
-                        <group>
-                            <group>
-                                <field name="case_hours" readonly="1" widget="float_time"/>
-                            </group>
-                            <group>
-                                <button name="action_open_project_tasks"
-                                        type="object"
-                                        string="Open Tasks"
-                                        class="btn-primary"/>
-                            </group>
-                        </group>
-                        <field name="task_ids"
-                               context="{'default_case_id': id, 'default_partner_id': client_id, 'qlk_require_case_id': True}"
-                               nolabel="1">
-                            <list editable="bottom">
-                                <field name="name"/>
-                                <field name="case_id" column_invisible="1"/>
-                                <field name="user_ids" widget="many2many_tags"/>
-                                <field name="effective_hours" widget="float_time" readonly="1"/>
-                                <field name="remaining_hours" widget="float_time" readonly="1"/>
-                            </list>
-                        </field>
-                    </page>
+                <xpath expr="//field[@name='task_ids']/ancestor::page[1]" position="replace"/>
+
+                <xpath expr="//div[@id='caseAccordion']" position="inside">
+                    <div class="accordion-item" name="tasks_hours">
+                        <h2 class="accordion-header" id="caseAccordionTasksHours">
+                            <div class="accordion-button collapsed o_form_label"
+                                 style="cursor:pointer;"
+                                 data-bs-toggle="collapse"
+                                 data-bs-target="#collapseCaseTasksHours">
+                                Tasks &amp; Hours
+                            </div>
+                        </h2>
+                        <div id="collapseCaseTasksHours" class="accordion-collapse collapse" data-bs-parent="#caseAccordion">
+                            <div class="accordion-body">
+                                <group>
+                                    <group>
+                                        <field name="case_hours" readonly="1" widget="float_time"/>
+                                    </group>
+                                    <group>
+                                        <button name="action_open_project_tasks"
+                                                type="object"
+                                                string="Open Tasks"
+                                                class="btn-primary"/>
+                                    </group>
+                                </group>
+                                <field name="task_ids"
+                                       context="{'default_case_id': id, 'default_partner_id': client_id, 'qlk_require_case_id': True}"
+                                       nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="name" required="1"/>
+                                        <field name="case_id" required="1"/>
+                                        <field name="project_id"/>
+                                        <field name="qlk_project_id" optional="hide"/>
+                                        <field name="partner_id" string="Client"/>
+                                        <field name="user_ids" widget="many2many_tags"/>
+                                        <field name="stage_id"/>
+                                        <field name="state" readonly="1"/>
+                                        <field name="receive_date"/>
+                                        <field name="delivery_date"/>
+                                        <field name="required_hours" widget="float_time" required="1" sum="Required Hours"/>
+                                        <field name="effective_hours" widget="float_time" readonly="1" sum="Consumed Hours"/>
+                                        <field name="remaining_hours" widget="float_time" readonly="1" sum="Remaining Hours"/>
+                                    </list>
+                                    <form string="Task Hours">
+                                        <sheet>
+                                            <group>
+                                                <group>
+                                                    <field name="name" required="1"/>
+                                                    <field name="case_id" required="1"/>
+                                                    <field name="project_id"/>
+                                                    <field name="qlk_project_id" readonly="1"/>
+                                                    <field name="partner_id" string="Client"/>
+                                                    <field name="user_ids" widget="many2many_tags"/>
+                                                </group>
+                                                <group>
+                                                    <field name="stage_id"/>
+                                                    <field name="state" readonly="1"/>
+                                                    <field name="receive_date"/>
+                                                    <field name="delivery_date"/>
+                                                    <field name="required_hours" widget="float_time" required="1"/>
+                                                    <field name="effective_hours" widget="float_time" readonly="1"/>
+                                                    <field name="remaining_hours" widget="float_time" readonly="1"/>
+                                                </group>
+                                            </group>
+                                            <notebook>
+                                                <page string="Timesheets">
+                                                    <field name="timesheet_ids" nolabel="1">
+                                                        <list editable="bottom">
+                                                            <field name="date"/>
+                                                            <field name="company_id"/>
+                                                            <field name="employee_id"/>
+                                                            <field name="name"/>
+                                                            <field name="unit_amount" widget="float_time" sum="Hours"/>
+                                                            <field name="amount"/>
+                                                        </list>
+                                                    </field>
+                                                </page>
+                                            </notebook>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </div>
+                        </div>
+                    </div>
                 </xpath>
 
                 <xpath expr="//sheet//notebook" position="inside">
