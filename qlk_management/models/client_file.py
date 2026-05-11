@@ -18,6 +18,27 @@ SERVICE_PREFIXES = {
     "corporate": "C",
 }
 
+CLIENT_CODE_FIELDS = {
+    "litigation": "litigation_client_code",
+    "pre_litigation": "litigation_client_code",
+    "corporate": "corporate_client_code",
+    "arbitration": "arbitration_client_code",
+}
+
+PROJECT_COUNTER_FIELDS = {
+    "litigation": "litigation_project_next_number",
+    "pre_litigation": "litigation_project_next_number",
+    "corporate": "corporate_project_next_number",
+    "arbitration": "arbitration_project_next_number",
+}
+
+CLIENT_CODE_SEQUENCE_CODES = {
+    "litigation": "qlk.client.master.litigation",
+    "pre_litigation": "qlk.client.master.litigation",
+    "corporate": "qlk.client.master.corporate",
+    "arbitration": "qlk.client.master.arbitration",
+}
+
 LEVEL_XMLID_CODES = {
     "qlk_management.litigation_level_first_instance": "F",
     "qlk_management.litigation_level_appeal": "A",
@@ -160,6 +181,20 @@ class QlkClientFile(models.Model):
     has_pre_litigation_service = fields.Boolean(compute="_compute_service_flags", store=True)
     has_arbitration_service = fields.Boolean(compute="_compute_service_flags", store=True)
     has_corporate_service = fields.Boolean(compute="_compute_service_flags", store=True)
+    litigation_client_code = fields.Char(string="Litigation Client Code", copy=False, readonly=True, index=True, tracking=True)
+    corporate_client_code = fields.Char(string="Corporate Client Code", copy=False, readonly=True, index=True, tracking=True)
+    arbitration_client_code = fields.Char(string="Arbitration Client Code", copy=False, readonly=True, index=True, tracking=True)
+    litigation_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
+    corporate_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
+    arbitration_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
+    allowed_litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        "qlk_client_file_litigation_degree_rel",
+        "client_file_id",
+        "degree_id",
+        string="Allowed Litigation Degrees",
+        tracking=True,
+    )
 
     engagement_ids = fields.One2many("bd.engagement.letter", "client_file_id", string="Agreements")
     project_ids = fields.One2many("qlk.project", "client_file_id", string="Projects")
@@ -217,6 +252,86 @@ class QlkClientFile(models.Model):
     _sql_constraints = [
         ("partner_company_unique", "unique(partner_id, company_id)", "A client file already exists for this client."),
     ]
+
+    def init(self):
+        cr = self.env.cr
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
+        cr.execute(
+            """
+            UPDATE qlk_client_file
+               SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
+                   corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
+                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1)
+            """
+        )
+
+    @api.model
+    def _service_category(self, service_code):
+        return "litigation" if service_code in ("litigation", "pre_litigation") else service_code
+
+    def _ensure_client_service_code(self, service_code):
+        self.ensure_one()
+        category = self._service_category(service_code)
+        field_name = CLIENT_CODE_FIELDS.get(category)
+        sequence_code = CLIENT_CODE_SEQUENCE_CODES.get(category)
+        if not field_name or not sequence_code:
+            raise ValidationError(_("Unsupported legal service type for client code."))
+        if self[field_name]:
+            return self[field_name]
+        sequence = self.env["ir.sequence"].with_company(self.company_id or self.env.company)
+        code = sequence.next_by_code(sequence_code)
+        while code and self.sudo().search_count([
+            (field_name, "=", code),
+            ("company_id", "=", (self.company_id or self.env.company).id),
+            ("id", "!=", self.id),
+        ]):
+            code = sequence.next_by_code(sequence_code)
+        if not code:
+            prefix = SERVICE_PREFIXES.get(category, "L")
+            existing = self.sudo().search_count([(field_name, "!=", False), ("company_id", "=", self.company_id.id)])
+            code = "%s%03d" % (prefix, existing + 1)
+            while self.sudo().search_count([
+                (field_name, "=", code),
+                ("company_id", "=", (self.company_id or self.env.company).id),
+                ("id", "!=", self.id),
+            ]):
+                existing += 1
+                code = "%s%03d" % (prefix, existing + 1)
+        self.sudo().write({field_name: code})
+        return code
+
+    def _next_project_number(self, service_code):
+        self.ensure_one()
+        category = self._service_category(service_code)
+        field_name = PROJECT_COUNTER_FIELDS.get(category)
+        if not field_name:
+            raise ValidationError(_("Unsupported legal service type for project numbering."))
+        self.env.cr.execute("SELECT %s FROM qlk_client_file WHERE id = %%s FOR UPDATE" % field_name, [self.id])
+        current = (self.env.cr.fetchone() or [1])[0] or 1
+        self.env.cr.execute(
+            "UPDATE qlk_client_file SET %s = %%s WHERE id = %%s" % field_name,
+            [current + 1, self.id],
+        )
+        self.invalidate_recordset([field_name])
+        return current
+
+    def _next_project_service_code(self, service_code):
+        self.ensure_one()
+        client_code = self._ensure_client_service_code(service_code)
+        number = self._next_project_number(service_code)
+        code = "%s/%s" % (client_code, number)
+        while self.env["qlk.project"].sudo().search_count([
+            ("service_code", "=", code),
+            ("company_id", "=", self.company_id.id),
+        ]):
+            number = self._next_project_number(service_code)
+            code = "%s/%s" % (client_code, number)
+        return code
 
     @api.depends("partner_id", "partner_id.street", "partner_id.street2", "partner_id.city", "partner_id.country_id")
     def _compute_address(self):
@@ -465,11 +580,21 @@ class QlkClientFile(models.Model):
     def action_create_project(self):
         self.ensure_one()
         self.env["qlk.project"]._ensure_legal_manager()
-        engagement = self.engagement_ids.filtered(
-            lambda item: item.state == "approved_client" and not item.project_id
-        ).sorted("date", reverse=True)[:1]
+        approved_engagements = self.engagement_ids.filtered(
+            lambda item: item.state == "approved_client"
+        ).sorted("date", reverse=True)
+        engagement = approved_engagements.filtered(lambda item: not item.project_id)[:1] or approved_engagements[:1]
         if not engagement:
-            raise UserError(_("No approved engagement letter without a project was found for this client file."))
+            raise UserError(_("No client-approved engagement letter was found for this client file."))
+        if engagement.project_id:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Project"),
+                "res_model": "qlk.project",
+                "res_id": engagement.project_id.id,
+                "view_mode": "form",
+                "target": "current",
+            }
         project_vals = self._prepare_project_vals_from_engagement(engagement)
         project = self.env["qlk.project"].with_context(
             mail_create_nosubscribe=True,
@@ -491,7 +616,16 @@ class QlkClientFile(models.Model):
 
     def _prepare_project_vals_from_engagement(self, engagement):
         self.ensure_one()
-        services = engagement.legal_service_type_ids or self.legal_service_type_ids
+        services = (
+            engagement._get_legal_service_type_ids_for_transfer()
+            if hasattr(engagement, "_get_legal_service_type_ids_for_transfer")
+            else engagement.legal_service_type_ids
+        ) or self.legal_service_type_ids
+        litigation_degrees = (
+            engagement._get_allowed_litigation_degree_ids_for_transfer()
+            if hasattr(engagement, "_get_allowed_litigation_degree_ids_for_transfer")
+            else engagement.litigation_degree_ids
+        ) or self.allowed_litigation_degree_ids
         normal_attachments, translation_attachments = self._collect_transfer_attachments()
         responsible_users = engagement.lawyer_user_id | engagement.lawyer_ids.mapped("user_id") | engagement.reviewer_id
         planned_hours = (
@@ -531,8 +665,9 @@ class QlkClientFile(models.Model):
             vals["legal_service_type_ids"] = [(6, 0, services.ids)]
             if len(services) == 1:
                 vals["service_type"] = services.code
-        if engagement.litigation_degree_ids:
-            vals["litigation_degree_ids"] = [(6, 0, engagement.litigation_degree_ids.ids)]
+        if litigation_degrees:
+            vals["litigation_degree_ids"] = [(6, 0, litigation_degrees.ids)]
+            vals["allowed_litigation_degree_ids"] = [(6, 0, litigation_degrees.ids)]
         return vals
 
     def _new_service_action(self, model_name, title, context):
@@ -579,6 +714,7 @@ class BDEngagementLetterClientFile(models.Model):
     has_corporate_service = fields.Boolean(compute="_compute_engagement_service_flags", store=True)
 
     def init(self):
+        super().init()
         _migrate_legacy_legal_services(
             self.env,
             "bd_engagement_letter",
@@ -629,7 +765,15 @@ class BDEngagementLetterClientFile(models.Model):
                 vals["legal_service_type_ids"] = [(6, 0, service_ids)]
                 break
         result = super().write(vals)
-        if {"legal_service_type_ids", "client_file_id", "client_attachment_ids", "translation_attachment_ids", "signed_document_ids"}.intersection(vals):
+        if {
+            "legal_service_type_ids",
+            "litigation_degree_ids",
+            "allowed_litigation_degree_ids",
+            "client_file_id",
+            "client_attachment_ids",
+            "translation_attachment_ids",
+            "signed_document_ids",
+        }.intersection(vals):
             for record in self.filtered("client_file_id"):
                 record._merge_services_into_client_file(record.client_file_id)
                 record.client_file_id._sync_attachments_from_agreements()
@@ -653,6 +797,24 @@ class BDEngagementLetterClientFile(models.Model):
             return service in set(self.legal_service_type_ids.mapped("code"))
         return super()._service_allows(service)
 
+    def _get_legal_service_type_ids_for_transfer(self):
+        self.ensure_one()
+        services = self.legal_service_type_ids
+        if not services:
+            service_model = self.env["qlk.legal.service.type"]
+            services = service_model.browse(
+                service_model._ids_from_codes(
+                    self._service_codes_from_vals(
+                        {"service_type": self.service_type, "retainer_type": self.retainer_type}
+                    )
+                )
+            )
+        return services
+
+    def _get_allowed_litigation_degree_ids_for_transfer(self):
+        self.ensure_one()
+        return self.allowed_litigation_degree_ids or self.litigation_degree_ids
+
     def _get_existing_client_file(self):
         self.ensure_one()
         if self.client_file_id:
@@ -669,8 +831,15 @@ class BDEngagementLetterClientFile(models.Model):
 
     def _merge_services_into_client_file(self, client_file):
         self.ensure_one()
-        services = client_file.legal_service_type_ids | self.legal_service_type_ids
-        client_file.write({"legal_service_type_ids": [(6, 0, services.ids)]})
+        services = client_file.legal_service_type_ids | self._get_legal_service_type_ids_for_transfer()
+        degrees = client_file.allowed_litigation_degree_ids | self._get_allowed_litigation_degree_ids_for_transfer()
+        vals = {}
+        if services:
+            vals["legal_service_type_ids"] = [(6, 0, services.ids)]
+        if degrees:
+            vals["allowed_litigation_degree_ids"] = [(6, 0, degrees.ids)]
+        if vals:
+            client_file.write(vals)
 
     def action_create_client_file(self):
         self.ensure_one()
@@ -680,20 +849,15 @@ class BDEngagementLetterClientFile(models.Model):
             raise UserError(_("Select a client before creating a client file."))
         client_file = self._get_existing_client_file()
         if not client_file:
-            services = self.legal_service_type_ids
-            if not services:
-                codes = self._service_codes_from_vals(
-                    {"service_type": self.service_type, "retainer_type": self.retainer_type}
-                )
-                services = self.env["qlk.legal.service.type"].browse(
-                    self.env["qlk.legal.service.type"]._ids_from_codes(codes)
-                )
+            services = self._get_legal_service_type_ids_for_transfer()
+            litigation_degrees = self._get_allowed_litigation_degree_ids_for_transfer()
             client_file = self.env["qlk.client.file"].create(
                 {
                     "name": self.partner_id.display_name,
                     "partner_id": self.partner_id.id,
                     "company_id": (self.company_id or self.env.company).id,
                     "legal_service_type_ids": [(6, 0, services.ids)],
+                    "allowed_litigation_degree_ids": [(6, 0, litigation_degrees.ids)],
                 }
             )
         self.client_file_id = client_file.id
@@ -750,12 +914,14 @@ class QlkProjectClientFile(models.Model):
     has_corporate_service = fields.Boolean(compute="_compute_project_service_flags", store=True)
 
     def init(self):
+        super().init()
         _migrate_legacy_legal_services(
             self.env,
             "qlk_project",
             "qlk_project_legal_service_type_rel",
             "project_id",
         )
+        self.backfill_legal_codes()
 
     @api.model_create_multi
     def create(self, vals_list):

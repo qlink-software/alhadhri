@@ -76,6 +76,12 @@ class BDEngagementLetter(models.Model):
         string="Allowed Litigation Degrees",
         tracking=True,
     )
+    allowed_litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        compute="_compute_allowed_litigation_degree_ids",
+        inverse="_inverse_allowed_litigation_degree_ids",
+        string="Allowed Litigation Degrees",
+    )
     retainer_type = fields.Selection(
         [
             ("litigation", "Litigation"),
@@ -344,6 +350,15 @@ class BDEngagementLetter(models.Model):
              WHERE billing_type IN ('billable', 'fixed', 'retainer')
             """
         )
+
+    @api.depends("litigation_degree_ids")
+    def _compute_allowed_litigation_degree_ids(self):
+        for letter in self:
+            letter.allowed_litigation_degree_ids = letter.litigation_degree_ids
+
+    def _inverse_allowed_litigation_degree_ids(self):
+        for letter in self:
+            letter.litigation_degree_ids = letter.allowed_litigation_degree_ids
     rejection_reason = fields.Text(string="Rejection Reason")
     comments = fields.Text(string="Reason")
     # ------------------------------------------------------------------------------
@@ -369,7 +384,7 @@ class BDEngagementLetter(models.Model):
     lawyer_id = fields.Many2one(
         "res.partner",
         string="Assigned Lawyer",
-        domain=[("is_lawyer", "=", True)],
+        domain=["&", ("is_company", "=", False), "|", ("is_lawyer", "=", True), ("category_id.name", "ilike", "lawyer")],
     )
     lawyer_ids = fields.Many2many(
         "hr.employee",
@@ -377,12 +392,12 @@ class BDEngagementLetter(models.Model):
         "letter_id",
         "employee_id",
         string="Assigned Lawyers",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
     )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         compute="_compute_lawyer_employee_id",
         inverse="_inverse_lawyer_employee_id",
         store=True,
@@ -1539,7 +1554,7 @@ class BDEngagementLetterFee(models.Model):
     assigned_lawyer_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         index=True,
     )
     quantity = fields.Float(string="Quantity", default=1.0)

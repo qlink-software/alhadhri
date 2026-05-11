@@ -61,12 +61,16 @@
                            statusbar_colors="{'draft': 'blue', 'waiting_manager_approval': 'orange', 'approved_manager': 'success', 'waiting_client_approval': 'warning', 'approved_client': 'success', 'rejected': 'danger', 'cancelled': 'muted'}"/>
                 </header>
                 <sheet>
+                    <field name="has_litigation_service" invisible="1"/>
                     <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                     <div class="oe_button_box" name="button_box"/>
                     <group string="Client &amp; General Info">
                         <group>
                             <field name="proposal_type" invisible="1"/>
                             <field name="retainer_type"/>
+                            <field name="legal_service_type_ids" widget="many2many_tags"/>
+                            <field name="allowed_litigation_degree_ids" widget="many2many_tags"
+                                   invisible="not has_litigation_service"/>
                             <field name="code" string="Proposal Number" readonly="1"
                                    modifiers="{'invisible': [('proposal_type', '=', 'el')]}"/>
                             <field name="currency_id"/>
@@ -86,9 +90,9 @@
                     </group>
                     <group modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                         <group>
-                            <field name="lawyer_employee_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
+                            <field name="lawyer_employee_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="lawyer_ids" widget="many2many_tags"
-                                   domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
+                                   domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="hourly_cost" readonly="1" groups="account.group_account_user"/>
                             <field name="planned_hours"/>
                             <field name="total_estimated_cost" readonly="1" groups="account.group_account_user"/>
@@ -134,7 +138,7 @@
                                         <field name="currency_id" column_invisible="1"/>
                                         <field name="service_name"/>
                                         <field name="service_type"/>
-                                        <field name="assigned_lawyer_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
+                                        <field name="assigned_lawyer_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                                         <field name="quantity"/>
                                         <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                         <field name="discount_type"/>

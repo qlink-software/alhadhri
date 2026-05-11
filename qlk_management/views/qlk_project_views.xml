@@ -5,8 +5,9 @@
         <field name="model">qlk.project</field>
         <field name="arch" type="xml">
             <list string="Projects" default_order="create_date desc">
-                <field name="name"/>
+                <field name="service_code"/>
                 <field name="client_id"/>
+                <field name="client_file_id"/>
                 <field name="legal_service_type_ids" widget="many2many_tags"/>
                 <field name="contract_type"/>
                 <field name="lawyer_id"/>
@@ -65,6 +66,18 @@
                         <button type="object" name="action_open_cases" class="oe_stat_button">
                             <field name="case_count" widget="statinfo" string="Cases"/>
                         </button>
+                        <button type="object" name="action_open_cases" class="oe_stat_button">
+                            <field name="first_instance_case_count" widget="statinfo" string="Primary"/>
+                        </button>
+                        <button type="object" name="action_open_cases" class="oe_stat_button">
+                            <field name="appeal_case_count" widget="statinfo" string="Appeal"/>
+                        </button>
+                        <button type="object" name="action_open_cases" class="oe_stat_button">
+                            <field name="cassation_case_count" widget="statinfo" string="Cassation"/>
+                        </button>
+                        <button type="object" name="action_open_cases" class="oe_stat_button">
+                            <field name="execution_case_count" widget="statinfo" string="Execution"/>
+                        </button>
                         <button type="object" name="action_open_project_tasks" class="oe_stat_button">
                             <field name="task_count" widget="statinfo" string="Tasks"/>
                         </button>
@@ -86,16 +99,15 @@
                     </div>
 
                     <div class="oe_title">
-                        <label for="name"/>
+                        <label for="service_code" string="Service Code"/>
                         <h1>
-                            <field name="name"/>
+                            <field name="service_code" readonly="1" class="oe_inline"/>
                         </h1>
                     </div>
 
                     <group string="General Info">
                         <group>
                             <field name="client_id"/>
-                            <field name="service_code" readonly="1"/>
                             <field name="legal_service_type_ids" widget="many2many_tags"/>
                             <field name="service_type" invisible="1"/>
                             <field name="engagement_letter_id" readonly="1"/>
@@ -103,7 +115,7 @@
                             <field name="currency_id"/>
                         </group>
                         <group>
-                            <field name="lawyer_id"/>
+                            <field name="lawyer_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="responsible_user_ids" widget="many2many_tags"/>
                             <field name="start_date"/>
                             <field name="end_date"/>
@@ -136,7 +148,7 @@
                                     <field name="payment_terms"/>
                                 </group>
                                 <group>
-                                    <field name="total_hours" widget="float_time"/>
+                                <field name="total_hours" widget="float_time"/>
                                     <field name="overconsumed_hours" widget="float_time" readonly="1"
                                            decoration-danger="overconsumed_hours &gt; 0"/>
                                     <field name="phone"/>
@@ -217,7 +229,7 @@
 
                         <page string="Litigation" invisible="not has_litigation_service">
                             <group>
-                                <field name="litigation_degree_ids"
+                                <field name="allowed_litigation_degree_ids"
                                        widget="many2many_tags"
                                        required="has_litigation_service"/>
                             </group>
@@ -238,12 +250,17 @@
         <field name="model">qlk.project</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name"/>
+                <field name="service_code"/>
                 <field name="client_id"/>
+                <field name="client_file_id"/>
                 <field name="legal_service_type_ids"/>
+                <field name="service_type"/>
                 <field name="lawyer_id"/>
+                <filter name="active_projects" string="Active" domain="[('active', '=', True)]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="group_client_file" string="Client File" context="{'group_by': 'client_file_id'}"/>
+                    <filter name="group_service_type" string="Service Type" context="{'group_by': 'service_type'}"/>
                     <filter name="group_lawyer" string="Lawyer" context="{'group_by': 'lawyer_id'}"/>
                 </group>
             </search>

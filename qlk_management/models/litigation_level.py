@@ -5,7 +5,7 @@ from odoo import fields, models
 LITIGATION_STAGE_CODE_SELECTION = [
     ("F", "First Instance"),
     ("A", "Appeal"),
-    ("CA", "Cassation"),
+    ("C", "Cassation"),
     ("E", "Enforcement"),
 ]
 
@@ -34,7 +34,7 @@ class LitigationLevel(models.Model):
         level_codes = {
             "qlk_management.litigation_level_first_instance": "F",
             "qlk_management.litigation_level_appeal": "A",
-            "qlk_management.litigation_level_cassation": "CA",
+            "qlk_management.litigation_level_cassation": "C",
             "qlk_management.litigation_level_enforcement": "E",
         }
         for xml_id, code in level_codes.items():

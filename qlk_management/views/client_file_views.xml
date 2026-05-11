@@ -100,9 +100,14 @@
                         <group>
                             <field name="partner_id"/>
                             <field name="legal_service_type_ids" widget="many2many_tags"/>
+                            <field name="allowed_litigation_degree_ids" widget="many2many_tags"
+                                   invisible="not has_litigation_service and not has_pre_litigation_service"/>
                             <field name="planned_hours" readonly="1" widget="float_time"/>
                         </group>
                         <group>
+                            <field name="litigation_client_code" readonly="1"/>
+                            <field name="corporate_client_code" readonly="1"/>
+                            <field name="arbitration_client_code" readonly="1"/>
                             <field name="email"/>
                             <field name="phone"/>
                             <field name="mobile"/>
@@ -302,6 +307,7 @@
         <field name="name">qlk.project.form.client.file</field>
         <field name="model">qlk.project</field>
         <field name="inherit_id" ref="qlk_management.view_qlk_project_form"/>
+        <field name="active" eval="False"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='service_type']" position="after">
                 <field name="legal_service_type_ids" widget="many2many_tags"/>

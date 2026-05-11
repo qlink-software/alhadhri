@@ -33,7 +33,7 @@ LEGAL_SERVICE_CODE_PREFIX = {
     "litigation": "L",
     "arbitration": "A",
     "corporate": "C",
-    "pre_litigation": "P",
+    "pre_litigation": "L",
 }
 
 
@@ -41,9 +41,11 @@ class QlkProject(models.Model):
     _name = "qlk.project"
     _description = "QLK Legal Project"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _rec_name = "service_code"
     _order = "create_date desc"
 
-    name = fields.Char(string="Project Name", required=True, default=lambda self: _("New Project"), tracking=True)
+    name = fields.Char(string="Legacy Project Name", required=True, default=lambda self: _("New Project"), tracking=True)
+    active = fields.Boolean(default=True, tracking=True)
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -60,7 +62,11 @@ class QlkProject(models.Model):
     def init(self):
         # حماية أثناء الترقية: إذا توقفت ترقية سابقة قبل إنشاء عمود الحالة لا نكسر فتح النظام.
         self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS state varchar")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS service_code varchar")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS active boolean DEFAULT true")
         self.env.cr.execute("UPDATE qlk_project SET state = 'draft' WHERE state IS NULL")
+        self.env.cr.execute("UPDATE qlk_project SET active = true WHERE active IS NULL")
+        self.env.cr.execute("UPDATE qlk_project SET service_code = name WHERE service_code IS NULL AND name IS NOT NULL")
 
     client_id = fields.Many2one(
         "res.partner",
@@ -69,6 +75,14 @@ class QlkProject(models.Model):
         index=True,
         tracking=True,
         domain="[('customer_rank', '>', 0)]",
+    )
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        required=True,
+        default=lambda self: self.env.company,
+        index=True,
+        tracking=True,
     )
     engagement_letter_id = fields.Many2one(
         "bd.engagement.letter",
@@ -81,7 +95,7 @@ class QlkProject(models.Model):
     lawyer_id = fields.Many2one(
         "hr.employee",
         string="Lawyer",
-        domain="[('user_id.partner_id.is_lawyer', '=', True)]",
+        domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]",
         tracking=True,
     )
     service_type = fields.Selection(
@@ -189,6 +203,12 @@ class QlkProject(models.Model):
         string="Litigation Degrees",
         tracking=True,
     )
+    allowed_litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        compute="_compute_allowed_litigation_degree_ids",
+        inverse="_inverse_allowed_litigation_degree_ids",
+        string="Allowed Litigation Degrees",
+    )
 
     client_name = fields.Char(string="Client Name", related="client_id.name", readonly=True)
     client_code = fields.Char(string="Client Code", compute="_compute_client_profile", store=True)
@@ -205,6 +225,10 @@ class QlkProject(models.Model):
     arbitration_case_ids = fields.One2many("qlk.arbitration.case", "project_id", string="Arbitration")
     pre_litigation_ids = fields.One2many("qlk.pre.litigation", "project_id", string="Pre-Litigation")
     case_count = fields.Integer(string="Cases", compute="_compute_service_counts", compute_sudo=True)
+    first_instance_case_count = fields.Integer(string="First Instance", compute="_compute_case_degree_counts", compute_sudo=True)
+    appeal_case_count = fields.Integer(string="Appeal", compute="_compute_case_degree_counts", compute_sudo=True)
+    cassation_case_count = fields.Integer(string="Cassation", compute="_compute_case_degree_counts", compute_sudo=True)
+    execution_case_count = fields.Integer(string="Execution", compute="_compute_case_degree_counts", compute_sudo=True)
     corporate_count = fields.Integer(string="Corporate", compute="_compute_service_counts", compute_sudo=True)
     arbitration_count = fields.Integer(string="Arbitration", compute="_compute_service_counts", compute_sudo=True)
     pre_litigation_count = fields.Integer(string="Pre-Litigation", compute="_compute_service_counts", compute_sudo=True)
@@ -250,8 +274,101 @@ class QlkProject(models.Model):
         return code
 
     def _ensure_service_code(self):
-        # Service codes are now generated on the legal service records themselves.
+        for project in self:
+            if project.service_code:
+                continue
+            project.sudo()._assign_service_code()
         return True
+
+    @api.model
+    def _service_category(self, service_code):
+        return "litigation" if service_code in ("litigation", "pre_litigation") else service_code
+
+    def _primary_service_code(self):
+        self.ensure_one()
+        if self.service_type in ("litigation", "pre_litigation", "corporate", "arbitration"):
+            return self.service_type
+        codes = self._legal_service_codes()
+        if codes == {"corporate"}:
+            return "corporate"
+        if codes == {"arbitration"}:
+            return "arbitration"
+        if "litigation" in codes:
+            return "litigation"
+        if "pre_litigation" in codes:
+            return "pre_litigation"
+        return self.service_type or "litigation"
+
+    @api.model
+    def _primary_service_from_vals(self, vals):
+        if vals.get("service_type"):
+            return vals["service_type"]
+        service_ids = []
+        for command in vals.get("legal_service_type_ids") or []:
+            if isinstance(command, (list, tuple)) and command:
+                if command[0] == 6:
+                    service_ids.extend(command[2])
+                elif command[0] == 4:
+                    service_ids.append(command[1])
+        codes = set(self.env["qlk.legal.service.type"].browse(service_ids).mapped("code"))
+        if codes == {"corporate"}:
+            return "corporate"
+        if codes == {"arbitration"}:
+            return "arbitration"
+        if "litigation" in codes:
+            return "litigation"
+        if "pre_litigation" in codes:
+            return "pre_litigation"
+        return False
+
+    def _assign_service_code(self):
+        self.ensure_one()
+        if self.service_code:
+            return self.service_code
+        if not self.client_file_id:
+            raise ValidationError(_("Cannot generate service code without a client file."))
+        service_code = self._primary_service_code()
+        code = self.client_file_id._next_project_service_code(service_code)
+        self.sudo().with_context(mail_notrack=True).write({"service_code": code, "name": code})
+        return code
+
+    @api.model
+    def backfill_legal_codes(self):
+        projects = self.sudo().search([("client_file_id", "!=", False)], order="id").filtered(
+            lambda project: (
+                not project.service_code
+                or project.service_code.startswith("PRJ-")
+                or "/" not in project.service_code
+                or (project.service_type == "corporate" and not project.service_code.startswith("C"))
+                or (project.service_type == "arbitration" and not project.service_code.startswith("A"))
+                or (project.service_type in ("litigation", "pre_litigation") and not project.service_code.startswith("L"))
+            )
+        )
+        for project in projects:
+            project.sudo().with_context(mail_notrack=True).write({"service_code": False})
+            project._assign_service_code()
+
+        cases = self.env["qlk.case"].sudo().search([
+            ("project_id", "!=", False),
+            ("litigation_degree_id", "!=", False),
+        ], order="id")
+        for case in cases:
+            case.project_id._ensure_service_code()
+            service_code = "%s/%s" % (case.project_id.service_code, case.litigation_degree_id.code)
+            if case.service_code != service_code:
+                case.with_context(skip_engagement_case_validation=True).write({
+                    "service_code": service_code,
+                })
+        return True
+
+    @api.depends("litigation_degree_ids")
+    def _compute_allowed_litigation_degree_ids(self):
+        for project in self:
+            project.allowed_litigation_degree_ids = project.litigation_degree_ids
+
+    def _inverse_allowed_litigation_degree_ids(self):
+        for project in self:
+            project.litigation_degree_ids = project.allowed_litigation_degree_ids
 
     def _legal_service_codes(self):
         self.ensure_one()
@@ -349,6 +466,15 @@ class QlkProject(models.Model):
             project.arbitration_count = len(project.arbitration_case_ids)
             project.pre_litigation_count = len(project.pre_litigation_ids)
 
+    @api.depends("case_ids.litigation_degree_id", "case_ids.litigation_degree_id.code")
+    def _compute_case_degree_counts(self):
+        for project in self:
+            codes = project.case_ids.mapped("litigation_degree_id.code")
+            project.first_instance_case_count = codes.count("F")
+            project.appeal_case_count = codes.count("A")
+            project.cassation_case_count = codes.count("C")
+            project.execution_case_count = codes.count("E")
+
     @api.depends("project_task_ids")
     def _compute_task_count(self):
         for project in self:
@@ -396,10 +522,12 @@ class QlkProject(models.Model):
     def create(self, vals_list):
         self._ensure_legal_manager()
         for vals in vals_list:
+            vals.setdefault("company_id", self.env.company.id)
+            vals.setdefault("service_type", self._primary_service_from_vals(vals))
             if not vals.get("client_id"):
                 raise ValidationError(_("Cannot create project without client."))
             if not vals.get("name") or vals.get("name") == _("New Project"):
-                vals["name"] = self.env["ir.sequence"].next_by_code("qlk.project") or _("New Project")
+                vals["name"] = vals.get("service_code") or _("New Project")
             if vals.get("engagement_letter_id"):
                 existing = self.search([("engagement_letter_id", "=", vals["engagement_letter_id"])], limit=1)
                 if existing:
@@ -412,6 +540,8 @@ class QlkProject(models.Model):
                 mail_auto_subscribe_no_notify=True,
             ),
         ).create(vals_list)
+        for project in projects:
+            project._assign_service_code()
         projects._notify_project_created()
         return projects
 
@@ -464,8 +594,8 @@ class QlkProject(models.Model):
                 "default_litigation_degree_id": degree.id,
                 "default_litigation_level_id": degree.level_id.id if degree.level_id else False,
                 "default_litigation_flow": "litigation",
-                "default_name": self.name,
-                "default_name2": self.name,
+                "default_name": self.service_code or self.name,
+                "default_name2": self.service_code or self.name,
             }
         )
         return {
@@ -530,7 +660,7 @@ class QlkProject(models.Model):
             raise UserError(_("Assign a lawyer before creating a corporate record."))
         record = self.env["qlk.corporate.case"].create(
             {
-                "name": self.name,
+                "name": self.service_code or self.name,
                 "project_id": self.id,
                 "client_file_id": self.client_file_id.id,
                 "client_id": self.client_id.id,
@@ -544,7 +674,7 @@ class QlkProject(models.Model):
         self._ensure_service_creation("arbitration")
         record = self.env["qlk.arbitration.case"].create(
             {
-                "name": self.name,
+                "name": self.service_code or self.name,
                 "project_id": self.id,
                 "client_file_id": self.client_file_id.id,
                 "claimant_id": self.client_id.id,
@@ -558,13 +688,13 @@ class QlkProject(models.Model):
         self._ensure_service_creation("pre_litigation")
         record = self.env["qlk.pre.litigation"].create(
             {
-                "name": self.name,
+                "name": self.service_code or self.name,
                 "project_id": self.id,
                 "client_file_id": self.client_file_id.id,
                 "client_id": self.client_id.id,
                 "engagement_id": self.engagement_letter_id.id,
                 "lawyer_employee_id": self.lawyer_id.id,
-                "subject": self.name,
+                "subject": self.service_code or self.name,
             }
         )
         return self._open_record("qlk.pre.litigation", record, _("Pre-Litigation"))

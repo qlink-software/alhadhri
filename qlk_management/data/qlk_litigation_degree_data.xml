@@ -14,7 +14,7 @@
     </record>
     <record id="qlk_litigation_degree_cassation" model="qlk.litigation.degree">
         <field name="name">Cassation</field>
-        <field name="code">CA</field>
+        <field name="code">C</field>
         <field name="level_id" ref="qlk_management.litigation_level_cassation"/>
         <field name="sequence">30</field>
     </record>

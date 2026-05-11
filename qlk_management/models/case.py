@@ -49,6 +49,7 @@ COMPLETION_DEPENDS = sorted({field for values in COMPLETION_SECTIONS.values() fo
 
 class QlkCase(models.Model):
     _inherit = "qlk.case"
+    _rec_name = "service_code"
 
     task_ids = fields.One2many(
         "project.task",
@@ -85,8 +86,9 @@ class QlkCase(models.Model):
         ondelete="restrict",
         index=True,
         tracking=True,
+        domain="[('client_file_id', '=', client_file_id), ('service_type', 'in', ['litigation', 'pre_litigation']), ('active', '=', True)]",
     )
-    service_code = fields.Char(string="Service Code", readonly=True, copy=False)
+    service_code = fields.Char(string="Service Code", readonly=True, copy=False, index=True)
     litigation_degree = fields.Selection(
         [
             ("first", "First Instance"),
@@ -111,7 +113,7 @@ class QlkCase(models.Model):
     allowed_litigation_degree_ids = fields.Many2many(
         "qlk.litigation.degree",
         string="Allowed Litigation Degrees",
-        related="engagement_id.litigation_degree_ids",
+        related="project_id.litigation_degree_ids",
         readonly=True,
     )
     litigation_stage_code = fields.Selection(
@@ -148,6 +150,23 @@ class QlkCase(models.Model):
     completion_details = fields.Float(string="Details", compute="_compute_completion_metrics", store=False)
     completion_documents = fields.Float(string="Documents", compute="_compute_completion_metrics", store=False)
     completion_overall = fields.Float(string="Overall Completion", compute="_compute_completion_metrics", store=False)
+
+    def init(self):
+        super().init()
+        cr = self.env.cr
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS service_code varchar")
+        cr.execute(
+            """
+            UPDATE qlk_case c
+               SET service_code = p.service_code || '/' || d.code
+              FROM qlk_project p, qlk_litigation_degree d
+             WHERE c.project_id = p.id
+               AND c.litigation_degree_id = d.id
+               AND c.service_code IS DISTINCT FROM (p.service_code || '/' || d.code)
+               AND p.service_code IS NOT NULL
+               AND d.code IS NOT NULL
+            """
+        )
 
     @api.depends("task_ids.effective_hours", "task_ids.timesheet_ids.unit_amount")
     def _compute_case_hours(self):
@@ -200,9 +219,11 @@ class QlkCase(models.Model):
                 record.engagement_id = project.engagement_letter_id.id
             if project.lawyer_id and "employee_id" in record._fields and not record.employee_id:
                 record.employee_id = project.lawyer_id.id
-            service_code = getattr(project, "service_code", False)
-            if service_code and not record.service_code:
-                record.service_code = service_code
+            if record.litigation_degree_id and record.litigation_degree_id not in project.litigation_degree_ids:
+                record.litigation_degree_id = False
+                record.litigation_level_id = False
+                record.litigation_degree = False
+            record.service_code = record._service_code_from_project_degree(project, record.litigation_degree_id)
 
     @api.onchange("litigation_degree_id")
     def _onchange_litigation_degree_id(self):
@@ -211,6 +232,7 @@ class QlkCase(models.Model):
             if degree and degree.level_id:
                 record.litigation_level_id = degree.level_id.id
             record.litigation_degree = record._legacy_litigation_degree_from_degree(degree)
+            record.service_code = record._service_code_from_project_degree(record.project_id, degree)
 
     @api.onchange("litigation_degree")
     def _onchange_legacy_litigation_degree(self):
@@ -220,6 +242,7 @@ class QlkCase(models.Model):
                 if degree:
                     record.litigation_degree_id = degree.id
                     record.litigation_level_id = degree.level_id.id
+                    record.service_code = record._service_code_from_project_degree(record.project_id, degree)
 
     @api.constrains("project_id", "engagement_id", "litigation_degree_id", "litigation_level_id")
     def _check_engagement_case_rules(self):
@@ -249,10 +272,22 @@ class QlkCase(models.Model):
                 )
             if engagement and not degree:
                 raise ValidationError(_("Select a litigation degree for this case."))
-            if engagement and engagement.litigation_degree_ids and degree not in engagement.litigation_degree_ids:
-                raise ValidationError(_("The selected litigation degree is not allowed for this engagement letter."))
+            allowed_degrees = record.project_id.litigation_degree_ids or engagement.litigation_degree_ids
+            if allowed_degrees and degree not in allowed_degrees:
+                raise ValidationError(_("The selected litigation degree is not allowed for this project."))
             if degree and record.litigation_level_id and degree.level_id and record.litigation_level_id != degree.level_id:
                 raise ValidationError(_("The selected litigation degree does not match the litigation level."))
+            if (
+                degree
+                and record.project_id
+                and not self.env.context.get("allow_duplicate_litigation_degree")
+                and self.search_count([
+                    ("id", "!=", record.id),
+                    ("project_id", "=", record.project_id.id),
+                    ("litigation_degree_id", "=", degree.id),
+                ])
+            ):
+                raise ValidationError(_("A litigation case already exists for this project and degree."))
             if engagement and engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
                 raise ValidationError(_("Case limit exceeded for this engagement letter."))
 
@@ -298,9 +333,24 @@ class QlkCase(models.Model):
             return "first"
         if degree.code == "A":
             return "appeal"
-        if degree.code == "CA":
+        if degree.code == "C":
             return "cassation"
         return False
+
+    @api.model
+    def _service_code_from_project_degree(self, project, degree):
+        if not project or not degree:
+            return False
+        project._ensure_service_code()
+        if not project.service_code or not degree.code:
+            return False
+        return "%s/%s" % (project.service_code, degree.code)
+
+    @api.model
+    def _service_code_from_vals(self, vals):
+        project = self.env["qlk.project"].browse(vals.get("project_id"))
+        degree = self.env["qlk.litigation.degree"].browse(vals.get("litigation_degree_id"))
+        return self._service_code_from_project_degree(project if project.exists() else False, degree if degree.exists() else False)
 
     @api.model
     def sync_legacy_litigation_degrees(self):
@@ -336,6 +386,7 @@ class QlkCase(models.Model):
                 self._ensure_project_manager()
             self._apply_project_defaults(vals)
             self._normalize_litigation_degree_vals(vals)
+            vals["service_code"] = self._service_code_from_vals(vals)
         records = super().create(vals_list)
         return records
 
@@ -348,6 +399,15 @@ class QlkCase(models.Model):
                 self._apply_project_defaults(vals)
         if {"litigation_degree_id", "litigation_level_id"}.intersection(vals):
             self._normalize_litigation_degree_vals(vals)
+        if {"project_id", "litigation_degree_id", "litigation_level_id"}.intersection(vals):
+            for record in self:
+                merged_vals = {
+                    "project_id": vals.get("project_id", record.project_id.id),
+                    "litigation_degree_id": vals.get("litigation_degree_id", record.litigation_degree_id.id),
+                    "litigation_level_id": vals.get("litigation_level_id", record.litigation_level_id.id),
+                }
+                self._normalize_litigation_degree_vals(merged_vals)
+                vals["service_code"] = self._service_code_from_vals(merged_vals)
         return super().write(vals)
 
     def _apply_project_defaults(self, vals):
@@ -361,11 +421,6 @@ class QlkCase(models.Model):
             vals.setdefault("client_id", project.client_id.id)
             vals.setdefault("client_ids", [(6, 0, project.client_id.ids)] if project.client_id else False)
             vals.setdefault("employee_id", project.lawyer_id.id)
-            vals.setdefault("service_code", getattr(project, "service_code", False))
-            if not vals.get("litigation_degree_id") and project.engagement_letter_id.litigation_degree_ids:
-                degree = project.engagement_letter_id.litigation_degree_ids[:1]
-                vals["litigation_degree_id"] = degree.id
-                vals["litigation_level_id"] = degree.level_id.id if degree.level_id else False
         return vals
 
     def _ensure_project_manager(self):

@@ -55,9 +55,11 @@
             <field name="model">qlk.corporate.case</field>
             <field name="inherit_id" ref="qlk_corporate.view_corporate_case_list"/>
             <field name="arch" type="xml">
+                <xpath expr="//list/field[@name='name']" position="before">
+                    <field name="service_code"/>
+                </xpath>
                 <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
                     <field name="project_id"/>
-                    <field name="service_code"/>
                     <field name="engagement_id"/>
                     <field name="agreement_hours"/>
                     <field name="planned_hours"/>

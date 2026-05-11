@@ -9,17 +9,29 @@
                 <xpath expr="//form/header" position="inside">
                 </xpath>
 
+                <xpath expr="//sheet" position="inside">
+                    <div class="oe_title">
+                        <label for="service_code" string="Service Code"/>
+                        <h1>
+                            <field name="service_code" readonly="1" class="oe_inline"/>
+                        </h1>
+                    </div>
+                </xpath>
+
                 <xpath expr="//field[@name='is_new']/.." position="before">
                     <group string="Engagement / Case Engine">
                         <field name="allowed_litigation_degree_ids" invisible="1"/>
-                        <field name="project_id" required="1"/>
-                        <field name="service_code" readonly="1"/>
+                        <field name="client_file_id"/>
+                        <field name="project_id"
+                               required="1"
+                               domain="[('client_file_id', '=', client_file_id), ('service_type', 'in', ['litigation', 'pre_litigation']), ('active', '=', True)]"/>
                         <field name="engagement_id" readonly="1"/>
                         <field name="litigation_degree" invisible="1"/>
                         <field name="litigation_degree_id"
                                string="Litigation Degree"
                                domain="[('id', 'in', allowed_litigation_degree_ids)]"
-                               required="engagement_id"/>
+                               required="project_id"/>
+                        <field name="service_code" readonly="1"/>
                     </group>
                 </xpath>
 
@@ -85,10 +97,10 @@
             <field name="name">qlk.case.project.list</field>
             <field name="model">qlk.case</field>
             <field name="priority">90</field>
-            <field name="arch" type="xml">
-                <list string="Cases" default_order="create_date desc">
-                    <field name="project_id"/>
+                <field name="arch" type="xml">
+                    <list string="Cases" default_order="create_date desc">
                     <field name="service_code"/>
+                    <field name="project_id"/>
                     <field name="engagement_id"/>
                     <field name="litigation_degree_id" string="Litigation Degree"/>
                     <field name="name"/>
@@ -98,6 +110,39 @@
                     <field name="case_group"/>
                     <field name="second_category"/>
                 </list>
+                </field>
+        </record>
+
+        <record id="view_qlk_case_list_inherit_service_code" model="ir.ui.view">
+            <field name="name">qlk.case.list.service.code</field>
+            <field name="model">qlk.case</field>
+            <field name="inherit_id" ref="qlk_law.view_qlk_case_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//list/field[@name='name']" position="before">
+                    <field name="service_code"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_qlk_case_project_search" model="ir.ui.view">
+            <field name="name">qlk.case.project.search</field>
+            <field name="model">qlk.case</field>
+                <field name="arch" type="xml">
+                <search>
+                    <field name="service_code"/>
+                    <field name="project_id"/>
+                    <field name="client_id"/>
+                    <field name="litigation_degree_id"/>
+                    <filter name="degree_first" string="Primary" domain="[('litigation_degree_id.code', '=', 'F')]"/>
+                    <filter name="degree_appeal" string="Appeal" domain="[('litigation_degree_id.code', '=', 'A')]"/>
+                    <filter name="degree_cassation" string="Cassation" domain="[('litigation_degree_id.code', '=', 'C')]"/>
+                    <filter name="degree_execution" string="Execution" domain="[('litigation_degree_id.code', '=', 'E')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_degree" string="Degree" context="{'group_by': 'litigation_degree_id'}"/>
+                        <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                        <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    </group>
+                </search>
             </field>
         </record>
     </data>

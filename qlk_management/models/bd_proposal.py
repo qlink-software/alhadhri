@@ -19,6 +19,15 @@ TRANSLATION_STATUS_SELECTION = [
     ("done", "Translated"),
 ]
 
+LEGACY_RETAINER_SERVICE_CODES = {
+    "litigation": ["litigation"],
+    "corporate": ["corporate"],
+    "arbitration": ["arbitration"],
+    "litigation_corporate": ["litigation", "corporate"],
+    "management_corporate": ["corporate"],
+    "management_litigation": ["litigation"],
+}
+
 class BDProposal(models.Model):
     _name = "bd.proposal"
     _description = "Business Proposal"
@@ -54,6 +63,23 @@ class BDProposal(models.Model):
         default="corporate",
         tracking=True,
     )
+    legal_service_type_ids = fields.Many2many(
+        "qlk.legal.service.type",
+        "bd_proposal_legal_service_type_rel",
+        "proposal_id",
+        "service_type_id",
+        string="Legal Services",
+        tracking=True,
+    )
+    allowed_litigation_degree_ids = fields.Many2many(
+        "qlk.litigation.degree",
+        "bd_proposal_litigation_degree_rel",
+        "proposal_id",
+        "degree_id",
+        string="Allowed Litigation Degrees",
+        tracking=True,
+    )
+    has_litigation_service = fields.Boolean(compute="_compute_service_flags", store=True)
     client_code = fields.Char(string="Client Code", copy=False, readonly=True)
     client_sequence = fields.Integer(string="Client Sequence", copy=False, readonly=True)
     partner_id = fields.Many2one(
@@ -242,7 +268,7 @@ class BDProposal(models.Model):
         "res.partner",
         string="Assigned Lawyer",
         tracking=True,
-        domain=[("is_lawyer", "=", True)],
+        domain=["&", ("is_company", "=", False), "|", ("is_lawyer", "=", True), ("category_id.name", "ilike", "lawyer")],
     )
     lawyer_ids = fields.Many2many(
         "hr.employee",
@@ -250,13 +276,13 @@ class BDProposal(models.Model):
         "proposal_id",
         "employee_id",
         string="Assigned Lawyers",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         tracking=True,
     )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         compute="_compute_lawyer_employee_id",
         inverse="_inverse_lawyer_employee_id",
         store=True,
@@ -269,6 +295,14 @@ class BDProposal(models.Model):
         store=True,
         readonly=True,
     )
+
+    @api.depends("legal_service_type_ids", "legal_service_type_ids.code", "retainer_type")
+    def _compute_service_flags(self):
+        for record in self:
+            codes = set(record.legal_service_type_ids.mapped("code"))
+            if not codes:
+                codes = set(LEGACY_RETAINER_SERVICE_CODES.get(record.retainer_type) or ["litigation"])
+            record.has_litigation_service = "litigation" in codes or "pre_litigation" in codes
     contract_type = fields.Selection(
         related="retainer_type",
         string="Contract Type",
@@ -585,7 +619,11 @@ class BDProposal(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         sequence_cache = {}
+        service_model = self.env["qlk.legal.service.type"]
         for vals in vals_list:
+            if not vals.get("legal_service_type_ids"):
+                service_codes = LEGACY_RETAINER_SERVICE_CODES.get(vals.get("retainer_type")) or ["litigation"]
+                vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(service_codes))]
             if vals.get("partner_id") and not vals.get("client_id"):
                 vals["client_id"] = vals["partner_id"]
             if vals.get("lawyer_id"):
@@ -612,6 +650,11 @@ class BDProposal(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        if "retainer_type" in vals and not vals.get("legal_service_type_ids"):
+            service_ids = self.env["qlk.legal.service.type"]._ids_from_codes(
+                LEGACY_RETAINER_SERVICE_CODES.get(vals.get("retainer_type")) or ["litigation"]
+            )
+            vals["legal_service_type_ids"] = [(6, 0, service_ids)]
         if "translation_attachment_ids" in vals and "translation_status" not in vals:
             vals["translation_status"] = "draft"
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
@@ -1126,6 +1169,8 @@ class BDProposal(models.Model):
             "total_estimated_cost": self.total_estimated_cost,
             "billing_type": self.billing_type,
             "retainer_type": self.retainer_type,
+            "legal_service_type_ids": [(6, 0, self.legal_service_type_ids.ids)],
+            "litigation_degree_ids": [(6, 0, self.allowed_litigation_degree_ids.ids)],
             "retainer_period": self.retainer_period,
             "allocated_hours": self.allocated_hours,
             "monthly_hours_limit": self.monthly_hours_limit,
@@ -1207,7 +1252,7 @@ class BDProposalLegalFee(models.Model):
     assigned_lawyer_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
-        domain=[("user_id.partner_id.is_lawyer", "=", True)],
+        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         index=True,
     )
     quantity = fields.Float(string="Quantity", default=1.0)
