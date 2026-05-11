@@ -80,3 +80,4 @@ access_qlk_client_file_role_manager,qlk.client.file role manager,model_qlk_clien
 access_qlk_client_file_el_manager,qlk.client.file engagement manager,model_qlk_client_file,qlk_management.group_el_manager,1,1,1,1
 access_qlk_client_file_bd_manager,qlk.client.file bd manager,model_qlk_client_file,qlk_management.group_bd_manager,1,1,1,1
 access_qlk_client_file_pre_litigation_manager,qlk.client.file pre litigation manager,model_qlk_client_file,qlk_management.group_pre_litigation_manager,1,1,1,1
+access_qlk_poa_upload_wizard_user,qlk.poa.upload.wizard user,model_qlk_poa_upload_wizard,base.group_user,1,1,1,1

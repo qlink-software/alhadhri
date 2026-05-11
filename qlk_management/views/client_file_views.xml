@@ -8,6 +8,10 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="service_code_summary"/>
+                <field name="poa_status" widget="badge"
+                       decoration-success="poa_status == 'verified'"
+                       decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                       decoration-danger="poa_status == 'expired'"/>
                 <field name="email"/>
                 <field name="phone"/>
                 <field name="mobile"/>
@@ -28,6 +32,7 @@
                 <field name="pre_litigation_count"/>
                 <field name="arbitration_count"/>
                 <field name="corporate_count"/>
+                <field name="poa_status"/>
                 <templates>
                     <t t-name="card">
                         <div class="d-flex justify-content-between align-items-start">
@@ -36,6 +41,10 @@
                                 <span class="text-muted" t-esc="record.partner_id.value"/>
                             </div>
                             <span class="badge text-bg-primary" t-esc="record.service_code_summary.value"/>
+                        </div>
+                        <div class="mt-2">
+                            <span t-attf-class="badge #{record.poa_status.raw_value == 'verified' ? 'text-bg-success' : (record.poa_status.raw_value == 'expired' ? 'text-bg-danger' : 'text-bg-warning')}"
+                                  t-esc="record.poa_status.value"/>
                         </div>
                         <div class="mt-2 text-muted">
                             <i class="fa fa-user me-1" title="Client"/>
@@ -61,12 +70,29 @@
                 <header>
                     <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"/>
+                    <button name="action_request_poa" type="object" string="Request POA" class="btn-secondary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="not poa_required or poa_status in ('requested', 'waiting_signature', 'uploaded', 'verified')"/>
+                    <button name="action_upload_poa" type="object" string="Upload POA" class="btn-secondary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="not poa_required or poa_status == 'verified'"/>
+                    <button name="action_create_poa" type="object" string="Create POA" class="btn-secondary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="not poa_required or poa_status == 'verified'"/>
+                    <button name="action_verify_poa" type="object" string="Verify POA" class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="poa_status != 'uploaded'"/>
+                    <field name="poa_status" widget="statusbar" statusbar_visible="draft,requested,waiting_signature,uploaded,verified,expired" readonly="1"/>
                 </header>
                 <sheet>
                     <field name="has_litigation_service" invisible="1"/>
                     <field name="has_pre_litigation_service" invisible="1"/>
                     <field name="has_arbitration_service" invisible="1"/>
                     <field name="has_corporate_service" invisible="1"/>
+                    <field name="poa_required" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not poa_required or poa_status == 'verified'">
+                        POA has not been completed yet.
+                    </div>
                     <div class="oe_button_box" name="button_box">
                         <button type="object" name="action_open_litigation" class="oe_stat_button" icon="fa-balance-scale">
                             <field name="litigation_count" widget="statinfo" string="Litigation"/>
@@ -88,6 +114,9 @@
                         </button>
                         <button type="object" name="action_open_attachments" class="oe_stat_button" icon="fa-paperclip">
                             <field name="attachment_count" widget="statinfo" string="Attachments"/>
+                        </button>
+                        <button type="object" name="action_open_poa_attachments" class="oe_stat_button" icon="fa-file-pdf-o">
+                            <field name="poa_attachment_count" widget="statinfo" string="POA"/>
                         </button>
                     </div>
 
@@ -118,6 +147,29 @@
                     </group>
 
                     <notebook>
+                        <page string="Power of Attorney / التوكيل">
+                            <group>
+                                <group>
+                                    <field name="poa_required"/>
+                                    <field name="poa_status" widget="badge" readonly="1"
+                                           decoration-success="poa_status == 'verified'"
+                                           decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                                           decoration-danger="poa_status == 'expired'"/>
+                                    <field name="poa_request_date"/>
+                                    <field name="poa_received_date"/>
+                                    <field name="poa_expiry_date"/>
+                                </group>
+                                <group>
+                                    <field name="poa_uploaded_by" readonly="1"/>
+                                    <field name="poa_verified_by" readonly="1"/>
+                                    <field name="poa_last_alert_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="poa_notes" nolabel="1" placeholder="POA notes / ملاحظات التوكيل"/>
+                            </group>
+                            <field name="poa_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                        </page>
                         <page string="General Info">
                             <group>
                                 <field name="address"/>
@@ -248,7 +300,10 @@
                 <field name="phone"/>
                 <field name="mobile"/>
                 <field name="legal_service_type_ids"/>
+                <field name="poa_status"/>
                 <filter name="litigation" string="Litigation" domain="[('legal_service_type_ids.code', '=', 'litigation')]"/>
+                <filter name="poa_pending" string="POA Pending" domain="[('poa_required', '=', True), ('poa_status', '!=', 'verified')]"/>
+                <filter name="poa_verified" string="POA Verified" domain="[('poa_status', '=', 'verified')]"/>
                 <filter name="arbitration" string="Arbitration" domain="[('legal_service_type_ids.code', '=', 'arbitration')]"/>
                 <filter name="corporate" string="Corporate" domain="[('legal_service_type_ids.code', '=', 'corporate')]"/>
                 <group expand="0" string="Group By">
@@ -325,6 +380,13 @@
             <xpath expr="//field[@name='project_id']" position="before">
                 <field name="client_file_id"/>
             </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="poa_status" widget="badge"
+                       decoration-success="poa_status == 'verified'"
+                       decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                       decoration-danger="poa_status == 'expired'"/>
+                <field name="poa_attachment_count" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='project_id']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
@@ -339,6 +401,13 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='project_id']" position="before">
                 <field name="client_file_id"/>
+            </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="poa_status" widget="badge"
+                       decoration-success="poa_status == 'verified'"
+                       decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                       decoration-danger="poa_status == 'expired'"/>
+                <field name="poa_attachment_count" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="attributes">
                 <attribute name="required">1</attribute>
@@ -360,6 +429,13 @@
             <xpath expr="//field[@name='project_id']" position="before">
                 <field name="client_file_id"/>
             </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="poa_status" widget="badge"
+                       decoration-success="poa_status == 'verified'"
+                       decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                       decoration-danger="poa_status == 'expired'"/>
+                <field name="poa_attachment_count" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='project_id']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
@@ -379,6 +455,13 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='project_id']" position="before">
                 <field name="client_file_id"/>
+            </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="poa_status" widget="badge"
+                       decoration-success="poa_status == 'verified'"
+                       decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
+                       decoration-danger="poa_status == 'expired'"/>
+                <field name="poa_attachment_count" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="attributes">
                 <attribute name="required">1</attribute>

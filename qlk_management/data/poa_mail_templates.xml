@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_template_client_file_poa_request" model="mail.template">
+        <field name="name">Client File POA Request</field>
+        <field name="model_id" ref="model_qlk_client_file"/>
+        <field name="subject">POA Request Required - Client File {{ object.name }}</field>
+        <field name="email_from">{{ (user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">mp.office@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>A Power of Attorney request is required.</p>
+                <ul>
+                    <li><strong>Client Name:</strong> <t t-out="object.partner_id.display_name or object.name"/></li>
+                    <li><strong>Client File Number:</strong> <t t-out="object.name"/></li>
+                    <li><strong>Legal Service Type:</strong> <t t-out="object.service_code_summary or '-'"/></li>
+                    <li><strong>Assigned Lawyers:</strong> <t t-out="', '.join(object.lawyer_user_ids.mapped('name')) or '-'"/></li>
+                    <li><strong>Responsible User:</strong> <t t-out="user.name"/></li>
+                    <li><strong>Request Date:</strong> <t t-out="format_date(object.poa_request_date) if object.poa_request_date else '-'"/></li>
+                </ul>
+                <p>يرجى متابعة طلب التوكيل وتحديث ملف العميل عند استلام النسخة الموقعة.</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+</odoo>

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import base64
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -38,6 +40,13 @@ CLIENT_CODE_SEQUENCE_CODES = {
     "corporate": "qlk.client.master.corporate",
     "arbitration": "qlk.client.master.arbitration",
 }
+
+LEGAL_MANAGER_GROUPS = (
+    "qlk_management.group_bd_manager",
+    "qlk_management.group_el_manager",
+    "qlk_management.group_client_file_manager",
+    "qlk_management.group_project_manager",
+)
 
 LEVEL_XMLID_CODES = {
     "qlk_management.litigation_level_first_instance": "F",
@@ -227,6 +236,37 @@ class QlkClientFile(models.Model):
     agreement_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
     project_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
     attachment_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
+    poa_required = fields.Boolean(string="POA Required", default=True, tracking=True)
+    poa_status = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("requested", "Requested"),
+            ("waiting_signature", "Waiting Client Signature"),
+            ("uploaded", "Uploaded"),
+            ("verified", "Verified"),
+            ("expired", "Expired"),
+        ],
+        string="POA Status",
+        default="draft",
+        tracking=True,
+        index=True,
+    )
+    poa_request_date = fields.Date(string="POA Request Date", tracking=True)
+    poa_received_date = fields.Date(string="POA Received Date", tracking=True)
+    poa_expiry_date = fields.Date(string="POA Expiry Date", tracking=True)
+    poa_notes = fields.Text(string="POA Notes", tracking=True)
+    poa_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "qlk_client_file_poa_attachment_rel",
+        "client_file_id",
+        "attachment_id",
+        string="POA Attachments",
+        tracking=True,
+    )
+    poa_uploaded_by = fields.Many2one("res.users", string="POA Uploaded By", readonly=True, tracking=True)
+    poa_verified_by = fields.Many2one("res.users", string="POA Verified By", readonly=True, tracking=True)
+    poa_attachment_count = fields.Integer(string="POA Attachments", compute="_compute_counts", compute_sudo=True)
+    poa_last_alert_date = fields.Date(string="Last POA Alert Date", copy=False, readonly=True)
     planned_hours = fields.Float(string="Planned Hours", compute="_compute_hours", store=True, compute_sudo=True)
     consumed_hours = fields.Float(string="Consumed Hours", compute="_compute_hours", store=True, compute_sudo=True)
     remaining_hours = fields.Float(string="Remaining Hours", compute="_compute_hours", store=True, compute_sudo=True)
@@ -261,12 +301,23 @@ class QlkClientFile(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_required boolean DEFAULT true")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_status varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_request_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_received_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_expiry_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_notes text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_uploaded_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_verified_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_last_alert_date date")
         cr.execute(
             """
             UPDATE qlk_client_file
                SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
                    corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
-                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1)
+                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
+                   poa_required = COALESCE(poa_required, true),
+                   poa_status = COALESCE(poa_status, 'draft')
             """
         )
 
@@ -369,6 +420,7 @@ class QlkClientFile(models.Model):
         "corporate_case_ids",
         "attachment_ids",
         "translation_attachment_ids",
+        "poa_attachment_ids",
     )
     def _compute_counts(self):
         for record in self:
@@ -379,6 +431,7 @@ class QlkClientFile(models.Model):
             record.agreement_count = len(record.engagement_ids)
             record.project_count = len(record.project_ids)
             record.attachment_count = len(record.attachment_ids | record.translation_attachment_ids)
+            record.poa_attachment_count = len(record.poa_attachment_ids)
 
     @api.depends("project_ids.planned_hours", "project_ids.consumed_hours", "project_ids.remaining_hours", "project_ids.hours_state")
     def _compute_hours(self):
@@ -434,6 +487,8 @@ class QlkClientFile(models.Model):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(["litigation"]))]
         records = super().create(vals_list)
         records._sync_attachments_from_agreements()
+        for record in records.filtered(lambda item: item.poa_required and item.poa_status == "draft"):
+            record.with_context(skip_poa_manager_check=True).action_request_poa()
         return records
 
     def write(self, vals):
@@ -445,6 +500,17 @@ class QlkClientFile(models.Model):
         result = super().write(vals)
         if not self.env.context.get("skip_client_file_attachment_sync") and "engagement_ids" in vals:
             self._sync_attachments_from_agreements()
+        if "poa_attachment_ids" in vals and not self.env.context.get("skip_poa_auto_status"):
+            uploaded = self.filtered(lambda item: item.poa_attachment_ids and item.poa_status not in ("verified", "expired"))
+            if uploaded:
+                uploaded.with_context(skip_poa_auto_status=True, mail_notrack=True).write(
+                    {
+                        "poa_status": "uploaded",
+                        "poa_received_date": fields.Date.context_today(self),
+                        "poa_uploaded_by": self.env.user.id,
+                    }
+                )
+                uploaded._propagate_poa_attachments()
         return result
 
     @api.model
@@ -507,7 +573,220 @@ class QlkClientFile(models.Model):
     def _collect_transfer_attachments(self):
         self.ensure_one()
         normal, translation = self._collect_agreement_attachments()
-        return (self.attachment_ids | normal), (self.translation_attachment_ids | translation)
+        return (self.attachment_ids | self.poa_attachment_ids | normal), (self.translation_attachment_ids | translation)
+
+    def _check_poa_manager(self):
+        if self.env.context.get("skip_poa_manager_check"):
+            return True
+        if any(self.env.user.has_group(group) for group in LEGAL_MANAGER_GROUPS):
+            return True
+        raise UserError(_("Only an office or legal manager can process POA actions."))
+
+    def _poa_office_email(self):
+        return "mp.office@alhadhrilawfirm.com"
+
+    def _poa_lawyer_emails(self):
+        self.ensure_one()
+        emails = set()
+        for user in self.lawyer_user_ids.filtered("email"):
+            emails.add(user.email)
+        return sorted(emails)
+
+    def _poa_request_values(self):
+        self.ensure_one()
+        return {
+            "client": self.partner_id.display_name or self.name,
+            "file": self.name,
+            "services": self.service_code_summary or "-",
+            "lawyers": ", ".join(self.lawyer_user_ids.mapped("name")) or "-",
+            "responsible": self.env.user.display_name,
+            "date": self.poa_request_date or fields.Date.context_today(self),
+        }
+
+    def _send_poa_request_email(self):
+        template = self.env.ref("qlk_management.mail_template_client_file_poa_request", raise_if_not_found=False)
+        for record in self:
+            if template:
+                template.sudo().send_mail(record.id, force_send=True, raise_exception=False)
+                continue
+            values = record._poa_request_values()
+            body = _(
+                "Client: %(client)s<br/>Client File: %(file)s<br/>Legal Service Type: %(services)s<br/>"
+                "Assigned Lawyers: %(lawyers)s<br/>Responsible User: %(responsible)s<br/>Request Date: %(date)s"
+            ) % values
+            self.env["mail.mail"].sudo().create(
+                {
+                    "subject": _("POA Request Required - Client File %s") % record.name,
+                    "email_to": record._poa_office_email(),
+                    "body_html": body,
+                }
+            ).send()
+
+    def _send_poa_alert_email(self, subject, body):
+        for record in self:
+            recipients = [record._poa_office_email()] + record._poa_lawyer_emails()
+            recipients = [email for email in recipients if email]
+            if not recipients:
+                continue
+            self.env["mail.mail"].sudo().create(
+                {
+                    "subject": subject,
+                    "email_to": ",".join(sorted(set(recipients))),
+                    "body_html": body,
+                }
+            ).send()
+            record.message_post(body=body)
+
+    def _schedule_poa_activity(self, summary, note=False):
+        activity_type = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
+        if not activity_type:
+            return
+        for record in self:
+            users = record.lawyer_user_ids.filtered("active") | self.env.user
+            for user in users:
+                record.activity_schedule(
+                    activity_type_id=activity_type.id,
+                    user_id=user.id,
+                    summary=summary,
+                    note=note or summary,
+                )
+
+    def action_request_poa(self):
+        today = fields.Date.context_today(self)
+        for record in self:
+            record._check_poa_manager()
+            record.write(
+                {
+                    "poa_required": True,
+                    "poa_status": "requested",
+                    "poa_request_date": record.poa_request_date or today,
+                }
+            )
+        self._send_poa_request_email()
+        for record in self:
+            record.message_post(body=_("POA request email has been sent to the office manager."))
+        self._schedule_poa_activity(_("POA request sent"), _("Follow up signed POA upload and verification."))
+        return True
+
+    def action_upload_poa(self):
+        self.ensure_one()
+        self._check_poa_manager()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Upload POA"),
+            "res_model": "qlk.poa.upload.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_client_file_id": self.id},
+        }
+
+    def action_create_poa(self):
+        today = fields.Date.context_today(self)
+        for record in self:
+            record._check_poa_manager()
+            content = _("Power of Attorney internal request for %s generated on %s.") % (record.display_name, today)
+            attachment = self.env["ir.attachment"].sudo().create(
+                {
+                    "name": _("POA Request - %s.txt") % record.name,
+                    "type": "binary",
+                    "datas": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+                    "res_model": record._name,
+                    "res_id": record.id,
+                    "mimetype": "text/plain",
+                }
+            )
+            record.write({"attachment_ids": [(4, attachment.id)]})
+            record.message_post(body=_("Internal POA document has been created."), attachment_ids=[attachment.id])
+        return True
+
+    def action_verify_poa(self):
+        today = fields.Date.context_today(self)
+        for record in self:
+            record._check_poa_manager()
+            if not record.poa_attachment_ids:
+                raise UserError(_("Upload the signed POA before verification."))
+            if record.poa_expiry_date and record.poa_expiry_date < today:
+                raise UserError(_("The uploaded POA is already expired."))
+            record.write(
+                {
+                    "poa_status": "verified",
+                    "poa_verified_by": self.env.user.id,
+                    "poa_received_date": record.poa_received_date or today,
+                }
+            )
+            record._propagate_poa_attachments()
+            record.message_post(body=_("POA has been verified."))
+        return True
+
+    def action_open_poa_attachments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("POA Attachments"),
+            "res_model": "ir.attachment",
+            "view_mode": "list,form",
+            "domain": [("id", "in", self.poa_attachment_ids.ids)],
+            "context": {"default_res_model": self._name, "default_res_id": self.id},
+        }
+
+    def _propagate_poa_attachments(self):
+        for record in self:
+            if not record.poa_attachment_ids:
+                continue
+            attachment_commands = [(4, attachment_id) for attachment_id in record.poa_attachment_ids.ids]
+            for targets in (
+                record.project_ids,
+                record.litigation_case_ids,
+                record.pre_litigation_ids,
+                record.arbitration_case_ids,
+                record.corporate_case_ids,
+            ):
+                if targets and "attachment_ids" in targets._fields:
+                    targets.sudo().write({"attachment_ids": attachment_commands})
+
+    def _ensure_poa_verified(self):
+        for record in self:
+            if record.poa_required and record.poa_status != "verified":
+                raise ValidationError(_("Cannot proceed until the signed Power of Attorney (POA) is uploaded and verified."))
+        return True
+
+    @api.model
+    def _cron_check_poa_alerts(self):
+        today = fields.Date.context_today(self)
+        expired = self.search(
+            [
+                ("poa_required", "=", True),
+                ("poa_expiry_date", "!=", False),
+                ("poa_expiry_date", "<", today),
+                ("poa_status", "!=", "expired"),
+            ]
+        )
+        if expired:
+            expired.write({"poa_status": "expired", "poa_last_alert_date": today})
+            expired._send_poa_alert_email(
+                _("POA expired"),
+                _("A Power of Attorney has expired. Please renew it before proceeding with legal work."),
+            )
+
+        threshold = fields.Date.subtract(today, days=3)
+        missing = self.search(
+            [
+                ("poa_required", "=", True),
+                ("poa_status", "in", ["requested", "waiting_signature"]),
+                ("poa_request_date", "!=", False),
+                ("poa_request_date", "<=", threshold),
+                "|",
+                ("poa_last_alert_date", "=", False),
+                ("poa_last_alert_date", "<", today),
+            ]
+        )
+        if missing:
+            missing.write({"poa_last_alert_date": today})
+            missing._send_poa_alert_email(
+                _("POA pending signature"),
+                _("The POA is still missing after the allowed follow-up period."),
+            )
+        return True
 
     def _ensure_service_allowed(self, service_code):
         self.ensure_one()
@@ -892,6 +1171,24 @@ class QlkProjectClientFile(models.Model):
     _inherit = "qlk.project"
 
     client_file_id = fields.Many2one("qlk.client.file", string="Client File", ondelete="set null", tracking=True)
+    poa_required = fields.Boolean(string="POA Required", related="client_file_id.poa_required", readonly=True)
+    poa_status = fields.Selection(
+        related="client_file_id.poa_status",
+        string="POA Status",
+        readonly=True,
+        store=True,
+    )
+    poa_attachment_ids = fields.Many2many(
+        "ir.attachment",
+        related="client_file_id.poa_attachment_ids",
+        string="POA Attachments",
+        readonly=True,
+    )
+    poa_attachment_count = fields.Integer(
+        string="POA Attachments",
+        related="client_file_id.poa_attachment_count",
+        readonly=True,
+    )
     retainer_type = fields.Selection(
         [
             ("litigation", "Litigation"),

@@ -573,6 +573,8 @@ class QlkProject(models.Model):
         previous_remaining = {project.id: project.remaining_hours for project in self}
         if any(field in vals for field in ("client_id", "service_type", "legal_service_type_ids", "engagement_letter_id")):
             self._ensure_legal_manager()
+        if vals.get("state") == "active":
+            self._ensure_poa_ready()
         result = super().write(vals)
         if {"planned_hours", "manual_consumed_hours"}.intersection(vals):
             self._notify_hours_threshold(previous_remaining=previous_remaining)
@@ -602,11 +604,26 @@ class QlkProject(models.Model):
         self._ensure_legal_manager()
         if not self.id:
             raise UserError(_("Cannot create service without project."))
+        self._ensure_poa_ready()
         if not self._allows_legal_service(service_type):
             raise UserError(_("This project service type does not allow this service record."))
         if service_type == "litigation" and not self.litigation_degree_ids:
             raise UserError(_("Select at least one litigation degree before creating a litigation case."))
         return True
+
+    def _ensure_poa_ready(self):
+        for project in self:
+            client_file = project.client_file_id if "client_file_id" in project._fields else False
+            if client_file and hasattr(client_file, "_ensure_poa_verified"):
+                client_file._ensure_poa_verified()
+        return True
+
+    def action_open_poa_attachments(self):
+        self.ensure_one()
+        client_file = self.client_file_id if "client_file_id" in self._fields else False
+        if client_file and hasattr(client_file, "action_open_poa_attachments"):
+            return client_file.action_open_poa_attachments()
+        return False
 
     def action_create_litigation_case(self):
         self._ensure_service_creation("litigation")

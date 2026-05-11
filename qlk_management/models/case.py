@@ -117,6 +117,8 @@ class QlkCase(models.Model):
         tracking=True,
         domain="[('client_file_id', '=', client_file_id), ('service_type', 'in', ['litigation', 'pre_litigation']), ('active', '=', True)]",
     )
+    poa_status = fields.Selection(related="project_id.poa_status", string="POA Status", readonly=True)
+    poa_attachment_count = fields.Integer(related="project_id.poa_attachment_count", string="POA Attachments", readonly=True)
     service_code = fields.Char(string="Service Code", readonly=True, copy=False, index=True)
     litigation_degree = fields.Selection(
         [
@@ -302,6 +304,8 @@ class QlkCase(models.Model):
         for record in self:
             if not record.project_id:
                 raise ValidationError(_("Cases must be created from a project."))
+            if hasattr(record.project_id, "_ensure_poa_ready"):
+                record.project_id._ensure_poa_ready()
             allows_litigation = (
                 record.project_id._allows_legal_service("litigation")
                 if hasattr(record.project_id, "_allows_legal_service")
@@ -581,6 +585,9 @@ class QlkCase(models.Model):
             if vals.get("project_id"):
                 self._ensure_project_manager()
             self._apply_project_defaults(vals)
+            project = self.env["qlk.project"].browse(vals.get("project_id"))
+            if project.exists() and hasattr(project, "_ensure_poa_ready"):
+                project._ensure_poa_ready()
             self._apply_lawyer_employee_defaults(vals)
             self._validate_lawyer_employee_vals(vals)
             self._normalize_litigation_degree_vals(vals)
@@ -599,6 +606,9 @@ class QlkCase(models.Model):
             if vals.get("project_id"):
                 self._ensure_project_manager()
                 self._apply_project_defaults(vals)
+                project = self.env["qlk.project"].browse(vals.get("project_id"))
+                if project.exists() and hasattr(project, "_ensure_poa_ready"):
+                    project._ensure_poa_ready()
         if {"project_id", "engagement_id", "employee_id", "employee_ids"}.intersection(vals):
             for record in self:
                 self._apply_lawyer_employee_defaults(vals, record=record)

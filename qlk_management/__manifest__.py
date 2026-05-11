@@ -69,8 +69,10 @@
         'data/hr_mail_templates.xml',
         'data/translation_mail_templates.xml',
         'data/task_mail_templates.xml',
+        'data/poa_mail_templates.xml',
         'data/hr_automation_cron.xml',
         'data/bd_retainer_cron.xml',
+        'data/poa_cron.xml',
         'views/contact.xml',
         'views/res_partner_views.xml',
         'views/res_partner_contact_info_views.xml',
@@ -118,6 +120,7 @@
         'wizard/bd_rejection_wizard_views.xml',
         'wizard/bd_report_wizard_views.xml',
         'wizard/pre_litigation_approval_wizard_views.xml',
+        'wizard/poa_upload_wizard_views.xml',
         'wizard/employee_document_reject_wizard_views.xml',
         'wizard/hr_resignation_reject_wizard_views.xml',
 

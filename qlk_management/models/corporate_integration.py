@@ -21,6 +21,8 @@ class CorporateCaseProject(models.Model):
         index=True,
         tracking=True,
     )
+    poa_status = fields.Selection(related="project_id.poa_status", string="POA Status", readonly=True)
+    poa_attachment_count = fields.Integer(related="project_id.poa_attachment_count", string="POA Attachments", readonly=True)
     service_code = fields.Char(string="Service Code", readonly=True, copy=False)
     agreement_hours = fields.Float(string="Agreement Hours", tracking=True)
     agreement_start_date = fields.Date(string="Agreement Start Date", tracking=True)
@@ -136,6 +138,8 @@ class CorporateCaseProject(models.Model):
             return vals
         project = self.env[self._fields["project_id"].comodel_name].browse(project_id)
         if project.exists():
+            if hasattr(project, "_ensure_poa_ready"):
+                project._ensure_poa_ready()
             vals.setdefault("client_file_id", project.client_file_id.id if "client_file_id" in project._fields else False)
             vals.setdefault("engagement_id", project.engagement_letter_id.id)
             vals.setdefault("client_id", project.client_id.id)
