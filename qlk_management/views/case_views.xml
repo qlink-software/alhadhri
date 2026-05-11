@@ -35,6 +35,15 @@
                     </group>
                 </xpath>
 
+                <xpath expr="//field[@name='employee_id']" position="attributes">
+                    <attribute name="required">0</attribute>
+                    <attribute name="domain">['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='employee_ids']" position="attributes">
+                    <attribute name="domain">['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]</attribute>
+                </xpath>
+
                 <xpath expr="//field[@name='task_ids']/ancestor::page[1]" position="replace">
                     <page string="Tasks &amp; Hours">
                         <group>

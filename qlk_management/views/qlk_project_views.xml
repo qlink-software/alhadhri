@@ -115,7 +115,7 @@
                             <field name="currency_id"/>
                         </group>
                         <group>
-                            <field name="lawyer_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                            <field name="lawyer_id" domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="responsible_user_ids" widget="many2many_tags"/>
                             <field name="start_date"/>
                             <field name="end_date"/>

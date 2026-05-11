@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.osv import expression
 from .litigation_level import LITIGATION_STAGE_CODE_SELECTION
 
 COMPLETION_SECTIONS = {
@@ -46,11 +47,39 @@ COMPLETION_SECTIONS = {
 
 COMPLETION_DEPENDS = sorted({field for values in COMPLETION_SECTIONS.values() for field in values})
 
+LAWYER_EMPLOYEE_DOMAIN = [
+    "&",
+    ("active", "=", True),
+    "|",
+    "|",
+    "|",
+    ("user_id.partner_id.is_lawyer", "=", True),
+    ("work_contact_id.is_lawyer", "=", True),
+    ("job_id.name", "ilike", "lawyer"),
+    ("job_title", "ilike", "lawyer"),
+]
+
 
 class QlkCase(models.Model):
     _inherit = "qlk.case"
     _rec_name = "service_code"
 
+    employee_id = fields.Many2one(
+        "hr.employee",
+        string="Lawyer",
+        required=False,
+        tracking=True,
+        domain=LAWYER_EMPLOYEE_DOMAIN,
+    )
+    employee_ids = fields.Many2many(
+        "hr.employee",
+        relation="case_lawyers",
+        column1="",
+        column2="",
+        string="Lawyers",
+        tracking=True,
+        domain=LAWYER_EMPLOYEE_DOMAIN,
+    )
     task_ids = fields.One2many(
         "project.task",
         "case_id",
@@ -158,6 +187,26 @@ class QlkCase(models.Model):
         cr.execute(
             """
             UPDATE qlk_case c
+               SET employee_id = p.lawyer_id
+              FROM qlk_project p
+             WHERE c.project_id = p.id
+               AND c.employee_id IS NULL
+               AND p.lawyer_id IS NOT NULL
+            """
+        )
+        cr.execute(
+            """
+            UPDATE qlk_case c
+               SET employee_id = e.lawyer_employee_id
+              FROM bd_engagement_letter e
+             WHERE c.engagement_id = e.id
+               AND c.employee_id IS NULL
+               AND e.lawyer_employee_id IS NOT NULL
+            """
+        )
+        cr.execute(
+            """
+            UPDATE qlk_case c
                SET service_code = p.service_code || '/' || d.code
               FROM qlk_project p, qlk_litigation_degree d
              WHERE c.project_id = p.id
@@ -202,28 +251,30 @@ class QlkCase(models.Model):
                 record.company_id = engagement.company_id.id
             if engagement.lawyer_employee_id and "employee_id" in record._fields and not record.employee_id:
                 record.employee_id = engagement.lawyer_employee_id.id
+            elif not record.employee_id:
+                employee = record._lawyer_employee_from_engagement(engagement)
+                record.employee_id = employee.id if employee else False
             if not record.litigation_degree_id and engagement.litigation_degree_ids:
                 record.litigation_degree_id = engagement.litigation_degree_ids[:1].id
 
-    @api.onchange("project_id")
+    @api.onchange("project_id", "engagement_id", "employee_ids")
     def _onchange_project_id(self):
         for record in self:
             project = record.project_id
-            if not project:
-                continue
-            if project.client_id and not record.client_id:
-                record.client_id = project.client_id.id
-            if project.client_id and not record.client_ids:
-                record.client_ids = [(6, 0, project.client_id.ids)]
-            if project.engagement_letter_id and not record.engagement_id:
-                record.engagement_id = project.engagement_letter_id.id
-            if project.lawyer_id and "employee_id" in record._fields and not record.employee_id:
-                record.employee_id = project.lawyer_id.id
-            if record.litigation_degree_id and record.litigation_degree_id not in project.litigation_degree_ids:
-                record.litigation_degree_id = False
-                record.litigation_level_id = False
-                record.litigation_degree = False
-            record.service_code = record._service_code_from_project_degree(project, record.litigation_degree_id)
+            if project:
+                if project.client_id and not record.client_id:
+                    record.client_id = project.client_id.id
+                if project.client_id and not record.client_ids:
+                    record.client_ids = [(6, 0, project.client_id.ids)]
+                if project.engagement_letter_id and not record.engagement_id:
+                    record.engagement_id = project.engagement_letter_id.id
+                if record.litigation_degree_id and record.litigation_degree_id not in project.litigation_degree_ids:
+                    record.litigation_degree_id = False
+                    record.litigation_level_id = False
+                    record.litigation_degree = False
+                record.service_code = record._service_code_from_project_degree(project, record.litigation_degree_id)
+            employee = record._lawyer_employee_from_runtime_values()
+            record.employee_id = employee.id if employee else False
 
     @api.onchange("litigation_degree_id")
     def _onchange_litigation_degree_id(self):
@@ -353,6 +404,151 @@ class QlkCase(models.Model):
         return self._service_code_from_project_degree(project if project.exists() else False, degree if degree.exists() else False)
 
     @api.model
+    def _or_domain(self, parts):
+        domain = []
+        for part in [item for item in parts if item]:
+            domain = expression.OR([domain, [part]]) if domain else [part]
+        return domain
+
+    @api.model
+    def _lawyer_employee_from_partner(self, partner):
+        if not partner:
+            return self.env["hr.employee"]
+        employee_model = self.env["hr.employee"].sudo()
+        parts = []
+        if "work_contact_id" in employee_model._fields:
+            parts.append(("work_contact_id", "=", partner.id))
+        if "address_home_id" in employee_model._fields:
+            parts.append(("address_home_id", "=", partner.id))
+        if "user_id" in employee_model._fields:
+            parts.append(("user_id.partner_id", "=", partner.id))
+        domain = self._or_domain(parts)
+        if not domain:
+            return employee_model.browse()
+        return employee_model.search(expression.AND([[("active", "=", True)], domain]), limit=1)
+
+    @api.model
+    def _lawyer_employee_from_user(self, user):
+        if not user:
+            return self.env["hr.employee"]
+        employee_model = self.env["hr.employee"].sudo()
+        employee = employee_model.search([("user_id", "=", user.id), ("active", "=", True)], limit=1)
+        return employee or self._lawyer_employee_from_partner(user.partner_id)
+
+    @api.model
+    def _first_employee_from_m2m_commands(self, commands, existing=None):
+        employee_model = self.env["hr.employee"].sudo()
+        if not commands:
+            return employee_model.browse()
+        if isinstance(commands, models.BaseModel):
+            return commands[:1]
+        ids = []
+        for command in commands:
+            if isinstance(command, int):
+                ids.append(command)
+                continue
+            if not isinstance(command, (list, tuple)) or not command:
+                continue
+            operation = command[0]
+            if operation == 6:
+                ids = list(command[2] or [])
+            elif operation == 4:
+                ids.append(command[1])
+            elif operation == 5:
+                ids = []
+        if ids:
+            return employee_model.browse(ids[:1])
+        return existing[:1] if existing else employee_model.browse()
+
+    def _lawyer_employee_from_engagement(self, engagement):
+        if not engagement:
+            return self.env["hr.employee"]
+        employee = engagement.lawyer_employee_id or engagement.lawyer_ids[:1]
+        if employee:
+            return employee
+        employee = self._lawyer_employee_from_partner(engagement.lawyer_id)
+        if employee:
+            return employee
+        return self._lawyer_employee_from_user(engagement.lawyer_user_id)
+
+    def _lawyer_employee_from_runtime_values(self):
+        self.ensure_one()
+        if self.employee_id:
+            return self.employee_id
+        if self.employee_ids:
+            return self.employee_ids[:1]
+        if self.project_id and self.project_id.lawyer_id:
+            return self.project_id.lawyer_id
+        engagement = self.engagement_id or self.project_id.engagement_letter_id
+        employee = self._lawyer_employee_from_engagement(engagement)
+        if employee:
+            return employee
+        return self._lawyer_employee_from_user(self.env.user)
+
+    @api.model
+    def _lawyer_employee_from_vals(self, vals, record=None):
+        employee_model = self.env["hr.employee"].sudo()
+        if vals.get("employee_id"):
+            return employee_model.browse(vals["employee_id"])
+        if "employee_ids" in vals:
+            employee = self._first_employee_from_m2m_commands(
+                vals.get("employee_ids"),
+                existing=record.employee_ids if record else employee_model.browse(),
+            )
+            if employee:
+                return employee
+
+        for field_name in ("assigned_lawyer_id", "lawyer_employee_id"):
+            if field_name in self._fields and vals.get(field_name):
+                field = self._fields[field_name]
+                if field.comodel_name == "hr.employee":
+                    return employee_model.browse(vals[field_name])
+                if field.comodel_name == "res.partner":
+                    employee = self._lawyer_employee_from_partner(self.env["res.partner"].browse(vals[field_name]))
+                    if employee:
+                        return employee
+        for field_name in ("assigned_lawyer_ids", "lawyer_ids"):
+            if field_name in self._fields and field_name in vals and self._fields[field_name].comodel_name == "hr.employee":
+                employee = self._first_employee_from_m2m_commands(vals[field_name])
+                if employee:
+                    return employee
+
+        project_id = vals.get("project_id") or (record.project_id.id if record and record.project_id else False)
+        project = self.env["qlk.project"].sudo().browse(project_id)
+        if project.exists() and project.lawyer_id:
+            return project.lawyer_id
+
+        engagement_id = vals.get("engagement_id")
+        if not engagement_id and record and record.engagement_id:
+            engagement_id = record.engagement_id.id
+        if not engagement_id and project.exists() and project.engagement_letter_id:
+            engagement_id = project.engagement_letter_id.id
+        employee = self._lawyer_employee_from_engagement(self.env["bd.engagement.letter"].sudo().browse(engagement_id))
+        if employee:
+            return employee
+        return self._lawyer_employee_from_user(self.env.user)
+
+    @api.model
+    def _apply_lawyer_employee_defaults(self, vals, record=None):
+        if vals.get("employee_id"):
+            return vals
+        employee = self._lawyer_employee_from_vals(vals, record=record)
+        if employee:
+            vals["employee_id"] = employee.id
+        return vals
+
+    @api.model
+    def _validate_lawyer_employee_vals(self, vals, record=None):
+        employee_id = vals.get("employee_id")
+        if employee_id:
+            employee = self.env["hr.employee"].sudo().browse(employee_id)
+            if employee.exists():
+                return True
+        if record and record.employee_id and vals.get("employee_id", record.employee_id.id):
+            return True
+        raise ValidationError(_("Please select a valid lawyer linked to an employee."))
+
+    @api.model
     def sync_legacy_litigation_degrees(self):
         cases = self.search([
             ("litigation_degree", "!=", False),
@@ -385,18 +581,28 @@ class QlkCase(models.Model):
             if vals.get("project_id"):
                 self._ensure_project_manager()
             self._apply_project_defaults(vals)
+            self._apply_lawyer_employee_defaults(vals)
+            self._validate_lawyer_employee_vals(vals)
             self._normalize_litigation_degree_vals(vals)
             vals["service_code"] = self._service_code_from_vals(vals)
         records = super().create(vals_list)
         return records
 
     def write(self, vals):
+        if len(self) > 1 and {"project_id", "engagement_id", "employee_id", "employee_ids"}.intersection(vals):
+            for record in self:
+                record.write(dict(vals))
+            return True
         if "project_id" in vals:
             if not vals.get("project_id"):
                 raise ValidationError(_("Cases must be linked to a project."))
             if vals.get("project_id"):
                 self._ensure_project_manager()
                 self._apply_project_defaults(vals)
+        if {"project_id", "engagement_id", "employee_id", "employee_ids"}.intersection(vals):
+            for record in self:
+                self._apply_lawyer_employee_defaults(vals, record=record)
+                self._validate_lawyer_employee_vals(vals, record=record)
         if {"litigation_degree_id", "litigation_level_id"}.intersection(vals):
             self._normalize_litigation_degree_vals(vals)
         if {"project_id", "litigation_degree_id", "litigation_level_id"}.intersection(vals):

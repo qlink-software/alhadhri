@@ -100,9 +100,9 @@
                             <field name="agreed_case_count" invisible="contract_type != 'cases'"/>
                         </group>
                         <group>
-                            <field name="lawyer_employee_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                            <field name="lawyer_employee_id" domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="lawyer_ids" widget="many2many_tags"
-                                   domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                                   domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="lawyer_cost_hour" readonly="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>

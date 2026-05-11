@@ -276,13 +276,13 @@ class BDProposal(models.Model):
         "proposal_id",
         "employee_id",
         string="Assigned Lawyers",
-        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
+        domain=["&", ("active", "=", True), "|", "|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("work_contact_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         tracking=True,
     )
     lawyer_employee_id = fields.Many2one(
         "hr.employee",
         string="Assigned Lawyer",
-        domain=["|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
+        domain=["&", ("active", "=", True), "|", "|", "|", ("user_id.partner_id.is_lawyer", "=", True), ("work_contact_id.is_lawyer", "=", True), ("job_id.name", "ilike", "lawyer"), ("job_title", "ilike", "lawyer")],
         compute="_compute_lawyer_employee_id",
         inverse="_inverse_lawyer_employee_id",
         store=True,
@@ -1318,7 +1318,11 @@ class BDProposalLegalFee(models.Model):
             return 0.0
         if employee.lawyer_hour_cost:
             return employee.lawyer_hour_cost
-        partner = employee.user_id.partner_id or employee.work_contact_id or employee.address_home_id
+        partner = employee.user_id.partner_id
+        if not partner and "work_contact_id" in employee._fields:
+            partner = employee.work_contact_id
+        if not partner and "address_home_id" in employee._fields:
+            partner = employee.address_home_id
         if not partner:
             return 0.0
         cost_record = self.env["lawyer.cost.calculation"].search(

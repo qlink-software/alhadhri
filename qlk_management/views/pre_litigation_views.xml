@@ -119,7 +119,7 @@
                                 <field name="hours_used" widget="float_time"/>
                             </group>
                             <group>
-                                <field name="lawyer_employee_id"/>
+                                <field name="lawyer_employee_id" domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                                 <field name="office_manager_id"/>
                             </group>
                         </group>

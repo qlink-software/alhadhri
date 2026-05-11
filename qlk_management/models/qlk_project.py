@@ -95,7 +95,7 @@ class QlkProject(models.Model):
     lawyer_id = fields.Many2one(
         "hr.employee",
         string="Lawyer",
-        domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]",
+        domain="['&', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]",
         tracking=True,
     )
     service_type = fields.Selection(

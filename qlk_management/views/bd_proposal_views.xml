@@ -90,9 +90,9 @@
                     </group>
                     <group modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                         <group>
-                            <field name="lawyer_employee_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                            <field name="lawyer_employee_id" domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="lawyer_ids" widget="many2many_tags"
-                                   domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                                   domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
                             <field name="hourly_cost" readonly="1" groups="account.group_account_user"/>
                             <field name="planned_hours"/>
                             <field name="total_estimated_cost" readonly="1" groups="account.group_account_user"/>
