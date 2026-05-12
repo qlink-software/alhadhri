@@ -87,12 +87,16 @@
                             <field name="service_type" invisible="1"/>
                             <field name="allowed_litigation_degree_ids" widget="many2many_tags"
                                    invisible="not has_litigation_service"/>
-                            <field name="retainer_type" invisible="1"/>
+                            <field name="allow_financial_edit"/>
+                            <field name="retainer_type" invisible="1"
+                                   readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"/>
                             <field name="retainer_period"
+                                   readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"
                                    modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer')]}"/>
                             <field name="approval_role"/>
                             <field name="client_id" required="1"/>
-                            <field name="billing_type"/>
+                            <field name="billing_type"
+                                   readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"/>
                             <field name="notify_datetime"/>
                             <field name="estimated_hours"
                                    modifiers="{'invisible': [('billing_type', '!=', 'free')]}"/>
@@ -100,10 +104,13 @@
                             <field name="agreed_case_count" invisible="contract_type != 'cases'"/>
                         </group>
                         <group>
-                            <field name="lawyer_employee_id" domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
-                            <field name="lawyer_ids" widget="many2many_tags"
+                            <field name="lawyer_employee_id"
+                                   readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"
                                    domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
-                            <field name="lawyer_cost_hour" readonly="1"/>
+                            <field name="lawyer_ids" widget="many2many_tags"
+                                   readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"
+                                   domain="['&amp;', ('active', '=', True), '|', '|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('work_contact_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                            <field name="lawyer_cost_hour" invisible="1"/>
                             <field name="client_code" readonly="1" modifiers="{'invisible': [('client_code', '=', False)]}"/>
                             <field name="proposal_id" readonly="1" options="{'no_create': True}"/>
                             <field name="reviewer_id"/>
@@ -151,19 +158,22 @@
                         <page string="Scope / Legal Fees" modifiers="{'invisible': [('billing_type', '=', 'free')]}">
                             <!-- Structured service lines with frozen lawyer cost and stored subtotal. -->
                             <field name="legal_fees_lines" nolabel="1"
-                                   context="{'default_currency_id': currency_id, 'default_letter_id': id, 'default_assigned_lawyer_id': lawyer_employee_id, 'default_service_type': retainer_type}">
+                                   context="{'default_currency_id': currency_id, 'default_letter_id': id, 'default_assigned_lawyer_id': lawyer_employee_id, 'default_service_type': retainer_type}"
+                                   readonly="state in ('approved_manager', 'waiting_client_approval') or (state == 'approved_client' and not allow_financial_edit)">
                                 <list editable="bottom">
                                     <field name="currency_id" column_invisible="1"/>
-                                    <field name="service_name"/>
-                                    <field name="service_type"/>
-                                    <field name="assigned_lawyer_id" domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
-                                    <field name="quantity"/>
-                                    <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                    <field name="discount_type"/>
-                                    <field name="discount"/>
-                                    <field name="lawyer_cost" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="service_name" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="service_type" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="assigned_lawyer_id"
+                                           readonly="parent.state in ('approved_client', 'client_approved') and not parent.allow_financial_edit"
+                                           domain="['|', '|', ('user_id.partner_id.is_lawyer', '=', True), ('job_id.name', 'ilike', 'lawyer'), ('job_title', 'ilike', 'lawyer')]"/>
+                                    <field name="quantity" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="discount_type" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="discount" readonly="parent.state in ('approved_client', 'client_approved')"/>
+                                    <field name="lawyer_cost" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="parent.state in ('approved_client', 'client_approved')"/>
                                     <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                    <field name="due_date"/>
+                                    <field name="due_date" readonly="parent.state in ('approved_client', 'client_approved')"/>
                                 </list>
                             </field>
                             <field name="scope_of_work"/>

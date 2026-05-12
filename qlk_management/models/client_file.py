@@ -320,6 +320,25 @@ class QlkClientFile(models.Model):
                    poa_status = COALESCE(poa_status, 'draft')
             """
         )
+        cr.execute(
+            "SELECT to_regclass(%s), to_regclass(%s)",
+            ["qlk_client_file_service_type_rel", "qlk_legal_service_type"],
+        )
+        if all(cr.fetchone() or []):
+            cr.execute(
+                """
+                UPDATE qlk_client_file client
+                   SET poa_required = false,
+                       poa_status = COALESCE(poa_status, 'draft')
+                 WHERE NOT EXISTS (
+                       SELECT 1
+                         FROM qlk_client_file_service_type_rel rel
+                         JOIN qlk_legal_service_type service ON service.id = rel.service_type_id
+                        WHERE rel.client_file_id = client.id
+                          AND service.code IN ('litigation', 'pre_litigation')
+                   )
+                """
+            )
 
     @api.model
     def _service_category(self, service_code):
@@ -411,6 +430,44 @@ class QlkClientFile(models.Model):
             record.has_corporate_service = "corporate" in codes
             record.service_code_summary = ", ".join(record.legal_service_type_ids.mapped("name"))
 
+    def _has_poa_service(self, service_ids=False):
+        services = (
+            self.env["qlk.legal.service.type"].browse(service_ids)
+            if service_ids is not False
+            else self.legal_service_type_ids
+        )
+        return bool({"litigation", "pre_litigation"}.intersection(services.mapped("code")))
+
+    def _ensure_poa_applicable(self):
+        for record in self:
+            if not record._has_poa_service():
+                raise UserError(_("POA is required only for Litigation or Pre-Litigation services."))
+
+    def _poa_required_from_service_commands(self, commands):
+        service_ids = self._extract_m2m_ids(commands)
+        return self._has_poa_service(service_ids)
+
+    def _service_ids_after_commands(self, commands):
+        self.ensure_one()
+        service_ids = set(self.legal_service_type_ids.ids)
+        for command in commands or []:
+            if not isinstance(command, (list, tuple)) or not command:
+                continue
+            if command[0] == 6:
+                service_ids = set(command[2])
+            elif command[0] == 4:
+                service_ids.add(command[1])
+            elif command[0] == 3:
+                service_ids.discard(command[1])
+            elif command[0] == 5:
+                service_ids.clear()
+        return list(service_ids)
+
+    @api.onchange("legal_service_type_ids")
+    def _onchange_legal_service_type_ids_poa_required(self):
+        for record in self:
+            record.poa_required = record._has_poa_service()
+
     @api.depends(
         "engagement_ids",
         "project_ids",
@@ -485,6 +542,9 @@ class QlkClientFile(models.Model):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(codes))]
             elif not self._extract_m2m_ids(vals.get("legal_service_type_ids")):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(["litigation"]))]
+            vals["poa_required"] = self._poa_required_from_service_commands(vals["legal_service_type_ids"])
+            if not vals["poa_required"]:
+                vals.setdefault("poa_status", "draft")
         records = super().create(vals_list)
         records._sync_attachments_from_agreements()
         for record in records.filtered(lambda item: item.poa_required and item.poa_status == "draft"):
@@ -497,6 +557,22 @@ class QlkClientFile(models.Model):
             vals["legal_service_type_ids"] = vals.pop("service_type_ids")
         vals.pop("client_code", None)
         vals.pop("retainer_type", None)
+        if "legal_service_type_ids" in vals:
+            vals["poa_required"] = (
+                self._has_poa_service(self._service_ids_after_commands(vals["legal_service_type_ids"]))
+                if len(self) == 1
+                else self._poa_required_from_service_commands(vals["legal_service_type_ids"])
+            )
+            if not vals["poa_required"]:
+                vals.update(
+                    {
+                        "poa_status": "draft",
+                        "poa_request_date": False,
+                        "poa_received_date": False,
+                        "poa_expiry_date": False,
+                        "poa_notes": False,
+                    }
+                )
         result = super().write(vals)
         if not self.env.context.get("skip_client_file_attachment_sync") and "engagement_ids" in vals:
             self._sync_attachments_from_agreements()
@@ -654,6 +730,7 @@ class QlkClientFile(models.Model):
     def action_request_poa(self):
         today = fields.Date.context_today(self)
         for record in self:
+            record._ensure_poa_applicable()
             record._check_poa_manager()
             record.write(
                 {
@@ -670,6 +747,7 @@ class QlkClientFile(models.Model):
 
     def action_upload_poa(self):
         self.ensure_one()
+        self._ensure_poa_applicable()
         self._check_poa_manager()
         return {
             "type": "ir.actions.act_window",
@@ -683,6 +761,7 @@ class QlkClientFile(models.Model):
     def action_create_poa(self):
         today = fields.Date.context_today(self)
         for record in self:
+            record._ensure_poa_applicable()
             record._check_poa_manager()
             content = _("Power of Attorney internal request for %s generated on %s.") % (record.display_name, today)
             attachment = self.env["ir.attachment"].sudo().create(
@@ -702,6 +781,7 @@ class QlkClientFile(models.Model):
     def action_verify_poa(self):
         today = fields.Date.context_today(self)
         for record in self:
+            record._ensure_poa_applicable()
             record._check_poa_manager()
             if not record.poa_attachment_ids:
                 raise UserError(_("Upload the signed POA before verification."))

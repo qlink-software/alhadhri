@@ -55,6 +55,6 @@
               name="Lawyer Costs"
               parent="account.menu_finance_configuration"
               action="action_cost_calculation"
-              groups="qlk_management.group_hr_user,qlk_management.group_hr_manager"
+              groups="qlk_management.group_bd_user,qlk_management.group_bd_manager,qlk_management.group_el_user,qlk_management.group_el_manager,qlk_management.group_pre_litigation_user,qlk_management.group_pre_litigation_manager"
               sequence="50"/>
 </odoo>

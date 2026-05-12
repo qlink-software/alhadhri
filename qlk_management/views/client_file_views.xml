@@ -32,6 +32,7 @@
                 <field name="pre_litigation_count"/>
                 <field name="arbitration_count"/>
                 <field name="corporate_count"/>
+                <field name="poa_required"/>
                 <field name="poa_status"/>
                 <templates>
                     <t t-name="card">
@@ -42,7 +43,7 @@
                             </div>
                             <span class="badge text-bg-primary" t-esc="record.service_code_summary.value"/>
                         </div>
-                        <div class="mt-2">
+                        <div class="mt-2" t-if="record.poa_required.raw_value">
                             <span t-attf-class="badge #{record.poa_status.raw_value == 'verified' ? 'text-bg-success' : (record.poa_status.raw_value == 'expired' ? 'text-bg-danger' : 'text-bg-warning')}"
                                   t-esc="record.poa_status.value"/>
                         </div>
@@ -81,8 +82,9 @@
                             invisible="not poa_required or poa_status == 'verified'"/>
                     <button name="action_verify_poa" type="object" string="Verify POA" class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
-                            invisible="poa_status != 'uploaded'"/>
-                    <field name="poa_status" widget="statusbar" statusbar_visible="draft,requested,waiting_signature,uploaded,verified,expired" readonly="1"/>
+                            invisible="not poa_required or poa_status != 'uploaded'"/>
+                    <field name="poa_status" widget="statusbar" statusbar_visible="draft,requested,waiting_signature,uploaded,verified,expired" readonly="1"
+                           invisible="not poa_required"/>
                 </header>
                 <sheet>
                     <field name="has_litigation_service" invisible="1"/>
@@ -115,7 +117,8 @@
                         <button type="object" name="action_open_attachments" class="oe_stat_button" icon="fa-paperclip">
                             <field name="attachment_count" widget="statinfo" string="Attachments"/>
                         </button>
-                        <button type="object" name="action_open_poa_attachments" class="oe_stat_button" icon="fa-file-pdf-o">
+                        <button type="object" name="action_open_poa_attachments" class="oe_stat_button" icon="fa-file-pdf-o"
+                                invisible="not poa_required">
                             <field name="poa_attachment_count" widget="statinfo" string="POA"/>
                         </button>
                     </div>
@@ -147,7 +150,7 @@
                     </group>
 
                     <notebook>
-                        <page string="Power of Attorney / التوكيل">
+                        <page string="Power of Attorney / التوكيل" invisible="not poa_required">
                             <group>
                                 <group>
                                     <field name="poa_required"/>

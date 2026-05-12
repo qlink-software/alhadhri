@@ -56,14 +56,14 @@
         <record id="rule_cost_calculation_user" model="ir.rule">
             <field name="name">Cost Calculation User</field>
             <field name="model_id" ref="model_cost_calculation"/>
-            <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_hr_user')])]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_user'), ref('qlk_management.group_el_user'), ref('qlk_management.group_pre_litigation_user')])]"/>
         </record>
         <record id="rule_cost_calculation_manager" model="ir.rule">
             <field name="name">Cost Calculation Manager</field>
             <field name="model_id" ref="model_cost_calculation"/>
             <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_hr_manager')])]"/>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_manager'), ref('qlk_management.group_el_manager'), ref('qlk_management.group_pre_litigation_manager')])]"/>
         </record>
 
         <record id="rule_qlk_contact_classification_user" model="ir.rule">

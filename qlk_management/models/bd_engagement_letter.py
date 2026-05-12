@@ -277,6 +277,11 @@ class BDEngagementLetter(models.Model):
     year_start_date = fields.Date(string="Year Start Date", tracking=True)
     year_end_date = fields.Date(string="Year End Date", tracking=True)
     exception_approved = fields.Boolean(string="Exception Approved", tracking=True)
+    allow_financial_edit = fields.Boolean(
+        string="السماح بتعديل الحقول المالية",
+        default=False,
+        tracking=True,
+    )
     retainer_usage_percent = fields.Float(
         string="Retainer Usage %",
         compute="_compute_retainer_usage_percent",
@@ -1009,9 +1014,14 @@ class BDEngagementLetter(models.Model):
             lawyer_cost = self._get_lawyer_cost(vals["lawyer_id"])
             vals["hourly_cost"] = lawyer_cost
             vals["lawyer_cost_hour"] = lawyer_cost
-        if self._has_locked_financial_changes(vals):
+        locked_financial_changes = self._has_locked_financial_changes(vals)
+        allowed_financial_changes = self._has_allowed_financial_edit_changes(vals)
+        if locked_financial_changes or allowed_financial_changes:
             for letter in self:
-                if letter.state == "approved_client":
+                allow_financial_edit = vals.get("allow_financial_edit", letter.allow_financial_edit)
+                if letter.state in ("approved_client", "client_approved") and (
+                    locked_financial_changes or not allow_financial_edit
+                ):
                     raise UserError(_("Financial fields are locked after client approval."))
         res = super().write(vals)
         if previous_assignments is not None:
@@ -1038,12 +1048,29 @@ class BDEngagementLetter(models.Model):
             "currency_id",
             "billing_type",
             "retainer_period",
+            "retainer_type",
+            "lawyer_id",
+            "lawyer_employee_id",
+            "lawyer_ids",
             "allocated_hours",
             "monthly_hours_limit",
             "year_start_date",
             "year_end_date",
         )
+        allowed_fields = {
+            "billing_type",
+            "retainer_type",
+            "retainer_period",
+            "lawyer_id",
+            "lawyer_employee_id",
+            "lawyer_ids",
+        }
         changed_fields = [field_name for field_name in financial_fields if field_name in vals]
+        changed_fields = [
+            field_name
+            for field_name in changed_fields
+            if field_name not in allowed_fields and not self._is_allowed_lawyer_line_update(field_name, vals[field_name])
+        ]
         if not changed_fields:
             return False
         for letter in self:
@@ -1062,6 +1089,48 @@ class BDEngagementLetter(models.Model):
                     if current_value != new_value:
                         return True
         return False
+
+    def _has_allowed_financial_edit_changes(self, vals):
+        allowed_fields = {
+            "billing_type",
+            "retainer_type",
+            "retainer_period",
+            "lawyer_id",
+            "lawyer_employee_id",
+            "lawyer_ids",
+        }
+        changed_fields = [field_name for field_name in allowed_fields if field_name in vals]
+        if self._is_allowed_lawyer_line_update("legal_fees_lines", vals.get("legal_fees_lines")):
+            return True
+        for letter in self:
+            for field_name in changed_fields:
+                field = letter._fields.get(field_name)
+                if not field:
+                    continue
+                current_value = letter[field_name]
+                new_value = vals[field_name]
+                if field.type == "many2one":
+                    if (current_value.id or False) != (new_value or False):
+                        return True
+                elif field.type == "many2many":
+                    return True
+                elif current_value != new_value:
+                    return True
+        return False
+
+    def _is_allowed_lawyer_line_update(self, field_name, commands):
+        if field_name != "legal_fees_lines" or not commands:
+            return False
+        if not isinstance(commands, (list, tuple)):
+            return False
+        for command in commands:
+            if not isinstance(command, (list, tuple)) or len(command) < 3:
+                return False
+            if command[0] != 1 or not isinstance(command[2], dict):
+                return False
+            if set(command[2]) != {"assigned_lawyer_id"}:
+                return False
+        return True
 
     def _raise_missing_hours_error(self):
         model_label = self._description or self._name
