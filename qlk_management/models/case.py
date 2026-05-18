@@ -120,6 +120,25 @@ class QlkCase(models.Model):
     poa_status = fields.Selection(related="project_id.poa_status", string="POA Status", readonly=True)
     poa_attachment_count = fields.Integer(related="project_id.poa_attachment_count", string="POA Attachments", readonly=True)
     service_code = fields.Char(string="Service Code", readonly=True, copy=False, index=True)
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        related="project_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    service_category = fields.Selection(
+        [("litigation", "Litigation"), ("corporate", "Corporate"), ("arbitration", "Arbitration")],
+        string="Numbering Service",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    client_legal_code = fields.Char(string="Client Legal Code", readonly=True, copy=False, index=True)
+    project_legal_code = fields.Char(string="Project Legal Code", readonly=True, copy=False, index=True)
+    record_sequence = fields.Integer(string="Record Sequence", readonly=True, copy=False, index=True)
+    record_code = fields.Char(string="Record Code", readonly=True, copy=False, index=True)
     litigation_degree = fields.Selection(
         [
             ("first", "First Instance"),
@@ -182,10 +201,23 @@ class QlkCase(models.Model):
     completion_documents = fields.Float(string="Documents", compute="_compute_completion_metrics", store=False)
     completion_overall = fields.Float(string="Overall Completion", compute="_compute_completion_metrics", store=False)
 
+    _sql_constraints = [
+        (
+            "service_code_company_unique",
+            "unique(service_code, company_id)",
+            "Litigation legal code must be unique per company.",
+        ),
+    ]
+
     def init(self):
         super().init()
         cr = self.env.cr
         cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS service_code varchar")
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS service_category varchar")
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS client_legal_code varchar")
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS project_legal_code varchar")
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS record_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS record_code varchar")
         cr.execute(
             """
             UPDATE qlk_case c
@@ -206,19 +238,6 @@ class QlkCase(models.Model):
                AND e.lawyer_employee_id IS NOT NULL
             """
         )
-        cr.execute(
-            """
-            UPDATE qlk_case c
-               SET service_code = p.service_code || '/' || d.code
-              FROM qlk_project p, qlk_litigation_degree d
-             WHERE c.project_id = p.id
-               AND c.litigation_degree_id = d.id
-               AND c.service_code IS DISTINCT FROM (p.service_code || '/' || d.code)
-               AND p.service_code IS NOT NULL
-               AND d.code IS NOT NULL
-            """
-        )
-
     @api.depends("task_ids.effective_hours", "task_ids.timesheet_ids.unit_amount")
     def _compute_case_hours(self):
         cases = self.filtered("id")
@@ -332,17 +351,8 @@ class QlkCase(models.Model):
                 raise ValidationError(_("The selected litigation degree is not allowed for this project."))
             if degree and record.litigation_level_id and degree.level_id and record.litigation_level_id != degree.level_id:
                 raise ValidationError(_("The selected litigation degree does not match the litigation level."))
-            if (
-                degree
-                and record.project_id
-                and not self.env.context.get("allow_duplicate_litigation_degree")
-                and self.search_count([
-                    ("id", "!=", record.id),
-                    ("project_id", "=", record.project_id.id),
-                    ("litigation_degree_id", "=", degree.id),
-                ])
-            ):
-                raise ValidationError(_("A litigation case already exists for this project and degree."))
+            # Multiple cases can exist for the same project and degree; the record
+            # sequence is the uniqueness boundary.
             if engagement and engagement.contract_type == "cases" and engagement.agreed_case_count and engagement.remaining_cases < 0:
                 raise ValidationError(_("Case limit exceeded for this engagement letter."))
 
@@ -399,7 +409,7 @@ class QlkCase(models.Model):
         project._ensure_service_code()
         if not project.service_code or not degree.code:
             return False
-        return "%s/%s" % (project.service_code, degree.code)
+        return "%s/%s/%s" % (project.service_code, 1, degree.code)
 
     @api.model
     def _service_code_from_vals(self, vals):
@@ -579,6 +589,7 @@ class QlkCase(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        reserved_sequences = {}
         for vals in vals_list:
             if not vals.get("project_id"):
                 raise ValidationError(_("Cases must be created from a project."))
@@ -591,12 +602,24 @@ class QlkCase(models.Model):
             self._apply_lawyer_employee_defaults(vals)
             self._validate_lawyer_employee_vals(vals)
             self._normalize_litigation_degree_vals(vals)
-            vals["service_code"] = self._service_code_from_vals(vals)
+            self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
+                "qlk.case",
+                vals,
+                "litigation",
+                reserved_sequences=reserved_sequences,
+            )
         records = super().create(vals_list)
         return records
 
     def write(self, vals):
-        if len(self) > 1 and {"project_id", "engagement_id", "employee_id", "employee_ids"}.intersection(vals):
+        if len(self) > 1 and {
+            "project_id",
+            "engagement_id",
+            "employee_id",
+            "employee_ids",
+            "litigation_degree_id",
+            "litigation_level_id",
+        }.intersection(vals):
             for record in self:
                 record.write(dict(vals))
             return True
@@ -623,7 +646,13 @@ class QlkCase(models.Model):
                     "litigation_level_id": vals.get("litigation_level_id", record.litigation_level_id.id),
                 }
                 self._normalize_litigation_degree_vals(merged_vals)
-                vals["service_code"] = self._service_code_from_vals(merged_vals)
+                vals.update(merged_vals)
+                self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
+                    "qlk.case",
+                    vals,
+                    "litigation",
+                    record=record,
+                )
         return super().write(vals)
 
     def _apply_project_defaults(self, vals):

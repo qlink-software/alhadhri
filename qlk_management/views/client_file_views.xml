@@ -8,6 +8,9 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="service_code_summary"/>
+                <field name="litigation_client_code" widget="badge"/>
+                <field name="corporate_client_code" widget="badge"/>
+                <field name="arbitration_client_code" widget="badge"/>
                 <field name="poa_status" widget="badge"
                        decoration-success="poa_status == 'verified'"
                        decoration-warning="poa_status in ('requested', 'waiting_signature', 'uploaded')"
@@ -28,6 +31,9 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="service_code_summary"/>
+                <field name="litigation_client_code"/>
+                <field name="corporate_client_code"/>
+                <field name="arbitration_client_code"/>
                 <field name="litigation_count"/>
                 <field name="pre_litigation_count"/>
                 <field name="arbitration_count"/>
@@ -46,6 +52,11 @@
                         <div class="mt-2" t-if="record.poa_required.raw_value">
                             <span t-attf-class="badge #{record.poa_status.raw_value == 'verified' ? 'text-bg-success' : (record.poa_status.raw_value == 'expired' ? 'text-bg-danger' : 'text-bg-warning')}"
                                   t-esc="record.poa_status.value"/>
+                        </div>
+                        <div class="mt-2 d-flex gap-1 flex-wrap">
+                            <span class="badge text-bg-secondary" t-if="record.litigation_client_code.raw_value" t-esc="record.litigation_client_code.value"/>
+                            <span class="badge text-bg-secondary" t-if="record.corporate_client_code.raw_value" t-esc="record.corporate_client_code.value"/>
+                            <span class="badge text-bg-secondary" t-if="record.arbitration_client_code.raw_value" t-esc="record.arbitration_client_code.value"/>
                         </div>
                         <div class="mt-2 text-muted">
                             <i class="fa fa-user me-1" title="Client"/>
@@ -137,9 +148,9 @@
                             <field name="planned_hours" readonly="1" widget="float_time"/>
                         </group>
                         <group>
-                            <field name="litigation_client_code" readonly="1"/>
-                            <field name="corporate_client_code" readonly="1"/>
-                            <field name="arbitration_client_code" readonly="1"/>
+                            <field name="litigation_client_code" readonly="1" widget="badge"/>
+                            <field name="corporate_client_code" readonly="1" widget="badge"/>
+                            <field name="arbitration_client_code" readonly="1" widget="badge"/>
                             <field name="email"/>
                             <field name="phone"/>
                             <field name="mobile"/>
@@ -303,6 +314,9 @@
                 <field name="phone"/>
                 <field name="mobile"/>
                 <field name="legal_service_type_ids"/>
+                <field name="litigation_client_code"/>
+                <field name="corporate_client_code"/>
+                <field name="arbitration_client_code"/>
                 <field name="poa_status"/>
                 <filter name="litigation" string="Litigation" domain="[('legal_service_type_ids.code', '=', 'litigation')]"/>
                 <filter name="poa_pending" string="POA Pending" domain="[('poa_required', '=', True), ('poa_status', '!=', 'verified')]"/>
@@ -311,6 +325,9 @@
                 <filter name="corporate" string="Corporate" domain="[('legal_service_type_ids.code', '=', 'corporate')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_client" string="Client" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_litigation_code" string="Litigation Code" context="{'group_by': 'litigation_client_code'}"/>
+                    <filter name="group_corporate_code" string="Corporate Code" context="{'group_by': 'corporate_client_code'}"/>
+                    <filter name="group_arbitration_code" string="Arbitration Code" context="{'group_by': 'arbitration_client_code'}"/>
                     <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 </group>
             </search>

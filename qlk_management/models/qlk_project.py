@@ -10,6 +10,12 @@ SERVICE_TYPE_SELECTION = [
     ("pre_litigation", "Pre-Litigation"),
 ]
 
+SERVICE_CATEGORY_SELECTION = [
+    ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
+    ("arbitration", "Arbitration"),
+]
+
 CONTRACT_TYPE_SELECTION = [
     ("hours", "Hours Based"),
     ("cases", "Case Based"),
@@ -63,10 +69,15 @@ class QlkProject(models.Model):
         # حماية أثناء الترقية: إذا توقفت ترقية سابقة قبل إنشاء عمود الحالة لا نكسر فتح النظام.
         self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS state varchar")
         self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS service_code varchar")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS client_legal_code varchar")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS project_code varchar")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS project_sequence integer DEFAULT 0")
+        self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS service_category varchar")
         self.env.cr.execute("ALTER TABLE qlk_project ADD COLUMN IF NOT EXISTS active boolean DEFAULT true")
         self.env.cr.execute("UPDATE qlk_project SET state = 'draft' WHERE state IS NULL")
         self.env.cr.execute("UPDATE qlk_project SET active = true WHERE active IS NULL")
         self.env.cr.execute("UPDATE qlk_project SET service_code = name WHERE service_code IS NULL AND name IS NOT NULL")
+        self.env.cr.execute("UPDATE qlk_project SET project_code = service_code WHERE project_code IS NULL AND service_code IS NOT NULL")
 
     client_id = fields.Many2one(
         "res.partner",
@@ -103,6 +114,14 @@ class QlkProject(models.Model):
         string="Service Type",
         tracking=True,
         help="Legacy single-service value kept only for migration compatibility. Use Legal Services.",
+    )
+    service_category = fields.Selection(
+        selection=SERVICE_CATEGORY_SELECTION,
+        string="Numbering Service",
+        copy=False,
+        readonly=True,
+        index=True,
+        tracking=True,
     )
 
     contract_type = fields.Selection(selection=CONTRACT_TYPE_SELECTION, string="Contract Type", tracking=True)
@@ -213,6 +232,9 @@ class QlkProject(models.Model):
     client_name = fields.Char(string="Client Name", related="client_id.name", readonly=True)
     client_code = fields.Char(string="Client Code", compute="_compute_client_profile", store=True)
     service_code = fields.Char(string="Service Code", readonly=True, copy=False, index=True)
+    client_legal_code = fields.Char(string="Client Legal Code", readonly=True, copy=False, index=True, tracking=True)
+    project_code = fields.Char(string="Project Legal Code", readonly=True, copy=False, index=True, tracking=True)
+    project_sequence = fields.Integer(string="Project Sequence", readonly=True, copy=False, index=True)
     mobile = fields.Char(string="Mobile", related="client_id.mobile", readonly=True)
     email = fields.Char(string="Email", related="client_id.email", readonly=True)
     qid_cr = fields.Char(string="QID / CR", compute="_compute_client_profile", store=True)
@@ -242,6 +264,11 @@ class QlkProject(models.Model):
             "engagement_letter_unique",
             "unique(engagement_letter_id)",
             "A project already exists for this engagement letter.",
+        ),
+        (
+            "service_code_company_unique",
+            "unique(service_code, company_id)",
+            "Project legal code must be unique per company.",
         ),
     ]
 
@@ -328,10 +355,9 @@ class QlkProject(models.Model):
         if not self.client_file_id:
             raise ValidationError(_("Cannot generate service code without a client file."))
         self._ensure_client_file_code_columns()
-        service_code = self._primary_service_code()
-        code = self.client_file_id._next_project_service_code(service_code)
-        self.sudo().with_context(mail_notrack=True).write({"service_code": code, "name": code})
-        return code
+        vals = self.env["qlk.legal.numbering.engine"]._generate_project_code(self)
+        self.sudo().with_context(mail_notrack=True).write(vals)
+        return vals["service_code"]
 
     @api.model
     def _ensure_client_file_code_columns(self):
@@ -343,6 +369,9 @@ class QlkProject(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
@@ -358,32 +387,7 @@ class QlkProject(models.Model):
     @api.model
     def backfill_legal_codes(self):
         self._ensure_client_file_code_columns()
-        projects = self.sudo().search([("client_file_id", "!=", False)], order="id").filtered(
-            lambda project: (
-                not project.service_code
-                or project.service_code.startswith("PRJ-")
-                or "/" not in project.service_code
-                or (project.service_type == "corporate" and not project.service_code.startswith("C"))
-                or (project.service_type == "arbitration" and not project.service_code.startswith("A"))
-                or (project.service_type in ("litigation", "pre_litigation") and not project.service_code.startswith("L"))
-            )
-        )
-        for project in projects:
-            project.sudo().with_context(mail_notrack=True).write({"service_code": False})
-            project._assign_service_code()
-
-        cases = self.env["qlk.case"].sudo().search([
-            ("project_id", "!=", False),
-            ("litigation_degree_id", "!=", False),
-        ], order="id")
-        for case in cases:
-            case.project_id._ensure_service_code()
-            service_code = "%s/%s" % (case.project_id.service_code, case.litigation_degree_id.code)
-            if case.service_code != service_code:
-                case.with_context(skip_engagement_case_validation=True).write({
-                    "service_code": service_code,
-                })
-        return True
+        return self.env["qlk.legal.numbering.engine"].backfill_legal_codes()
 
     @api.depends("litigation_degree_ids")
     def _compute_allowed_litigation_degree_ids(self):
@@ -579,6 +583,11 @@ class QlkProject(models.Model):
         if {"planned_hours", "manual_consumed_hours"}.intersection(vals):
             self._notify_hours_threshold(previous_remaining=previous_remaining)
         return result
+
+    def unlink(self):
+        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_legal_delete_manager"):
+            raise UserError(_("Only users with Legal Delete Permission can delete projects."))
+        return super().unlink()
 
     @api.constrains("client_id", "service_type", "litigation_degree_ids")
     def _check_project_rules(self):

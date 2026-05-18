@@ -101,7 +101,9 @@
                 </page>
             </xpath>
             <xpath expr="//header/field[@name='state']" position="after"/>
-            <xpath expr="//div[@name='button_box']" position="replace"/>
+            <xpath expr="//div[@name='button_box']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
         </field>
     </record>
      <record id="crm.quick_create_opportunity_form" model="ir.ui.view">

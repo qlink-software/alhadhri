@@ -22,7 +22,10 @@
                 </xpath>
                 <xpath expr="//form/sheet/group/group[1]/field[@name='responsible_employee_id']" position="after">
                     <field name="project_id" required="1"/>
-                    <field name="service_code" readonly="1"/>
+                    <field name="service_code" readonly="1" widget="badge"/>
+                    <field name="client_legal_code" readonly="1"/>
+                    <field name="project_legal_code" readonly="1"/>
+                    <field name="record_sequence" readonly="1"/>
                     <field name="engagement_id" readonly="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/div[@name='button_box']" position="inside">
@@ -56,7 +59,10 @@
             <field name="inherit_id" ref="qlk_corporate.view_corporate_case_list"/>
             <field name="arch" type="xml">
                 <xpath expr="//list/field[@name='name']" position="before">
-                    <field name="service_code"/>
+                    <field name="service_code" widget="badge"/>
+                    <field name="client_legal_code"/>
+                    <field name="project_legal_code"/>
+                    <field name="record_sequence"/>
                 </xpath>
                 <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
                     <field name="project_id"/>
@@ -69,6 +75,30 @@
                     <field name="over_hours"/>
                 </xpath>
             </field>
+        </record>
+
+        <record id="view_corporate_case_search_legal_numbering" model="ir.ui.view">
+            <field name="name">qlk.corporate.case.search.legal.numbering</field>
+            <field name="model">qlk.corporate.case</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="service_code"/>
+                    <field name="client_legal_code"/>
+                    <field name="project_legal_code"/>
+                    <field name="record_code"/>
+                    <field name="project_id"/>
+                    <field name="client_id"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_client_code" string="Client Legal Code" context="{'group_by': 'client_legal_code'}"/>
+                        <filter name="group_project_code" string="Project Legal Code" context="{'group_by': 'project_legal_code'}"/>
+                        <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="qlk_corporate.action_corporate_case" model="ir.actions.act_window">
+            <field name="search_view_id" ref="view_corporate_case_search_legal_numbering"/>
         </record>
 
     </data>

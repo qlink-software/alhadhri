@@ -21,7 +21,9 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='work_email']" position="after">
-                <field name="employee_code"/>
+                <field name="employee_code" groups="hr.group_hr_manager"/>
+                <field name="employee_code" readonly="1" groups="!hr.group_hr_manager"/>
+                <field name="contract_date"/>
                 <field name="is_mp"/>
             </xpath>
         </field>
@@ -34,6 +36,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
                 <field name="employee_code"/>
+                <field name="contract_date"/>
             </xpath>
         </field>
     </record>

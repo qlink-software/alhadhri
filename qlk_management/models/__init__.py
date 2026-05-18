@@ -21,6 +21,7 @@ from . import ir_model
 from . import ir_rule
 from . import ir_ui_menu
 from . import bd_retainer_mixin
+from . import legal_numbering
 from . import bd_proposal
 from . import bd_engagement_letter
 from . import qlk_task

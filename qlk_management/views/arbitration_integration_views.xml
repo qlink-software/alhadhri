@@ -9,7 +9,10 @@
             <field name="arch" type="xml">
                 <xpath expr="//form/sheet/group/group[1]/field[@name='arbitration_center']" position="after">
                     <field name="project_id" required="1"/>
-                    <field name="service_code" readonly="1"/>
+                    <field name="service_code" readonly="1" widget="badge"/>
+                    <field name="client_legal_code" readonly="1"/>
+                    <field name="project_legal_code" readonly="1"/>
+                    <field name="record_sequence" readonly="1"/>
                     <field name="engagement_id" readonly="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/group/group[2]" position="inside">
@@ -67,7 +70,10 @@
             <field name="inherit_id" ref="qlk_arbitration.view_arbitration_case_list"/>
             <field name="arch" type="xml">
                 <xpath expr="//list/field[@name='case_number']" position="before">
-                    <field name="service_code"/>
+                    <field name="service_code" widget="badge"/>
+                    <field name="client_legal_code"/>
+                    <field name="project_legal_code"/>
+                    <field name="record_sequence"/>
                 </xpath>
                 <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
                     <field name="project_id"/>
@@ -79,6 +85,30 @@
                     <field name="over_hours"/>
                 </xpath>
             </field>
+        </record>
+
+        <record id="view_arbitration_case_search_legal_numbering" model="ir.ui.view">
+            <field name="name">qlk.arbitration.case.search.legal.numbering</field>
+            <field name="model">qlk.arbitration.case</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="service_code"/>
+                    <field name="client_legal_code"/>
+                    <field name="project_legal_code"/>
+                    <field name="record_code"/>
+                    <field name="project_id"/>
+                    <field name="claimant_id"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_client_code" string="Client Legal Code" context="{'group_by': 'client_legal_code'}"/>
+                        <filter name="group_project_code" string="Project Legal Code" context="{'group_by': 'project_legal_code'}"/>
+                        <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="qlk_arbitration.action_arbitration_case" model="ir.actions.act_window">
+            <field name="search_view_id" ref="view_arbitration_case_search_legal_numbering"/>
         </record>
 
     </data>

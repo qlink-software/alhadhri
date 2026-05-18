@@ -1,0 +1,245 @@
+# -*- coding: utf-8 -*-
+import re
+
+from odoo import _, api, models
+from odoo.exceptions import ValidationError
+
+
+LEGAL_SERVICE_PREFIXES = {
+    "litigation": "L",
+    "pre_litigation": "L",
+    "corporate": "C",
+    "arbitration": "A",
+}
+
+LEGAL_CLIENT_CODE_FIELDS = {
+    "litigation": ("litigation_client_code", "litigation_client_sequence"),
+    "pre_litigation": ("litigation_client_code", "litigation_client_sequence"),
+    "corporate": ("corporate_client_code", "corporate_client_sequence"),
+    "arbitration": ("arbitration_client_code", "arbitration_client_sequence"),
+}
+
+
+class QlkLegalNumberingEngine(models.AbstractModel):
+    _name = "qlk.legal.numbering.engine"
+    _description = "Reusable Legal Numbering Engine"
+
+    @api.model
+    def _service_category(self, service_code):
+        return "litigation" if service_code in ("litigation", "pre_litigation") else service_code
+
+    @api.model
+    def _lock(self, *parts):
+        key = "qlk_legal_numbering:%s" % ":".join(str(part or "_") for part in parts)
+        self.env.cr.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
+
+    @api.model
+    def _parse_client_sequence(self, code):
+        match = re.search(r"([A-Z])-?0*([0-9]+)$", code or "")
+        return int(match.group(2)) if match else 0
+
+    @api.model
+    def _parse_project_sequence(self, code):
+        parts = (code or "").split("/")
+        return int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+
+    @api.model
+    def _parse_record_sequence(self, code):
+        parts = (code or "").split("/")
+        return int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+
+    @api.model
+    def _get_next_available_sequence(self, model_name, sequence_field, domain, parser=None, code_field="service_code"):
+        records = self.env[model_name].sudo().with_context(active_test=False).search(domain)
+        used = set()
+        for record in records:
+            number = record[sequence_field] if sequence_field in record._fields else 0
+            if not number and parser and code_field in record._fields:
+                number = parser(record[code_field])
+            if number and number > 0:
+                used.add(int(number))
+        sequence = 1
+        while sequence in used:
+            sequence += 1
+        return sequence
+
+    @api.model
+    def _generate_client_legal_code(self, client_file, service_code):
+        client_file.ensure_one()
+        category = self._service_category(service_code)
+        field_name, sequence_field = LEGAL_CLIENT_CODE_FIELDS.get(category, (False, False))
+        prefix = LEGAL_SERVICE_PREFIXES.get(category)
+        if not field_name or not prefix:
+            raise ValidationError(_("Unsupported legal service type for client numbering."))
+        if client_file[field_name]:
+            sequence = client_file[sequence_field] or self._parse_client_sequence(client_file[field_name])
+            if sequence and sequence_field in client_file._fields and client_file[sequence_field] != sequence:
+                client_file.sudo().with_context(mail_notrack=True).write({sequence_field: sequence})
+            return client_file[field_name]
+
+        company = client_file.company_id or self.env.company
+        self._lock("client", company.id, category)
+        client_file.invalidate_recordset([field_name, sequence_field])
+        if client_file[field_name]:
+            sequence = client_file[sequence_field] or self._parse_client_sequence(client_file[field_name])
+            if sequence and client_file[sequence_field] != sequence:
+                client_file.sudo().with_context(mail_notrack=True).write({sequence_field: sequence})
+            return client_file[field_name]
+        domain = [("company_id", "=", company.id), (field_name, "!=", False)]
+        sequence = self._get_next_available_sequence(
+            "qlk.client.file",
+            sequence_field,
+            domain,
+            parser=self._parse_client_sequence,
+            code_field=field_name,
+        )
+        code = "%s-%03d" % (prefix, sequence)
+        while self.env["qlk.client.file"].sudo().search_count(
+            [("company_id", "=", company.id), (field_name, "=", code), ("id", "!=", client_file.id)]
+        ):
+            sequence += 1
+            code = "%s-%03d" % (prefix, sequence)
+        client_file.sudo().with_context(mail_notrack=True).write({field_name: code, sequence_field: sequence})
+        return code
+
+    @api.model
+    def _generate_project_code(self, project):
+        project.ensure_one()
+        if not project.client_file_id:
+            raise ValidationError(_("Cannot generate project code without a client file."))
+        category = self._service_category(project._primary_service_code())
+        client_code = self._generate_client_legal_code(project.client_file_id, category)
+        company = project.company_id or project.client_file_id.company_id or self.env.company
+        self._lock("project", company.id, project.client_file_id.id, category)
+        domain = [
+            ("client_file_id", "=", project.client_file_id.id),
+            ("company_id", "=", company.id),
+            ("service_category", "=", category),
+            ("id", "!=", project.id),
+        ]
+        sequence = self._get_next_available_sequence(
+            "qlk.project",
+            "project_sequence",
+            domain,
+            parser=self._parse_project_sequence,
+        )
+        code = "%s/%s" % (client_code, sequence)
+        while self.env["qlk.project"].sudo().with_context(active_test=False).search_count(
+            [("company_id", "=", company.id), ("service_code", "=", code), ("id", "!=", project.id)]
+        ):
+            sequence += 1
+            code = "%s/%s" % (client_code, sequence)
+        return {
+            "service_category": category,
+            "client_legal_code": client_code,
+            "project_sequence": sequence,
+            "project_code": code,
+            "service_code": code,
+            "name": code,
+        }
+
+    @api.model
+    def _record_degree_code(self, vals, record=False):
+        degree_id = vals.get("litigation_degree_id")
+        if not degree_id and record:
+            degree_id = record.litigation_degree_id.id
+        degree = self.env["qlk.litigation.degree"].browse(degree_id)
+        if not degree.exists():
+            raise ValidationError(_("Select a litigation degree for this case."))
+        return degree.code
+
+    @api.model
+    def _generate_record_code_vals(self, model_name, vals, service_code, record=False, reserved_sequences=None):
+        project_id = vals.get("project_id") or (record.project_id.id if record and record.project_id else False)
+        project = self.env["qlk.project"].sudo().browse(project_id)
+        if not project.exists():
+            return vals
+        project._ensure_service_code()
+        category = self._service_category(service_code)
+        company = project.company_id or self.env.company
+        self._lock("record", company.id, model_name, project.id)
+        domain = [("project_id", "=", project.id)]
+        if record:
+            domain.append(("id", "!=", record.id))
+        same_project = bool(record and record.project_id and record.project_id.id == project.id)
+        sequence = vals.get("record_sequence") or (record.record_sequence if same_project and record else 0)
+        reserved_key = (model_name, project.id)
+        reserved = reserved_sequences.setdefault(reserved_key, set()) if reserved_sequences is not None else set()
+        if not sequence:
+            sequence = self._get_next_available_sequence(
+                model_name,
+                "record_sequence",
+                domain,
+                parser=self._parse_record_sequence,
+            )
+            while sequence in reserved:
+                sequence += 1
+        if reserved_sequences is not None:
+            reserved.add(sequence)
+        code = "%s/%s" % (project.service_code, sequence)
+        if category == "litigation":
+            code = "%s/%s" % (code, self._record_degree_code(vals, record=record))
+        vals.update(
+            {
+                "service_category": category,
+                "client_legal_code": project.client_legal_code or project.service_code.split("/", 1)[0],
+                "project_legal_code": project.service_code,
+                "record_sequence": sequence,
+                "record_code": code,
+                "service_code": code,
+            }
+        )
+        return vals
+
+    @api.model
+    def _backfill_model_record_codes(self, model_name, service_code):
+        Model = self.env[model_name].sudo().with_context(active_test=False)
+        for record in Model.search([("project_id", "!=", False)], order="project_id, id"):
+            vals = self._generate_record_code_vals(model_name, {}, service_code, record=record)
+            updates = {
+                key: value
+                for key, value in vals.items()
+                if key in record._fields and record[key] != value
+            }
+            if updates:
+                record.with_context(
+                    skip_engagement_case_validation=True,
+                    skip_engagement_service_validation=True,
+                    mail_notrack=True,
+                ).write(updates)
+
+    @api.model
+    def backfill_legal_codes(self):
+        ClientFile = self.env["qlk.client.file"].sudo().with_context(active_test=False)
+        for client_file in ClientFile.search([], order="company_id, id"):
+            service_codes = set(client_file.legal_service_type_ids.mapped("code"))
+            for field_name, category in (
+                ("litigation_client_code", "litigation"),
+                ("corporate_client_code", "corporate"),
+                ("arbitration_client_code", "arbitration"),
+            ):
+                if category in service_codes or client_file[field_name]:
+                    self._generate_client_legal_code(client_file, category)
+
+        Project = self.env["qlk.project"].sudo().with_context(active_test=False)
+        for project in Project.search([("client_file_id", "!=", False)], order="client_file_id, id"):
+            code = project.service_code or ""
+            if not code or code.startswith("PRJ-") or "/" not in code:
+                project.with_context(mail_notrack=True).write(self._generate_project_code(project))
+            else:
+                project_sequence = project.project_sequence or self._parse_project_sequence(code)
+                client_code = code.split("/", 1)[0]
+                updates = {
+                    "service_category": self._service_category(project._primary_service_code()),
+                    "client_legal_code": project.client_legal_code or client_code,
+                    "project_sequence": project_sequence,
+                    "project_code": project.project_code or code,
+                }
+                project.with_context(mail_notrack=True).write(
+                    {key: value for key, value in updates.items() if key in project._fields and value}
+                )
+
+        self._backfill_model_record_codes("qlk.case", "litigation")
+        self._backfill_model_record_codes("qlk.corporate.case", "corporate")
+        self._backfill_model_record_codes("qlk.arbitration.case", "arbitration")
+        return True

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.0.6',
+    'version': '18.0.1.0.8',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """
@@ -65,6 +65,7 @@
         'data/qlk_litigation_degree_data.xml',
         'data/litigation_degree_sync.xml',
         'data/pre_litigation_sequence.xml',
+        'data/employee_code_config.xml',
         'data/engagement_cleanup_actions.xml',
         'data/hr_mail_templates.xml',
         'data/translation_mail_templates.xml',

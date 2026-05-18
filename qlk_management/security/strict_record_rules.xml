@@ -115,6 +115,16 @@
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_pre_litigation_manager')])]"/>
         </record>
+        <record id="rule_qlk_client_file_delete_manager" model="ir.rule">
+            <field name="name">Client File Delete Permission</field>
+            <field name="model_id" ref="model_qlk_client_file"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_legal_delete_manager')])]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
 
         <record id="rule_qlk_project_user" model="ir.rule">
             <field name="name">Project User</field>
@@ -127,6 +137,16 @@
             <field name="model_id" ref="model_qlk_project"/>
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_project_manager')])]"/>
+        </record>
+        <record id="rule_qlk_project_delete_manager" model="ir.rule">
+            <field name="name">Project Delete Permission</field>
+            <field name="model_id" ref="model_qlk_project"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_legal_delete_manager')])]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="True"/>
         </record>
 
     </data>

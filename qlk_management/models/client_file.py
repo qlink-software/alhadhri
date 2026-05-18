@@ -193,6 +193,9 @@ class QlkClientFile(models.Model):
     litigation_client_code = fields.Char(string="Litigation Client Code", copy=False, readonly=True, index=True, tracking=True)
     corporate_client_code = fields.Char(string="Corporate Client Code", copy=False, readonly=True, index=True, tracking=True)
     arbitration_client_code = fields.Char(string="Arbitration Client Code", copy=False, readonly=True, index=True, tracking=True)
+    litigation_client_sequence = fields.Integer(string="Litigation Client Sequence", copy=False, readonly=True, index=True)
+    corporate_client_sequence = fields.Integer(string="Corporate Client Sequence", copy=False, readonly=True, index=True)
+    arbitration_client_sequence = fields.Integer(string="Arbitration Client Sequence", copy=False, readonly=True, index=True)
     litigation_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
     corporate_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
     arbitration_project_next_number = fields.Integer(default=1, copy=False, readonly=True)
@@ -291,6 +294,21 @@ class QlkClientFile(models.Model):
 
     _sql_constraints = [
         ("partner_company_unique", "unique(partner_id, company_id)", "A client file already exists for this client."),
+        (
+            "litigation_client_code_company_unique",
+            "unique(litigation_client_code, company_id)",
+            "Litigation client code must be unique per company.",
+        ),
+        (
+            "corporate_client_code_company_unique",
+            "unique(corporate_client_code, company_id)",
+            "Corporate client code must be unique per company.",
+        ),
+        (
+            "arbitration_client_code_company_unique",
+            "unique(arbitration_client_code, company_id)",
+            "Arbitration client code must be unique per company.",
+        ),
     ]
 
     def init(self):
@@ -298,6 +316,9 @@ class QlkClientFile(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
@@ -316,6 +337,9 @@ class QlkClientFile(models.Model):
                SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
                    corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
                    arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
+                   litigation_client_sequence = COALESCE(litigation_client_sequence, 0),
+                   corporate_client_sequence = COALESCE(corporate_client_sequence, 0),
+                   arbitration_client_sequence = COALESCE(arbitration_client_sequence, 0),
                    poa_required = COALESCE(poa_required, true),
                    poa_status = COALESCE(poa_status, 'draft')
             """
@@ -346,67 +370,26 @@ class QlkClientFile(models.Model):
 
     def _ensure_client_service_code(self, service_code):
         self.ensure_one()
-        category = self._service_category(service_code)
-        field_name = CLIENT_CODE_FIELDS.get(category)
-        sequence_code = CLIENT_CODE_SEQUENCE_CODES.get(category)
-        if not field_name or not sequence_code:
-            raise ValidationError(_("Unsupported legal service type for client code."))
-        if self[field_name]:
-            return self[field_name]
-        sequence = self.env["ir.sequence"].with_company(self.company_id or self.env.company)
-        code = sequence.next_by_code(sequence_code)
-        while code and self.sudo().search_count([
-            (field_name, "=", code),
-            ("company_id", "=", (self.company_id or self.env.company).id),
-            ("id", "!=", self.id),
-        ]):
-            code = sequence.next_by_code(sequence_code)
-        if not code:
-            prefix = SERVICE_PREFIXES.get(category, "L")
-            existing = self.sudo().search_count([(field_name, "!=", False), ("company_id", "=", self.company_id.id)])
-            code = "%s%03d" % (prefix, existing + 1)
-            while self.sudo().search_count([
-                (field_name, "=", code),
-                ("company_id", "=", (self.company_id or self.env.company).id),
-                ("id", "!=", self.id),
-            ]):
-                existing += 1
-                code = "%s%03d" % (prefix, existing + 1)
-        # أثناء ترقية الموديول قد لا تكون جداول Many2many أنشئت بعد؛ لذلك نتجنب ORM write والتتبع هنا.
-        self.env.cr.execute(
-            "UPDATE qlk_client_file SET %s = %%s WHERE id = %%s" % field_name,
-            [code, self.id],
-        )
-        self.invalidate_recordset([field_name])
-        return code
+        return self.env["qlk.legal.numbering.engine"]._generate_client_legal_code(self, service_code)
 
     def _next_project_number(self, service_code):
         self.ensure_one()
-        category = self._service_category(service_code)
-        field_name = PROJECT_COUNTER_FIELDS.get(category)
-        if not field_name:
-            raise ValidationError(_("Unsupported legal service type for project numbering."))
-        self.env.cr.execute("SELECT %s FROM qlk_client_file WHERE id = %%s FOR UPDATE" % field_name, [self.id])
-        current = (self.env.cr.fetchone() or [1])[0] or 1
-        self.env.cr.execute(
-            "UPDATE qlk_client_file SET %s = %%s WHERE id = %%s" % field_name,
-            [current + 1, self.id],
+        engine = self.env["qlk.legal.numbering.engine"]
+        return engine._get_next_available_sequence(
+            "qlk.project",
+            "project_sequence",
+            [
+                ("client_file_id", "=", self.id),
+                ("company_id", "=", (self.company_id or self.env.company).id),
+                ("service_category", "=", self._service_category(service_code)),
+            ],
+            parser=engine._parse_project_sequence,
         )
-        self.invalidate_recordset([field_name])
-        return current
 
     def _next_project_service_code(self, service_code):
         self.ensure_one()
         client_code = self._ensure_client_service_code(service_code)
-        number = self._next_project_number(service_code)
-        code = "%s/%s" % (client_code, number)
-        while self.env["qlk.project"].sudo().search_count([
-            ("service_code", "=", code),
-            ("company_id", "=", self.company_id.id),
-        ]):
-            number = self._next_project_number(service_code)
-            code = "%s/%s" % (client_code, number)
-        return code
+        return "%s/%s" % (client_code, self._next_project_number(service_code))
 
     @api.depends("partner_id", "partner_id.street", "partner_id.street2", "partner_id.city", "partner_id.country_id")
     def _compute_address(self):
@@ -589,12 +572,34 @@ class QlkClientFile(models.Model):
                 uploaded._propagate_poa_attachments()
         return result
 
+    def unlink(self):
+        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_legal_delete_manager"):
+            raise UserError(_("Only users with Legal Delete Permission can delete client files."))
+        return super().unlink()
+
     @api.model
     def _next_legal_service_code(self, service_code, company=False):
-        primary = service_code if service_code in SERVICE_SEQUENCE_CODES else "litigation"
-        sequence_code = SERVICE_SEQUENCE_CODES.get(primary, SERVICE_SEQUENCE_CODES["litigation"])
         company = company or self.env.company
-        return self.env["ir.sequence"].with_company(company).next_by_code(sequence_code) or _("New")
+        category = self._service_category(service_code)
+        field_name = CLIENT_CODE_FIELDS.get(category)
+        sequence_field = {
+            "litigation": "litigation_client_sequence",
+            "corporate": "corporate_client_sequence",
+            "arbitration": "arbitration_client_sequence",
+        }.get(category)
+        prefix = SERVICE_PREFIXES.get(category, "L")
+        if not field_name or not sequence_field:
+            return "%s-001" % prefix
+        engine = self.env["qlk.legal.numbering.engine"]
+        engine._lock("client-preview", company.id, category)
+        sequence = engine._get_next_available_sequence(
+            "qlk.client.file",
+            sequence_field,
+            [("company_id", "=", company.id), (field_name, "!=", False)],
+            parser=engine._parse_client_sequence,
+            code_field=field_name,
+        )
+        return "%s-%03d" % (prefix, sequence)
 
     @api.model
     def _primary_service_code(self, codes):

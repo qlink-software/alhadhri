@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="param_employee_code_prefix" model="ir.config_parameter">
+        <field name="key">qlk_management.employee_code_prefix</field>
+        <field name="value">AH</field>
+    </record>
+    <record id="param_employee_code_start" model="ir.config_parameter">
+        <field name="key">qlk_management.employee_code_start</field>
+        <field name="value">1</field>
+    </record>
+</odoo>

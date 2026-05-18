@@ -5,7 +5,9 @@
         <field name="model">qlk.project</field>
         <field name="arch" type="xml">
             <list string="Projects" default_order="create_date desc">
-                <field name="service_code"/>
+                <field name="service_code" widget="badge"/>
+                <field name="client_legal_code"/>
+                <field name="project_sequence"/>
                 <field name="client_id"/>
                 <field name="client_file_id"/>
                 <field name="legal_service_type_ids" widget="many2many_tags"/>
@@ -114,6 +116,10 @@
                         <h1>
                             <field name="service_code" readonly="1" class="oe_inline"/>
                         </h1>
+                        <div>
+                            <field name="client_legal_code" readonly="1" widget="badge"/>
+                            <field name="project_sequence" readonly="1"/>
+                        </div>
                     </div>
 
                     <group string="General Info">
@@ -266,6 +272,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="service_code"/>
+                <field name="client_legal_code"/>
+                <field name="project_code"/>
                 <field name="client_id"/>
                 <field name="client_file_id"/>
                 <field name="legal_service_type_ids"/>
@@ -274,6 +282,7 @@
                 <filter name="active_projects" string="Active" domain="[('active', '=', True)]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="group_client_code" string="Client Legal Code" context="{'group_by': 'client_legal_code'}"/>
                     <filter name="group_client_file" string="Client File" context="{'group_by': 'client_file_id'}"/>
                     <filter name="group_service_type" string="Service Type" context="{'group_by': 'service_type'}"/>
                     <filter name="group_lawyer" string="Lawyer" context="{'group_by': 'lawyer_id'}"/>

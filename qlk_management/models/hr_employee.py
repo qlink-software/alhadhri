@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
+import re
 from datetime import timedelta
 
 from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 
 
 class HREmployee(models.Model):
     _inherit = "hr.employee"
+
+    EMPLOYEE_CODE_PREFIX_PARAM = "qlk_management.employee_code_prefix"
+    EMPLOYEE_CODE_START_PARAM = "qlk_management.employee_code_start"
+    DEFAULT_EMPLOYEE_CODE_PREFIX = "AH"
+    DEFAULT_EMPLOYEE_CODE_START = 1
 
     lawyer_hour_cost = fields.Float(string="Lawyer Hour Cost")
     is_mp = fields.Boolean(
@@ -15,10 +22,10 @@ class HREmployee(models.Model):
     )
     employee_code = fields.Char(
         string="Employee Code",
-        readonly=True,
         copy=False,
         index=True,
     )
+    contract_date = fields.Date(string="Contract Date", tracking=True)
     employee_document_ids = fields.One2many(
         "qlk.employee.document",
         "employee_id",
@@ -70,26 +77,69 @@ class HREmployee(models.Model):
         for employee in self:
             employee.resignation_request_count = len(employee.resignation_request_ids)
 
-    def _get_employee_code_sequence(self, year):
-        seq_code = "hr.employee.code.%s" % year
-        seq = self.env["ir.sequence"].sudo().search([("code", "=", seq_code)], limit=1)
-        if not seq:
-            self.env["ir.sequence"].sudo().create(
-                {
-                    "name": "Employee Code %s" % year,
-                    "code": seq_code,
-                    "prefix": "EMP",
-                    "suffix": "/%s" % year,
-                    "padding": 3,
-                    "company_id": False,
-                }
+    @api.model
+    def _employee_code_prefix(self):
+        return (
+            self.env["ir.config_parameter"].sudo().get_param(
+                self.EMPLOYEE_CODE_PREFIX_PARAM,
+                self.DEFAULT_EMPLOYEE_CODE_PREFIX,
             )
-        return seq_code
+            or self.DEFAULT_EMPLOYEE_CODE_PREFIX
+        ).strip()
+
+    @api.model
+    def _employee_code_start(self):
+        raw_start = self.env["ir.config_parameter"].sudo().get_param(
+            self.EMPLOYEE_CODE_START_PARAM,
+            str(self.DEFAULT_EMPLOYEE_CODE_START),
+        )
+        try:
+            return max(int(raw_start), 1)
+        except (TypeError, ValueError):
+            return self.DEFAULT_EMPLOYEE_CODE_START
+
+    @api.model
+    def _employee_code_year_from_vals(self, vals):
+        contract_date = vals.get("contract_date")
+        if contract_date:
+            return fields.Date.to_date(contract_date).year
+        return fields.Date.context_today(self).year
+
+    @api.model
+    def _employee_code_sequence_from_code(self, code, prefix=False):
+        prefix = prefix or self._employee_code_prefix()
+        match = re.match(r"^%s/([0-9]+)/[0-9]{4}$" % re.escape(prefix), code or "")
+        return int(match.group(1)) if match else 0
+
+    @api.model
+    def _next_employee_code_sequence(self):
+        self.env.cr.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", ["qlk_management.employee_code"])
+        prefix = self._employee_code_prefix()
+        start = self._employee_code_start()
+        max_sequence = 0
+        employees = self.sudo().search([("employee_code", "!=", False)])
+        for employee in employees:
+            max_sequence = max(max_sequence, self._employee_code_sequence_from_code(employee.employee_code, prefix))
+        return max(max_sequence + 1, start)
+
+    @api.model
+    def _generate_employee_code(self, vals, sequence=False):
+        prefix = self._employee_code_prefix()
+        sequence = str(sequence or self._next_employee_code_sequence()).zfill(3)
+        year = self._employee_code_year_from_vals(vals)
+        return "%s/%s/%s" % (prefix, sequence, year)
 
     @api.model_create_multi
     def create(self, vals_list):
         today = fields.Date.context_today(self)
+        next_sequence = False
         for vals in vals_list:
+            if (
+                vals.get("employee_code")
+                and not self.env.is_superuser()
+                and not self.env.user.has_group("hr.group_hr_manager")
+            ):
+                raise AccessError(_("Only HR Managers can set Employee Code manually."))
             if vals.get("resignation_approved") and not vals.get("approval_date"):
                 vals["approval_date"] = today
             if vals.get("resignation_approved") and not vals.get("resignation_date"):
@@ -97,18 +147,20 @@ class HREmployee(models.Model):
             if vals.get("resignation_approved") and not vals.get("effective_date"):
                 base_date = fields.Date.to_date(vals.get("approval_date")) if vals.get("approval_date") else today
                 vals["effective_date"] = base_date + timedelta(days=15)
-            if vals.get("employee_code"):
-                continue
-            create_date = vals.get("create_date")
-            if create_date:
-                year = fields.Datetime.to_datetime(create_date).year
-            else:
-                year = fields.Date.context_today(self).year
-            seq_code = self._get_employee_code_sequence(year)
-            vals["employee_code"] = self.env["ir.sequence"].sudo().next_by_code(seq_code)
+            if not vals.get("employee_code"):
+                if next_sequence is False:
+                    next_sequence = self._next_employee_code_sequence()
+                vals["employee_code"] = self._generate_employee_code(vals, sequence=next_sequence)
+                next_sequence += 1
         return super().create(vals_list)
 
     def write(self, vals):
+        if (
+            "employee_code" in vals
+            and not self.env.is_superuser()
+            and not self.env.user.has_group("hr.group_hr_manager")
+        ):
+            raise AccessError(_("Only HR Managers can edit Employee Code manually."))
         # هذه الخطوة تضمن تعيين تواريخ الاعتماد والانتهاء تلقائيًا عند الاعتماد لأول مرة.
         if vals.get("resignation_approved"):
             today = fields.Date.context_today(self)

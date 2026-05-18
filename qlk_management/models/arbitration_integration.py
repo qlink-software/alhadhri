@@ -24,6 +24,25 @@ class ArbitrationCaseProject(models.Model):
     poa_status = fields.Selection(related="project_id.poa_status", string="POA Status", readonly=True)
     poa_attachment_count = fields.Integer(related="project_id.poa_attachment_count", string="POA Attachments", readonly=True)
     service_code = fields.Char(string="Service Code", readonly=True, copy=False)
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        related="project_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    service_category = fields.Selection(
+        [("litigation", "Litigation"), ("corporate", "Corporate"), ("arbitration", "Arbitration")],
+        string="Numbering Service",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    client_legal_code = fields.Char(string="Client Legal Code", readonly=True, copy=False, index=True)
+    project_legal_code = fields.Char(string="Project Legal Code", readonly=True, copy=False, index=True)
+    record_sequence = fields.Integer(string="Record Sequence", readonly=True, copy=False, index=True)
+    record_code = fields.Char(string="Record Code", readonly=True, copy=False, index=True)
     agreement_hours = fields.Float(string="Agreement Hours", tracking=True)
     agreement_start_date = fields.Date(string="Agreement Start Date", tracking=True)
     agreement_end_date = fields.Date(string="Agreement End Date", tracking=True)
@@ -35,6 +54,23 @@ class ArbitrationCaseProject(models.Model):
         related="claimant_id.client_document_ids",
         string="Client Documents",
     )
+
+    _sql_constraints = [
+        (
+            "service_code_company_unique",
+            "unique(service_code, company_id)",
+            "Arbitration legal code must be unique per company.",
+        ),
+    ]
+
+    def init(self):
+        super().init()
+        cr = self.env.cr
+        cr.execute("ALTER TABLE qlk_arbitration_case ADD COLUMN IF NOT EXISTS service_category varchar")
+        cr.execute("ALTER TABLE qlk_arbitration_case ADD COLUMN IF NOT EXISTS client_legal_code varchar")
+        cr.execute("ALTER TABLE qlk_arbitration_case ADD COLUMN IF NOT EXISTS project_legal_code varchar")
+        cr.execute("ALTER TABLE qlk_arbitration_case ADD COLUMN IF NOT EXISTS record_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_arbitration_case ADD COLUMN IF NOT EXISTS record_code varchar")
 
     @api.depends("engagement_id", "agreement_hours")
     def _compute_project_hours(self):
@@ -106,12 +142,22 @@ class ArbitrationCaseProject(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        reserved_sequences = {}
         for vals in vals_list:
             if not vals.get("project_id"):
                 raise ValidationError(_("Arbitration records must be created from a project."))
             if vals.get("project_id"):
                 self._ensure_project_manager()
             self._apply_project_defaults(vals)
+            self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
+                "qlk.arbitration.case",
+                vals,
+                "arbitration",
+                reserved_sequences=reserved_sequences,
+            )
+            vals.setdefault("case_number", vals["service_code"])
+            if not vals.get("name") or vals.get("name") == vals.get("project_legal_code"):
+                vals["name"] = vals["service_code"]
         if not self.env.context.get("skip_engagement_service_validation"):
             for vals in vals_list:
                 engagement = self.env["bd.engagement.letter"].browse(vals.get("engagement_id"))
@@ -125,7 +171,18 @@ class ArbitrationCaseProject(models.Model):
                 raise ValidationError(_("Arbitration records must be linked to a project."))
             if vals.get("project_id"):
                 self._ensure_project_manager()
-                self._apply_project_defaults(vals)
+                for record in self:
+                    record_vals = dict(vals)
+                    self._apply_project_defaults(record_vals)
+                    self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
+                        "qlk.arbitration.case",
+                        record_vals,
+                        "arbitration",
+                        record=record,
+                    )
+                    record_vals.setdefault("case_number", record_vals["service_code"])
+                    super(ArbitrationCaseProject, record).write(record_vals)
+                return True
         if vals.get("engagement_id") and not self.env.context.get("skip_engagement_service_validation"):
             engagement = self.env["bd.engagement.letter"].browse(vals["engagement_id"])
             if engagement and not engagement._service_allows("arbitration"):
@@ -165,9 +222,5 @@ class ArbitrationCaseProject(models.Model):
             )
             if not allowed:
                 raise ValidationError(_("This project does not allow arbitration records."))
-            duplicate = self.search_count([
-                ("project_id", "=", record.project_id.id),
-                ("id", "!=", record.id),
-            ])
-            if duplicate:
-                raise ValidationError(_("An arbitration record already exists for this project."))
+            # Multiple arbitration records per project are valid; numbering is per
+            # project and reuses gaps after deletion.
