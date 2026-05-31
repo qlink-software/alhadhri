@@ -22,7 +22,7 @@
             </xpath>
             <xpath expr="//field[@name='qid']" position="before">
                 <field name="is_qatar_resident" invisible="is_company"/>
-                <field name="identity_type"/>
+                <field name="identity_type" invisible="1"/>
                 <field name="identity_number" required="1"/>
             </xpath>
             <xpath expr="//field[@name='qid']" position="attributes">
@@ -75,6 +75,9 @@
             <xpath expr="//field[@name='phone']" position="attributes">
                 <attribute name="invisible">1</attribute>
                 <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="before">
+                <field name="identity_type" invisible="1" optional="hide"/>
             </xpath>
         </field>
     </record>
