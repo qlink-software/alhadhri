@@ -11,6 +11,8 @@
                 <p>A task has been assigned to you.</p>
                 <ul>
                     <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
                     <li><strong>Project:</strong> <t t-out="object.project_id.display_name if object.project_id else '-'"/></li>
                     <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
                     <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
@@ -21,6 +23,34 @@
                     <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=qlk.task&amp;view_type=form"
                        style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
                         Open Task
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_qlk_task_completion" model="mail.template">
+        <field name="name">QLK Task Completion</field>
+        <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+        <field name="subject">Task Completed: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.completed_by.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Task has been completed by <t t-out="object.completed_by.name if object.completed_by else user.name"/>.</p>
+                <ul>
+                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
+                    <li><strong>Deadline:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else (object.date_finished or '-')"/></li>
+                    <li><strong>Completed On:</strong> <t t-out="format_datetime(object.completed_date) if object.completed_date else '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=qlk.task&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Review Completion
                     </a>
                 </p>
                 <p>Regards,<br/>QLK</p>
@@ -69,12 +99,48 @@
                 <p>A task has been assigned to you.</p>
                 <ul>
                     <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
                     <li><strong>Project:</strong> <t t-out="object.sub_project_id.display_name if object.sub_project_id else '-'"/></li>
                     <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
                     <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
                     <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
                     <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
                 </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=task&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Open Task
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_management_task_completion" model="mail.template">
+        <field name="name">Management Task Completion</field>
+        <field name="model_id" ref="model_task"/>
+        <field name="subject">Task Completed: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.completed_by.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Task has been completed by <t t-out="object.completed_by.name if object.completed_by else user.name"/>.</p>
+                <ul>
+                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
+                    <li><strong>Deadline:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else (object.end_date or '-')"/></li>
+                    <li><strong>Completed On:</strong> <t t-out="format_datetime(object.completed_date) if object.completed_date else '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=task&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Review Completion
+                    </a>
+                </p>
                 <p>Regards,<br/>QLK</p>
             </div>
         </field>

@@ -255,15 +255,16 @@ class QlkProject(models.Model):
     arbitration_count = fields.Integer(string="Arbitration", compute="_compute_service_counts", compute_sudo=True)
     pre_litigation_count = fields.Integer(string="Pre-Litigation", compute="_compute_service_counts", compute_sudo=True)
     task_count = fields.Integer(string="Tasks", compute="_compute_task_count", compute_sudo=True)
+    timesheet_count = fields.Integer(string="Timesheets", compute="_compute_task_count", compute_sudo=True)
     hearing_count = fields.Integer(string="Hearings", compute="_compute_dashboard_counts", compute_sudo=True)
     memo_count = fields.Integer(string="Memos", compute="_compute_dashboard_counts", compute_sudo=True)
     recent_activity_summary = fields.Text(string="Recent Activities", compute="_compute_dashboard_counts", compute_sudo=True)
 
     _sql_constraints = [
         (
-            "engagement_letter_unique",
-            "unique(engagement_letter_id)",
-            "A project already exists for this engagement letter.",
+            "engagement_client_file_service_unique",
+            "unique(engagement_letter_id, client_file_id, service_category)",
+            "A project already exists for this engagement letter and client service profile.",
         ),
         (
             "service_code_company_unique",
@@ -369,18 +370,54 @@ class QlkProject(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_required boolean DEFAULT true")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_status varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_request_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_received_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_expiry_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_notes text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_uploaded_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_verified_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_last_alert_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contract_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS billing_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS start_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS end_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contact_details text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS scope_of_work text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS notes text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS planned_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS consumed_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS remaining_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS hours_state varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS pre_litigation_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_next_number integer DEFAULT 1")
         cr.execute(
             """
             UPDATE qlk_client_file
                SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
                    corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
-                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1)
+                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
+                   poa_required = COALESCE(poa_required, true),
+                   poa_status = COALESCE(poa_status, 'draft'),
+                   planned_hours = COALESCE(planned_hours, 0),
+                   consumed_hours = COALESCE(consumed_hours, 0),
+                   remaining_hours = COALESCE(remaining_hours, 0),
+                   litigation_next_number = COALESCE(litigation_next_number, 1),
+                   pre_litigation_next_number = COALESCE(pre_litigation_next_number, 1),
+                   arbitration_next_number = COALESCE(arbitration_next_number, 1),
+                   corporate_next_number = COALESCE(corporate_next_number, 1),
+                   service_profile_type = COALESCE(service_profile_type, 'litigation')
             """
         )
 
@@ -503,10 +540,11 @@ class QlkProject(models.Model):
             project.cassation_case_count = codes.count("C")
             project.execution_case_count = codes.count("E")
 
-    @api.depends("project_task_ids")
+    @api.depends("project_task_ids", "project_task_ids.timesheet_ids", "qlk_task_ids")
     def _compute_task_count(self):
         for project in self:
             project.task_count = len(project.project_task_ids) + len(project.qlk_task_ids)
+            project.timesheet_count = len(project.project_task_ids.mapped("timesheet_ids"))
 
     @api.depends(
         "case_ids",
@@ -557,9 +595,14 @@ class QlkProject(models.Model):
             if not vals.get("name") or vals.get("name") == _("New Project"):
                 vals["name"] = vals.get("service_code") or _("New Project")
             if vals.get("engagement_letter_id"):
-                existing = self.search([("engagement_letter_id", "=", vals["engagement_letter_id"])], limit=1)
+                existing_domain = [("engagement_letter_id", "=", vals["engagement_letter_id"])]
+                if vals.get("client_file_id"):
+                    existing_domain.append(("client_file_id", "=", vals["client_file_id"]))
+                if vals.get("service_type"):
+                    existing_domain.append(("service_category", "=", self._service_category(vals["service_type"])))
+                existing = self.search(existing_domain, limit=1)
                 if existing:
-                    raise ValidationError(_("A project already exists for this engagement letter."))
+                    raise ValidationError(_("A project already exists for this engagement letter and service profile."))
             vals.setdefault("planned_hours", vals.get("agreed_hours") or 0.0)
         projects = super(
             QlkProject,
@@ -759,19 +802,36 @@ class QlkProject(models.Model):
             "target": "current",
         }
 
-    def _open_related(self, model_name, title):
+    def _open_related(self, model_name, title, extra_domain=None):
         self.ensure_one()
+        domain = [("project_id", "=", self.id)]
+        if extra_domain:
+            domain.extend(extra_domain)
         return {
             "type": "ir.actions.act_window",
             "name": title,
             "res_model": model_name,
             "view_mode": "list,form",
-            "domain": [("project_id", "=", self.id)],
+            "domain": domain,
             "context": {"default_project_id": self.id},
         }
 
     def action_open_cases(self):
-        return self._open_related("qlk.case", _("Cases"))
+        return self._open_related("qlk.case", _("Cases"), [("service_category", "=", "litigation")])
+
+    def action_open_appeal_cases(self):
+        return self._open_related(
+            "qlk.case",
+            _("Appeals"),
+            [("service_category", "=", "litigation"), ("litigation_degree_id.code", "=", "A")],
+        )
+
+    def action_open_enforcement_cases(self):
+        return self._open_related(
+            "qlk.case",
+            _("Enforcement"),
+            [("service_category", "=", "litigation"), ("litigation_degree_id.code", "=", "E")],
+        )
 
     def action_open_project_tasks(self):
         self.ensure_one()
@@ -799,10 +859,10 @@ class QlkProject(models.Model):
         }
 
     def action_open_corporate(self):
-        return self._open_related("qlk.corporate.case", _("Corporate"))
+        return self._open_related("qlk.corporate.case", _("Corporate Services"), [("service_category", "=", "corporate")])
 
     def action_open_arbitration(self):
-        return self._open_related("qlk.arbitration.case", _("Arbitration"))
+        return self._open_related("qlk.arbitration.case", _("Arbitration Matters"), [("service_category", "=", "arbitration")])
 
     def action_open_pre_litigation(self):
         return self._open_related("qlk.pre.litigation", _("Pre-Litigation"))

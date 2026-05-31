@@ -13,10 +13,32 @@ from odoo.osv import expression
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
+    _order = "create_date asc, id asc"
+
+    IDENTITY_TYPE_SELECTION = [
+        ("qatar_id", "Qatar ID"),
+        ("passport", "Passport"),
+        ("visa", "Visa"),
+        ("commercial_registration", "Commercial Registration"),
+        ("other", "Other"),
+    ]
 
     name_ar = fields.Char(string="Arabic Name")
     indust_date = fields.Date(string="Date")
     attachment_id = fields.Many2one("ir.attachment", string="Attachment", ondelete="set null", index=True)
+    qid = fields.Char(string="QID", size=11, required=False)
+    identity_type = fields.Selection(
+        selection=IDENTITY_TYPE_SELECTION,
+        string="Identity Type",
+        default=lambda self: self._default_identity_type(),
+        tracking=True,
+    )
+    identity_number = fields.Char(string="Identity Number", tracking=True)
+    is_qatar_resident = fields.Boolean(
+        string="Qatar Resident",
+        default=True,
+        tracking=True,
+    )
 
     task_ids = fields.One2many("task", "crm_id", string="Working Hours")
     qlk_task_ids = fields.One2many("qlk.task", "partner_id", string="Tasks / Hours")
@@ -54,6 +76,7 @@ class ResPartner(models.Model):
         string="Contact Classification",
         ondelete="set null",
         index=True,
+        domain=[("active", "=", True), ("name", "!=", "Employee")],
     )
     # هذا الحقل يعرض ما إذا كان العميل فردًا، ويعكس قيمة company_type تلقائيًا.
     is_individual_customer = fields.Boolean(
@@ -74,6 +97,150 @@ class ResPartner(models.Model):
         "partner_id",
         string="Contact Details (Multiple)",
     )
+
+    def init(self):
+        super().init()
+        cr = self.env.cr
+        # حارس ترقية وتهيئة بيانات الهوية الجديدة من الحقول القديمة بدون كسر السجلات الحالية.
+        cr.execute("ALTER TABLE res_partner ADD COLUMN IF NOT EXISTS identity_type varchar")
+        cr.execute("ALTER TABLE res_partner ADD COLUMN IF NOT EXISTS identity_number varchar")
+        cr.execute("ALTER TABLE res_partner ADD COLUMN IF NOT EXISTS is_qatar_resident boolean")
+        cr.execute(
+            """
+            UPDATE res_partner
+               SET is_qatar_resident = COALESCE(is_qatar_resident, true)
+            """
+        )
+        cr.execute(
+            """
+            UPDATE res_partner
+               SET identity_type = 'qatar_id',
+                   identity_number = qid
+             WHERE COALESCE(identity_number, '') = ''
+               AND COALESCE(qid, '') != ''
+            """
+        )
+        cr.execute(
+            """
+            UPDATE res_partner
+               SET identity_type = 'passport',
+                   identity_number = passport_no
+             WHERE COALESCE(identity_number, '') = ''
+               AND COALESCE(passport_no, '') != ''
+            """
+        )
+        cr.execute(
+            """
+            UPDATE res_partner
+               SET identity_type = 'commercial_registration',
+                   identity_number = cr_no
+             WHERE COALESCE(identity_number, '') = ''
+               AND COALESCE(cr_no, '') != ''
+            """
+        )
+        cr.execute(
+            """
+            UPDATE res_partner
+               SET identity_type = CASE
+                       WHEN COALESCE(is_company, false) THEN 'commercial_registration'
+                       ELSE 'qatar_id'
+                   END
+             WHERE COALESCE(identity_type, '') = ''
+            """
+        )
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تحدد نوع الهوية الافتراضي حسب سياق إنشاء جهة الاتصال.
+    # ------------------------------------------------------------------------------
+    @api.model
+    def _default_identity_type(self):
+        is_company = self.env.context.get("default_is_company")
+        company_type = self.env.context.get("default_company_type")
+        if is_company or company_type == "company":
+            return "commercial_registration"
+        return "qatar_id"
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        if "identity_type" in fields_list and not values.get("identity_type"):
+            values["identity_type"] = self._default_identity_type()
+        return values
+
+    # ------------------------------------------------------------------------------
+    # هذه الدالة تجهز حقول الهوية الجديدة مع الحقول القديمة للحفاظ على التوافق.
+    # ------------------------------------------------------------------------------
+    def _prepare_identity_vals(self, vals):
+        vals = dict(vals)
+        identity_type = vals.get("identity_type")
+        identity_number = vals.get("identity_number")
+        if not identity_type:
+            if vals.get("qid"):
+                identity_type = "qatar_id"
+            elif vals.get("passport_no"):
+                identity_type = "passport"
+            elif vals.get("cr_no"):
+                identity_type = "commercial_registration"
+            elif vals.get("is_company") or vals.get("company_type") == "company":
+                identity_type = "commercial_registration"
+            else:
+                identity_type = "qatar_id"
+            vals["identity_type"] = identity_type
+        if not identity_number:
+            identity_number = vals.get("qid") or vals.get("passport_no") or vals.get("cr_no")
+            if identity_number:
+                vals["identity_number"] = identity_number
+        if vals.get("identity_type") == "qatar_id" and vals.get("identity_number"):
+            vals["qid"] = vals["identity_number"]
+        elif vals.get("identity_type") == "passport" and vals.get("identity_number"):
+            vals["passport_no"] = vals["identity_number"]
+            vals.setdefault("qid", False)
+        elif vals.get("identity_type") == "commercial_registration" and vals.get("identity_number"):
+            vals["cr_no"] = vals["identity_number"]
+            vals.setdefault("qid", False)
+        elif vals.get("identity_type") in ("visa", "other") and vals.get("identity_number"):
+            vals.setdefault("qid", False)
+        return vals
+
+    def _identity_values_after_write(self, vals):
+        self.ensure_one()
+        identity_type = vals.get("identity_type", self.identity_type)
+        identity_number = vals.get("identity_number", self.identity_number)
+        is_qatar_resident = vals.get("is_qatar_resident", self.is_qatar_resident)
+        return identity_type, identity_number, is_qatar_resident
+
+    @api.onchange("identity_type", "identity_number", "is_qatar_resident", "company_type")
+    def _onchange_identity_fields(self):
+        for partner in self:
+            if partner.company_type == "company" and not partner.identity_type:
+                partner.identity_type = "commercial_registration"
+            if partner.identity_type == "qatar_id":
+                partner.qid = partner.identity_number
+            elif partner.identity_type == "passport":
+                partner.passport_no = partner.identity_number
+                partner.qid = False
+            elif partner.identity_type == "commercial_registration":
+                partner.cr_no = partner.identity_number
+                partner.qid = False
+            else:
+                partner.qid = False
+
+    @api.onchange("company_type", "is_company")
+    def _onchange_company_identity_default(self):
+        for partner in self:
+            if partner.company_type == "company" and not partner.identity_type:
+                partner.identity_type = "commercial_registration"
+
+    @api.constrains("identity_type", "identity_number", "is_qatar_resident", "customer_rank")
+    def _check_identity_number(self):
+        for partner in self:
+            if partner.customer_rank <= 0:
+                continue
+            if not partner.identity_number:
+                raise ValidationError(_("Identity Number is required for client contacts."))
+            if partner.identity_type == "qatar_id" and partner.is_qatar_resident:
+                qid = (partner.identity_number or "").strip()
+                if len(qid) != 11 or not qid.isdigit():
+                    raise ValidationError(_("Incorrect QID"))
 
     # ------------------------------------------------------------------------------
     # هذه الدالة تحدد هل السجل يمثل بيانات عميل يجب حمايتها من التعديل العام.
@@ -138,7 +305,9 @@ class ResPartner(models.Model):
             "|",
             "|",
             "|",
+            "|",
             ("name_ar", operator, value),
+            ("identity_number", operator, value),
             ("mobile", operator, value),
             ("phone", operator, value),
             ("ref", operator, value),
@@ -246,7 +415,9 @@ class ResPartner(models.Model):
                             "Only MP and BD teams can create client records."
                         )
                     )
+        prepared_vals_list = []
         for vals in vals_list:
+            vals = self._prepare_identity_vals(vals)
             client_year = vals.get("client_year") or self._default_client_year()
             client_year = int(client_year)
             vals["client_year"] = client_year
@@ -254,7 +425,8 @@ class ResPartner(models.Model):
                 vals["code"] = self._generate_partner_code(client_year)
             if self._should_generate_partner_ref(vals):
                 vals["ref"] = self._next_partner_ref()
-        records = super().create(vals_list)
+            prepared_vals_list.append(vals)
+        records = super().create(prepared_vals_list)
         # NOTE: Hours enforcement is temporarily disabled. Re-enable when required.
         # records._check_hours_logged()
         return records
@@ -296,6 +468,23 @@ class ResPartner(models.Model):
         return sequence_code
 
     def write(self, vals):
+        vals = dict(vals)
+        if {"identity_type", "identity_number", "qid", "passport_no", "cr_no", "company_type", "is_company"}.intersection(vals):
+            if len(self) == 1:
+                identity_type, identity_number, _is_qatar_resident = self._identity_values_after_write(vals)
+                if identity_number:
+                    if identity_type == "qatar_id":
+                        vals["qid"] = identity_number
+                    elif identity_type == "passport":
+                        vals["passport_no"] = identity_number
+                        vals.setdefault("qid", False)
+                    elif identity_type == "commercial_registration":
+                        vals["cr_no"] = identity_number
+                        vals.setdefault("qid", False)
+                    elif identity_type in ("visa", "other"):
+                        vals.setdefault("qid", False)
+            else:
+                vals = self._prepare_identity_vals(vals)
         if not self.env.context.get("skip_client_partner_security") and not self._has_client_management_access():
             target_customer_rank = vals.get("customer_rank", 0) or 0
             target_parent_id = vals.get("parent_id")

@@ -114,9 +114,8 @@
                 <xpath expr="//sheet/div[@class='oe_button_box']" position="inside">
                     <button name="action_open_employee_documents"
                             type="object"
-                            class="oe_stat_button"
-                            icon="fa-file-text-o">
-                        <field name="employee_document_count" widget="statinfo" string="Documents"/>
+                            class="oe_stat_button">
+                        <div class="o_stat_info"><span class="o_stat_text">Documents (<field name="employee_document_count" nolabel="1" readonly="1"/>)</span></div>
                     </button>
                 </xpath>
                 <xpath expr="//sheet/notebook" position="inside">

@@ -105,7 +105,7 @@
                             <field name="total_estimated_cost" readonly="1" groups="account.group_account_user"/>
                         </group>
                     </group>
-                    <group string="Retainer Tracking" modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('retainer_period', '=', False)]}">
+                    <group string="Retainer Tracking" modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('retainer_period', '!=', 'retainer')]}">
                         <group>
                             <!-- Standard Odoo project used for project.task timesheet tracking. -->
                             <field name="project_id"/>
@@ -115,15 +115,10 @@
                             <field name="exception_approved"/>
                         </group>
                         <group>
-                            <!-- Retainer period controls the yearly window or monthly threshold logic. -->
-                            <field name="year_start_date"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'annual')]}"/>
-                            <field name="year_end_date"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'annual')]}"/>
-                            <field name="monthly_hours_limit"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'monthly')]}"/>
-                            <field name="monthly_used_hours" readonly="1"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'monthly')]}"/>
+                            <field name="year_start_date" invisible="1"/>
+                            <field name="year_end_date" invisible="1"/>
+                            <field name="monthly_hours_limit" invisible="1"/>
+                            <field name="monthly_used_hours" readonly="1" invisible="1"/>
                             <field name="retainer_usage_state" widget="badge"
                                    decoration-success="retainer_usage_state == 'success'"
                                    decoration-warning="retainer_usage_state == 'warning'"
@@ -245,8 +240,13 @@
         <field name="model">bd.proposal</field>
         <field name="arch" type="xml">
             <kanban default_group_by="state" class="o_kanban_small_column" default_order="state">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="partner_id"/>
                 <field name="client_code"/>
                 <field name="proposal_type"/>
+                <field name="legal_fees"/>
+                <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-att-class="'oe_kanban_global_click card bg-light o_kanban_record ' + (record.state and record.state.raw_value or '')">

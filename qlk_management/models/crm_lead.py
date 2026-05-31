@@ -13,6 +13,7 @@ class Crm(models.Model):
     priority_selection = fields.Selection([
         ('high', 'High'),('medium', 'Medium'),('low', 'Low'),
     ], string='Priority', tracking=True)
+    notify_datetime = fields.Datetime(string="Follow up notifications", tracking=True)
 
     client_name = fields.Char(string="Client")
     client_code = fields.Char(
@@ -78,6 +79,41 @@ class Crm(models.Model):
         for lead in self:
             lead.hours_logged_ok = bool(lead.qlk_task_ids)
 
+    def _get_notification_name(self):
+        self.ensure_one()
+        client = self.client_name or self.partner_id.display_name or self.name
+        return _("Follow up: %s") % client
+
+    def _get_notification_description(self):
+        self.ensure_one()
+        return self.name or False
+
+    def _prepare_partner_vals_from_lead(self):
+        self.ensure_one()
+        name = self.client_name or self.partner_name or self.contact_name or self.name
+        if not name:
+            raise UserError(_("Please enter the client or details before creating a proposal."))
+
+        vals = {
+            "name": name,
+            "customer_rank": 1,
+        }
+        if self.phone:
+            vals["phone"] = self.phone
+        if self.email_from:
+            vals["email"] = self.email_from
+        if self.user_id:
+            vals["user_id"] = self.user_id.id
+        return vals
+
+    def _ensure_partner_for_proposal(self):
+        self.ensure_one()
+        if self.partner_id:
+            return self.partner_id
+        partner = self.env["res.partner"].create(self._prepare_partner_vals_from_lead())
+        self.partner_id = partner
+        return partner
+
 
     def action_interested(self):
         for rec in self:
@@ -103,11 +139,12 @@ class Crm(models.Model):
     def action_create_bd_proposal(self):
         """Open the BD Proposal form with defaults taken from the lead"""
         self.ensure_one()
+        partner = self._ensure_partner_for_proposal()
         form_view = self.env.ref('qlk_management.view_bd_proposal_form')
         context = {
             'default_lead_id': self.id,
-            'default_partner_id': self.partner_id.id,
-            'default_client_id': self.partner_id.id,
+            'default_partner_id': partner.id,
+            'default_client_id': partner.id,
             'default_reference': self.name,
         }
         return {

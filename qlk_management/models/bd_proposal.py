@@ -31,7 +31,13 @@ LEGACY_RETAINER_SERVICE_CODES = {
 class BDProposal(models.Model):
     _name = "bd.proposal"
     _description = "Business Proposal"
-    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin", "bd.retainer.mixin"]
+    _inherit = [
+        "mail.thread",
+        "mail.activity.mixin",
+        "qlk.notification.mixin",
+        "bd.retainer.mixin",
+        "qlk.workflow.notification.mixin",
+    ]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -138,8 +144,12 @@ class BDProposal(models.Model):
         tracking=True,
     )
     retainer_period = fields.Selection(
-        [("annual", "Annual"), ("monthly", "Monthly")],
-        string="Retainer Type",
+        [
+            ("lump_sum", "Lump Sum"),
+            ("retainer", "Retainer"),
+            ("hourly_based", "Hourly Based"),
+        ],
+        string="Contract Type",
         tracking=True,
     )
     allocated_hours = fields.Float(string="Allocated Hours", tracking=True)
@@ -238,12 +248,23 @@ class BDProposal(models.Model):
         ]
 
     def init(self):
+        # Upgrade guard for the workflow notification mixin field during registry rebuilds.
+        self._cr.execute(
+            "ALTER TABLE bd_proposal ADD COLUMN IF NOT EXISTS workflow_notification_keys text"
+        )
         # Normalize legacy billing values introduced during previous customizations.
         self._cr.execute(
             """
             UPDATE bd_proposal
                SET billing_type = 'paid'
              WHERE billing_type IN ('billable', 'fixed', 'retainer')
+            """
+        )
+        self._cr.execute(
+            """
+            UPDATE bd_proposal
+               SET retainer_period = 'retainer'
+             WHERE retainer_period IN ('annual', 'monthly')
             """
         )
 
@@ -589,6 +610,7 @@ class BDProposal(models.Model):
                 }
             )
             proposal.message_post(body=_("Proposal submitted for manager approval."))
+            proposal._qlk_send_approval_request_email()
 
     # ------------------------------------------------------------------------------
     # موافقة المدير (Waiting Manager Approval -> Approved by Manager).
@@ -604,6 +626,12 @@ class BDProposal(models.Model):
                 }
             )
             proposal.message_post(body=_("Manager approved. Ready to send to client."))
+            event = (
+                "manager_approved"
+                if proposal.approval_role == "manager"
+                else "assistant_manager_approved"
+            )
+            proposal._qlk_send_monitoring_email(event)
 
     # ------------------------------------------------------------------------------
     # إرسال العرض لموافقة العميل (Approved by Manager -> Waiting Client Approval).
@@ -614,6 +642,7 @@ class BDProposal(models.Model):
             proposal._check_approval_rights()
             proposal.write({"state": "waiting_client_approval"})
             proposal.message_post(body=_("Proposal sent for client approval."))
+            proposal._qlk_send_monitoring_email("sent_to_client")
 
     def action_send_for_approval(self):
         return self.action_send_manager_approval()
@@ -1038,6 +1067,8 @@ class BDProposal(models.Model):
         lead_record = lead_record if lead_record.exists() else False
         if not lead_record:
             return {}
+        if not lead_record.partner_id and hasattr(lead_record, "_ensure_partner_for_proposal"):
+            lead_record._ensure_partner_for_proposal()
         return {
             "partner_id": lead_record.partner_id.id,
         }
@@ -1099,6 +1130,8 @@ class BDProposal(models.Model):
                 }
             )
             proposal.message_post(body=_("Proposal rejected: %s") % reason)
+            if rejection_role == "client":
+                proposal._qlk_send_monitoring_email("client_rejected")
 
     # ------------------------------------------------------------------------------
     # زر لتحديث حالة العرض عندما تتم الموافقة من العميل النهائي.
@@ -1117,6 +1150,7 @@ class BDProposal(models.Model):
                 }
             )
             proposal.message_post(body=_("Client approved the proposal."))
+            proposal._qlk_send_monitoring_email("client_approved")
 
     def action_client_approved(self):
         return self.action_client_approve()
@@ -1293,7 +1327,7 @@ class BDProposal(models.Model):
         proposals = self.search(
             [
                 ("billing_type", "!=", "free"),
-                ("retainer_period", "!=", False),
+                ("retainer_period", "=", "retainer"),
                 ("state", "not in", ("rejected", "cancelled")),
             ]
         )

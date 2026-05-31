@@ -64,17 +64,21 @@
                     <field name="has_corporate_service" invisible="1"/>
                     <div class="alert alert-warning o_qlk_hours_notice">You must enter hours.</div>
                     <div class="oe_button_box" name="button_box">
-                        <button type="object" name="action_open_cases" class="oe_stat_button" icon="fa-balance-scale">
-                            <field name="case_count" widget="statinfo" string="Cases"/>
+                        <button type="object" name="action_open_cases" class="oe_stat_button"
+                                invisible="not has_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Cases (<field name="case_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button" icon="fa-file-text-o">
-                            <field name="pre_litigation_count" widget="statinfo" string="Pre-Litigation"/>
+                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button"
+                                invisible="not has_pre_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Pre-Litigation (<field name="pre_litigation_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_arbitration_cases" class="oe_stat_button" icon="fa-gavel">
-                            <field name="arbitration_count" widget="statinfo" string="Arbitration"/>
+                        <button type="object" name="action_open_arbitration_cases" class="oe_stat_button"
+                                invisible="not has_arbitration_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Arbitration Matters (<field name="arbitration_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_corporate_cases" class="oe_stat_button" icon="fa-building-o">
-                            <field name="corporate_count" widget="statinfo" string="Corporate"/>
+                        <button type="object" name="action_open_corporate_cases" class="oe_stat_button"
+                                invisible="not has_corporate_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Corporate Services (<field name="corporate_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
                     </div>
                     <group string="Client &amp; General Info">
@@ -92,7 +96,7 @@
                                    readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"/>
                             <field name="retainer_period"
                                    readonly="state in ('approved_client', 'client_approved') and not allow_financial_edit"
-                                   modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer')]}"/>
+                                   modifiers="{'invisible': [('billing_type', '=', 'free')]}"/>
                             <field name="approval_role"/>
                             <field name="client_id" required="1"/>
                             <field name="billing_type"
@@ -125,7 +129,7 @@
                                    invisible="not over_consumed"/>
                         </group>
                     </group>
-                    <group string="Retainer Tracking" modifiers="{'invisible': ['|', '|', ('billing_type', '=', 'free'), ('contract_type', '!=', 'retainer'), ('retainer_period', '=', False)]}">
+                    <group string="Retainer Tracking" modifiers="{'invisible': ['|', ('billing_type', '=', 'free'), ('retainer_period', '!=', 'retainer')]}">
                         <group>
                             <!-- Standard Odoo project is the primary source for task timesheets. -->
                             <field name="project_id"/>
@@ -135,15 +139,10 @@
                             <field name="exception_approved"/>
                         </group>
                         <group>
-                            <!-- Monthly retainers watch the current month; annual retainers use the custom year window. -->
-                            <field name="year_start_date"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'annual')]}"/>
-                            <field name="year_end_date"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'annual')]}"/>
-                            <field name="monthly_hours_limit"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'monthly')]}"/>
-                            <field name="monthly_used_hours" readonly="1"
-                                   modifiers="{'invisible': [('retainer_period', '!=', 'monthly')]}"/>
+                            <field name="year_start_date" invisible="1"/>
+                            <field name="year_end_date" invisible="1"/>
+                            <field name="monthly_hours_limit" invisible="1"/>
+                            <field name="monthly_used_hours" readonly="1" invisible="1"/>
                             <field name="retainer_usage_state" widget="badge"
                                    decoration-success="retainer_usage_state == 'success'"
                                    decoration-warning="retainer_usage_state == 'warning'"
@@ -277,6 +276,12 @@
         <field name="model">bd.engagement.letter</field>
         <field name="arch" type="xml">
             <kanban default_group_by="state" default_order="state">
+                <field name="code"/>
+                <field name="contract_type"/>
+                <field name="partner_id"/>
+                <field name="reference"/>
+                <field name="total_amount"/>
+                <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click card">

@@ -146,30 +146,26 @@
                 <button name="action_view_bd_proposals"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-file-text-o"
                         modifiers="{'invisible': [('id', '=', False)]}">
-                    <field name="proposal_count" widget="statinfo" string="Proposals"/>
+                    <div class="o_stat_info"><span class="o_stat_text">Proposals (<field name="proposal_count" nolabel="1" readonly="1"/>)</span></div>
                 </button>
                 <button name="action_view_bd_engagements"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-file-signature"
                         modifiers="{'invisible': [('id', '=', False)]}">
-                    <field name="engagement_count" widget="statinfo" string="Engagements"/>
+                    <div class="o_stat_info"><span class="o_stat_text">Engagements (<field name="engagement_count" nolabel="1" readonly="1"/>)</span></div>
                 </button>
                 <button name="action_view_partner_projects"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-briefcase"
                         modifiers="{'invisible': [('id', '=', False)]}">
-                    <field name="project_count" widget="statinfo" string="Projects"/>
+                    <div class="o_stat_info"><span class="o_stat_text">Projects (<field name="project_count" nolabel="1" readonly="1"/>)</span></div>
                 </button>
                 <button name="action_view_related_cases"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-balance-scale"
                         modifiers="{'invisible': [('id', '=', False)]}">
-                    <field name="cases_count" widget="statinfo" string="Cases"/>
+                    <div class="o_stat_info"><span class="o_stat_text">Cases (<field name="cases_count" nolabel="1" readonly="1"/>)</span></div>
                 </button>
             </xpath>
             <!-- <xpath expr="//page[@name='invoicing']" position="attributes">
@@ -360,6 +356,9 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_tree"/>
         <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">create_date asc, id asc</attribute>
+            </xpath>
             <xpath expr="//field[@name='mobile']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -458,13 +457,13 @@
         </field>
     </record>
 
-    <record id="inherit_res_partner_kanban_order_by_client_year" model="ir.ui.view">
-        <field name="name">res.partner.kanban.order.client.year</field>
+    <record id="inherit_res_partner_kanban_order_by_entry" model="ir.ui.view">
+        <field name="name">res.partner.kanban.order.by.entry</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.res_partner_kanban_view"/>
         <field name="arch" type="xml">
             <xpath expr="//kanban" position="attributes">
-                <attribute name="default_order">client_year desc</attribute>
+                <attribute name="default_order">create_date asc, id asc</attribute>
             </xpath>
         </field>
     </record>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_identity_phone_ui" model="ir.ui.view">
+        <field name="name">res.partner.form.identity.phone.ui</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//span[@name='address_name']/span[@invisible='not is_company']" position="replace">
+                <span invisible="not is_company">Basic Information</span>
+            </xpath>
+            <xpath expr="//label[@for='street']" position="attributes">
+                <attribute name="string">Basic Information</attribute>
+            </xpath>
+            <xpath expr="//field[@name='classification_id']" position="attributes">
+                <attribute name="domain">[('active', '=', True), ('name', '!=', 'Employee')]</attribute>
+                <attribute name="context">{'active_test': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qid']" position="before">
+                <field name="is_qatar_resident" invisible="is_company"/>
+                <field name="identity_type"/>
+                <field name="identity_number" required="1"/>
+            </xpath>
+            <xpath expr="//field[@name='qid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='passport_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='cr_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='client_attachment_ids']/ancestor::page[1]" position="attributes">
+                <attribute name="invisible">not id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='client_attachment_ids']" position="attributes">
+                <attribute name="invisible">not id</attribute>
+            </xpath>
+            <xpath expr="//chatter" position="attributes">
+                <attribute name="invisible">not id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='child_ids']//kanban//div[@t-if='record.phone.raw_value']" position="replace"/>
+            <xpath expr="//field[@name='child_ids']//form//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_simple_form_hide_phone" model="ir.ui.view">
+        <field name="name">res.partner.simple.form.hide.phone</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_simple_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_hide_phone_identity" model="ir.ui.view">
+        <field name="name">res.partner.list.hide.phone.identity</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_res_partner_filter_hide_phone_identity" model="ir.ui.view">
+        <field name="name">res.partner.search.hide.phone.identity</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="qlk_management.view_res_partner_filter_client_data"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='name']" position="after">
+                <field name="identity_number" filter_domain="[('identity_number', 'ilike', self)]"/>
+            </xpath>
+            <xpath expr="//search/field[@name='phone']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="action_qlk_contact_classification" model="ir.actions.act_window">
+        <field name="domain">[('active', '=', True), ('name', '!=', 'Employee')]</field>
+    </record>
+</odoo>

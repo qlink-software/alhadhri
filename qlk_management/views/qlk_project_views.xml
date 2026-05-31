@@ -73,41 +73,35 @@
                         Planned hours are close to being fully consumed.
                     </div>
                     <div class="oe_button_box" name="button_box">
-                        <button type="object" name="action_open_cases" class="oe_stat_button">
-                            <field name="case_count" widget="statinfo" string="Cases"/>
+                        <button type="object" name="action_open_cases" class="oe_stat_button"
+                                invisible="not has_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Cases (<field name="case_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_cases" class="oe_stat_button">
-                            <field name="first_instance_case_count" widget="statinfo" string="Primary"/>
+                        <button type="object" name="action_open_appeal_cases" class="oe_stat_button"
+                                invisible="not has_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Appeals (<field name="appeal_case_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_cases" class="oe_stat_button">
-                            <field name="appeal_case_count" widget="statinfo" string="Appeal"/>
+                        <button type="object" name="action_open_enforcement_cases" class="oe_stat_button"
+                                invisible="not has_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Enforcement (<field name="execution_case_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_cases" class="oe_stat_button">
-                            <field name="cassation_case_count" widget="statinfo" string="Cassation"/>
+                        <button type="object" name="action_open_corporate" class="oe_stat_button"
+                                invisible="not has_corporate_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Corporate Services (<field name="corporate_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
-                        <button type="object" name="action_open_cases" class="oe_stat_button">
-                            <field name="execution_case_count" widget="statinfo" string="Execution"/>
+                        <button type="object" name="action_open_arbitration" class="oe_stat_button"
+                                invisible="not has_arbitration_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Arbitration Matters (<field name="arbitration_count" nolabel="1" readonly="1"/>)</span></div>
+                        </button>
+                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button"
+                                invisible="not has_pre_litigation_service">
+                            <div class="o_stat_info"><span class="o_stat_text">Pre-Litigation (<field name="pre_litigation_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
                         <button type="object" name="action_open_project_tasks" class="oe_stat_button">
-                            <field name="task_count" widget="statinfo" string="Tasks"/>
+                            <div class="o_stat_info"><span class="o_stat_text">Tasks (<field name="task_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
                         <button type="object" name="action_open_project_timesheets" class="oe_stat_button">
-                            <field name="consumed_hours" widget="statinfo" string="Consumed Hours"/>
-                        </button>
-                        <button type="object" name="action_open_project_tasks" class="oe_stat_button">
-                            <field name="remaining_hours" widget="statinfo" string="Remaining Hours"/>
-                        </button>
-                        <button type="object" name="action_open_corporate" class="oe_stat_button">
-                            <field name="corporate_count" widget="statinfo" string="Corporate"/>
-                        </button>
-                        <button type="object" name="action_open_arbitration" class="oe_stat_button">
-                            <field name="arbitration_count" widget="statinfo" string="Arbitration"/>
-                        </button>
-                        <button type="object" name="action_open_pre_litigation" class="oe_stat_button">
-                            <field name="pre_litigation_count" widget="statinfo" string="Pre-litigation"/>
-                        </button>
-                        <button type="object" name="action_open_poa_attachments" class="oe_stat_button" icon="fa-file-pdf-o">
-                            <field name="poa_attachment_count" widget="statinfo" string="POA"/>
+                            <div class="o_stat_info"><span class="o_stat_text">Timesheets (<field name="timesheet_count" nolabel="1" readonly="1"/>)</span></div>
                         </button>
                     </div>
 
@@ -309,7 +303,9 @@
         <field name="model">bd.engagement.letter</field>
         <field name="inherit_id" ref="qlk_management.view_bd_engagement_letter_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']" position="replace"/>
+            <xpath expr="//div[@name='button_box']" position="replace">
+                <div class="oe_button_box" name="button_box"/>
+            </xpath>
             <xpath expr="//field[@name='allocated_hours']/ancestor::group[2]" position="replace"/>
             <xpath expr="//field[@name='time_entry_ids']/ancestor::page[1]" position="replace"/>
             <xpath expr="//field[@name='total_hours_used']" position="replace"/>

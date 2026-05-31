@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.0.8',
+    'version': '18.0.1.0.11',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """
@@ -70,6 +70,7 @@
         'data/hr_mail_templates.xml',
         'data/translation_mail_templates.xml',
         'data/task_mail_templates.xml',
+        'data/workflow_mail_templates.xml',
         'data/poa_mail_templates.xml',
         'data/hr_automation_cron.xml',
         'data/bd_retainer_cron.xml',
@@ -78,6 +79,7 @@
         'views/res_partner_views.xml',
         'views/res_partner_contact_info_views.xml',
         'views/client_classification_views.xml',
+        'views/res_partner_contact_customization_views.xml',
         # 'views/dashboard_view.xml',
         'reports/agreements_report.xml',
         'reports/bd_report_xlsx.xml',
@@ -126,7 +128,6 @@
         'wizard/hr_resignation_reject_wizard_views.xml',
 
         # 'views/sound_notification_template.xml',
-        # 'views/res_config_settings_views.xml',
         # 'wizard/proposal_approval_wizard_views.xml',
         # 'wizard/agreement_generation_wizard_views.xml',
         

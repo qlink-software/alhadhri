@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError
 from odoo.osv.expression import OR
 
@@ -131,6 +131,34 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
             )
         return cards, total
 
+    def _opportunity_followups(self, opportunity_model, base_domain=None, limit=8):
+        domain = list(base_domain or []) + [
+            ("type", "=", "opportunity"),
+            ("notify_datetime", "!=", False),
+        ]
+        try:
+            opportunity_model.check_access_rights("read")
+            total = opportunity_model.search_count(domain)
+            leads = opportunity_model.search(domain, order="notify_datetime asc, id desc", limit=limit)
+        except AccessError:
+            return [], 0
+
+        state_labels = dict(opportunity_model._fields["state"].selection or [])
+        followups = []
+        for lead in leads:
+            due = fields.Datetime.context_timestamp(lead, lead.notify_datetime)
+            followups.append(
+                {
+                    "id": lead.id,
+                    "title": lead.client_name or lead.partner_id.display_name or lead.name,
+                    "details": lead.name,
+                    "due": due.strftime("%Y-%m-%d %H:%M"),
+                    "state": state_labels.get(lead.state, lead.state),
+                    "link": {"res_model": "crm.lead", "res_id": lead.id},
+                }
+            )
+        return followups, total
+
     @api.model
     def get_dashboard_data(self):
         user = self.env.user
@@ -220,6 +248,9 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
         )
 
         opportunity_groups, opportunity_total = self._opportunity_state_groups(opportunity_model, base_domain=opportunity_domain)
+        opportunity_followups, opportunity_followup_total = self._opportunity_followups(
+            opportunity_model, base_domain=opportunity_domain
+        )
 
         project_groups, project_total = self._project_state_groups(project_model, base_domain=project_domain)
 
@@ -237,7 +268,9 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
                 "proposals": proposal_total,
                 "engagements": engagement_total,
                 "projects": project_total,
+                "followups": opportunity_followup_total,
             },
+            "followups": opportunity_followups,
             "sections": [
                 {
                     "key": "opportunities",

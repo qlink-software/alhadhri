@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
-from odoo.exceptions import ValidationError
+from odoo import _, models, fields, api
+from odoo.exceptions import UserError, ValidationError
 
 
 class Tasks(models.Model):
@@ -10,8 +10,8 @@ class Tasks(models.Model):
     name = fields.Char('Name')
     state = fields.Selection(selection=[
         ('draft', 'Draft'),
-        ('confrim', 'Confirm'),
-        ('done', 'Done'),
+        ('confrim', 'In Progress'),
+        ('done', 'Completed'),
         ('reject', 'Rejected'),
         ('cancel', 'Cancel'),
     ], string='State', default='draft',)
@@ -50,6 +50,27 @@ class Tasks(models.Model):
     work_hours_display = fields.Char(
         string="Work Hours (HH:MM)", compute="_compute_work_hours_display"
     )
+    completed_by = fields.Many2one("res.users", string="Completed By", readonly=True, tracking=True)
+    completed_date = fields.Datetime(string="Completed On", readonly=True, tracking=True)
+    completion_reviewed_by = fields.Many2one(
+        "res.users", string="Completion Reviewed By", readonly=True, tracking=True
+    )
+    completion_reviewed_date = fields.Datetime(
+        string="Completion Reviewed On", readonly=True, tracking=True
+    )
+    can_mark_completed = fields.Boolean(compute="_compute_workflow_buttons")
+    can_review_completion = fields.Boolean(compute="_compute_workflow_buttons")
+
+    def _compute_workflow_buttons(self):
+        current_user = self.env.user
+        is_manager = current_user.has_group("qlk_task_management.group_task_manager")
+        for task in self:
+            task.can_mark_completed = task.state == "confrim" and task.user_id == current_user
+            task.can_review_completion = (
+                task.state == "done"
+                and not task.completion_reviewed_by
+                and (task.create_uid == current_user or is_manager)
+            )
 
     @api.depends("work_hours")
     def _compute_work_hours_display(self):
@@ -103,13 +124,30 @@ class Tasks(models.Model):
 
     def write(self, vals):
         old_users = {record.id: record.user_id for record in self}
+        old_states = {record.id: record.state for record in self}
         result = super().write(vals)
         self._ensure_required_hours()
         if "user_id" in vals:
             for record in self:
                 if record.user_id and old_users.get(record.id) != record.user_id:
                     record._send_assignment_email()
+        if vals.get("state") == "done":
+            for record in self:
+                if old_states.get(record.id) != "done":
+                    if not record.completed_by:
+                        record.completed_by = self.env.user
+                    if not record.completed_date:
+                        record.completed_date = fields.Datetime.now()
+                    record._send_completion_notification()
         return result
+
+    def _record_url(self):
+        self.ensure_one()
+        return "%s/web#id=%s&model=%s&view_type=form" % (
+            self.get_base_url(),
+            self.id,
+            self._name,
+        )
 
     def _send_assignment_email(self):
         template = self.env.ref("qlk_management.mail_template_management_task_assignment", raise_if_not_found=False)
@@ -118,9 +156,28 @@ class Tasks(models.Model):
         activity_type = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
         for record in self.filtered("user_id"):
             email_to = record.user_id.partner_id.email or record.user_id.email
-            if not email_to:
-                continue
-            template.send_mail(record.id, force_send=False, email_values={"email_to": email_to})
+            partner = record.user_id.partner_id
+            if partner:
+                record.message_subscribe(partner_ids=[partner.id])
+                record.message_post(
+                    body=_(
+                        "You have been assigned a new internal task/request.<br/>"
+                        "<b>Task:</b> %(name)s<br/>"
+                        "<b>Priority:</b> %(priority)s<br/>"
+                        "<b>Deadline:</b> %(deadline)s<br/>"
+                        "<b>Created By:</b> %(creator)s<br/>"
+                        "<a href='%(url)s'>Open Task</a>"
+                    ) % {
+                        "name": record.display_name,
+                        "priority": dict(record._fields["priority"].selection).get(record.priority, record.priority or "-"),
+                        "deadline": record.delivery_date or record.end_date or "-",
+                        "creator": record.create_uid.name,
+                        "url": record._record_url(),
+                    },
+                    partner_ids=[partner.id],
+                )
+            if email_to:
+                template.send_mail(record.id, force_send=False, email_values={"email_to": email_to})
             if activity_type:
                 record.activity_schedule(
                     activity_type_id=activity_type.id,
@@ -129,15 +186,62 @@ class Tasks(models.Model):
                     note="You have been assigned to task: %s" % record.display_name,
                 )
 
+    def _send_completion_notification(self):
+        template = self.env.ref("qlk_management.mail_template_management_task_completion", raise_if_not_found=False)
+        activity_type = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
+        for record in self:
+            creator = record.create_uid
+            partner = creator.partner_id
+            if partner:
+                record.message_subscribe(partner_ids=[partner.id])
+                record.message_post(
+                    body=_("Task has been completed by %s.") % (record.completed_by.name or self.env.user.name),
+                    partner_ids=[partner.id],
+                )
+            email_to = creator.partner_id.email or creator.email
+            if template and email_to:
+                template.send_mail(record.id, force_send=False, email_values={"email_to": email_to})
+            if activity_type:
+                record.activity_schedule(
+                    activity_type_id=activity_type.id,
+                    user_id=creator.id,
+                    summary=_("Task completed"),
+                    note=_("Task has been completed: %s") % record.display_name,
+                )
 
     def confirm_acrion(self):
         for rec in self:
             rec.state = "confrim"
 
     def done_acrion(self):
+        current_user = self.env.user
         for rec in self:
             rec._ensure_required_hours()
-            rec.state = "done"
+            if rec.user_id != current_user:
+                raise UserError(_("Only the assigned user can mark this task as completed."))
+            rec.write(
+                {
+                    "state": "done",
+                    "completed_by": current_user.id,
+                    "completed_date": fields.Datetime.now(),
+                }
+            )
+
+    def action_review_completion(self):
+        current_user = self.env.user
+        is_manager = current_user.has_group("qlk_task_management.group_task_manager")
+        for rec in self:
+            if rec.state != "done":
+                raise UserError(_("Only completed tasks can be reviewed."))
+            if rec.create_uid != current_user and not is_manager:
+                raise UserError(_("Only the task creator or manager can review completion."))
+            rec.write(
+                {
+                    "completion_reviewed_by": current_user.id,
+                    "completion_reviewed_date": fields.Datetime.now(),
+                }
+            )
+            rec.message_post(body=_("Completion reviewed by %s.") % current_user.name)
     
     def reject_acrion(self):
         for rec in self:

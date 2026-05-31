@@ -37,7 +37,13 @@ TRANSLATION_STATUS_SELECTION = [
 class BDEngagementLetter(models.Model):
     _name = "bd.engagement.letter"
     _description = "Engagement Letter"
-    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.notification.mixin", "bd.retainer.mixin"]
+    _inherit = [
+        "mail.thread",
+        "mail.activity.mixin",
+        "qlk.notification.mixin",
+        "bd.retainer.mixin",
+        "qlk.workflow.notification.mixin",
+    ]
     _order = "create_date desc"
     _rec_name = "code"
 
@@ -197,8 +203,12 @@ class BDEngagementLetter(models.Model):
         tracking=True,
     )
     retainer_period = fields.Selection(
-        [("annual", "Annual"), ("monthly", "Monthly")],
-        string="Retainer Type",
+        [
+            ("lump_sum", "Lump Sum"),
+            ("retainer", "Retainer"),
+            ("hourly_based", "Hourly Based"),
+        ],
+        string="Contract Type",
         tracking=True,
     )
     allocated_hours = fields.Float(string="Allocated Hours", tracking=True)
@@ -347,12 +357,23 @@ class BDEngagementLetter(models.Model):
         ]
 
     def init(self):
+        # Upgrade guard for the workflow notification mixin field during registry rebuilds.
+        self._cr.execute(
+            "ALTER TABLE bd_engagement_letter ADD COLUMN IF NOT EXISTS workflow_notification_keys text"
+        )
         # Normalize legacy billing values introduced during previous customizations.
         self._cr.execute(
             """
             UPDATE bd_engagement_letter
                SET billing_type = 'paid'
              WHERE billing_type IN ('billable', 'fixed', 'retainer')
+            """
+        )
+        self._cr.execute(
+            """
+            UPDATE bd_engagement_letter
+               SET retainer_period = 'retainer'
+             WHERE retainer_period IN ('annual', 'monthly')
             """
         )
 
@@ -801,6 +822,7 @@ class BDEngagementLetter(models.Model):
                     user_id=letter.reviewer_id.id,
                     summary=_("Approve engagement letter %s") % (letter.code or ""),
                 )
+            letter._qlk_send_approval_request_email()
 
     # ------------------------------------------------------------------------------
     # موافقة المدير (Waiting Manager Approval -> Approved by Manager).
@@ -816,6 +838,12 @@ class BDEngagementLetter(models.Model):
                 }
             )
             letter.message_post(body=_("Manager approved. Ready to send to client."))
+            event = (
+                "manager_approved"
+                if letter.approval_role == "manager"
+                else "assistant_manager_approved"
+            )
+            letter._qlk_send_monitoring_email(event)
 
     # ------------------------------------------------------------------------------
     # إرسال لموافقة العميل (Approved by Manager -> Waiting Client Approval).
@@ -826,6 +854,7 @@ class BDEngagementLetter(models.Model):
             letter._check_approval_rights()
             letter.write({"state": "waiting_client_approval"})
             letter.message_post(body=_("Engagement letter sent for client approval."))
+            letter._qlk_send_monitoring_email("sent_to_client")
 
     def action_send_for_approval(self):
         return self.action_send_manager_approval()
@@ -890,6 +919,8 @@ class BDEngagementLetter(models.Model):
                 }
             )
             letter.message_post(body=_("Engagement Letter rejected: %s") % reason)
+            if rejection_role == "client":
+                letter._qlk_send_monitoring_email("client_rejected")
 
     # ------------------------------------------------------------------------------
     # موافقة العميل (Waiting Client Approval -> Approved by Client).
@@ -905,6 +936,7 @@ class BDEngagementLetter(models.Model):
                 }
             )
             letter.message_post(body=_("Client approved the engagement letter."))
+            letter._qlk_send_monitoring_email("client_approved")
 
     # ------------------------------------------------------------------------------
     # زر لإرجاع السجل إلى المسودة بعد الرفض لمراجعة البيانات.
@@ -1539,24 +1571,32 @@ class BDEngagementLetter(models.Model):
 
     def action_open_cases(self):
         self.ensure_one()
-        return self._action_open_related_records("qlk.case", [("engagement_id", "=", self.id)], _("Cases"))
+        return self._action_open_related_records(
+            "qlk.case", [("engagement_id", "=", self.id), ("service_category", "=", "litigation")], _("Cases")
+        )
 
     def action_open_pre_litigation(self):
         self.ensure_one()
         return self._action_open_related_records(
-            "qlk.pre.litigation", [("engagement_id", "=", self.id)], _("Pre-Litigation")
+            "qlk.pre.litigation",
+            [("engagement_id", "=", self.id)],
+            _("Pre-Litigation"),
         )
 
     def action_open_corporate_cases(self):
         self.ensure_one()
         return self._action_open_related_records(
-            "qlk.corporate.case", [("engagement_id", "=", self.id)], _("Corporate")
+            "qlk.corporate.case",
+            [("engagement_id", "=", self.id), ("service_category", "=", "corporate")],
+            _("Corporate Services"),
         )
 
     def action_open_arbitration_cases(self):
         self.ensure_one()
         return self._action_open_related_records(
-            "qlk.arbitration.case", [("engagement_id", "=", self.id)], _("Arbitration")
+            "qlk.arbitration.case",
+            [("engagement_id", "=", self.id), ("service_category", "=", "arbitration")],
+            _("Arbitration Matters"),
         )
 
     def action_view_client_attachments(self):
@@ -1593,7 +1633,7 @@ class BDEngagementLetter(models.Model):
         letters = self.search(
             [
                 ("billing_type", "!=", "free"),
-                ("retainer_period", "!=", False),
+                ("retainer_period", "=", "retainer"),
                 ("state", "not in", ("rejected", "cancelled")),
             ]
         )

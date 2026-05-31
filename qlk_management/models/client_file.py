@@ -20,6 +20,27 @@ SERVICE_PREFIXES = {
     "corporate": "C",
 }
 
+SERVICE_PROFILE_SELECTION = [
+    ("litigation", "Litigation"),
+    ("corporate", "Corporate"),
+    ("arbitration", "Arbitration"),
+]
+
+SERVICE_PROFILE_LABELS = dict(SERVICE_PROFILE_SELECTION)
+
+SERVICE_PROFILE_BY_CODE = {
+    "litigation": "litigation",
+    "pre_litigation": "litigation",
+    "corporate": "corporate",
+    "arbitration": "arbitration",
+}
+
+DEFAULT_SERVICE_CODES_BY_PROFILE = {
+    "litigation": ["litigation"],
+    "corporate": ["corporate"],
+    "arbitration": ["arbitration"],
+}
+
 CLIENT_CODE_FIELDS = {
     "litigation": "litigation_client_code",
     "pre_litigation": "litigation_client_code",
@@ -77,6 +98,13 @@ def _column_exists(cr, table_name, column_name):
         [table_name, column_name],
     )
     return bool(cr.fetchone())
+
+
+def _ensure_workflow_notification_columns(cr):
+    # حارس ترقية: بعض عمليات backfill تعمل أثناء init وقبل إنشاء أعمدة الـ mixin.
+    cr.execute(
+        "ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS workflow_notification_keys text"
+    )
 
 
 def _migrate_legacy_legal_services(env, source_table, relation_table, owner_column):
@@ -153,7 +181,7 @@ class QlkLegalServiceType(models.Model):
 class QlkClientFile(models.Model):
     _name = "qlk.client.file"
     _description = "Legal Client File"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "qlk.workflow.notification.mixin"]
     _order = "write_date desc, id desc"
 
     name = fields.Char(required=True, tracking=True)
@@ -185,6 +213,21 @@ class QlkClientFile(models.Model):
         string="Legal Services",
         tracking=True,
     )
+    service_profile_type = fields.Selection(
+        selection=SERVICE_PROFILE_SELECTION,
+        string="Client Profile Type",
+        required=True,
+        default="litigation",
+        copy=False,
+        index=True,
+        tracking=True,
+    )
+    client_profile_code = fields.Char(
+        string="Client Profile Code",
+        compute="_compute_client_profile_code",
+        store=True,
+        index=True,
+    )
     service_code_summary = fields.Char(compute="_compute_service_flags", store=True)
     has_litigation_service = fields.Boolean(compute="_compute_service_flags", store=True)
     has_pre_litigation_service = fields.Boolean(compute="_compute_service_flags", store=True)
@@ -208,7 +251,14 @@ class QlkClientFile(models.Model):
         tracking=True,
     )
 
-    engagement_ids = fields.One2many("bd.engagement.letter", "client_file_id", string="Agreements")
+    engagement_ids = fields.Many2many(
+        "bd.engagement.letter",
+        "bd_engagement_client_file_rel",
+        "client_file_id",
+        "engagement_id",
+        string="Engagement Letters",
+        copy=False,
+    )
     project_ids = fields.One2many("qlk.project", "client_file_id", string="Projects")
     litigation_case_ids = fields.One2many("qlk.case", "client_file_id", string="Litigation Cases")
     pre_litigation_ids = fields.One2many("qlk.pre.litigation", "client_file_id", string="Pre-Litigation")
@@ -233,6 +283,8 @@ class QlkClientFile(models.Model):
     )
 
     litigation_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
+    appeal_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
+    enforcement_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
     pre_litigation_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
     arbitration_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
     corporate_count = fields.Integer(compute="_compute_counts", compute_sudo=True)
@@ -270,6 +322,34 @@ class QlkClientFile(models.Model):
     poa_verified_by = fields.Many2one("res.users", string="POA Verified By", readonly=True, tracking=True)
     poa_attachment_count = fields.Integer(string="POA Attachments", compute="_compute_counts", compute_sudo=True)
     poa_last_alert_date = fields.Date(string="Last POA Alert Date", copy=False, readonly=True)
+    contract_type = fields.Selection(
+        [
+            ("hours", "Hours Based"),
+            ("cases", "Case Based"),
+            ("retainer", "Retainer"),
+            ("lump_sum", "Lump Sum"),
+        ],
+        string="Contract Type",
+        tracking=True,
+    )
+    billing_type = fields.Selection(
+        [("free", "Pro bono"), ("paid", "Paid")],
+        string="Billing Type",
+        tracking=True,
+    )
+    start_date = fields.Date(string="Start Date", tracking=True)
+    end_date = fields.Date(string="End Date", tracking=True)
+    contact_details = fields.Text(string="Contact Details", tracking=True)
+    scope_of_work = fields.Text(string="Scope of Work", tracking=True)
+    notes = fields.Text(string="Notes", tracking=True)
+    lawyer_ids = fields.Many2many(
+        "hr.employee",
+        "qlk_client_file_lawyer_rel",
+        "client_file_id",
+        "employee_id",
+        string="Assigned Lawyers",
+        tracking=True,
+    )
     planned_hours = fields.Float(string="Planned Hours", compute="_compute_hours", store=True, compute_sudo=True)
     consumed_hours = fields.Float(string="Consumed Hours", compute="_compute_hours", store=True, compute_sudo=True)
     remaining_hours = fields.Float(string="Remaining Hours", compute="_compute_hours", store=True, compute_sudo=True)
@@ -291,9 +371,18 @@ class QlkClientFile(models.Model):
         store=True,
         string="Related Lawyers",
     )
+    task_count = fields.Integer(string="Tasks", compute="_compute_counts", compute_sudo=True)
+    timesheet_count = fields.Integer(string="Timesheets", compute="_compute_counts", compute_sudo=True)
+    invoice_count = fields.Integer(string="Invoices", compute="_compute_counts", compute_sudo=True)
+    hearing_count = fields.Integer(string="Hearings", compute="_compute_counts", compute_sudo=True)
+    arbitration_session_count = fields.Integer(string="Sessions", compute="_compute_counts", compute_sudo=True)
 
     _sql_constraints = [
-        ("partner_company_unique", "unique(partner_id, company_id)", "A client file already exists for this client."),
+        (
+            "partner_company_service_profile_unique",
+            "unique(partner_id, company_id, service_profile_type)",
+            "A client profile already exists for this client and service type.",
+        ),
         (
             "litigation_client_code_company_unique",
             "unique(litigation_client_code, company_id)",
@@ -313,9 +402,13 @@ class QlkClientFile(models.Model):
 
     def init(self):
         cr = self.env.cr
+        _ensure_workflow_notification_columns(cr)
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS qlk_client_file_partner_company_unique")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
@@ -331,6 +424,13 @@ class QlkClientFile(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_uploaded_by integer")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_verified_by integer")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_last_alert_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contract_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS billing_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS start_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS end_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contact_details text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS scope_of_work text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS notes text")
         cr.execute(
             """
             UPDATE qlk_client_file
@@ -363,10 +463,82 @@ class QlkClientFile(models.Model):
                    )
                 """
             )
+            cr.execute(
+                """
+                UPDATE qlk_client_file client
+                   SET service_profile_type = CASE
+                       WHEN EXISTS (
+                           SELECT 1
+                             FROM qlk_client_file_service_type_rel rel
+                             JOIN qlk_legal_service_type service ON service.id = rel.service_type_id
+                            WHERE rel.client_file_id = client.id
+                              AND service.code = 'corporate'
+                       ) THEN 'corporate'
+                       WHEN EXISTS (
+                           SELECT 1
+                             FROM qlk_client_file_service_type_rel rel
+                             JOIN qlk_legal_service_type service ON service.id = rel.service_type_id
+                            WHERE rel.client_file_id = client.id
+                              AND service.code = 'arbitration'
+                       ) THEN 'arbitration'
+                       ELSE 'litigation'
+                   END
+                 WHERE client.service_profile_type IS NULL
+                    OR (
+                        client.service_profile_type = 'litigation'
+                        AND NOT EXISTS (
+                            SELECT 1
+                              FROM qlk_client_file_service_type_rel rel
+                              JOIN qlk_legal_service_type service ON service.id = rel.service_type_id
+                             WHERE rel.client_file_id = client.id
+                               AND service.code IN ('litigation', 'pre_litigation')
+                        )
+                    )
+                """
+            )
+        cr.execute(
+            """
+            UPDATE qlk_client_file
+               SET service_profile_type = COALESCE(service_profile_type, 'litigation')
+            """
+        )
 
     @api.model
     def _service_category(self, service_code):
         return "litigation" if service_code in ("litigation", "pre_litigation") else service_code
+
+    @api.model
+    def _profile_from_service_code(self, service_code):
+        return SERVICE_PROFILE_BY_CODE.get(service_code or "litigation", "litigation")
+
+    @api.model
+    def _profile_from_service_codes(self, service_codes):
+        profiles = {self._profile_from_service_code(code) for code in service_codes if code}
+        if profiles == {"corporate"}:
+            return "corporate"
+        if profiles == {"arbitration"}:
+            return "arbitration"
+        return "litigation"
+
+    @api.model
+    def _service_codes_from_commands(self, commands):
+        return set(self.env["qlk.legal.service.type"].browse(self._extract_m2m_ids(commands)).mapped("code"))
+
+    @api.model
+    def _service_ids_for_profile(self, profile, service_codes=False):
+        requested_codes = {
+            code for code in (service_codes or []) if self._profile_from_service_code(code) == profile
+        }
+        codes = requested_codes or set(DEFAULT_SERVICE_CODES_BY_PROFILE.get(profile, ["litigation"]))
+        return self.env["qlk.legal.service.type"]._ids_from_codes(codes)
+
+    @api.model
+    def _normalize_profile_values(self, vals):
+        service_codes = self._service_codes_from_commands(vals.get("legal_service_type_ids"))
+        profile = vals.get("service_profile_type") or self._profile_from_service_codes(service_codes)
+        vals["service_profile_type"] = profile
+        vals["legal_service_type_ids"] = [(6, 0, self._service_ids_for_profile(profile, service_codes))]
+        return vals
 
     def _ensure_client_service_code(self, service_code):
         self.ensure_one()
@@ -403,15 +575,23 @@ class QlkClientFile(models.Model):
             ]
             record.address = "\n".join(part for part in parts if part)
 
-    @api.depends("legal_service_type_ids", "legal_service_type_ids.code")
+    @api.depends("legal_service_type_ids", "legal_service_type_ids.code", "service_profile_type")
     def _compute_service_flags(self):
         for record in self:
             codes = set(record.legal_service_type_ids.mapped("code"))
-            record.has_litigation_service = "litigation" in codes
+            if not codes and record.service_profile_type:
+                codes = set(DEFAULT_SERVICE_CODES_BY_PROFILE.get(record.service_profile_type, []))
+            record.has_litigation_service = bool({"litigation", "pre_litigation"}.intersection(codes))
             record.has_pre_litigation_service = "pre_litigation" in codes
             record.has_arbitration_service = "arbitration" in codes
             record.has_corporate_service = "corporate" in codes
             record.service_code_summary = ", ".join(record.legal_service_type_ids.mapped("name"))
+
+    @api.depends("service_profile_type", "litigation_client_code", "corporate_client_code", "arbitration_client_code")
+    def _compute_client_profile_code(self):
+        for record in self:
+            field_name = CLIENT_CODE_FIELDS.get(record.service_profile_type)
+            record.client_profile_code = record[field_name] if field_name else False
 
     def _has_poa_service(self, service_ids=False):
         services = (
@@ -465,6 +645,9 @@ class QlkClientFile(models.Model):
     def _compute_counts(self):
         for record in self:
             record.litigation_count = len(record.litigation_case_ids)
+            degree_codes = record.litigation_case_ids.mapped("litigation_degree_id.code")
+            record.appeal_count = degree_codes.count("A")
+            record.enforcement_count = degree_codes.count("E")
             record.pre_litigation_count = len(record.pre_litigation_ids)
             record.arbitration_count = len(record.arbitration_case_ids)
             record.corporate_count = len(record.corporate_case_ids)
@@ -472,6 +655,16 @@ class QlkClientFile(models.Model):
             record.project_count = len(record.project_ids)
             record.attachment_count = len(record.attachment_ids | record.translation_attachment_ids)
             record.poa_attachment_count = len(record.poa_attachment_ids)
+            record.task_count = len(record.project_ids.mapped("project_task_ids")) + len(record.project_ids.mapped("qlk_task_ids"))
+            record.timesheet_count = len(record.project_ids.mapped("project_task_ids.timesheet_ids"))
+            record.invoice_count = len(record.engagement_ids.mapped("invoice_id"))
+            if "qlk.hearing" in self.env and "case_id" in self.env["qlk.hearing"]._fields:
+                record.hearing_count = self.env["qlk.hearing"].sudo().search_count(
+                    [("case_id.client_file_id", "=", record.id), ("case_id.service_category", "=", "litigation")]
+                )
+            else:
+                record.hearing_count = 0
+            record.arbitration_session_count = len(record.arbitration_case_ids.mapped("session_ids"))
 
     @api.depends("project_ids.planned_hours", "project_ids.consumed_hours", "project_ids.remaining_hours", "project_ids.hours_state")
     def _compute_hours(self):
@@ -489,6 +682,7 @@ class QlkClientFile(models.Model):
     @api.depends(
         "engagement_ids.lawyer_user_id",
         "engagement_ids.lawyer_ids.user_id",
+        "lawyer_ids.user_id",
         "litigation_case_ids.lawyer_id",
         "pre_litigation_ids.lawyer_user_id",
         "arbitration_case_ids.responsible_user_id",
@@ -499,6 +693,7 @@ class QlkClientFile(models.Model):
             users = self.env["res.users"]
             users |= record.engagement_ids.mapped("lawyer_user_id")
             users |= record.engagement_ids.mapped("lawyer_ids.user_id")
+            users |= record.lawyer_ids.mapped("user_id")
             users |= record.litigation_case_ids.mapped("lawyer_id")
             users |= record.pre_litigation_ids.mapped("lawyer_user_id")
             users |= record.arbitration_case_ids.mapped("responsible_user_id")
@@ -525,13 +720,17 @@ class QlkClientFile(models.Model):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(codes))]
             elif not self._extract_m2m_ids(vals.get("legal_service_type_ids")):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(["litigation"]))]
+            self._normalize_profile_values(vals)
             vals["poa_required"] = self._poa_required_from_service_commands(vals["legal_service_type_ids"])
             if not vals["poa_required"]:
                 vals.setdefault("poa_status", "draft")
         records = super().create(vals_list)
+        for record in records:
+            record._ensure_client_service_code(record.service_profile_type)
         records._sync_attachments_from_agreements()
         for record in records.filtered(lambda item: item.poa_required and item.poa_status == "draft"):
-            record.with_context(skip_poa_manager_check=True).action_request_poa()
+            record.with_context(skip_poa_manager_check=True, skip_poa_request_email=True).action_request_poa()
+        records._qlk_send_client_file_created_email()
         return records
 
     def write(self, vals):
@@ -540,7 +739,19 @@ class QlkClientFile(models.Model):
             vals["legal_service_type_ids"] = vals.pop("service_type_ids")
         vals.pop("client_code", None)
         vals.pop("retainer_type", None)
+        if "service_profile_type" in vals:
+            for record in self:
+                if record.service_profile_type != vals["service_profile_type"] and record.client_profile_code:
+                    raise UserError(_("Client profile type cannot be changed after a client code is assigned."))
+        if "service_profile_type" in vals and "legal_service_type_ids" not in vals:
+            vals["legal_service_type_ids"] = [
+                (6, 0, self._service_ids_for_profile(vals["service_profile_type"]))
+            ]
         if "legal_service_type_ids" in vals:
+            self._normalize_profile_values(vals)
+            for record in self:
+                if record.service_profile_type != vals["service_profile_type"] and record.client_profile_code:
+                    raise UserError(_("Client profile type cannot be changed after a client code is assigned."))
             vals["poa_required"] = (
                 self._has_poa_service(self._service_ids_after_commands(vals["legal_service_type_ids"]))
                 if len(self) == 1
@@ -744,9 +955,16 @@ class QlkClientFile(models.Model):
                     "poa_request_date": record.poa_request_date or today,
                 }
             )
-        self._send_poa_request_email()
+        skip_email = self.env.context.get("skip_poa_request_email")
+        if not skip_email:
+            self._send_poa_request_email()
         for record in self:
-            record.message_post(body=_("POA request email has been sent to the office manager."))
+            body = (
+                _("POA request email has been sent to the office manager.")
+                if not skip_email
+                else _("POA request status has been set by the client file creation workflow.")
+            )
+            record.message_post(body=body)
         self._schedule_poa_activity(_("POA request sent"), _("Follow up signed POA upload and verification."))
         return True
 
@@ -875,7 +1093,7 @@ class QlkClientFile(models.Model):
 
     def _ensure_service_allowed(self, service_code):
         self.ensure_one()
-        if service_code not in set(self.legal_service_type_ids.mapped("code")):
+        if self._profile_from_service_code(service_code) != self.service_profile_type:
             raise UserError(_("This client file is not configured for this service."))
 
     def _base_service_defaults(self, service_code):
@@ -895,34 +1113,62 @@ class QlkClientFile(models.Model):
             "skip_engagement_case_validation": True,
         }
 
-    def _open_related(self, model_name, title):
+    def _open_related(self, model_name, title, extra_domain=None, context=None):
         self.ensure_one()
+        domain = [("client_file_id", "=", self.id)]
+        if extra_domain:
+            domain.extend(extra_domain)
+        action_context = {"default_client_file_id": self.id}
+        if context:
+            action_context.update(context)
         return {
             "type": "ir.actions.act_window",
             "name": title,
             "res_model": model_name,
             "view_mode": "list,form",
-            "domain": [("client_file_id", "=", self.id)],
-            "context": {"default_client_file_id": self.id},
+            "domain": domain,
+            "context": action_context,
         }
 
     def action_open_litigation(self):
-        return self._open_related("qlk.case", _("Litigation"))
+        return self._open_related("qlk.case", _("Cases"), [("service_category", "=", "litigation")])
+
+    def action_open_litigation_appeals(self):
+        return self._open_related(
+            "qlk.case",
+            _("Appeals"),
+            [("service_category", "=", "litigation"), ("litigation_degree_id.code", "=", "A")],
+        )
+
+    def action_open_litigation_enforcement(self):
+        return self._open_related(
+            "qlk.case",
+            _("Enforcement"),
+            [("service_category", "=", "litigation"), ("litigation_degree_id.code", "=", "E")],
+        )
 
     def action_open_pre_litigation(self):
         return self._open_related("qlk.pre.litigation", _("Pre-Litigation"))
 
     def action_open_arbitration(self):
-        return self._open_related("qlk.arbitration.case", _("Arbitration"))
+        return self._open_related("qlk.arbitration.case", _("Arbitration Matters"), [("service_category", "=", "arbitration")])
 
     def action_open_corporate(self):
-        return self._open_related("qlk.corporate.case", _("Corporate"))
+        return self._open_related("qlk.corporate.case", _("Corporate Services"), [("service_category", "=", "corporate")])
 
     def action_open_agreements(self):
-        return self._open_related("bd.engagement.letter", _("Agreements"))
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Agreements"),
+            "res_model": "bd.engagement.letter",
+            "view_mode": "list,form",
+            "domain": ["|", ("client_file_id", "=", self.id), ("client_file_ids", "in", [self.id])],
+            "context": {"default_client_file_id": self.id, "default_client_file_ids": [(4, self.id)]},
+        }
 
     def action_open_projects(self):
-        return self._open_related("qlk.project", _("Projects"))
+        return self._open_related("qlk.project", _("Projects"), [("service_category", "=", self.service_profile_type)])
 
     def action_open_attachments(self):
         self.ensure_one()
@@ -932,6 +1178,68 @@ class QlkClientFile(models.Model):
             "res_model": "ir.attachment",
             "view_mode": "list,form",
             "domain": [("id", "in", (self.attachment_ids | self.translation_attachment_ids).ids)],
+        }
+
+    def action_open_tasks(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Tasks"),
+            "res_model": "project.task",
+            "view_mode": "list,form",
+            "domain": [
+                ("qlk_project_id.client_file_id", "=", self.id),
+                ("qlk_project_id.service_category", "=", self.service_profile_type),
+            ],
+            "context": {"default_partner_id": self.partner_id.id},
+        }
+
+    def action_open_hearings(self):
+        self.ensure_one()
+        if "qlk.hearing" not in self.env or "case_id" not in self.env["qlk.hearing"]._fields:
+            raise UserError(_("Hearings are not available in this database."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Hearings"),
+            "res_model": "qlk.hearing",
+            "view_mode": "list,form",
+            "domain": [("case_id.client_file_id", "=", self.id), ("case_id.service_category", "=", "litigation")],
+        }
+
+    def action_open_timesheets(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Timesheets"),
+            "res_model": "account.analytic.line",
+            "view_mode": "list,form",
+            "domain": [
+                ("task_id.qlk_project_id.client_file_id", "=", self.id),
+                ("task_id.qlk_project_id.service_category", "=", self.service_profile_type),
+            ],
+            "context": {"default_partner_id": self.partner_id.id},
+        }
+
+    def action_open_invoices(self):
+        self.ensure_one()
+        invoices = self.engagement_ids.mapped("invoice_id")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Invoices"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "domain": [("id", "in", invoices.ids)],
+        }
+
+    def action_open_arbitration_sessions(self):
+        self.ensure_one()
+        sessions = self.arbitration_case_ids.mapped("session_ids")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Arbitration Sessions"),
+            "res_model": "qlk.arbitration.session",
+            "view_mode": "list,form",
+            "domain": [("id", "in", sessions.ids)],
         }
 
     def action_create_litigation(self):
@@ -955,12 +1263,16 @@ class QlkClientFile(models.Model):
         engagement = approved_engagements.filtered(lambda item: not item.project_id)[:1] or approved_engagements[:1]
         if not engagement:
             raise UserError(_("No client-approved engagement letter was found for this client file."))
-        if engagement.project_id:
+        existing_project = self.env["qlk.project"].search(
+            [("engagement_letter_id", "=", engagement.id), ("client_file_id", "=", self.id)],
+            limit=1,
+        )
+        if existing_project:
             return {
                 "type": "ir.actions.act_window",
                 "name": _("Project"),
                 "res_model": "qlk.project",
-                "res_id": engagement.project_id.id,
+                "res_id": existing_project.id,
                 "view_mode": "form",
                 "target": "current",
             }
@@ -972,7 +1284,13 @@ class QlkClientFile(models.Model):
         engagement.with_context(
             mail_create_nosubscribe=True,
             mail_auto_subscribe_no_notify=True,
-        ).write({"project_id": project.id, "client_file_id": self.id})
+        ).write(
+            {
+                "project_id": engagement.project_id.id or project.id,
+                "client_file_id": engagement.client_file_id.id or self.id,
+                "client_file_ids": [(4, self.id)],
+            }
+        )
         self.message_post(body=_("Project %s has been created from this client file.") % project.display_name)
         return {
             "type": "ir.actions.act_window",
@@ -990,6 +1308,9 @@ class QlkClientFile(models.Model):
             if hasattr(engagement, "_get_legal_service_type_ids_for_transfer")
             else engagement.legal_service_type_ids
         ) or self.legal_service_type_ids
+        services = services.filtered(lambda service: self._profile_from_service_code(service.code) == self.service_profile_type)
+        if not services:
+            services = self.env["qlk.legal.service.type"].browse(self._service_ids_for_profile(self.service_profile_type))
         litigation_degrees = (
             engagement._get_allowed_litigation_degree_ids_for_transfer()
             if hasattr(engagement, "_get_allowed_litigation_degree_ids_for_transfer")
@@ -1032,8 +1353,7 @@ class QlkClientFile(models.Model):
         }
         if services:
             vals["legal_service_type_ids"] = [(6, 0, services.ids)]
-            if len(services) == 1:
-                vals["service_type"] = services.code
+            vals["service_type"] = self.service_profile_type
         if litigation_degrees:
             vals["litigation_degree_ids"] = [(6, 0, litigation_degrees.ids)]
             vals["allowed_litigation_degree_ids"] = [(6, 0, litigation_degrees.ids)]
@@ -1068,7 +1388,19 @@ class BDEngagementLetterClientFile(models.Model):
         ondelete="set null",
         tracking=True,
     )
+    client_file_ids = fields.Many2many(
+        "qlk.client.file",
+        "bd_engagement_client_file_rel",
+        "engagement_id",
+        "client_file_id",
+        string="Client Service Profiles",
+        copy=False,
+        tracking=True,
+    )
     client_file_count = fields.Integer(compute="_compute_client_file_count")
+    litigation_profile_count = fields.Integer(compute="_compute_client_file_count")
+    corporate_profile_count = fields.Integer(compute="_compute_client_file_count")
+    arbitration_profile_count = fields.Integer(compute="_compute_client_file_count")
     legal_service_type_ids = fields.Many2many(
         "qlk.legal.service.type",
         "bd_engagement_legal_service_type_rel",
@@ -1084,6 +1416,30 @@ class BDEngagementLetterClientFile(models.Model):
 
     def init(self):
         super().init()
+        _ensure_workflow_notification_columns(self.env.cr)
+        self.env.cr.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bd_engagement_client_file_rel (
+                engagement_id integer NOT NULL,
+                client_file_id integer NOT NULL
+            )
+            """
+        )
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS bd_engagement_client_file_rel_uniq
+                ON bd_engagement_client_file_rel (engagement_id, client_file_id)
+            """
+        )
+        self.env.cr.execute(
+            """
+            INSERT INTO bd_engagement_client_file_rel (engagement_id, client_file_id)
+            SELECT id, client_file_id
+              FROM bd_engagement_letter
+             WHERE client_file_id IS NOT NULL
+            ON CONFLICT DO NOTHING
+            """
+        )
         _migrate_legacy_legal_services(
             self.env,
             "bd_engagement_letter",
@@ -1091,10 +1447,18 @@ class BDEngagementLetterClientFile(models.Model):
             "engagement_id",
         )
 
-    @api.depends("client_file_id", "partner_id")
+    @api.depends("client_file_id", "client_file_ids", "partner_id", "legal_service_type_ids")
     def _compute_client_file_count(self):
         for record in self:
-            record.client_file_count = 1 if record._get_existing_client_file() else 0
+            profile_counts = {
+                profile: 1 if record._get_existing_client_file(profile) else 0
+                for profile in ("litigation", "corporate", "arbitration")
+            }
+            selected_profiles = record._profile_codes_for_engagement()
+            record.client_file_count = sum(profile_counts[profile] for profile in selected_profiles)
+            record.litigation_profile_count = profile_counts["litigation"]
+            record.corporate_profile_count = profile_counts["corporate"]
+            record.arbitration_profile_count = profile_counts["arbitration"]
 
     @api.depends("legal_service_type_ids", "legal_service_type_ids.code", "service_type")
     def _compute_engagement_service_flags(self):
@@ -1102,7 +1466,7 @@ class BDEngagementLetterClientFile(models.Model):
             codes = set(record.legal_service_type_ids.mapped("code"))
             if not codes and record.service_type and record.service_type != "mixed":
                 codes.add(record.service_type)
-            record.has_litigation_service = "litigation" in codes
+            record.has_litigation_service = bool({"litigation", "pre_litigation"}.intersection(codes))
             record.has_pre_litigation_service = "pre_litigation" in codes
             record.has_arbitration_service = "arbitration" in codes
             record.has_corporate_service = "corporate" in codes
@@ -1115,10 +1479,17 @@ class BDEngagementLetterClientFile(models.Model):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(self._service_codes_from_vals(vals)))]
         records = super().create(vals_list)
         for record in records:
-            existing = record._get_existing_client_file()
-            if existing:
-                record.with_context(mail_notrack=True).client_file_id = existing.id
-                record._merge_services_into_client_file(existing)
+            existing_profiles = self.env["qlk.client.file"]
+            for profile in record._profile_codes_for_engagement():
+                existing = record._get_existing_client_file(profile)
+                if existing:
+                    existing_profiles |= existing
+                    record._merge_services_into_client_file(existing)
+            if existing_profiles:
+                write_vals = {"client_file_ids": [(6, 0, existing_profiles.ids)]}
+                if not record.client_file_id:
+                    write_vals["client_file_id"] = existing_profiles[:1].id
+                record.with_context(mail_notrack=True).write(write_vals)
         return records
 
     def write(self, vals):
@@ -1139,13 +1510,15 @@ class BDEngagementLetterClientFile(models.Model):
             "litigation_degree_ids",
             "allowed_litigation_degree_ids",
             "client_file_id",
+            "client_file_ids",
             "client_attachment_ids",
             "translation_attachment_ids",
             "signed_document_ids",
         }.intersection(vals):
-            for record in self.filtered("client_file_id"):
-                record._merge_services_into_client_file(record.client_file_id)
-                record.client_file_id._sync_attachments_from_agreements()
+            for record in self:
+                for client_file in record.client_file_ids | record.client_file_id:
+                    record._merge_services_into_client_file(client_file)
+                    client_file._sync_attachments_from_agreements()
         return result
 
     @api.model
@@ -1163,7 +1536,10 @@ class BDEngagementLetterClientFile(models.Model):
     def _service_allows(self, service):
         self.ensure_one()
         if self.legal_service_type_ids:
-            return service in set(self.legal_service_type_ids.mapped("code"))
+            codes = set(self.legal_service_type_ids.mapped("code"))
+            if service == "litigation":
+                return bool({"litigation", "pre_litigation"}.intersection(codes))
+            return service in codes
         return super()._service_allows(service)
 
     def _get_legal_service_type_ids_for_transfer(self):
@@ -1180,35 +1556,168 @@ class BDEngagementLetterClientFile(models.Model):
             )
         return services
 
+    def _profile_codes_for_engagement(self):
+        self.ensure_one()
+        services = self._get_legal_service_type_ids_for_transfer()
+        profiles = {
+            self.env["qlk.client.file"]._profile_from_service_code(code)
+            for code in services.mapped("code")
+        }
+        return [profile for profile in ("litigation", "corporate", "arbitration") if profile in profiles]
+
     def _get_allowed_litigation_degree_ids_for_transfer(self):
         self.ensure_one()
         return self.allowed_litigation_degree_ids or self.litigation_degree_ids
 
-    def _get_existing_client_file(self):
+    def _get_existing_client_file(self, profile=False):
         self.ensure_one()
-        if self.client_file_id:
+        if profile:
+            linked = (self.client_file_ids | self.client_file_id).filtered(
+                lambda client_file: client_file.service_profile_type == profile
+            )
+            if linked:
+                return linked[:1]
+        elif self.client_file_id:
             return self.client_file_id
         if not self.partner_id:
             return self.env["qlk.client.file"]
-        return self.env["qlk.client.file"].search(
-            [
-                ("partner_id", "=", self.partner_id.id),
-                ("company_id", "=", (self.company_id or self.env.company).id),
-            ],
-            limit=1,
-        )
+        domain = [
+            ("partner_id", "=", self.partner_id.id),
+            ("company_id", "=", (self.company_id or self.env.company).id),
+        ]
+        if profile:
+            domain.append(("service_profile_type", "=", profile))
+        return self.env["qlk.client.file"].search(domain, limit=1)
 
     def _merge_services_into_client_file(self, client_file):
         self.ensure_one()
-        services = client_file.legal_service_type_ids | self._get_legal_service_type_ids_for_transfer()
-        degrees = client_file.allowed_litigation_degree_ids | self._get_allowed_litigation_degree_ids_for_transfer()
-        vals = {}
+        if not client_file:
+            return
+        profile = client_file.service_profile_type
+        services = self._get_legal_service_type_ids_for_transfer().filtered(
+            lambda service: client_file._profile_from_service_code(service.code) == profile
+        )
+        if not services:
+            services = self.env["qlk.legal.service.type"].browse(client_file._service_ids_for_profile(profile))
+        degrees = client_file.allowed_litigation_degree_ids
+        if profile == "litigation":
+            degrees |= self._get_allowed_litigation_degree_ids_for_transfer()
+        normal = self.client_attachment_ids | self.signed_document_ids
+        if self.signed_document_id:
+            normal |= self.signed_document_id
+        vals = {
+            "engagement_ids": [(4, self.id)],
+            "contract_type": self.contract_type,
+            "billing_type": self.billing_type,
+            "start_date": self.year_start_date or self.date,
+            "end_date": self.year_end_date,
+            "contact_details": self.contact_details,
+            "scope_of_work": self.scope_of_work,
+            "notes": self.legal_note or self.description or self.services_description,
+            "attachment_ids": [(4, attachment_id) for attachment_id in normal.ids],
+            "translation_attachment_ids": [(4, attachment_id) for attachment_id in self.translation_attachment_ids.ids],
+        }
+        if self.lawyer_ids:
+            vals["lawyer_ids"] = [(6, 0, self.lawyer_ids.ids)]
         if services:
             vals["legal_service_type_ids"] = [(6, 0, services.ids)]
         if degrees:
             vals["allowed_litigation_degree_ids"] = [(6, 0, degrees.ids)]
-        if vals:
-            client_file.write(vals)
+        client_file.write(vals)
+
+    def _prepare_client_file_vals(self, profile):
+        self.ensure_one()
+        services = self._get_legal_service_type_ids_for_transfer().filtered(
+            lambda service: self.env["qlk.client.file"]._profile_from_service_code(service.code) == profile
+        )
+        if not services:
+            service_ids = self.env["qlk.client.file"]._service_ids_for_profile(profile)
+            services = self.env["qlk.legal.service.type"].browse(service_ids)
+        litigation_degrees = self._get_allowed_litigation_degree_ids_for_transfer() if profile == "litigation" else self.env["qlk.litigation.degree"]
+        normal = self.client_attachment_ids | self.signed_document_ids
+        if self.signed_document_id:
+            normal |= self.signed_document_id
+        return {
+            "name": _("%(client)s - %(service)s") % {
+                "client": self.partner_id.display_name,
+                "service": SERVICE_PROFILE_LABELS.get(profile, profile.title()),
+            },
+            "partner_id": self.partner_id.id,
+            "company_id": (self.company_id or self.env.company).id,
+            "service_profile_type": profile,
+            "legal_service_type_ids": [(6, 0, services.ids)],
+            "allowed_litigation_degree_ids": [(6, 0, litigation_degrees.ids)],
+            "engagement_ids": [(4, self.id)],
+            "contract_type": self.contract_type,
+            "billing_type": self.billing_type,
+            "start_date": self.year_start_date or self.date,
+            "end_date": self.year_end_date,
+            "contact_details": self.contact_details,
+            "scope_of_work": self.scope_of_work,
+            "notes": self.legal_note or self.description or self.services_description,
+            "lawyer_ids": [(6, 0, self.lawyer_ids.ids)],
+            "attachment_ids": [(6, 0, normal.ids)],
+            "translation_attachment_ids": [(6, 0, self.translation_attachment_ids.ids)],
+        }
+
+    def _action_create_service_client_file(self, profile):
+        self.ensure_one()
+        if self.state != "approved_client":
+            raise UserError(_("Client profiles can only be created from client-approved engagement letters."))
+        if profile not in self._profile_codes_for_engagement():
+            raise UserError(_("This engagement letter does not include this legal service."))
+        if not self.partner_id:
+            raise UserError(_("Select a client before creating a client profile."))
+        client_file = self._get_existing_client_file(profile)
+        if not client_file:
+            client_file = self.env["qlk.client.file"].create(self._prepare_client_file_vals(profile))
+        self._merge_services_into_client_file(client_file)
+        write_vals = {"client_file_ids": [(4, client_file.id)]}
+        if not self.client_file_id:
+            write_vals["client_file_id"] = client_file.id
+        self.write(write_vals)
+        client_file._sync_attachments_from_agreements()
+        return self._open_client_file_record(client_file)
+
+    def _action_open_service_client_file(self, profile):
+        self.ensure_one()
+        client_file = self._get_existing_client_file(profile)
+        if not client_file:
+            raise UserError(_("No client profile exists for this service."))
+        self._merge_services_into_client_file(client_file)
+        write_vals = {"client_file_ids": [(4, client_file.id)]}
+        if not self.client_file_id:
+            write_vals["client_file_id"] = client_file.id
+        self.write(write_vals)
+        return self._open_client_file_record(client_file)
+
+    def _open_client_file_record(self, client_file):
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Client Profile"),
+            "res_model": "qlk.client.file",
+            "res_id": client_file.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_create_litigation_client_file(self):
+        return self._action_create_service_client_file("litigation")
+
+    def action_open_litigation_client_file(self):
+        return self._action_open_service_client_file("litigation")
+
+    def action_create_corporate_client_file(self):
+        return self._action_create_service_client_file("corporate")
+
+    def action_open_corporate_client_file(self):
+        return self._action_open_service_client_file("corporate")
+
+    def action_create_arbitration_client_file(self):
+        return self._action_create_service_client_file("arbitration")
+
+    def action_open_arbitration_client_file(self):
+        return self._action_open_service_client_file("arbitration")
 
     def action_create_client_file(self):
         self.ensure_one()
@@ -1216,23 +1725,10 @@ class BDEngagementLetterClientFile(models.Model):
             raise UserError(_("Client files can only be created from client-approved engagement letters."))
         if not self.partner_id:
             raise UserError(_("Select a client before creating a client file."))
-        client_file = self._get_existing_client_file()
-        if not client_file:
-            services = self._get_legal_service_type_ids_for_transfer()
-            litigation_degrees = self._get_allowed_litigation_degree_ids_for_transfer()
-            client_file = self.env["qlk.client.file"].create(
-                {
-                    "name": self.partner_id.display_name,
-                    "partner_id": self.partner_id.id,
-                    "company_id": (self.company_id or self.env.company).id,
-                    "legal_service_type_ids": [(6, 0, services.ids)],
-                    "allowed_litigation_degree_ids": [(6, 0, litigation_degrees.ids)],
-                }
-            )
-        self.client_file_id = client_file.id
-        self._merge_services_into_client_file(client_file)
-        client_file._sync_attachments_from_agreements()
-        return self.action_open_client_file()
+        profiles = self._profile_codes_for_engagement()
+        if not profiles:
+            raise UserError(_("Select at least one legal service before creating a client profile."))
+        return self._action_create_service_client_file(profiles[0])
 
     def action_open_client_file(self):
         self.ensure_one()
@@ -1241,15 +1737,9 @@ class BDEngagementLetterClientFile(models.Model):
             raise UserError(_("No client file exists for this engagement letter."))
         if not self.client_file_id:
             self.client_file_id = client_file.id
-            self._merge_services_into_client_file(client_file)
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Client File"),
-            "res_model": "qlk.client.file",
-            "res_id": client_file.id,
-            "view_mode": "form",
-            "target": "current",
-        }
+        self.client_file_ids = [(4, client_file.id)]
+        self._merge_services_into_client_file(client_file)
+        return self._open_client_file_record(client_file)
 
 
 class QlkProjectClientFile(models.Model):
@@ -1302,6 +1792,8 @@ class QlkProjectClientFile(models.Model):
 
     def init(self):
         super().init()
+        _ensure_workflow_notification_columns(self.env.cr)
+        self.env.cr.execute("ALTER TABLE qlk_project DROP CONSTRAINT IF EXISTS qlk_project_engagement_letter_unique")
         _migrate_legacy_legal_services(
             self.env,
             "qlk_project",
@@ -1319,6 +1811,12 @@ class QlkProjectClientFile(models.Model):
                 vals.setdefault("client_file_id", engagement.client_file_id.id)
                 if not vals.get("legal_service_type_ids"):
                     vals["legal_service_type_ids"] = [(6, 0, engagement.legal_service_type_ids.ids)]
+            if vals.get("client_file_id"):
+                client_file = self.env["qlk.client.file"].browse(vals["client_file_id"])
+                if client_file.exists():
+                    vals.setdefault("service_type", client_file.service_profile_type)
+                    if not vals.get("legal_service_type_ids"):
+                        vals["legal_service_type_ids"] = [(6, 0, client_file.legal_service_type_ids.ids)]
             if not vals.get("legal_service_type_ids") and vals.get("service_type"):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes([vals["service_type"]]))]
         return super().create(vals_list)

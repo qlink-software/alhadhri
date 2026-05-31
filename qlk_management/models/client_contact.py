@@ -22,6 +22,34 @@ class QlkContactClassification(models.Model):
     # هذا الحقل يسمح بإخفاء التصنيف بدون حذفه.
     active = fields.Boolean(default=True)
 
+    def init(self):
+        super().init()
+        # نخفي تصنيف Employee بدون حذف السجلات القديمة حتى تبقى العلاقات محفوظة.
+        classifications = self.with_context(active_test=False).sudo().search([])
+        employee_records = classifications.filtered(
+            lambda record: (record.name or "").strip().casefold() == "employee"
+        )
+        if employee_records:
+            employee_records.write({"active": False})
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # منع إعادة إنشاء التصنيف النشط Employee من الواجهة أو الاستيراد.
+        for vals in vals_list:
+            if (vals.get("name") or "").strip().casefold() == "employee":
+                vals["active"] = False
+        return super().create(vals_list)
+
+    def write(self, vals):
+        result = super().write(vals)
+        # إذا تغير الاسم إلى Employee لاحقًا، يتم أرشفته بدل حذفه.
+        employee_records = self.filtered(
+            lambda record: (record.name or "").strip().casefold() == "employee" and record.active
+        )
+        if employee_records:
+            employee_records.with_context(active_test=False).sudo().write({"active": False})
+        return result
+
 
 class QlkCompanyContactChannel(models.Model):
     _name = "qlk.company.contact.channel"

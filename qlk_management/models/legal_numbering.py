@@ -19,10 +19,80 @@ LEGAL_CLIENT_CODE_FIELDS = {
     "arbitration": ("arbitration_client_code", "arbitration_client_sequence"),
 }
 
+CLIENT_SEQUENCE_CODES = {
+    "litigation": "qlk.client.file.litigation",
+    "corporate": "qlk.client.file.corporate",
+    "arbitration": "qlk.client.file.arbitration",
+}
+
 
 class QlkLegalNumberingEngine(models.AbstractModel):
     _name = "qlk.legal.numbering.engine"
     _description = "Reusable Legal Numbering Engine"
+
+    @api.model
+    def _ensure_client_file_profile_columns(self):
+        cr = self.env.cr
+        cr.execute("SELECT to_regclass('qlk_client_file')")
+        if not cr.fetchone()[0]:
+            return False
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_project_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_required boolean DEFAULT true")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_status varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_request_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_received_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_expiry_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_notes text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_uploaded_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_verified_by integer")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS poa_last_alert_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contract_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS billing_type varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS start_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS end_date date")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS contact_details text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS scope_of_work text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS notes text")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS planned_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS consumed_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS remaining_hours double precision DEFAULT 0")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS hours_state varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS pre_litigation_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_next_number integer DEFAULT 1")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_next_number integer DEFAULT 1")
+        cr.execute(
+            """
+            UPDATE qlk_client_file
+               SET litigation_client_sequence = COALESCE(litigation_client_sequence, 0),
+                   corporate_client_sequence = COALESCE(corporate_client_sequence, 0),
+                   arbitration_client_sequence = COALESCE(arbitration_client_sequence, 0),
+                   litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
+                   corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
+                   arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
+                   poa_required = COALESCE(poa_required, true),
+                   poa_status = COALESCE(poa_status, 'draft'),
+                   planned_hours = COALESCE(planned_hours, 0),
+                   consumed_hours = COALESCE(consumed_hours, 0),
+                   remaining_hours = COALESCE(remaining_hours, 0),
+                   litigation_next_number = COALESCE(litigation_next_number, 1),
+                   pre_litigation_next_number = COALESCE(pre_litigation_next_number, 1),
+                   arbitration_next_number = COALESCE(arbitration_next_number, 1),
+                   corporate_next_number = COALESCE(corporate_next_number, 1),
+                   service_profile_type = COALESCE(service_profile_type, 'litigation')
+            """
+        )
+        return True
 
     @api.model
     def _service_category(self, service_code):
@@ -86,19 +156,27 @@ class QlkLegalNumberingEngine(models.AbstractModel):
                 client_file.sudo().with_context(mail_notrack=True).write({sequence_field: sequence})
             return client_file[field_name]
         domain = [("company_id", "=", company.id), (field_name, "!=", False)]
-        sequence = self._get_next_available_sequence(
-            "qlk.client.file",
-            sequence_field,
-            domain,
-            parser=self._parse_client_sequence,
-            code_field=field_name,
-        )
-        code = "%s-%03d" % (prefix, sequence)
+        sequence_code = CLIENT_SEQUENCE_CODES.get(category)
+        code = self.env["ir.sequence"].sudo().with_company(company).next_by_code(sequence_code) if sequence_code else False
+        if code:
+            sequence = self._parse_client_sequence(code)
+        else:
+            existing = self.env["qlk.client.file"].sudo().with_context(active_test=False).search(domain)
+            used = [
+                record[sequence_field] or self._parse_client_sequence(record[field_name])
+                for record in existing
+            ]
+            sequence = (max(used) if used else 0) + 1
+            code = "%s-%03d" % (prefix, sequence)
         while self.env["qlk.client.file"].sudo().search_count(
             [("company_id", "=", company.id), (field_name, "=", code), ("id", "!=", client_file.id)]
         ):
-            sequence += 1
-            code = "%s-%03d" % (prefix, sequence)
+            if sequence_code:
+                code = self.env["ir.sequence"].sudo().with_company(company).next_by_code(sequence_code)
+                sequence = self._parse_client_sequence(code)
+            else:
+                sequence += 1
+                code = "%s-%03d" % (prefix, sequence)
         client_file.sudo().with_context(mail_notrack=True).write({field_name: code, sequence_field: sequence})
         return code
 
@@ -210,9 +288,13 @@ class QlkLegalNumberingEngine(models.AbstractModel):
 
     @api.model
     def backfill_legal_codes(self):
+        if not self._ensure_client_file_profile_columns():
+            return True
         ClientFile = self.env["qlk.client.file"].sudo().with_context(active_test=False)
         for client_file in ClientFile.search([], order="company_id, id"):
             service_codes = set(client_file.legal_service_type_ids.mapped("code"))
+            if client_file.service_profile_type:
+                service_codes.add(client_file.service_profile_type)
             for field_name, category in (
                 ("litigation_client_code", "litigation"),
                 ("corporate_client_code", "corporate"),

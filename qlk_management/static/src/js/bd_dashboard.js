@@ -40,8 +40,13 @@ class BusinessDevelopmentDashboard extends Component {
                 proposals: 0,
                 engagements: 0,
                 projects: 0,
+                followups: 0,
             }
         );
+    }
+
+    get followups() {
+        return this.state.data?.followups || [];
     }
 
     get sections() {

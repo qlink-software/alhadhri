@@ -17,9 +17,11 @@ class BDRetainerMixin(models.AbstractModel):
         self.ensure_one()
         if self.billing_type == "free":
             return False
+        if "retainer_period" in self._fields and self.retainer_period:
+            return self.retainer_period == "retainer"
         if "contract_type" in self._fields and self.contract_type == "retainer":
             return True
-        return bool(getattr(self, "retainer_period", False))
+        return False
 
     def _is_invoice_billing(self):
         self.ensure_one()
@@ -78,7 +80,6 @@ class BDRetainerMixin(models.AbstractModel):
     def _compute_retainer_used_hours(self):
         standard_records = self.filtered(
             lambda rec: rec._is_retainer_billing()
-            and rec.retainer_period != "annual"
             and rec._get_standard_project()
         )
         standard_map = self._get_project_timesheet_hours_map(standard_records.mapped("project_id").ids)
@@ -86,13 +87,6 @@ class BDRetainerMixin(models.AbstractModel):
         for record in self:
             if not record._is_retainer_billing():
                 record.used_hours = 0.0
-                continue
-            if record.retainer_period == "annual" and (record.year_start_date or record.year_end_date):
-                record.used_hours = record._get_record_hours(
-                    record,
-                    date_from=record.year_start_date,
-                    date_to=record.year_end_date,
-                )
                 continue
             standard_project = record._get_standard_project()
             if standard_project:
@@ -134,11 +128,7 @@ class BDRetainerMixin(models.AbstractModel):
                 record.retainer_usage_state = "normal"
                 continue
             base_limit = record.allocated_hours or 0.0
-            if record.retainer_period == "monthly":
-                base_limit = record.monthly_hours_limit or base_limit
-                consumed = record.monthly_used_hours
-            else:
-                consumed = record.used_hours
+            consumed = record.used_hours
             if not base_limit:
                 record.retainer_usage_percent = 0.0
                 record.retainer_usage_state = "normal"
@@ -207,7 +197,7 @@ class BDRetainerMixin(models.AbstractModel):
     def _process_retainer_notifications(self):
         month_key = self._get_retainer_month_key()
         for record in self:
-            if not record._is_retainer_billing() or record.retainer_period != "monthly":
+            if not record._is_retainer_billing():
                 continue
             if record.exception_approved:
                 continue

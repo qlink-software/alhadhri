@@ -4,7 +4,7 @@
         <record id="rule_task_user" model="ir.rule">
             <field name="name">Working Hours User</field>
             <field name="model_id" ref="model_task"/>
-            <field name="domain_force">['|', ('user_id', '=', user.id), ('employee_ids.user_id', 'in', [user.id])]</field>
+            <field name="domain_force">['|', '|', ('user_id', '=', user.id), ('employee_ids.user_id', 'in', [user.id]), ('create_uid', '=', user.id)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_task_management.group_task_user')])]"/>
         </record>
         <record id="rule_task_manager" model="ir.rule">
@@ -102,6 +102,18 @@
             <field name="model_id" ref="model_qlk_client_file"/>
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_manager')])]"/>
+        </record>
+        <record id="rule_qlk_client_file_bd_user" model="ir.rule">
+            <field name="name">Client File Business User</field>
+            <field name="model_id" ref="model_qlk_client_file"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_user')])]"/>
+        </record>
+        <record id="rule_qlk_client_file_system" model="ir.rule">
+            <field name="name">Client File System Full Access</field>
+            <field name="model_id" ref="model_qlk_client_file"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(6, 0, [ref('base.group_system')])]"/>
         </record>
         <record id="rule_qlk_client_file_el_manager" model="ir.rule">
             <field name="name">Client File Engagement Manager</field>

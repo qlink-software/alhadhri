@@ -4,7 +4,7 @@
         <field name="name">litigation.level.list</field>
         <field name="model">litigation.level</field>
         <field name="arch" type="xml">
-            <list string="درجات التقاضي" editable="bottom">
+            <list string="Litigation Degrees" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="code"/>
@@ -17,7 +17,7 @@
         <field name="name">litigation.level.form</field>
         <field name="model">litigation.level</field>
         <field name="arch" type="xml">
-            <form string="درجة التقاضي">
+            <form string="Litigation Degree">
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -31,15 +31,15 @@
     </record>
 
     <record id="action_litigation_level" model="ir.actions.act_window">
-        <field name="name">درجات التقاضي</field>
+        <field name="name">Litigation Degrees</field>
         <field name="res_model">litigation.level</field>
         <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_litigation_level"
-              name="درجات التقاضي"
+              name="Litigation Degrees"
               parent="qlk_management.menu_management_root"
               action="qlk_management.action_litigation_level"
               groups="qlk_management.group_pre_litigation_manager"
-              sequence="55"/>
+              sequence="999"/>
 </odoo>

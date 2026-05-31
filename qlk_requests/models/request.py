@@ -89,6 +89,19 @@ class QlkInternalRequest(models.Model):
     completion_notes = fields.Text(string="ملاحظات الإنجاز", tracking=True)
     completed_by = fields.Many2one("res.users", string="الموظف المنفذ", readonly=True, tracking=True)
     done_date = fields.Datetime(string="تاريخ الانتهاء", readonly=True, tracking=True)
+    completion_reviewed_by = fields.Many2one(
+        "res.users",
+        string="Completion Reviewed By",
+        readonly=True,
+        tracking=True,
+    )
+    completion_reviewed_date = fields.Datetime(
+        string="Completion Reviewed On",
+        readonly=True,
+        tracking=True,
+    )
+    can_mark_completed = fields.Boolean(compute="_compute_workflow_buttons")
+    can_review_completion = fields.Boolean(compute="_compute_workflow_buttons")
     attachment_ids = fields.Many2many(
         "ir.attachment",
         "qlk_internal_request_attachment_rel",
@@ -124,6 +137,27 @@ class QlkInternalRequest(models.Model):
             if request.assigned_to:
                 users |= request.assigned_to
             request.assigned_user_ids = [Command.set(users.ids)]
+
+    def _get_assigned_users(self):
+        self.ensure_one()
+        users = self.employee_ids.mapped("user_id")
+        if self.assigned_to:
+            users |= self.assigned_to
+        return users.filtered(lambda user: user.active)
+
+    def _compute_workflow_buttons(self):
+        current_user = self.env.user
+        is_manager = current_user.has_group("qlk_requests.group_request_manager")
+        for request in self:
+            assigned_users = request._get_assigned_users()
+            request.can_mark_completed = (
+                request.state == "in_progress" and current_user in assigned_users
+            )
+            request.can_review_completion = (
+                request.state == "done"
+                and not request.completion_reviewed_by
+                and (current_user == request.requested_by or is_manager)
+            )
 
     @api.onchange("engagement_id")
     def _onchange_engagement_id(self):
@@ -173,6 +207,14 @@ class QlkInternalRequest(models.Model):
         else:
             self.message_post(body=body)
 
+    def _record_url(self):
+        self.ensure_one()
+        return "%s/web#id=%s&model=%s&view_type=form" % (
+            self.get_base_url(),
+            self.id,
+            self._name,
+        )
+
     def _send_template_to_users(self, template_xmlid, users):
         template = self.env.ref(template_xmlid, raise_if_not_found=False)
         if not template or not users:
@@ -220,31 +262,51 @@ class QlkInternalRequest(models.Model):
                 request.requested_by,
             )
 
+    def _send_assignment_notifications(self, users=None):
+        template_xmlid = "qlk_requests.mail_template_internal_request_assignment"
+        for request in self:
+            assigned_users = users or request._get_assigned_users()
+            assigned_users = assigned_users.filtered(lambda user: user.active)
+            if not assigned_users:
+                continue
+            partners = assigned_users.mapped("partner_id")
+            request.message_subscribe(partner_ids=partners.ids)
+            body = _(
+                "You have been assigned a new internal task/request.<br/>"
+                "<b>Request:</b> %(name)s<br/>"
+                "<b>Priority:</b> %(priority)s<br/>"
+                "<b>Deadline:</b> %(deadline)s<br/>"
+                "<b>Created By:</b> %(creator)s<br/>"
+                "<a href='%(url)s'>Open Request</a>"
+            ) % {
+                "name": request.display_name,
+                "priority": dict(request.PRIORITY_SELECTION).get(request.priority, request.priority or "-"),
+                "deadline": request.delivery_date or "-",
+                "creator": request.requested_by.name or request.create_uid.name,
+                "url": request._record_url(),
+            }
+            request.message_post(body=body, partner_ids=partners.ids)
+            request._send_template_to_users(template_xmlid, assigned_users)
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             vals.setdefault("requested_by", self.env.user.id)
             vals.setdefault("state", "draft")
         records = super().create(vals_list)
-        for record in records.filtered("assigned_to"):
-            record._notify_user(
-                record.assigned_to,
-                _("تم إسناد طلب جديد إليك: %s") % record.display_name,
-            )
+        records._send_assignment_notifications()
         records._send_created_to_mp_email()
         return records
 
     def write(self, vals):
-        old_assignees = {request.id: request.assigned_to for request in self}
+        old_assignees = {request.id: request._get_assigned_users() for request in self}
         old_states = {request.id: request.state for request in self}
         result = super().write(vals)
-        if "assigned_to" in vals:
-            for request in self.filtered("assigned_to"):
-                if old_assignees.get(request.id) != request.assigned_to:
-                    request._notify_user(
-                        request.assigned_to,
-                        _("تم إسناد الطلب إليك: %s") % request.display_name,
-                    )
+        if {"assigned_to", "employee_ids"}.intersection(vals):
+            for request in self:
+                new_users = request._get_assigned_users() - old_assignees.get(request.id, self.env["res.users"])
+                if new_users:
+                    request._send_assignment_notifications(new_users)
         if vals.get("state") == "done":
             for request in self:
                 if old_states.get(request.id) != "done":
@@ -254,7 +316,7 @@ class QlkInternalRequest(models.Model):
                         request.completed_by = self.env.user
                     request._notify_user(
                         request.requested_by,
-                        _("تم إكمال الطلب: %s") % request.display_name,
+                        _("Task has been completed by %s.") % (request.completed_by.name or self.env.user.name),
                     )
                     request._send_done_to_creator_email()
         return result
@@ -272,9 +334,12 @@ class QlkInternalRequest(models.Model):
             request.state = "in_progress"
 
     def action_complete(self):
+        current_user = self.env.user
         for request in self:
             if request.state != "in_progress":
                 raise UserError(_("Only in-progress requests can be completed."))
+            if current_user not in request._get_assigned_users():
+                raise UserError(_("Only the assigned user can mark this request as completed."))
             request.write(
                 {
                     "state": "done",
@@ -282,6 +347,22 @@ class QlkInternalRequest(models.Model):
                     "completed_by": self.env.user.id,
                 }
             )
+
+    def action_review_completion(self):
+        current_user = self.env.user
+        is_manager = current_user.has_group("qlk_requests.group_request_manager")
+        for request in self:
+            if request.state != "done":
+                raise UserError(_("Only completed requests can be reviewed."))
+            if current_user != request.requested_by and not is_manager:
+                raise UserError(_("Only the request creator or manager can review completion."))
+            request.write(
+                {
+                    "completion_reviewed_by": current_user.id,
+                    "completion_reviewed_date": fields.Datetime.now(),
+                }
+            )
+            request.message_post(body=_("Completion reviewed by %s.") % current_user.name)
 
     def action_cancel(self):
         for request in self:

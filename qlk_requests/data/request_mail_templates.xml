@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="mail_template_internal_request_assignment" model="mail.template">
+        <field name="name">Internal Request Assignment</field>
+        <field name="model_id" ref="model_qlk_internal_request"/>
+        <field name="subject">New Internal Request Assigned: {{ object.display_name }}</field>
+        <field name="email_from">{{ (object.requested_by.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>You have been assigned a new internal task/request.</p>
+                <ul>
+                    <li><strong>Request:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
+                    <li><strong>Deadline:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="object.requested_by.name or object.create_uid.name"/></li>
+                </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=qlk.internal.request&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Open Request
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
     <record id="mail_template_internal_request_created_mp" model="mail.template">
         <field name="name">Internal Request Created - MP</field>
         <field name="model_id" ref="model_qlk_internal_request"/>
@@ -39,6 +66,12 @@
                     <li><strong>Hours:</strong> <t t-out="object.hours_spent or object.required_hours or 0.0"/></li>
                     <li><strong>Completion Notes:</strong> <t t-out="object.completion_notes or '-'"/></li>
                 </ul>
+                <p>
+                    <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=qlk.internal.request&amp;view_type=form"
+                       style="display:inline-block;padding:10px 14px;background:#0f5ca8;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Review Completion
+                    </a>
+                </p>
                 <p>Regards,<br/>QLK</p>
             </div>
         </field>

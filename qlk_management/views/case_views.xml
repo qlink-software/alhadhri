@@ -19,7 +19,7 @@
                 <xpath expr="//field[@name='is_new']/.." position="before">
                     <group string="Engagement / Case Engine">
                         <field name="allowed_litigation_degree_ids" invisible="1"/>
-                        <field name="client_file_id"/>
+                        <!-- <field name="client_file_id"/> -->
                         <field name="project_id"
                                required="1"
                                domain="[('client_file_id', '=', client_file_id), ('service_type', 'in', ['litigation', 'pre_litigation']), ('active', '=', True)]"/>

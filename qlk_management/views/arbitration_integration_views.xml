@@ -31,9 +31,8 @@
                         <button name="action_open_project_hours"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-clock-o"
                                 invisible="not engagement_id">
-                            <field name="actual_hours_total" string="Approved Hours"/>
+                            <div class="o_stat_info"><span class="o_stat_text">Approved Hours (<field name="actual_hours_total" nolabel="1" readonly="1"/>)</span></div>
                         </button>
                     </div>
                 </xpath>

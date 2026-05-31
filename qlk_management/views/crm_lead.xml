@@ -8,15 +8,14 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="replace">
                 <header>
-                    <button string="Interested" name="action_interested" type="object" class="oe_highlight" invisible="state != 'new'"/>
-                    <button string="Not Interested" name="action_not_interested" type="object" class="oe_highlight" invisible="state != 'interested'"/>
-                    <button string="Follow Up" name="action_follow_up" type="object" class="oe_highlight" invisible="state != 'not_interested'"/>
-                    <button string="Send Proposal" name="action_send" type="object" class="oe_highlight" invisible="state != 'follow_up'"/>
+                    <button string="Interested" name="action_interested" type="object" class="oe_highlight" invisible="state == 'interested'"/>
+                    <button string="Not Interested" name="action_not_interested" type="object" class="oe_highlight" invisible="state == 'not_interested'"/>
                     <button string="Reset To New" name="action_reset_to_new" type="object" invisible="state == 'new'"/>
-                    <button string="Create BD Proposal"
+                    <button string="Create Proposal"
                         name="action_create_bd_proposal"
                         type="object"
-                        class="btn-primary"/>
+                        class="btn-primary"
+                        invisible="state != 'interested'"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,interested,not_interested,follow_up,send"/>
                 </header>
             </xpath>
@@ -24,10 +23,32 @@
                 <attribute name="string">Responsible</attribute>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="client_name" />
-                <field name="priority_selection" />
-                <field name="notify_datetime"/>
-                <field name="opportunity_type" />
+                <field name="notify_datetime" string="Follow up notifications"/>
+            </xpath>
+            <xpath expr="//div[@class='oe_title']/h1" position="attributes">
+                <attribute name="invisible">type == 'opportunity'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='opportunity_partner']" position="replace">
+                <group name="opportunity_partner" invisible="type == 'lead'">
+                    <field name="client_name" string="Client"/>
+                    <field name="phone" string="Phone" widget="phone"/>
+                    <field name="email_from" string="Email" widget="email"/>
+                    <field name="opportunity_type" string="Opportunity Type"/>
+                    <field name="name" string="Details" required="1"/>
+                    <field name="priority_selection" string="Priority"/>
+                    <field name="partner_id" invisible="1"/>
+                    <field name="is_blacklisted" invisible="1"/>
+                    <field name="partner_is_blacklisted" invisible="1"/>
+                    <field name="phone_blacklisted" invisible="1"/>
+                    <field name="mobile_blacklisted" invisible="1"/>
+                    <field name="email_state" invisible="1"/>
+                    <field name="phone_state" invisible="1"/>
+                    <field name="partner_email_update" invisible="1"/>
+                    <field name="partner_phone_update" invisible="1"/>
+                    <field name="lost_reason_id" invisible="active"/>
+                    <field name="date_conversion" invisible="1"/>
+                    <field name="user_company_ids" invisible="1"/>
+                </group>
             </xpath>
             <!-- hide those fields in crm form view -->
             <xpath expr="//h2" position="attributes">
@@ -80,7 +101,7 @@
                         <list string="Notifications">
                             <field name="name"/>
                             <field name="notification_type"/>
-                            <field name="notify_datetime"/>
+                            <field name="notify_datetime" string="Follow up notifications"/>
                             <field name="user_ids" widget="many2many_tags"/>
                             <field name="state"/>
                         </list>
@@ -89,7 +110,7 @@
                                 <group>
                                     <field name="name"/>
                                     <field name="notification_type"/>
-                                    <field name="notify_datetime"/>
+                                    <field name="notify_datetime" string="Follow up notifications"/>
                                     <field name="user_ids" widget="many2many_tags"/>
                                     <field name="state"/>
                                     <field name="active"/>
@@ -179,15 +200,21 @@
                 <field name="state"/>
                 <field name="priority_selection"/>
                 <field name="date_deadline"/>
+                <field name="notify_datetime"/>
+                <field name="phone"/>
+                <field name="email_from"/>
                 <field name="expected_revenue"/>
                 <field name="company_currency"/>
             </xpath>
             <xpath expr="//t[@t-name='card']" position="replace">
                 <t t-name="card">
-                    <div t-attf-class="oe_kanban_global_click o_kanban_record card shadow-sm border-0 h-100 pr_stage_#{record.state and record.state.raw_value or 'new'}">
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div t-attf-class="oe_kanban_global_click o_kanban_record card shadow-sm border-0 h-100 overflow-hidden pr_stage_#{record.state and record.state.raw_value or 'new'}">
+                        <div t-attf-class="border-top border-4 #{record.state and record.state.raw_value == 'not_interested' and 'border-danger' or record.state and record.state.raw_value == 'interested' and 'border-warning' or record.state and record.state.raw_value == 'send' and 'border-success' or 'border-primary'}"/>
+                        <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                             <div class="min-w-0">
-                                <div class="fw-semibold fs-6 text-truncate">
+                                <div class="text-uppercase text-muted small fw-semibold">Client</div>
+                                <div class="fw-semibold fs-5 text-truncate">
                                     <t t-esc="record.client_name and record.client_name.value or record.name.value"/>
                                 </div>
                                 <div class="small text-muted text-truncate" t-if="record.name and record.name.raw_value">
@@ -200,7 +227,7 @@
                             <field name="user_id" widget="many2one_avatar_user" class="flex-shrink-0"/>
                         </div>
 
-                        <div class="d-flex flex-wrap gap-1 mb-3">
+                        <div class="d-flex flex-wrap gap-1 mb-3 align-items-center">
                             <span t-if="record.state and record.state.raw_value == 'new'" class="badge rounded-pill text-bg-secondary">
                                 <field name="state"/>
                             </span>
@@ -213,34 +240,33 @@
                             <span t-if="record.state and record.state.raw_value == 'not_interested'" class="badge rounded-pill text-bg-danger">
                                 <field name="state"/>
                             </span>
-                        </div>
-
-                        <div class="d-grid gap-2 small">
-                            <div class="d-flex justify-content-between gap-3">
-                                <span class="text-muted">Service</span>
-                                <span class="fw-medium text-truncate"><field name="opportunity_type"/></span>
-                            </div>
-                            <div class="d-flex justify-content-between gap-3">
-                                <span class="text-muted">Lawyer</span>
-                                <span class="fw-medium text-truncate"><field name="user_id"/></span>
-                            </div>
-                            <div class="d-flex justify-content-between gap-3">
-                                <span class="text-muted">Amount</span>
-                                <span class="fw-medium"><field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/></span>
-                            </div>
-                        </div>
-
-                        <footer class="d-flex justify-content-between align-items-center border-top pt-2 mt-3 small">
-                            <span class="text-muted">Expected Closing</span>
-                            <span class="fw-medium">
-                                <field name="date_deadline"/>
-                            </span>
-                        </footer>
-                        <div class="pt-2">
                             <field name="priority_selection" widget="badge"
                                    decoration-danger="priority_selection == 'high'"
                                    decoration-warning="priority_selection == 'medium'"
                                    decoration-success="priority_selection == 'low'"/>
+                        </div>
+
+                        <div class="d-grid gap-2 small bg-light rounded-2 p-2">
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Opportunity Type</span>
+                                <span class="fw-medium text-truncate"><field name="opportunity_type"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Phone</span>
+                                <span class="fw-medium text-truncate"><field name="phone"/></span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-muted">Email</span>
+                                <span class="fw-medium text-truncate"><field name="email_from"/></span>
+                            </div>
+                        </div>
+
+                        <footer class="d-flex justify-content-between align-items-center border-top pt-2 mt-3 small">
+                            <span class="text-muted">Follow up</span>
+                            <span class="fw-medium">
+                                <field name="notify_datetime"/>
+                            </span>
+                        </footer>
                         </div>
                     </div>
                 </t>
@@ -265,6 +291,9 @@
                 <field name="state"/>
                 <field name="priority_selection"/>
                 <field name="date_deadline"/>
+                <field name="notify_datetime"/>
+                <field name="phone"/>
+                <field name="email_from"/>
                 <field name="expected_revenue"/>
                 <field name="company_currency"/>
             </xpath>

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_template_client_file_created_poa_required" model="mail.template">
+        <field name="name">Client File Created - POA Preparation</field>
+        <field name="model_id" ref="model_qlk_client_file"/>
+        <field name="subject">New Client File Created – POA Preparation Required</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">mp.office@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear MP Office,</p>
+                <p>A new client file has been created and requires POA preparation.</p>
+                <p><strong>Client Details:</strong></p>
+                <ul>
+                    <li><strong>Client Name:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>File Number:</strong> <t t-out="object.name or '-'"/></li>
+                    <li><strong>Responsible Lawyer:</strong> <t t-out="object.qlk_responsible_lawyer_name()"/></li>
+                </ul>
+                <p>
+                    <strong>Open Record:</strong><br/>
+                    <a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;">
+                        <t t-out="object.qlk_record_url()"/>
+                    </a>
+                </p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_manager_approval_request" model="mail.template">
+        <field name="name">Proposal Approval Request - Manager</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Approval Request – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">a.alhadhri@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Manager,</p>
+                <p>A new approval request is waiting for your review.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_assistant_manager_approval_request" model="mail.template">
+        <field name="name">Proposal Approval Request - Assistant Manager</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Approval Request – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">m.alhadhri@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Assistant Manager,</p>
+                <p>A document is waiting for your approval.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_manager_approval_request" model="mail.template">
+        <field name="name">Engagement Letter Approval Request - Manager</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Approval Request – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">a.alhadhri@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Manager,</p>
+                <p>A new approval request is waiting for your review.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_assistant_manager_approval_request" model="mail.template">
+        <field name="name">Engagement Letter Approval Request - Assistant Manager</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Approval Request – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">m.alhadhri@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Assistant Manager,</p>
+                <p>A document is waiting for your approval.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Created By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_monitor_approved" model="mail.template">
+        <field name="name">Proposal Monitoring - Approved</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Approved – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The document has been approved.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Approved By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_monitor_approved" model="mail.template">
+        <field name="name">Engagement Letter Monitoring - Approved</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Approved – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The document has been approved.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                    <li><strong>Approved By:</strong> <t t-out="user.name"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_monitor_sent_to_client" model="mail.template">
+        <field name="name">Proposal Monitoring - Sent to Client</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Sent to Client – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The document has been sent to the client for approval.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_monitor_sent_to_client" model="mail.template">
+        <field name="name">Engagement Letter Monitoring - Sent to Client</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Sent to Client – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The document has been sent to the client for approval.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_monitor_client_approved" model="mail.template">
+        <field name="name">Proposal Monitoring - Client Approved</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Client Approved – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The client approved the document.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_monitor_client_approved" model="mail.template">
+        <field name="name">Engagement Letter Monitoring - Client Approved</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Client Approved – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The client approved the document.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_proposal_monitor_client_rejected" model="mail.template">
+        <field name="name">Proposal Monitoring - Client Rejected</field>
+        <field name="model_id" ref="model_bd_proposal"/>
+        <field name="subject">Client Rejected – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The client rejected the document.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Rejection Reason:</strong><br/><t t-out="object.rejection_reason or '-'"/></p>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="mail_template_engagement_monitor_client_rejected" model="mail.template">
+        <field name="name">Engagement Letter Monitoring - Client Rejected</field>
+        <field name="model_id" ref="model_bd_engagement_letter"/>
+        <field name="subject">Client Rejected – {{ object.qlk_document_name() }}</field>
+        <field name="email_from">{{ (user.email_formatted or object.company_id.email or 'no-reply@qlk.local') }}</field>
+        <field name="email_to">dev@alhadhrilawfirm.com</field>
+        <field name="body_html" type="html">
+            <div style="font-family:Arial, sans-serif;font-size:14px;color:#222;">
+                <p>Dear Team,</p>
+                <p>The client rejected the document.</p>
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Document:</strong> <t t-out="object.qlk_document_name()"/></li>
+                    <li><strong>Client:</strong> <t t-out="object.partner_id.name or '-'"/></li>
+                </ul>
+                <p><strong>Rejection Reason:</strong><br/><t t-out="object.rejection_reason or '-'"/></p>
+                <p><strong>Open Record:</strong><br/><a t-att-href="object.qlk_record_url()" style="color:#0f5ca8;text-decoration:none;"><t t-out="object.qlk_record_url()"/></a></p>
+                <p>Regards,<br/>QLK LawPro System</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+</odoo>

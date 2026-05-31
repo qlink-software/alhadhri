@@ -34,7 +34,35 @@
                             <span>Delivery Projects</span>
                             <strong t-esc="formatNumber(kpis.projects)"/>
                         </div>
+                        <div class="metric-card">
+                            <span>Follow up notifications</span>
+                            <strong t-esc="formatNumber(kpis.followups)"/>
+                        </div>
                     </div>
+                </section>
+
+                <section class="qlk-bd-dashboard__followups qlk-card">
+                    <header>
+                        <div>
+                            <h2>Follow up notifications</h2>
+                            <small>Upcoming opportunity follow ups</small>
+                        </div>
+                    </header>
+                    <t t-if="followups.length">
+                        <ul class="bd-followups">
+                            <t t-foreach="followups" t-as="followup" t-key="followup.id">
+                                <li t-on-click="() => openRecord(followup.link)">
+                                    <strong t-esc="followup.title"/>
+                                    <span t-esc="followup.due"/>
+                                    <span t-if="followup.state"> - <t t-esc="followup.state"/></span>
+                                    <small t-if="followup.details" t-esc="followup.details"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </t>
+                    <t t-else="">
+                        <div class="qlk-empty">No follow up notifications.</div>
+                    </t>
                 </section>
 
                 <section class="qlk-bd-dashboard__grid">

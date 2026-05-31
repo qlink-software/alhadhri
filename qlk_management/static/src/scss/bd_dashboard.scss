@@ -76,6 +76,10 @@
         gap: 24px;
     }
 
+    .qlk-bd-dashboard__followups {
+        margin-bottom: 24px;
+    }
+
     .qlk-card {
         background: #ffffff;
         border-radius: 16px;
@@ -395,6 +399,12 @@
 
             span {
                 font-size: 13px;
+                color: #6f7a8c;
+            }
+
+            small {
+                display: block;
+                margin-top: 6px;
                 color: #6f7a8c;
             }
         }
