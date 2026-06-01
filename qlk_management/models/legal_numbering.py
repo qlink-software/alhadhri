@@ -39,6 +39,9 @@ class QlkLegalNumberingEngine(models.AbstractModel):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_code_locked boolean DEFAULT false")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
@@ -77,6 +80,9 @@ class QlkLegalNumberingEngine(models.AbstractModel):
                SET litigation_client_sequence = COALESCE(litigation_client_sequence, 0),
                    corporate_client_sequence = COALESCE(corporate_client_sequence, 0),
                    arbitration_client_sequence = COALESCE(arbitration_client_sequence, 0),
+                   litigation_code_locked = COALESCE(litigation_code_locked, false),
+                   corporate_code_locked = COALESCE(corporate_code_locked, false),
+                   arbitration_code_locked = COALESCE(arbitration_code_locked, false),
                    litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
                    corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
                    arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
@@ -107,6 +113,17 @@ class QlkLegalNumberingEngine(models.AbstractModel):
     def _parse_client_sequence(self, code):
         match = re.search(r"([A-Z])-?0*([0-9]+)$", code or "")
         return int(match.group(2)) if match else 0
+
+    @api.model
+    def _format_client_code(self, prefix, sequence):
+        return "%s-%03d" % (prefix, int(sequence or 0))
+
+    @api.model
+    def _normalize_client_code(self, code, prefix):
+        match = re.search(r"([A-Z])-?0*([0-9]+)$", code or "")
+        if not match or match.group(1) != prefix:
+            return code
+        return self._format_client_code(prefix, match.group(2))
 
     @api.model
     def _parse_project_sequence(self, code):
@@ -142,42 +159,22 @@ class QlkLegalNumberingEngine(models.AbstractModel):
         if not field_name or not prefix:
             raise ValidationError(_("Unsupported legal service type for client numbering."))
         if client_file[field_name]:
-            sequence = client_file[sequence_field] or self._parse_client_sequence(client_file[field_name])
-            if sequence and sequence_field in client_file._fields and client_file[sequence_field] != sequence:
-                client_file.sudo().with_context(mail_notrack=True).write({sequence_field: sequence})
             return client_file[field_name]
 
         company = client_file.company_id or self.env.company
         self._lock("client", company.id, category)
         client_file.invalidate_recordset([field_name, sequence_field])
         if client_file[field_name]:
-            sequence = client_file[sequence_field] or self._parse_client_sequence(client_file[field_name])
-            if sequence and client_file[sequence_field] != sequence:
-                client_file.sudo().with_context(mail_notrack=True).write({sequence_field: sequence})
             return client_file[field_name]
-        domain = [("company_id", "=", company.id), (field_name, "!=", False)]
         sequence_code = CLIENT_SEQUENCE_CODES.get(category)
         code = self.env["ir.sequence"].sudo().with_company(company).next_by_code(sequence_code) if sequence_code else False
         if code:
             sequence = self._parse_client_sequence(code)
+            code = self._format_client_code(prefix, sequence)
         else:
-            existing = self.env["qlk.client.file"].sudo().with_context(active_test=False).search(domain)
-            used = [
-                record[sequence_field] or self._parse_client_sequence(record[field_name])
-                for record in existing
-            ]
-            sequence = (max(used) if used else 0) + 1
-            code = "%s-%03d" % (prefix, sequence)
-        while self.env["qlk.client.file"].sudo().search_count(
-            [("company_id", "=", company.id), (field_name, "=", code), ("id", "!=", client_file.id)]
-        ):
-            if sequence_code:
-                code = self.env["ir.sequence"].sudo().with_company(company).next_by_code(sequence_code)
-                sequence = self._parse_client_sequence(code)
-            else:
-                sequence += 1
-                code = "%s-%03d" % (prefix, sequence)
-        client_file.sudo().with_context(mail_notrack=True).write({field_name: code, sequence_field: sequence})
+            sequence = 1
+            code = self._format_client_code(prefix, sequence)
+        client_file.sudo().with_context(mail_notrack=True, skip_client_code_lock=True).write({field_name: code, sequence_field: sequence})
         return code
 
     @api.model

@@ -370,6 +370,9 @@ class QlkProject(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_code_locked boolean DEFAULT false")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
@@ -408,6 +411,9 @@ class QlkProject(models.Model):
                SET litigation_project_next_number = COALESCE(litigation_project_next_number, 1),
                    corporate_project_next_number = COALESCE(corporate_project_next_number, 1),
                    arbitration_project_next_number = COALESCE(arbitration_project_next_number, 1),
+                   litigation_code_locked = COALESCE(litigation_code_locked, false),
+                   corporate_code_locked = COALESCE(corporate_code_locked, false),
+                   arbitration_code_locked = COALESCE(arbitration_code_locked, false),
                    poa_required = COALESCE(poa_required, true),
                    poa_status = COALESCE(poa_status, 'draft'),
                    planned_hours = COALESCE(planned_hours, 0),

@@ -156,11 +156,18 @@
                         </group>
                         <group>
                             <field name="client_profile_code" invisible="1"/>
-                            <field name="litigation_client_code" readonly="1" widget="badge"
+                            <field name="litigation_code_locked" invisible="1"/>
+                            <field name="corporate_code_locked" invisible="1"/>
+                            <field name="arbitration_code_locked" invisible="1"/>
+                            <field name="can_edit_client_code" invisible="1"/>
+                            <field name="litigation_client_code"
+                                   readonly="litigation_code_locked or not can_edit_client_code"
                                    invisible="service_profile_type != 'litigation'"/>
-                            <field name="corporate_client_code" readonly="1" widget="badge"
+                            <field name="corporate_client_code"
+                                   readonly="corporate_code_locked or not can_edit_client_code"
                                    invisible="service_profile_type != 'corporate'"/>
-                            <field name="arbitration_client_code" readonly="1" widget="badge"
+                            <field name="arbitration_client_code"
+                                   readonly="arbitration_code_locked or not can_edit_client_code"
                                    invisible="service_profile_type != 'arbitration'"/>
                             <field name="email"/>
                             <field name="phone"/>

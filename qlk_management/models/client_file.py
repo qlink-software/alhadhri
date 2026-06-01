@@ -3,7 +3,7 @@
 import base64
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 SERVICE_SEQUENCE_CODES = {
@@ -47,6 +47,18 @@ CLIENT_CODE_FIELDS = {
     "corporate": "corporate_client_code",
     "arbitration": "arbitration_client_code",
 }
+
+CLIENT_CODE_LOCK_FIELDS = {
+    "litigation_client_code": "litigation_code_locked",
+    "corporate_client_code": "corporate_code_locked",
+    "arbitration_client_code": "arbitration_code_locked",
+}
+
+CLIENT_CODE_EDIT_GROUPS = (
+    "base.group_system",
+    "base.group_erp_manager",
+    "qlk_management.group_pre_litigation_manager",
+)
 
 PROJECT_COUNTER_FIELDS = {
     "litigation": "litigation_project_next_number",
@@ -233,9 +245,13 @@ class QlkClientFile(models.Model):
     has_pre_litigation_service = fields.Boolean(compute="_compute_service_flags", store=True)
     has_arbitration_service = fields.Boolean(compute="_compute_service_flags", store=True)
     has_corporate_service = fields.Boolean(compute="_compute_service_flags", store=True)
-    litigation_client_code = fields.Char(string="Litigation Client Code", copy=False, readonly=True, index=True, tracking=True)
-    corporate_client_code = fields.Char(string="Corporate Client Code", copy=False, readonly=True, index=True, tracking=True)
-    arbitration_client_code = fields.Char(string="Arbitration Client Code", copy=False, readonly=True, index=True, tracking=True)
+    litigation_client_code = fields.Char(string="Litigation Client Code", copy=False, index=True, tracking=True)
+    corporate_client_code = fields.Char(string="Corporate Client Code", copy=False, index=True, tracking=True)
+    arbitration_client_code = fields.Char(string="Arbitration Client Code", copy=False, index=True, tracking=True)
+    litigation_code_locked = fields.Boolean(string="Litigation Code Locked", copy=False, default=False)
+    corporate_code_locked = fields.Boolean(string="Corporate Code Locked", copy=False, default=False)
+    arbitration_code_locked = fields.Boolean(string="Arbitration Code Locked", copy=False, default=False)
+    can_edit_client_code = fields.Boolean(compute="_compute_can_edit_client_code", compute_sudo=False)
     litigation_client_sequence = fields.Integer(string="Litigation Client Sequence", copy=False, readonly=True, index=True)
     corporate_client_sequence = fields.Integer(string="Corporate Client Sequence", copy=False, readonly=True, index=True)
     arbitration_client_sequence = fields.Integer(string="Arbitration Client Sequence", copy=False, readonly=True, index=True)
@@ -383,21 +399,6 @@ class QlkClientFile(models.Model):
             "unique(partner_id, company_id, service_profile_type)",
             "A client profile already exists for this client and service type.",
         ),
-        (
-            "litigation_client_code_company_unique",
-            "unique(litigation_client_code, company_id)",
-            "Litigation client code must be unique per company.",
-        ),
-        (
-            "corporate_client_code_company_unique",
-            "unique(corporate_client_code, company_id)",
-            "Corporate client code must be unique per company.",
-        ),
-        (
-            "arbitration_client_code_company_unique",
-            "unique(arbitration_client_code, company_id)",
-            "Arbitration client code must be unique per company.",
-        ),
     ]
 
     def init(self):
@@ -406,9 +407,18 @@ class QlkClientFile(models.Model):
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_code varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_code varchar")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_code_locked boolean DEFAULT false")
+        cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_code_locked boolean DEFAULT false")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS service_profile_type varchar")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS client_profile_code varchar")
         cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS qlk_client_file_partner_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS qlk_client_file_litigation_client_code_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS qlk_client_file_corporate_client_code_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS qlk_client_file_arbitration_client_code_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS litigation_client_code_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS corporate_client_code_company_unique")
+        cr.execute("ALTER TABLE qlk_client_file DROP CONSTRAINT IF EXISTS arbitration_client_code_company_unique")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS litigation_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS corporate_client_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS arbitration_client_sequence integer DEFAULT 0")
@@ -440,6 +450,9 @@ class QlkClientFile(models.Model):
                    litigation_client_sequence = COALESCE(litigation_client_sequence, 0),
                    corporate_client_sequence = COALESCE(corporate_client_sequence, 0),
                    arbitration_client_sequence = COALESCE(arbitration_client_sequence, 0),
+                   litigation_code_locked = COALESCE(litigation_code_locked, false),
+                   corporate_code_locked = COALESCE(corporate_code_locked, false),
+                   arbitration_code_locked = COALESCE(arbitration_code_locked, false),
                    poa_required = COALESCE(poa_required, true),
                    poa_status = COALESCE(poa_status, 'draft')
             """
@@ -593,6 +606,43 @@ class QlkClientFile(models.Model):
             field_name = CLIENT_CODE_FIELDS.get(record.service_profile_type)
             record.client_profile_code = record[field_name] if field_name else False
 
+    @api.depends_context("uid")
+    def _compute_can_edit_client_code(self):
+        can_edit = self._current_user_can_edit_client_codes()
+        for record in self:
+            record.can_edit_client_code = can_edit
+
+    @api.model
+    def _current_user_can_edit_client_codes(self):
+        user = self.env.user
+        return bool(
+            self.env.is_superuser()
+            or any(user.has_group(group_xmlid) for group_xmlid in CLIENT_CODE_EDIT_GROUPS)
+        )
+
+    @api.model
+    def _prepare_manual_client_code_vals(self, vals, records=False, create_mode=False):
+        vals = dict(vals)
+        code_fields = set(vals).intersection(CLIENT_CODE_LOCK_FIELDS)
+        if not code_fields:
+            return vals
+        if not self.env.context.get("skip_client_code_lock") and not self._current_user_can_edit_client_codes():
+            raise AccessError(_("Only MP, Managing Partner, or System Administrator can edit client codes."))
+        if records and len(records) > 1:
+            raise UserError(_("Client codes can be edited one profile at a time."))
+
+        target_record = records[:1] if records else self.env["qlk.client.file"]
+        for field_name in code_fields:
+            if target_record and target_record[field_name] == vals[field_name]:
+                vals.pop(field_name, None)
+                continue
+            lock_field = CLIENT_CODE_LOCK_FIELDS[field_name]
+            if target_record and target_record[lock_field] and not self.env.context.get("skip_client_code_lock"):
+                raise UserError(_("This Client Code is locked and cannot be changed."))
+            if not self.env.context.get("skip_client_code_lock"):
+                vals[lock_field] = True
+        return vals
+
     def _has_poa_service(self, service_ids=False):
         services = (
             self.env["qlk.legal.service.type"].browse(service_ids)
@@ -721,6 +771,9 @@ class QlkClientFile(models.Model):
             elif not self._extract_m2m_ids(vals.get("legal_service_type_ids")):
                 vals["legal_service_type_ids"] = [(6, 0, service_model._ids_from_codes(["litigation"]))]
             self._normalize_profile_values(vals)
+            prepared_code_vals = self._prepare_manual_client_code_vals(vals, create_mode=True)
+            vals.clear()
+            vals.update(prepared_code_vals)
             vals["poa_required"] = self._poa_required_from_service_commands(vals["legal_service_type_ids"])
             if not vals["poa_required"]:
                 vals.setdefault("poa_status", "draft")
@@ -735,6 +788,7 @@ class QlkClientFile(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        vals = self._prepare_manual_client_code_vals(vals, records=self)
         if vals.get("service_type_ids") and not vals.get("legal_service_type_ids"):
             vals["legal_service_type_ids"] = vals.pop("service_type_ids")
         vals.pop("client_code", None)
