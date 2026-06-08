@@ -12,7 +12,7 @@
     </record>
     <record id="litigation_level_cassation" model="litigation.level">
         <field name="name">تمييز</field>
-        <field name="code">CA</field>
+        <field name="code">C</field>
         <field name="sequence">30</field>
     </record>
     <record id="litigation_level_enforcement" model="litigation.level">

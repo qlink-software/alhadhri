@@ -114,6 +114,9 @@ def _column_exists(cr, table_name, column_name):
 
 def _ensure_workflow_notification_columns(cr):
     # حارس ترقية: بعض عمليات backfill تعمل أثناء init وقبل إنشاء أعمدة الـ mixin.
+    cr.execute("SELECT to_regclass(%s)", ["qlk_client_file"])
+    if not cr.fetchone()[0]:
+        return
     cr.execute(
         "ALTER TABLE qlk_client_file ADD COLUMN IF NOT EXISTS workflow_notification_keys text"
     )

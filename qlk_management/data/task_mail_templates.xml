@@ -66,15 +66,15 @@
         <field name="email_from">{{ (object.create_uid.email_formatted or user.email_formatted or 'no-reply@qlk.local') }}</field>
         <field name="body_html" type="html">
             <div>
-                <p>Dear <t t-out="object.user_id.name"/>,</p>
+                <p>Dear User,</p>
                 <p>A project task has been assigned to you.</p>
                 <ul>
-                    <li><strong>Task:</strong> <t t-out="object.display_name"/></li>
-                    <li><strong>Project:</strong> <t t-out="object.project_id.display_name if object.project_id else '-'"/></li>
-                    <li><strong>Receive Date:</strong> <t t-out="format_datetime(object.receive_date) if object.receive_date else '-'"/></li>
-                    <li><strong>Delivery Date:</strong> <t t-out="format_datetime(object.delivery_date) if object.delivery_date else '-'"/></li>
-                    <li><strong>Required Hours:</strong> <t t-out="object.required_hours or 0.0"/></li>
-                    <li><strong>Created By:</strong> <t t-out="object.create_uid.name"/></li>
+                    <li><strong>Task Name:</strong> <t t-out="object.display_name"/></li>
+                    <li><strong>Project Name:</strong> <t t-out="object.project_id.display_name if object.project_id else '-'"/></li>
+                    <li><strong>Task Description:</strong> <t t-out="object.description or '-'"/></li>
+                    <li><strong>Assigned By:</strong> <t t-out="object.write_uid.name or object.create_uid.name"/></li>
+                    <li><strong>Priority:</strong> <t t-out="dict(object._fields['priority'].selection).get(object.priority, object.priority or '-')"/></li>
+                    <li><strong>Planned Hours:</strong> <t t-out="object.allocated_hours or 0.0"/></li>
                 </ul>
                 <p>
                     <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=project.task&amp;view_type=form"

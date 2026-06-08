@@ -218,26 +218,30 @@ class QlkCase(models.Model):
         cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS project_legal_code varchar")
         cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS record_sequence integer DEFAULT 0")
         cr.execute("ALTER TABLE qlk_case ADD COLUMN IF NOT EXISTS record_code varchar")
-        cr.execute(
-            """
-            UPDATE qlk_case c
-               SET employee_id = p.lawyer_id
-              FROM qlk_project p
-             WHERE c.project_id = p.id
-               AND c.employee_id IS NULL
-               AND p.lawyer_id IS NOT NULL
-            """
-        )
-        cr.execute(
-            """
-            UPDATE qlk_case c
-               SET employee_id = e.lawyer_employee_id
-              FROM bd_engagement_letter e
-             WHERE c.engagement_id = e.id
-               AND c.employee_id IS NULL
-               AND e.lawyer_employee_id IS NOT NULL
-            """
-        )
+        cr.execute("SELECT to_regclass(%s)", ["qlk_project"])
+        if cr.fetchone()[0]:
+            cr.execute(
+                """
+                UPDATE qlk_case c
+                   SET employee_id = p.lawyer_id
+                  FROM qlk_project p
+                 WHERE c.project_id = p.id
+                   AND c.employee_id IS NULL
+                   AND p.lawyer_id IS NOT NULL
+                """
+            )
+        cr.execute("SELECT to_regclass(%s)", ["bd_engagement_letter"])
+        if cr.fetchone()[0]:
+            cr.execute(
+                """
+                UPDATE qlk_case c
+                   SET employee_id = e.lawyer_employee_id
+                  FROM bd_engagement_letter e
+                 WHERE c.engagement_id = e.id
+                   AND c.employee_id IS NULL
+                   AND e.lawyer_employee_id IS NOT NULL
+                """
+            )
     @api.depends("task_ids.effective_hours", "task_ids.timesheet_ids.unit_amount")
     def _compute_case_hours(self):
         cases = self.filtered("id")

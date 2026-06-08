@@ -79,8 +79,7 @@
                                         <field name="stage_id"/>
                                         <field name="state" readonly="1"/>
                                         <field name="receive_date"/>
-                                        <field name="delivery_date"/>
-                                        <field name="required_hours" widget="float_time" required="1" sum="Required Hours"/>
+                                        <field name="allocated_hours" widget="float_time" required="1" sum="Allocated Time"/>
                                         <field name="effective_hours" widget="float_time" readonly="1" sum="Consumed Hours"/>
                                         <field name="remaining_hours" widget="float_time" readonly="1" sum="Remaining Hours"/>
                                     </list>
@@ -99,8 +98,7 @@
                                                     <field name="stage_id"/>
                                                     <field name="state" readonly="1"/>
                                                     <field name="receive_date"/>
-                                                    <field name="delivery_date"/>
-                                                    <field name="required_hours" widget="float_time" required="1"/>
+                                                    <field name="allocated_hours" widget="float_time" required="1"/>
                                                     <field name="effective_hours" widget="float_time" readonly="1"/>
                                                     <field name="remaining_hours" widget="float_time" readonly="1"/>
                                                 </group>
