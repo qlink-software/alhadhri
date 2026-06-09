@@ -1,0 +1,486 @@
+
+/* =====================================================
+   🏛️ QLAWPRO 2026 - MODERN LEGAL FORM VIEW
+   تحديث كامل للهوية البصرية: QLink Tech Identity
+   ===================================================== */
+
+// 1. حاوية النموذج الخلفية (Workspace)
+.o_form_sheet_bg {
+    background-color: $bg-soft-azure !important; // خلفية زرقاء فاتحة جداً لتقليل إجهاد العين
+    padding: 10px !important;
+}
+
+// 2. ورقة العمل الرئيسية (The Digital Ledger)
+.o_form_view .o_form_sheet {
+    border-radius: 16px !important; // حواف أنعم وأكثر حداثة
+    // border: none !important;
+    // box-shadow: 0 12px 40px rgba(0, 86, 179, 0.08) !important;
+    width: 92% !important;
+    max-width: 1400px !important; // Prevent it from getting too wide on Ultra-wide screens
+    margin: 30px auto !important;
+    padding: 40px !important;
+    // padding: 30px !important;تقليل الفراغات الكبيرة (Fix UX مهم)
+    background-color: white !important;
+    border: 1px solid #e1e8ed !important;
+    transition: all 0.3s ease;
+
+    // الشريط الجانبي الذكي - يعبر عن حالة النموذج
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0; // متوافق مع RTL (العربي)
+        bottom: 0;
+        width: 6px;
+        background: linear-gradient(to bottom, $brand-primary, $brand-accent);
+        border-radius: 4px 0 0 4px;
+    }
+}
+
+
+// 4. الحقول والمدخلات (The Focus Inputs)
+.o_field_widget {
+    input.o_input, select.o_input, textarea.o_input {
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        background-color: #ebeff6 !important;
+        color: #1a365d !important;
+        font-family: "Cairo", sans-serif !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        &:hover {
+            border-color: $brand-primary !important;
+        }
+
+        &:focus {
+            background-color: #ffffff !important;
+            border-color: $brand-primary !important;
+            box-shadow: 0 0 0 3px rgba(3, 42, 130, 0.1) !important;
+        }
+    }
+}
+// إضافة Feedback بصري (UX ذكي)
+input.o_input:focus {
+    transform: scale(1.01);
+    transition: 0.2s;
+}
+
+// 5. عناوين الحقول (Professional Labels)
+.o_form_view .o_form_label {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: $text-muted !important;
+}
+
+// تحسين Hierarchy (أهم تعديل)
+// 6. الفواصل المودرن (Section Separators)
+.o_form_view .o_horizontal_separator {
+    font-size: 1.3rem !important;
+    font-weight: 800 !important;
+    color: $text-header !important;
+    margin-top: 40px !important;
+
+    &::before {
+        content: "• ";
+        color: $brand-primary;
+    }
+}
+
+// رقم القضية يكون عنصر Hero
+.o_form_view .o_field_widget[name="case_number"] input {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: $brand-primary !important;
+    background: rgba(3, 42, 130, 0.05) !important;
+    border: 2px solid $brand-primary !important;
+}
+
+// 7. حقل العملة المطور (Monetary Field Luxe)
+.o_field_monetary {
+    // جعل الحقل يأخذ مساحة المحتوى فقط وليس كامل السطر
+    display: inline-flex !important; 
+    width: auto !important; 
+    min-width: 0;
+
+    > div.d-inline-flex {
+        display: inline-flex !important; // تغيير من flex إلى inline-flex
+        width: auto !important; // إلغاء w-100 التي يفرضها أودو
+        gap: 6px !important;
+        align-items: center !important;
+
+        // تنسيق رمز العملة (تصغير العرض ليكون متناسقاً)
+        span.o_input.position-absolute {
+            position: static !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            
+            font-size: 18px !important; // تصغير قليلاً للتناسق
+            font-weight: 800 !important;
+            color: $brand-primary !important;
+            
+            background: rgba($brand-primary, 0.1) !important;
+            padding: 0 8px !important; // تقليل البادينج الجانبي
+            border-radius: 6px !important;
+            
+            // إلغاء الـ min-width الكبير أو ضبطه لقيمة أصغر
+            min-width: 30px !important; 
+            height: 34px !important; // تقليل الارتفاع ليناسب الخط
+            width: auto !important;
+        }
+
+        // تنسيق حقل الرقم ليكون عرضه متجاوباً مع الأرقام
+        input.o_input {
+            width: 220px !important; // تحديد عرض ثابت أو محدد للحقل ليظهر بشكل أنيق
+            flex: none !important; // منع الحقل من التمدد لملء السطر
+            height: 34px !important;
+            text-align: center !important; // جعل الرقم في المنتصف يعطي شكلاً أجمل للحقول الصغيرة
+            background-color: $bg-soft-azure !important;
+            border-radius: 6px !important;
+            font-size: 22px !important;
+            font-weight: 800 !important;
+        }
+
+        // إخفاء العنصر الزائد تماماً
+        span.opacity-0 {
+            display: none !important;
+        }
+    }
+}
+   
+
+
+// 8. التبويبات الزجاجية (Glassmorphism Tabs)
+.o_notebook {
+    .nav-tabs {
+        border-bottom: 2px solid $bg-ice !important;
+        gap: 10px;
+
+        .nav-link {
+            border: none !important;
+            border-radius: 8px 8px 0 0 !important;
+            color: $text-muted !important;
+            font-weight: 600;
+            padding: 12px 25px !important;
+            transition: 0.3s;
+
+            &.active {
+                background-color: $bg-white !important;
+                color: $brand-primary !important;
+                border-bottom: 3px solid $brand-primary !important;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+            }
+
+            &:hover:not(.active) {
+                background-color: $bg-soft-azure !important;
+                color: $brand-dark !important;
+            }
+        }
+    }
+}
+
+
+
+// /* =====================================================
+//    🏛️ QLAWPRO 2026 - PRESTIGE ACCORDION DESIGN
+//    تصميم الأكورديون الاحترافي - لمسة قانونية فخمة
+//    ===================================================== */
+
+.accordion-item {
+    border: 1px solid rgba(166, 124, 82, 0.2) !important; // إطار برونزي خفيف يحاكي حواف الملفات القديمة
+    border-radius: 8px !important;
+    margin-bottom: 12px !important;
+    background: #ffffff !important;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+}
+
+.accordion-header {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.accordion-button {
+    background-color: $bg-soft-azure !important; // لون الورق الملكي الدافئ
+    color: $brand-primary !important; // الأزرق الليلي للعناوين
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    padding: 18px 25px !important;
+    border: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+
+    // إضافة مؤشر جانبي برونزي يظهر فخامة التصميم
+    &::before {
+        content: "";
+        width: 5px;
+        height: 24px;
+        background-color: $brand-primary;
+        margin-left: -10px;
+        margin-right: 15px;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+    }
+
+    // التنسيق عند فتح الأكورديون (Active State)
+    &:not(.collapsed) {
+        // background: linear-gradient(90deg, $bg-soft-azure 0%, #90a0b9 100%) !important;
+        color: #0a0a0a !important;
+        box-shadow: 0 4px 15px rgba(26, 42, 64, 0.2) !important;
+
+        &::before {
+            background-color: #dfdddd; // يتحول المؤشر للأبيض عند تفعيل الأزرق الداكن
+            height: 30px;
+        }
+
+        &::after {
+            filter: brightness(0) invert(1); // تحويل سهم الأكورديون للون الأبيض
+            transform: rotate(-180deg);
+        }
+    }
+
+    &:focus {
+        box-shadow: none !important;
+        border-color: $bg-soft-azure !important;
+    }
+
+    &:hover:collapsed {
+        background-color: #f8f5ee !important;
+        color: $bg-soft-azure !important;
+    }
+    &:hover.collapsed {
+        background-color: #cbd5e1 !important; // تأثير حوم بسيط وهادئ
+    }
+}
+
+.accordion-body {
+    padding: 25px !important;
+    background-color: #ffffff !important;
+    border-top: 1px solid rgba(166, 124, 82, 0.1) !important;
+    color: $text-header !important;
+    line-height: 1.6;
+    
+    // تنسيق الحقول داخل الأكورديون لتكون واضحة
+    .o_form_label {
+        font-weight: 700 !important;
+        color: $brand-primary !important;
+        margin-bottom: 5px;
+    }
+
+    .o_field_widget {
+        margin-bottom: 15px;
+    }
+}
+
+/* تحسين شكل السهم ليكون أرقى */
+.accordion-button::after {
+    background-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+
+
+
+
+// 9. حماية "صحيفة الدعوى" من التداخل (Court Form Density)
+.o_form_view.court_form {
+    .o_field_widget input.o_input {
+        min-height: 28px !important;
+        height: 28px !important;
+        padding: 2px 8px !important;
+        font-size: 0.85rem !important;
+        background-color: transparent !important;
+        border-bottom: 1px dashed $brand-accent !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-radius: 0 !important;
+    }
+}
+/* =====================================================
+   📱 QLAWPRO 2026 - MOBILE OPTIMIZATION
+   تحسين الخطوط والأبعاد للشاشات الصغيرة (أقل من 768px)
+   ===================================================== */
+
+@media (max-width: 768px) {
+    // تحسين القراءة (راحة العين)
+    .o_form_view{
+        font-size: 0.9rem;
+    }
+    .o_form_label {
+        margin-bottom: 5px !important;
+        display: block !important;
+        text-align: right !important; // ليتناسب مع المحتوى العربي
+    }
+    // 1. تصغير ورقة العمل لملائمة عرض الشاشة
+    .o_form_view .o_form_sheet {
+        max-width: 100% !important;
+        margin: 10px auto !important;
+        padding: 15px !important; // تقليل الحشو الداخلي
+        border-radius: 8px !important;
+    }
+
+    // 2. تصغير حجم الخط للعناوين (Labels)
+    .o_form_view .o_form_label {
+        font-size: 0.8rem !important; // أصغر من المقاس العادي (0.9rem)
+        margin-bottom: 4px !important;
+        color: #475569 !important;
+    }
+    // تحويل Layout إلى Vertical UX
+    .o_form_view .o_group {
+        display: flex !important;
+        flex-direction: column !important;
+        // gap: 10px;
+        padding: 12px !important;
+        .o_inner_group {
+            display: block !important;
+            
+            tr {
+                display: flex !important;
+                flex-direction: column !important;
+                margin-bottom: 15px;
+                
+                td {
+                    width: 100% !important;
+                    display: block !important;
+                    padding: 0 !important;
+                }
+            }
+        }
+    }
+
+    .o_form_view .o_group .o_field_widget {
+        width: 100% !important;
+    }
+    .o_field_widget[name="case_number"] input {
+        font-size: 18px !important;
+        text-align: center;
+    }
+
+
+    // 3. تصغير الخط داخل حقول الإدخال
+    .o_field_widget {
+        input.o_input, select.o_input, textarea.o_input {
+            font-size: 0.85rem !important;
+            padding: 8px 10px !important;
+            min-height: 34px !important; // ضمان سهولة اللمس
+        }
+    }
+
+    // 4. تحسين الأكورديون على الجوال
+    .accordion-button {
+        padding: 10px 12px !important;
+        font-size: 0.9rem !important; // تصغير عنوان الأكورديون
+
+        &::before {
+            height: 18px; // تصغير المؤشر الجانبي
+            margin-right: 10px;
+        }
+    }
+
+    .accordion-body {
+        padding: 12px !important; // تقليل الفراغ الداخلي للأكورديون
+    }
+
+    .oe_stat_button {
+        width: 100% !important;
+        height: 45px !important;
+        justify-content: space-between;
+        padding: 0 12px !important;
+    }
+
+    // 5. تصغير الفواصل الرئيسية (Section Separators)
+    .o_form_view .o_horizontal_separator {
+        font-size: 1rem !important;
+        margin-top: 20px !important;
+        padding-bottom: 5px !important;
+    }
+
+    // 6. تحسين التبويبات (Notebook Tabs)
+    .o_notebook .nav-tabs .nav-link {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+
+    // 7. أزرار الأكشن (Statusbar Buttons)
+    // تحسين الأزرار (Touch Friendly)
+    .o_cp_buttons {
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        padding: 10px;
+        z-index: 10;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+    }
+
+
+    .o_cp_buttons .btn {
+        flex: 1 1 auto;
+        min-width: 48%;
+        height: 40px !important;
+        font-size: 0.85rem !important;
+    }
+    // تحسين الـ Tabs
+    .o_notebook .nav-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    .o_notebook .nav-link {
+        min-width: max-content;
+    }
+    
+    
+    // 8. حقل العملة (Monetary Field)
+    .o_field_monetary {
+        display: flex !important;
+        justify-content: center !important; // تمركز المبلغ في منتصف الشاشة
+        width: 100% !important;
+
+        > div.d-inline-flex {
+            background: rgba($brand-primary, 0.05);
+            padding: 8px;
+            border-radius: 12px;
+            width: 100% !important;
+            justify-content: center;
+
+            input.o_input {
+                width: 120px !important; // حجم رشيق للموبايل
+                font-size: 20px !important;
+                background: transparent !important;
+                border: none !important;
+                color: $brand-primary !important;
+            }
+
+            span.o_input {
+                background: $brand-primary !important;
+                color: white !important;
+                padding: 4px 10px !important;
+                border-radius: 6px !important;
+                font-size: 14px !important;
+            }
+        }
+    }
+   
+}
+
+
+:root {
+    --brand-primary:  #032a82; /* or rgba(113, 99, 158, 0.5) */
+}
+
+.text-primary {
+    color: var(--brand-primary) !important;
+}
+.o_facet_value{
+    color: #0a0a0a;
+    &:hover{
+        color: #000000;
+    }
+}
+
+
+
+
+
+

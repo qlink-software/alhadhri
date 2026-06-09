@@ -1,0 +1,304 @@
+/* =====================================================
+   هوية نظام QLAWPRO 2026 - الإصدار الفخم المريح
+   تعديل: تبسيط خلفية الكانبان والـ Header
+   ===================================================== */
+
+
+/* --- أولاً: تخصيص النوافذ المنبثقة (Modals) --- */
+.modal-content {
+    border-radius: 20px !important; 
+    overflow: hidden;
+    border: none !important;
+    box-shadow: 0 15px 50px rgba(26, 42, 64, 0.25) !important;
+
+
+    .modal-header {
+        background: $brand-primary !important;
+        color: #ffffff !important;
+        border-bottom: 3px solid $brand-accent !important;
+        padding: 1rem 1.5rem !important;
+        
+        .modal-title {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #ffffff !important;
+        }
+        
+        .btn-close { filter: invert(1); } // لجعل زر الإغلاق أبيض
+    }
+    // .modal-title{
+    //     color: white;
+    // }
+    
+
+    .o_form_view {
+        background-color: #fff !important;
+        
+        .o_form_sheet {
+            border-radius: 12px !important;
+            padding: 24px !important;
+            box-shadow: none !important;
+            border: 1px solid rgba(166, 124, 82, 0.15) !important;
+        }
+
+        .o_horizontal_separator {
+            font-size: 1.1rem !important;
+            color: $brand-primary !important;
+            font-weight: 700 !important;
+            border-bottom: 2px solid $brand-accent !important;
+            margin-bottom: 15px !important;
+        }
+
+        .o_field_widget {
+            margin-bottom: 10px !important;
+            
+            // تحسين شكل الحقول عند التركيز
+            input:focus, select:focus, textarea:focus {
+                border-color: $brand-accent !important;
+                box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.1) !important;
+            }
+        }
+    }
+}
+
+
+/* --- ثالثاً: تنسيق الكانبان الكامل (Legal Modern Kanban) --- */
+.o_kanban_view.legal_modern_kanban {
+    padding: 15px !important;
+    /* تبسيط خلفية عرض الكانبان بالكامل لتكون بيضاء مسطحة */
+    background-color: #ffffff !important;
+
+    .o_kanban_group {
+        width: 380px !important;
+        /* إزالة الخلفية الرمادية الفاتحة وجعلها شفافة لتبسيط المظهر */
+        background-color: transparent !important;
+        border-radius: 12px !important;
+        display: flex;
+        flex-direction: column;
+        overflow: visible !important;
+        /* إزالة أي حواف قد تكون موجودة على المجموعة */
+        border: none !important;
+
+        .o_kanban_header {
+            /* تعديلات التبسيط (Flat Design) */
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 100 !important;
+            /* جعل خلفية الـ Header بيضاء تماماً ومسطحة */
+            background-color: #ffffff !important;
+            /* تقليل الحشو ليكون أكثر رشقاقة */
+            padding: 10px 5px !important; 
+            margin-bottom: 15px !important; /* زيادة المسافة قليلاً عن أول بطاقة */
+            
+            /* إزالة الخط السفلي الملون السميك وإستبداله بخط رمادي فاتح جداً وبسيط */
+            border-bottom: 1px solid #f1f5f9 !important; 
+            
+            /* إزالة الظل تماماً لجعله مسطحاً (Flat) */
+            box-shadow: none !important; 
+
+            /* تنسيق عناوين الأعمدة لتكون بسيطة ورسمية */
+            .o_kanban_header_title {
+                font-size: 1.1rem !important;
+                font-weight: 700 !important;
+                color: $brand-primary !important;
+            }
+        }
+    }
+
+    .o_kanban_record {
+        /* الحفاظ على نمط البطاقات المرفوعة قليلاً للتباين */
+        background: $glass-white-thick !important;
+        border-radius: 12px !important;
+        margin-bottom: 15px !important;
+        padding: 12px !important;
+        /* ظل خفيف جداً للبطاقات فقط */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important; 
+        transition: all 0.3s ease;
+        border: 1px solid #f1f5f9 !important; /* حد بسيط جداً للبطاقة */
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(26, 42, 64, 0.08) !important;
+        }
+        .termination_badge {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .legal_card_header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+        
+            font-weight: 700;
+            font-size: 14px;
+            color: $brand-primary;
+            text-align: center;
+        
+            i.fa-balance-scale {
+                width: 34px;
+                height: 34px;
+        
+                display: flex;
+                align-items: center;
+                justify-content: center;
+        
+                border-radius: 50%;
+        
+                background: rgba(15, 92, 168, 0.12);
+                color: #0f5ca8;
+        
+                font-size: 16px;
+        
+                box-shadow: 0 2px 6px rgba(15, 92, 168, 0.15);
+                transition: all 0.25s ease;
+            }
+        
+            strong {
+                font-size: 13.5px;
+                color: darken($brand-primary, 10%);
+                letter-spacing: 0.2px;
+            }
+        
+            &:hover {
+                i.fa-balance-scale {
+                    transform: scale(1.05);
+                    background: rgba(15, 92, 168, 0.18);
+                    box-shadow: 0 4px 10px rgba(15, 92, 168, 0.2);
+                }
+            }
+        }
+
+        .legal_card_title {
+            margin: 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+
+            .badge {
+                font-size: 11px;
+                padding: 6px 10px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+
+                i.fa-folder-open {
+                    font-size: 11px;
+                    color: $brand-primary;
+                }
+            }
+        }
+
+        .legal_info_grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+
+            .info_item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                i {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 14px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(15, 92, 168, 0.08);
+                    color: #0f5ca8;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        .legal_card_footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 8px;
+            font-size: 11px;
+            /* إضافة خط بسيط في الـ Footer لفصله عن المحتوى */
+            border-top: 1px solid #f1f5f9; 
+            color: #94a3b8;
+
+            .legal_status_icons i {
+                margin-right: 4px;
+                opacity: 0.6;
+                width: 16px;
+                height: 16px;
+            }
+            .legal_status_icons span{
+                font-size: 20px;
+                padding: 5px;
+            }
+            .legal_status_icons.termination_status_small {
+
+                .status_tag {
+                    width: 16px;
+                    height: 16px;
+            
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+            
+                    padding: 0;
+                    margin: 0;
+            
+                    font-size: 10px;
+                    line-height: 1;
+            
+                    border-radius: 50%;
+            
+                    transform: scale(0.9);
+                }
+            
+            }
+
+            .status_tag {
+                font-size: 10px;
+                font-weight: 700;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+        }
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .o_kanban_group {
+        width: 90% !important; /* زيادة العرض قليلاً على الموبايل */
+    }
+    .legal_card_title { font-size: 12px !important; }
+    .legal_info_grid .info_item { font-size: 11px !important; }
+
+
+    .o_kanban_record {
+        padding: 10px !important;
+    }
+
+    .main_title {
+        font-size: 13px !important;
+    }
+
+    .legal_info_grid .info_row {
+        font-size: 11px !important;
+    }
+
+    .status_tag {
+        font-size: 10px !important;
+    }
+}

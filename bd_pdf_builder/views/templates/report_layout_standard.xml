@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_layout_standard" name="BD Standard PDF Layout">
+        <t t-call="web.external_layout">
+            <div class="page bd-standard-report">
+                <div class="bd-report-watermark">
+                    <img t-if="bd_company and bd_company.logo" t-att-src="'/web/image/res.company/%s/logo' % bd_company.id"/>
+                    <img t-if="not (bd_company and bd_company.logo)" t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_left.png'"/>
+                </div>
+
+                <div class="bd-report-header">
+                    <div class="bd-report-logo">
+                        <img t-if="bd_company and bd_company.logo" t-att-src="'/web/image/res.company/%s/logo' % bd_company.id"/>
+                        <img t-if="not (bd_company and bd_company.logo)" t-att-src="'/bd_pdf_builder/static/src/img/engagement_letter/header_left.png'"/>
+                    </div>
+                    <table class="bd-titlebar">
+                        <tr>
+                            <td t-if="bd_title_ar" class="bd-titlebar-ar" lang="ar" dir="rtl"><t t-esc="bd_title_ar"/></td>
+                            <td class="bd-titlebar-en" lang="en" dir="ltr"><t t-esc="bd_title_en"/></td>
+                        </tr>
+                    </table>
+                    <table class="bd-document-info" t-if="bd_info_reference or bd_info_date or bd_info_client or bd_info_prepared_by">
+                        <tr>
+                            <td><span>Reference Number</span><strong t-esc="bd_info_reference or '-'"/></td>
+                            <td><span>Date</span><strong t-esc="bd_info_date or '-'"/></td>
+                            <td><span>Client Name</span><strong t-esc="bd_info_client or '-'"/></td>
+                            <td><span>Prepared By</span><strong t-esc="bd_info_prepared_by or '-'"/></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="bd-report-content">
+                    <t t-out="0"/>
+                </div>
+
+                <div class="bd-report-footer">
+                    <table>
+                        <tr>
+                            <td><i class="fa fa-phone"/> (+974) 40473576</td>
+                            <td><i class="fa fa-map-marker"/> Al Baraha Tower, 5th Floor, Lusail Marina</td>
+                            <td><i class="fa fa-envelope"/> dev@alhadhrilawfirm.com</td>
+                            <td><i class="fa fa-archive"/> P.O. Box 18022, Doha, Qatar</td>
+                            <td class="bd-page-number">Page <span class="page"/> of <span class="topage"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="standard_signature_table" name="BD Standard Signature Table">
+        <div class="bd-section bd-signature-section">
+            <div class="bd-section-header">Signature &amp; Approval</div>
+            <div class="bd-section-body">
+                <table class="bd-signature-table">
+                    <thead>
+                        <tr>
+                            <th>Prepared By</th>
+                            <th>Reviewed By</th>
+                            <th>Approved By</th>
+                            <th>Client Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div><span>Name</span><strong t-esc="bd_signature_prepared_by or '-'"/></div>
+                                <div><span>Position</span><strong t-esc="bd_signature_prepared_position or '-'"/></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong t-esc="bd_signature_reviewed_by or '-'"/></div>
+                                <div><span>Position</span><strong t-esc="bd_signature_reviewed_position or '-'"/></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong t-esc="bd_signature_approved_by or '-'"/></div>
+                                <div><span>Position</span><strong t-esc="bd_signature_approved_position or '-'"/></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong t-esc="bd_signature_client or '-'"/></div>
+                                <div><span>Position</span><strong>Authorized Signatory</strong></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+</odoo>

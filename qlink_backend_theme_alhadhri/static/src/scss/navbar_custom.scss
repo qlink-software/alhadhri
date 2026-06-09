@@ -1,0 +1,223 @@
+// /* =========================================================
+//    🚀 تخصيص شريط التنقل العلوي (Navbar) - نسخة الموبايل والكمبيوتر
+//    ========================================================= */
+
+
+html .o_web_client .o_main_navbar {
+    margin-left: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// شريط التنقل العلوي (Navbar)
+/* 🚀 3.  وتحديث القائمة العلوية (Navbar) */
+html .o_web_client .o_main_navbar {
+    margin-left: 0;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 34, 115, 0.1); 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    
+}
+
+
+/* --- ثانياً: تخصيص شريط النظام (Navbar) ليتناسب مع الفخامة --- */
+.o_main_navbar {
+    background-color: $brand-primary !important;
+    border-bottom: 2px solid $brand-accent !important;
+    height: var(--o-navbar-height);
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-bottom: 1px solid #042273;
+    font-size: 0.9rem;
+
+    .o_menu_brand, .o_nav_entry {
+        font-weight: 700 !important;
+        color: white !important;
+    }
+    
+    .o_menu_sections .nav-link {
+        color: rgba(255, 255, 255, 0.85) !important;
+        &:hover { color: $brand-accent !important; }
+    }
+}
+
+
+
+/* 🚀 2. إخفاء شعار العلامة التجارية (Brand/Logo) */
+.o_web_client .o_main_navbar .o_menu_brand {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 🔑 خلفية شريط التنقل العلوي:  أزرق حيوي */
+
+.o_web_client > header {
+    background: $brand-primary !important;
+    box-shadow: 0 4px 20px rgba(4, 34, 115, 0.3);
+}
+
+/* 💡 تنسيق عناصر القائمة الافتراضية */
+.o_main_navbar .o_menu_sections .o_nav_entry,
+.o_main_navbar .o_menu_sections .dropdown-toggle {
+    color: #ffffff !important; 
+    background: transparent !important; 
+    border-radius: 12px;
+    box-shadow: none;
+    transition: all 0.2s ease-in-out; 
+}
+/* 🚀 تأثير التمرير والعنصر النشط: الأزرق الفيروزي (Accent) */
+.o_main_navbar .o_menu_sections .o_nav_entry:hover,
+.o_main_navbar .o_menu_sections .dropdown-toggle:hover,
+.o_main_navbar .o_menu_sections .o_nav_entry.active,
+.o_main_navbar .o_menu_sections .dropdown-toggle.show {
+    color: #e67e22 !important; 
+    background: #5b99ef !important; 
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(38, 190, 202, 0.5); 
+}
+.o_user_menu {
+    padding: 0 10px; 
+    border-left: 1px solid rgba(255,255,255,0.2);
+    transition: background 0.2s ease-in-out;
+}
+.o_user_menu:hover {
+    background: rgba(38, 190, 202, 0.2);
+}
+
+
+// // class that respocinple of loading note
+// .o_loading_indicator {
+//     position: fixed;
+//     bottom: 0;
+//     left: 0;
+//     z-index: 1056;
+//     background-color: $brand-primary;
+//     color: white;
+//     padding: 4px;
+//     transition: opacity 0.4s;
+// }
+
+// ================= MODERN LOADING INDICATOR =================
+
+.o_loading_indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    z-index: 1056;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 16px;
+    border-radius: 14px;
+
+    // 🎨 Glass effect
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(10px);
+
+    color: #fff;
+    font-size: 28px;
+    font-weight: 500;
+    text-align: center;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+    // ✨ animation
+    animation: fadeInUp 0.35s ease-out;
+
+    transition: all 0.3s ease;
+}
+
+// ================= SPINNER INSIDE =================
+.o_loading_indicator::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+
+    animation: spin 0.8s linear infinite;
+}
+
+// ================= ANIMATIONS =================
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.qlk_badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 10px;
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff !important;
+
+    min-width: 70px;
+    text-align: center;
+
+    transition: 0.2s ease;
+}
+
+/* Colors */
+.qlk_badge_success {
+    background: #28a745 !important;
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.25);
+}
+
+.qlk_badge_danger {
+    background: #dc3545 !important;
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.25);
+}
+
+/* Hover */
+.qlk_badge:hover {
+    transform: scale(1.05);
+}
+
+
+/* تمييز الصف بالكامل إذا كانت جلسة نهائية */
+.o_data_row.text-danger {
+    background-color: rgba(220, 53, 69, 0.05) !important; /* خلفية حمراء خفيفة جداً */
+    border-left: 4px solid #dc3545; /* خط جانبي أحمر سميك */
+}
+
+/* التنسيق الخاص بالبطاقة التي صممتها */
+.qlk_badge {
+    display: inline-flex !important;
+    align-items: center;
+    padding: 2px 12px;
+    border-radius: 4px; /* زوايا مربعة قليلاً لتعطي طابع رسمي للمحاكم */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* لتلوين الصف بالكامل في أودو 17 */
+.o_list_table tr.text-danger {
+    background-color: rgba(220, 53, 69, 0.08) !important;
+}

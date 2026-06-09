@@ -10,7 +10,8 @@ body.bg-100:not(.o_portal) {
         // background: linear-gradient(135deg, rgba(26, 42, 64, 0.8) 0%, rgba(13, 23, 42, 0.6) 100%),
         //     url('/qlink_backend_theme/static/description/gavel-law-book.jpg') !important;
         /* التعديل هنا: تم استبدال الصورة والخلفية المتدرجة بخلفية بيضاء */
-        background: #ffffff !important;
+        // استبدل الأبيض بتدرج أزرق ملكي ليبرز "الزجاج"
+        background: radial-gradient(circle at center, #fcfdff 30%, #acb3c3 100%) !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -27,32 +28,36 @@ body.bg-100:not(.o_portal) {
         }
 
         // الحاوية الرئيسية (The Glass Vault)
+        /* الحاوية الرئيسية (The Glass Vault) */
         .o_database_list {
+            // 1. العرض الكامل: يجعل العنصر يملأ عرض الشاشة المتاح بنسبة 100%
             width: 100% !important;
-            max-width: 50% !important;
-            background: $glass-white-thick-light !important; // استخدام الشفافية الموحدة
-            backdrop-filter: blur(20px) saturate(180%) !important; 
-            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-            // border: 1px solid $brand-primary !important;
-            border-radius: 20px !important;
-            padding: 2.5rem !important;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
-            position: relative;
 
-            // // الشعار العلوي
-            // &::before {
-            //     content: "QLAWPRO";
-            //     display: block;
-            //     font-family: 'Poppins', sans-serif;
-            //     font-size: 1.2rem;
-            //     font-weight: 1000;
-            //     color: $brand-accent;
-            //     letter-spacing: 5px;
-            //     // border-bottom: 2px solid $brand-accent;
-            //     padding-bottom: 15px;
-            //     margin-bottom: 25px;
-            //     text-align: center;
-            // }
+            // 2. الحد الأقصى: يمنع العنصر من أن يصبح عريضاً جداً (يظل في حدود 50% من الشاشة لجمالية التصميم)
+            max-width: 50% !important;
+
+            // 3. الخلفية الزجاجية: طبقة بيضاء شفافة جداً تعمل كقاعدة للزجاج (RGBA تضمن الشفافية)
+            background: $glass-white-thick-light !important; 
+
+            // 4. تأثير الضباب (Blur): أهم سطر! يقوم بتغبيش ما خلف الزجاج لإعطاء شعور بالعمق والتركيز
+            // و (Saturate): يزيد من تشبع الألوان التي تظهر تحت الزجاج لتبدو حيوية أكثر
+            backdrop-filter: blur(20px) saturate(180%) !important; 
+
+            // 5. التوافق: نفس السطر السابق ولكن لضمان عمل التأثير على متصفحات Safari و Mac (أجهزتك المفضلة)
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+
+            // 6. انحناء الحواف: يعطي العنصر زوايا ناعمة (20 بكسل) تمنحه طابعاً عصرياً وفخماً
+            border-radius: 20px !important;
+
+            // 7. الحشوة الداخلية: مساحة فارغة بين حدود الصندوق والمحتوى لراحة العين (أكثر من المعتاد للفخامة)
+            padding: 2.5rem !important;
+
+            // 8. الظل السينمائي: يرفع الصندوق عن الخلفية ويبدو كأنه "يطفو" فوق الشاشة (عمق ثلاثي الأبعاد)
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+
+            // 9. التموضع: يسمح بترتيب العناصر داخل الصندوق (مثل أيقونات أو شعارات) بالنسبة لهذا الصندوق
+            position: relative;
+        
 
             // إزالة الخلفيات البيضاء من العناصر الداخلية
             .card, .card-body {
@@ -80,7 +85,7 @@ body.bg-100:not(.o_portal) {
             }
 
             .form-label {
-                color: white !important;
+                color: $brand-primary !important;
                 font-weight: 700 !important;
                 font-size: 0.9rem;
             }
@@ -117,7 +122,7 @@ body.bg-100:not(.o_portal) {
                 font-weight: 700 !important;
                 text-decoration: none !important;
                 &:hover {
-                    color: $brand-accent !important;
+                    color: $brand-accent-hover !important;
                     text-decoration: underline !important;
                 }
             }
@@ -136,31 +141,66 @@ body.bg-100:not(.o_portal) {
                     border-radius: 8px 0 0 8px !important;
                 }
             }
+            // database label
             .mb-3 label.col-form-label {
-                color: #ffffff; /* For example, blue */
+                color: $brand-primary; /* For example, blue */
                 font-weight: bold;
             }
 
             div.text-center.pb-3.border-bottom.mb-4 {
                 background: transparent !important; 
                 border-bottom: 0px !important;
+                margin-bottom: 0px !important; /* إلغاء الهامش السفلي للحاوية */
+                padding-bottom: 0px !important; /* إلغاء الحشوة السفلية للحاوية */
             }
-            div.text-center.pb-3.border-bottom.mb-4{
-                img{
-                    /* 1. رفع القيد عن الارتفاع */
-                    max-height: 350px !important; 
+            div.text-center.pb-3.border-bottom.mb-4 {
+                /* تقليل مساحة الـ Padding في الحاوية الأب بدل الهوامش السالبة */
+                padding-top: 5px !important; 
+                padding-bottom: 10px !important;
+            
+                img {
+                    // /* جعل الشعار مرناً وليس ثابتاً بـ 400px */
+                    // width: 100% !important;
+                    // max-width: 400px !important; /* حجم متوازن جداً لشاشة الدخول */
+                    // height: auto !important;
+                    // object-fit: contain;
+                    // display: block;
+                    // // margin: 0 auto;
+                    // margin: 20px auto 60px !important;
+                    // /* تحسين الوضوح (اللي أنت أبدعت فيه) */
+                    // image-rendering: -webkit-optimize-contrast;
+                    // image-rendering: crisp-edges;
                     
-                    /* 2. التحكم في العرض */
-                    width: 350px !important; /* يمكنك زيادة هذا الرقم حسب الرغبة */
-                    
-                    /* 3. الحفاظ على تناسق الأبعاد */
+                    // /* إضافة لمسة احترافية: ظهور ناعم عند التحميل */
+                    // animation: fadeInLogo 1.5s ease-out;
+
+                    // new animated logo design
+                    width: 100% !important;
+                    max-width: 400px !important; /* حجم متوازن جداً لشاشة الدخول */
                     height: auto !important;
                     object-fit: contain;
-                    
-                    /* 4. إزاحة اختيارية لضمان التوسط */
                     display: block;
-                    margin: auto;
+                    margin: 20px auto 60px !important;
+                    animation: logo-glow 4s infinite ease-in-out;
+                    will-change: transform, filter;
+                    transition: width 0.3s ease; /* سلاسة عند التغيير بين الموبايل والدسكتوب */
                 }
+                /* حركة التوهج */
+                @keyframes logo-glow {
+                    0%, 100% { 
+                        transform: scale(1);
+                        filter: drop-shadow(0px 0px 15px rgba(0, 123, 255, 0.4));
+                    }
+                    50% { 
+                        transform: scale(1.03); 
+                        filter: drop-shadow(0px 0px 25px rgba(0, 123, 255, 0.6));
+                    }
+                }
+            }
+            
+            @keyframes fadeInLogo {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
         }
     }
@@ -189,50 +229,86 @@ body.bg-100:not(.o_portal) {
 @media (max-width: 768px) {
     body.bg-100:not(.o_portal) #wrapwrap {
         align-items: flex-start !important; 
-        padding-top: 3vh !important; // تقليل المسافة العلوية لرفع الصندوق أكثر
-        
+        padding-top: 5vh !important; 
 
         .o_database_list {
-            max-width: 90% !important;
-            padding: 1.2rem !important; // تقليل الحشوة الداخلية للصندوق
+            max-width: 92% !important;
+            padding: 1.5rem !important; 
 
-            /* استهداف الحاوية المباشرة للصورة */
             div.text-center.pb-3.border-bottom.mb-4 {
-                margin-bottom: 1rem !important;
-                padding-bottom: 0 !important; // إلغاء البادينج السفلي للحاوية
-                height: auto !important; // منع الحاوية من أخذ ارتفاع ثابت
-                min-height: auto !important;
+                margin-bottom: 0.5rem !important;
+                padding: 0 !important;
 
                 img {
-                
-                    /* 1. رفع القيد عن الارتفاع */
-                    max-height: 300px !important; 
-                
-                    /* 2. التحكم في العرض */
-                    width: 350px !important; /* يمكنك زيادة هذا الرقم حسب الرغبة */
-                    
-                    /* 3. الحفاظ على تناسق الأبعاد */
+                    /* تعديل ذكي: العرض يتكيف مع الشاشة ولا يتجاوز 280px في الموبايل */
+                    width: 100% !important; 
+                    max-width: 280px !important; 
                     height: auto !important;
-                    object-fit: contain;
-                    
-                    /* 4. إزاحة اختيارية لضمان التوسط */
-                    display: block;
-                    margin: auto;
+                    // margin: 0 auto !important;
+                    margin: 10px auto 50px !important;
+                    filter: drop-shadow(0px 0px 10px rgba(0, 123, 255, 0.3));
                 }
             }
 
-            /* تقليص المسافات بين الحقول لتوفير مساحة عمودية */
-            .form-group {
-                margin-bottom: 0.8rem !important;
-            }
-
             .form-control {
-                height: 40px !important; // تقليل ارتفاع الحقول قليلاً
+                height: 44px !important; /* ارتفاع مريح للمس بالأصبع */
+                font-size: 16px !important; /* يمنع عمل Zoom تلقائي في iPhone */
             }
+        }
+    }
+}
 
-            .btn-primary {
-                margin-top: 0.5rem !important;
-                height: 45px !important;
+
+
+
+/* =========================================================
+   🌑 QLAWPRO 2026 - LOGIN NIGHT MODE (ULTRA FORCED)
+   ========================================================= */
+
+// استهداف مزدوج لضمان العمل سواء كان هناك ثيم محدد أو لا
+html[data-bs-theme="dark"], html.o-dark-mode {
+    
+    body.bg-100:not(.o_portal) {
+        background: #030712 !important; // لون أسود عميق جداً للخلفية
+
+        #wrapwrap {
+            background: radial-gradient(circle at center, #111827 0%, #030712 100%) !important;
+            
+            // الحاوية الزجاجية الداكنة
+            .o_database_list, .card, .o_login_form {
+                background: rgba(17, 24, 39, 0.8) !important;
+                backdrop-filter: blur(20px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+
+                // النصوص
+                .form-label, .col-form-label, label {
+                    color: #94a3b8 !important;
+                }
+
+                // الحقول
+                .form-control {
+                    background: rgba(3, 7, 18, 0.6) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    color: #ffffff !important;
+
+                    &:focus {
+                        border-color: #3b82f6 !important; // الأزرق المضيء
+                        background: rgba(3, 7, 18, 0.9) !important;
+                    }
+                }
+
+                // الأزرار
+                .btn-primary {
+                    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%) !important;
+                    color: #ffffff !important;
+                    border: none !important;
+                }
+
+                // الروابط
+                a, .btn-link {
+                    color: #3b82f6 !important;
+                }
             }
         }
     }

@@ -3,17 +3,18 @@
    🌐 1. إعدادات الخطوط (Fonts Localization)
    ========================================================= */
    @font-face {
-    font-family: 'Poppins' !important;
-    src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;768&display=swap');
-}
+      font-family: 'Poppins' !important;
+      src: url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&amp;display=swap');
+  }
 
 $font-en: 'Poppins', sans-serif;
 $font-ar: 'Cairo', 'Segoe UI', Tahoma, sans-serif; // Cairo هو الأنسب لهوية Qlink التقنية
 /* --- الهوية البصرية المحدثة: QLAWPRO 2026 (Logic & Tech Names) --- */
 
 // الألوان الرئيسية - الهوية البصرية المحدثة (Qlink Identity)
-$brand-primary: #032a82; 
-// $brand-accent: #00d2ff;        // القديم: $legal-bronze (السماوي المضيء بدلاً من البرونزي)
+// تعريف الألوان كألوان صلبة أولاً لإرضاء دوال SCSS
+$brand-primary: #0d266b; 
+$brand-dark: #001e69; // درجة أغمق قريبة من الأسود للفخامة
 $brand-accent-hover: #009ecc;  // القديم: $legal-bronze-hover
 // $brand-accent: rgb(42, 207, 219);
 // التعديل الجديد للألوان: هدوء واحترافية
@@ -70,8 +71,7 @@ $text-legal-navy: #1a2b4b; // كحلي وقور بدلاً من الأسود
 $font-main: 'Poppins', sans-serif;   // للإنجليزية
 $font-arabic: 'Cairo', sans-serif;   // للعربية (الأفضل لهوية Qlink)
 
-
-// 1. المتغيرات (Variables)
+// / 1. المتغيرات (Variables)
 // -----------------------------------------------------------------------
 $primary-dark:   #042273;
 $primary-light:  #083680;

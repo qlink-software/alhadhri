@@ -1,0 +1,892 @@
+/* =========================================================
+   🌙 إعدادات الوضع الليلي لـ QLAWPRO 2026
+   ========================================================= */
+
+// متغيرات الوضع الليلي (Dark Mode Variables)
+$dark-bg-main: #0f172a;        // كحلي غامق جداً (Midnight)
+$dark-bg-sidebar: #1e293b;     // أفتح قليلاً للسايدبار
+$dark-bg-card: #1e293b;        // خلفية الكروت والقوائم
+$dark-text-main: #f1f5f9;      // نص فاتح مريح
+$dark-text-muted: #94a3b8;    // نص باهت للوضع الليلي
+$dark-accent: #3a86ff;         // أزرق مضيء للتمييز
+$dark-accent-gold: #cca43b;    // ذهبي فخم للحالات النشطة
+$brand-accent: #009ecc;
+
+
+/* =========================================================
+   🌙 QLAWPRO 2026 Midnight Logic (Dark Mode)
+   دمج تصميم Qlink مع الوضع الليلي
+   ========================================================= */
+
+[data-bs-theme="dark"] {
+
+    // 2. تعديل السايدبار (Sidebar) في الوضع الليلي
+    #sidebar_panel {
+        /* كسر التدرج الأزرق القديم واستبداله بتدرج ليلي فخم */
+        background: linear-gradient(180deg, 
+            #0f172a 0%, 
+            #1e293b 100%
+        ) !important;
+        
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5) !important;
+
+        // تعديل زر التبديل (Toggle Button) في الوضع الليلي
+        .o_floating_sidebar_toggle_container .o_modern_sidebar_toggle {
+            background: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        // الأيقونات والنصوص في السايدبار
+        .sidebar_menu > li {
+            > a {
+                color: rgba(255, 255, 255, 0.7) !important;
+                
+                &:hover {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    color: #ffffff !important;
+                }
+            }
+
+            // العنصر النشط في الوضع الليلي (ذهبي فخم أو أزرق مضيء)
+            &.active, &:has(.sidebar_sub_menu li.active) {
+                
+                > a {
+                    background: rgba(255, 255, 255, 0.15) !important;
+                    color:#009ecc !important;
+                    font-weight: bold;
+                    border-left: none !important;
+                    border-radius: 6px;
+                    border: 1px solid $brand-accent !important;
+                }
+            }
+        }
+
+        // القوائم الفرعية (Submenus)
+        .sidebar_sub_menu {
+            background: rgba(0, 0, 0, 0.2) !important; // تعميق خلفية القوائم الفرعية
+            li a:hover {
+                color: $dark-accent !important;
+            }
+        }
+        // 5. COLLAPSED "GHOST" MODE
+        &.collapsed {
+            background: linear-gradient(180deg, 
+                #0f172a 0%, 
+                #1e293b 100%
+            ) !important;
+            
+        }
+    }
+
+    // 3. تعديل الـ Navbar العلوي ليناسب السايدبار المظلم
+    .o_main_navbar {
+        background: #0f172a !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        
+        .o_menu_systray .nav-item i {
+            color: #cbd5e1 !important; // جعل أيقونات النظام (مثل البحث والتنبيهات) فاتحة
+        }
+    }
+
+
+    /* 🔑 خلفية شريط التنقل العلوي في الوضع الليلي */
+  
+    
+    .o_web_client > header {
+        background: #0f172a !important; // اللون الكحلي العميق بدلاً من الأزرق الحيوي
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+
+    /* 💡 تنسيق عناصر القائمة في الوضع الليلي */
+    .o_main_navbar .o_menu_sections .o_nav_entry,
+    .o_main_navbar .o_menu_sections .dropdown-toggle {
+        color: #94a3b8 !important; // لون نص رمادي فاتح مريح
+    }
+
+    /* 🚀 تأثير التمرير والعنصر النشط في الوضع الليلي */
+    /* استبدال الأزرق الفيروزي بتوهج ذهبي مطفي أو أزرق نيوني خفيف */
+    .o_main_navbar .o_menu_sections .o_nav_entry:hover,
+    .o_main_navbar .o_menu_sections .dropdown-toggle:hover,
+    .o_main_navbar .o_menu_sections .o_nav_entry.active,
+    .o_main_navbar .o_menu_sections .dropdown-toggle.show {
+        color: $dark-accent-gold !important; // الذهبي الفخم الذي اعتمدناه للقضايا
+        background: rgba(204, 164, 59, 0.1) !important; // خلفية ذهبية شفافة جداً
+        box-shadow: 0 2px 8px rgba(204, 164, 59, 0.2) !important; 
+    }
+
+    /* قائمة المستخدم (User Menu) */
+    .o_user_menu {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .oe_topbar_name {
+            color: #f1f5f9 !important;
+        }
+    }
+    
+
+    /* أيقونات النظام في الـ Systray (البحث، التنبيهات، إلخ) */
+    .o_menu_systray .nav-item {
+        color: #cbd5e1 !important;
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+    }
+
+
+// 9. تخصيص الـ Root والـ Navbar ليتماشى مع الرمادي العميق
+--brand-primary: #4a90e2; 
+
+// .o_main_navbar {
+//     background: #141618 !important; // أغمق درجة لتعطي ثباتاً للتصميم
+//     border-bottom: 1px solid #2d3237 !important;
+    
+//     .o_menu_sections .o_nav_entry, 
+//     .o_menu_sections .dropdown-toggle {
+//         color: #cbd5e1 !important;
+        
+//         &:hover, &.active {
+//             color: #d4af37 !important;
+//             background: rgba(212, 175, 55, 0.1) !important;
+//         }
+//     }
+// }
+
+.text-primary {
+    color: #90cdf4 !important;
+}
+}
+
+/* تعديل الموبايل في الوضع الليلي المريح */
+@media (max-width: 768px) {
+[data-bs-theme="dark"] {
+    .o_form_view .o_form_sheet {
+        padding: 10px !important;
+    }
+    .o_field_monetary > div.d-inline-flex {
+        background: rgba(0, 0, 0, 0.1);
+        span.o_input {
+            background: #b08d57 !important;
+            color: #ffffff !important;
+        }
+    }
+}
+}
+
+
+/* =========================================================
+   🌑 QLAWPRO 2026 - INTEGRATED NIGHT MODE (HYBRID)
+   دمج أزرار التحكم مع تصميم الجرانيت الهادئ لراحة المحامي
+   ========================================================= */
+
+// المتغيرات الخاصة بك
+$btn-height: 36px;
+$btn-padding-x: 14px;
+$btn-font-size: 0.9rem;
+
+[data-bs-theme="dark"] {
+
+    /* --- 1. البيئة العامة (Body & Workspace) --- */
+    body {
+        background-color: #f1f3f5 !important;
+        color: #1e293b !important;
+    }
+
+    .o_form_sheet_bg {
+        background-color: #f1f3f5 !important; 
+        padding: 10px !important;
+    }
+
+    .o_form_view .o_form_sheet {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        color: #1e293b !important;
+
+        &::before {
+            background: #0f172a !important; 
+            width: 6px;
+        }
+    }
+
+    /* --- 2. أيقونات العرض العلوية (View Switcher) --- */
+    .o_control_panel .o_cp_switch_buttons .btn.o_switch_view {
+        color: #64748b !important; // $text-muted
+
+        &.active {
+            color: #032a82 !important; // $brand-primary
+            background: rgba(3, 42, 130, 0.08) !important;
+            border-bottom: 2px solid #032a82 !important;
+        }
+    }
+
+    /* --- 3. تصميم الأزرار المدمج (Buttons Night Mode) --- */
+    
+    // القاعدة الأساسية للأزرار
+    .o_form_view .o_form_sheet .btn {
+        border-radius: 8px !important;
+        font-weight: 600;
+        height: $btn-height !important;
+        font-size: $btn-font-size !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba(3, 42, 130, 0.2) !important;
+        }
+    }
+
+    // الأزرار الأساسية (Save, Create, Primary)
+    // نستخدم تدرجاً يربط بين الأزرق الملكي والأسود ليعطي فخامة فوق الرمادي
+    .btn-primary, .o-kanban-button-new, .o_list_button_add {
+        background: linear-gradient(135deg, #032a82, #0f172a) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(3, 42, 130, 0.25) !important;
+        padding: 0 18px !important;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(3, 42, 130, 0.35) !important;
+            filter: brightness(1.1);
+        }
+    }
+
+    // الأزرار الثانوية (Cancel, Secondary)
+    // نجعلها بلون أغمق قليلاً من خلفية النموذج لتبرز
+    .btn-secondary {
+        background: #e2e8f0 !important;
+        color: #032a82 !important;
+        border: 1px solid #cbd5e1 !important;
+
+        &:hover {
+            background: #032a82 !important;
+            color: #ffffff !important;
+            border-color: #032a82 !important;
+        }
+    }
+
+    // أزرار التحديد والفلاتر (Outline)
+    .btn-outline-primary, .btn-outline-secondary, .o_searchview_facet {
+        background: transparent !important;
+        color: #212123 !important;
+        border: 1px solid #212123 !important;
+
+        &:hover {
+            background-color: #212123 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+    }
+
+    /* --- 4. شريط المراحل (Status Bar Prestige) --- */
+    .o_form_view .o_form_statusbar {
+        background-color: #f1f3f5 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        margin-top: 2px;
+        
+        .o_arrow_button {
+            background-color: #ffffff !important; // نفس لون الورقة
+            color: #475569 !important;
+            border: none !important;
+            height: $btn-height !important;
+
+            &.o_arrow_button_current {
+                background: #c1c2c4 !important; // الأزرق الملكي للمرحلة الحالية
+                color: #000000 !important;
+                z-index: 2;
+            }
+            
+            &:hover:not(.o_arrow_button_current) {
+                background-color: #cbd5e1 !important;
+            }
+        }
+    }
+
+    /* --- 5. مدخلات البيانات داخل النموذج --- */
+    .o_form_view .o_form_sheet .o_field_widget {
+        .o_input {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            padding: 10px 14px !important;
+
+            &:focus {
+                border: 2px solid #032a82 !important;
+                transform: scale(1.01);
+                transition: 0.2s;
+            }
+        }
+    }
+
+    /* --- 6. التوافق مع الجوال (Mobile) --- */
+    @media (max-width: 768px) {
+        .o_form_view .o_form_sheet {
+            max-width: 100% !important;
+            margin: 10px auto !important;
+            padding: 15px !important;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 0 12px !important;
+            font-size: 0.8rem !important;
+            height: 32px !important;
+        }
+
+        .o_form_statusbar .o_arrow_button {
+            clip-path: none !important; // تبسيط في الجوال
+            margin: 0 2px !important;
+            min-width: 80px !important;
+        }
+    }
+}
+/* =========================================================
+   🌑 QLAWPRO 2026 - NIGHT MODE (OCEAN BLUE)
+   ========================================================= */
+
+   [data-bs-theme="dark"] {
+    // المتغيرات الجديدة للأزرق الليلي المريح
+    $night-azure: #3b82f6;        // الأزرق المضيء (بدلاً من القديم)
+    $night-bg-deep: #0f172a;      // الكحلي العميق
+    $night-bg-card: #1e293b;      // كحلي السايدبار والكروت
+
+    // 1. النوافذ المنبثقة (Modals) في الوضع الليلي
+    .modal-content {
+        background-color: $night-bg-card !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5) !important;
+
+        .modal-header {
+            background: $night-bg-deep !important; // إلغاء التدرج الأبيض هنا
+            color: #ffffff !important;
+            border-bottom: 3px solid $night-azure !important; // استخدام الأزرق الجديد
+
+            .btn-close {
+                filter: invert(1) brightness(2) !important; // زر إغلاق ناصع البياض
+            }
+        }
+
+        .modal-body {
+            background-color: #ffffff !important;
+        }
+
+        .o_form_view {
+            background-color: transparent !important;
+            
+            .o_form_sheet {
+                background-color: #1a2233 !important; // لون ورقة داكن مريح
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                color: #f1f5f9 !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+            }
+
+            // الفواصل والأيقونات بالأزرق الجديد
+            .o_horizontal_separator {
+                color: $night-azure !important;
+                border-bottom-color: rgba(59, 130, 246, 0.2) !important;
+            }
+
+            .o_field_widget .o_input {
+                background-color: #0f172a !important;
+                color: #ffffff !important;
+                border-color: #334155 !important;
+
+                &:focus {
+                    border-color: $night-azure !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                }
+            }
+        }
+
+        .modal-footer {
+            background-color: #161e2e !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+    }
+
+    // 2. تحديث أزرار النظام (Buttons)
+    .btn-primary, .o_list_button_add {
+        background: linear-gradient(135deg, #2563eb, #1e3a8a) !important;
+        border: none !important;
+        color: #ffffff !important;
+
+        &:hover {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4) !important;
+            filter: brightness(1.2);
+        }
+    }
+}
+
+/* =====================================================
+   🏛️ QLAWPRO 2026 - NIGHT MODE PRESTIGE ACCORDION
+   تنسيق الأكورديون للوضع الليلي: دمج الجرانيت مع الأسود الملكي
+   ===================================================== */
+
+[data-bs-theme="dark"] {
+    
+    .accordion-item {
+        // استخدام خلفية بيضاء صريحة تماشياً مع ورقة النموذج لراحة العين
+        background-color: #ffffff !important; 
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+        overflow: hidden;
+    }
+
+    .accordion-button {
+        // الحالة العادية: رمادي دافئ مريح ينسجم مع خلفية النموذج
+        background-color: #f1f3f5 !important; 
+        color: #041847 !important; // الأزرق الملكي للعناوين
+        font-weight: 700 !important;
+        border: none !important;
+
+        // المؤشر الجانبي البرونزي/الأزرق
+        &::before {
+            background-color: #020e2a !important;
+            opacity: 0.7;
+        }
+
+        // سهم الأكورديون (أزرق داكن في الحالة المغلقة)
+        &::after {
+            filter: hue-rotate(200deg) brightness(0.2); 
+        }
+
+        // الحالة النشطة (عند فتح الأكورديون)
+        &:not(.collapsed) {
+            // background-color: #0f172a !important; // الأسود الملكي (نفس السايدبار)
+            // background: linear-gradient(90deg, $bg-soft-azure 0%, #a5acb7 100%) !important;
+            color: #0e0d0d !important; // النص أبيض صريح للتباين
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2) !important;
+
+            &::before {
+                background-color: #ffffff !important; // يتحول للابيض عند الفتح كعلامة فخامة
+                height: 30px;
+                opacity: 1;
+            }
+
+            &::after {
+                filter: brightness(0) invert(1); // السهم أبيض تماماً
+            }
+        }
+
+        &:focus {
+            box-shadow: none !important;
+        }
+
+       /* --- التعديل المطلوب للأكورديون في الوضع الليلي --- */
+
+        &:hover.collapsed {
+            // استخدام الدرجة التي اخترتها مع شفافية 15% (0.15)
+            // هذا سيعطي تلميحاً بصرياً ذكياً دون إزعاج العين
+            background-color: rgba(79, 87, 96, 0.15) !important; 
+            
+            // إضافة تحسين بسيط للتمرير
+            color: #032a82 !important; // الحفاظ على بروز العنوان
+            transition: background-color 0.2s ease-in-out;
+        }
+    }
+
+    .accordion-body {
+        // خلفية بيضاء لسهولة إدخال البيانات المكثفة
+        background-color: #ffffff !important; 
+        border-top: 1px solid #e2e8f0 !important;
+        color: #1e293b !important;
+        padding: 25px !important;
+
+        // عناوين الحقول داخل الأكورديون
+        .o_form_label {
+            color: #1c1d1f !important;
+            font-weight: 800 !important;
+        }
+    }
+}
+/* =========================================================
+   🌑 QLAWPRO 2026 - NIGHT MODE GLASS TABS
+   تنسيق التبويبات (Tabs) لتعزيز التركيز البصري
+   ========================================================= */
+
+[data-bs-theme="dark"] {
+    
+    .o_notebook {
+        background-color: transparent !important;
+        margin-top: 20px !important;
+
+        .nav-tabs {
+            border-bottom: 2px solid #cbd5e1 !important; // خط جرانيتي فاصل
+            gap: 8px;
+            padding-left: 10px;
+
+            .nav-link {
+                background-color: rgba(226, 232, 240, 0.5) !important; // تأثير زجاجي مطفأ
+                border: 1px solid rgba(203, 213, 225, 0.5) !important;
+                border-bottom: none !important;
+                border-radius: 10px 10px 0 0 !important;
+                color: #64748b !important; // رمادي هادئ للتبويبات غير النشطة
+                font-weight: 600;
+                padding: 10px 22px !important;
+                transition: all 0.25s ease;
+                margin-bottom: -2px; // لضمان الالتصاق بالخط الفاصل
+
+                // التبويبة النشطة (Active Tab)
+                &.active {
+                    background-color: #ffffff !important; // تبرز باللون الأبيض الصريح لتندمج مع ورقة البيانات
+                    color: #032a82 !important; // الأزرق الملكي للعنوان النشط
+                    border: 2px solid #032a82 !important;
+                    border-bottom: 3px solid #ffffff !important; // خدعة بصرية لفتح التبويبة على المحتوى
+                    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05) !important;
+                    z-index: 2;
+                    transform: translateY(-2px); // رفعة بسيطة للتمييز
+                }
+
+                // عند تمرير الماوس (Hover)
+                &:hover:not(.active) {
+                    background-color: #cbd5e1 !important;
+                    color: #032a82 !important;
+                    transform: translateY(-1px);
+                }
+            }
+        }
+
+        // محتوى التبويبة (Tab Content)
+        .tab-content {
+            background-color: #ffffff !important; // المحتوى دائماً على خلفية بيضاء لراحة المحامي
+            border: 1px solid #cbd5e1 !important;
+            border-top: none !important;
+            border-radius: 0 0 12px 12px !important;
+            padding: 25px !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+        }
+    }
+}
+
+
+/* =====================================================
+   🏛️ QLAWPRO 2026 - SLIM & WHITE NAVIGATION
+   تصميم رشيق بخلفية بيضاء لراحة بصرية فائقة -     // 1. حاوية مسار التنقل (العودة للبياض والرشاقتها)
+
+   ===================================================== */
+
+[data-bs-theme="dark"] {
+
+    // 1. حاوية مسار التنقل (العودة للبياض والرشاقتها)
+    .o_control_panel_breadcrumbs {
+        display: flex !important;
+        align-items: center !important;
+        // background-color: #ffffff !important; // العودة للخلفية البيضاء كما طلبت
+        // border: 1px solid #e2e8f0 !important;
+        // border-radius: 8px !important;
+        height: 38px !important; // ارتفاع رشيق جداً ومتناسق
+        padding: 0 10px !important;
+        // box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+
+    // 2. زر الإجراءات (الترس) - رصين وواضح بدون ضخامة
+    .o_control_panel_breadcrumbs_actions {
+        .o_cp_action_menus .btn {
+            // background-color: #f8fafc !important; // خلفية فاتحة جداً
+            color: #080808 !important; // الترس بلون ملكي
+            // border: 1px solid #cbd5e1 !important;
+            height: 30px !important; // متناسب مع ارتفاع المسار
+            width: 34px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            // border-radius: 6px !important;
+            font-size: 0.9rem !important;
+
+            // &:hover {
+            //     background-color: #032a82 !important;
+            //     color: #ffffff !important;
+            // }
+        }
+    }
+
+    // 3. السجل الحالي (Active Breadcrumb) - "أين أنا" بوضوح هادئ
+    // .o_last_breadcrumb_item {
+    //     background-color: #f1f3f5 !important; // رمادي خفيف جداً للتمييز
+    //     color: #000000 !important; // نص أزرق ملكي
+    //     font-size: 0.9rem !important;
+    //     font-weight: 700 !important;
+    //     padding: 4px 12px !important;
+    //     border-radius: 6px !important;
+    //     margin-right: 8px !important;
+        
+    // }
+
+    // 4. زر إنشاء سجل جديد (Add/New) - رشيق ومتناسق
+    .btn-primary, .o_list_button_add, .o-kanban-button-new {
+        height: 38px !important; // نفس ارتفاع المسار تماماً
+        background: #ffffff !important; // خلفية بيضاء
+        color: #0b0b0b !important; // نص أزرق
+        border: 1px solid #99999a !important; // إطار أزرق يحدد الزر
+        padding: 0 18px !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+
+        &:hover {
+            background: #032a82 !important; // ينعكس عند الحوم
+            color: #ffffff !important;
+            transform: none !important; // إلغاء الارتفاع ليبقى رصيناً
+        }
+    }
+}
+
+/* =========================================================
+   🌑 QLAWPRO 2026 - MODAL NIGHT MODE
+   تنسيق النوافذ المنبثقة لتناسب الوضع الليلي الرصين
+   ========================================================= */
+
+[data-bs-theme="dark"] {
+    
+    .modal-content {
+        background-color: #1e293b !important; // خلفية داكنة رصينة للحاوية الكبرى
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5) !important;
+
+        // 1. رأس النافذة (Header)
+        .modal-header {
+            background-color: #0f172a !important; // الأسود الملكي العميق
+            color: #ffffff !important;
+            border-bottom: 2px solid #032a82 !important; // خط أزرق ملكي رفيع
+            padding: 0.8rem 1.5rem !important;
+
+            .modal-title {
+                color: #ffffff !important;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+            
+            .btn-close {
+                filter: invert(1) grayscale(1) brightness(2); // زر إغلاق أبيض ناصع
+                opacity: 0.8;
+                &:hover { opacity: 1; }
+            }
+        }
+
+        // 2. جسم النموذج داخل النافذة (Form View)
+        .o_form_view {
+            background-color: #d8dadd !important; // خلفية الجرانيت المريحة التي اعتمدناها
+            
+            .o_form_sheet {
+                background-color: #ffffff !important; // الورقة تظل بيضاء لسهولة القراءة
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 12px !important;
+                margin: 15px !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            }
+
+            // الفواصل الأفقية (Separators)
+            .o_horizontal_separator {
+                color: #032a82 !important; // الأزرق الملكي للعناوين الداخلية
+                font-weight: 800 !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                margin-top: 20px !important;
+                &::after { display: none; } // تنظيف الخطوط الزائدة
+            }
+
+            // 3. الحقول والمدخلات (Widgets)
+            .o_field_widget {
+                .o_input {
+                    background-color: #f8fafc !important; // خلفية حقل فاتحة جداً
+                    color: #0f172a !important; // نص أسود حاد للكتابة
+                    border: 1px solid #cbd5e1 !important;
+                    border-radius: 6px !important;
+
+                    &:focus {
+                        border-color: #032a82 !important;
+                        background-color: #ffffff !important;
+                        box-shadow: 0 0 0 3px rgba(3, 42, 130, 0.1) !important;
+                    }
+                }
+                
+                // تسميات الحقول (Labels)
+                .o_form_label {
+                    color: #475569 !important;
+                    font-weight: 700 !important;
+                }
+            }
+        }
+
+        // 4. تذييل النافذة (Footer)
+        .modal-footer {
+            background-color: #f1f5f9 !important;
+            border-top: 1px solid #e2e8f0 !important;
+            padding: 10px 20px !important;
+
+            // زر الإغلاق/إلغاء في التذييل
+            .btn-secondary {
+                background-color: #ffffff !important;
+                color: #64748b !important;
+                border: 1px solid #cbd5e1 !important;
+                &:hover {
+                    background-color: #f1f5f9 !important;
+                    color: #0f172a !important;
+                }
+            }
+        }
+    }
+}
+
+/* =========================================================
+   🌙 QLAWPRO - DARK MODE TOGGLE ELEVATION
+   تنسيق زر التبديل ليكون بارزاً واحترافياً
+   ========================================================= */
+
+   .dark-mode-pill {
+    width: 38px;  /* حجم متناسق مع أيقونات أودو */
+    height: 38px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px; /* حواف عصرية */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    i {
+        font-size: 1.2rem !important;
+        transition: all 0.4s ease;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.18);
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        
+        i {
+            transform: scale(1.15) rotate(15deg);
+        }
+    }
+
+    &:active {
+        transform: scale(0.92);
+    }
+}
+
+/* تنسيق الزر داخل شريط التنقل لضمان التباين */
+.o_main_navbar {
+    .dark-mode-pill {
+        /* خلفية زجاجية متكيفة */
+        background: rgba(255, 255, 255, 0.1) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(4px); /* تأثير ضبابي خلف الزر */
+        
+        i {
+            /* إضافة توهج خفيف للأيقونة ليظهر احترافيتها */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+
+/* في حال كان النظام في وضع Dark Mode بالفعل، نزيد من بروز الأيقونة الصفراء */
+.o_web_client.o_dark_mode {
+    .dark-mode-pill {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-color: rgba(255, 215, 0, 0.3) !important; /* لون ذهبي خفيف للإطار */
+        
+        i.fa-sun-o {
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.6)); /* توهج للشمس */
+        }
+    }
+}
+// تعديل خاص للوضع الليلي لزيادة التباين
+[data-bs-theme="dark"] {
+    .dark-mode-pill {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(3, 42, 130, 0.3); // إطار بلمحة أزرق ملكي
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5), 
+                    0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+
+/* =========================================================
+   ✨ QLAWPRO 2026 - SYSTRAY INTERACTIVE ICONS (FIXED)
+   ========================================================= */
+
+   .o_menu_systray {
+    // استهداف أي زر أو رابط أو عنصر داخل شريط النظام
+    .nav-item, 
+    .o_sys_item, 
+    button.dropdown-toggle,
+    .o-dropdown,
+    [role="button"] {
+        
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: background 0.3s ease !important;
+        padding: 0 8px !important; // لضمان مساحة كافية للخلفية عند اللمس
+        height: 100%;
+
+        // استهداف الأيقونة مباشرة مهما كان نوعها
+        i, svg, img {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            display: inline-block !important;
+        }
+
+        // حالة اللمس (Hover)
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05) !important; // ظل خفيف جداً
+            border-radius: 8px !important;
+
+            i, svg,span {
+                transform: translateY(-4px) scale(1.2) !important; // حركة قفزة واضحة
+                color: #ffffff !important; // تلوين الأيقونة بالأزرق الملكي
+            }
+
+            // إذا كانت الأيقونة جرس التنبيهات (الاهتزاز)
+            .fa-bell, .fa-comments, .fa-envelope {
+                animation: bellRing 0.6s ease-in-out both;
+            }
+        }
+    }
+}
+
+/* تأثير التوهج للوضع الليلي */
+[data-bs-theme="dark"] {
+    .o_menu_systray {
+        .nav-item:hover, button.dropdown-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            
+            i, svg {
+                color: #FFD700 !important; // توهج ذهبي
+                filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6)) !important;
+            }
+        }
+    }
+}
+
+/* أنيميشن الجرس (يجب التأكد من وجوده) */
+@keyframes bellRing {
+    0%, 100% { transform: translateY(-4px) rotate(0); }
+    25% { transform: translateY(-4px) rotate(15deg); }
+    50% { transform: translateY(-4px) rotate(-15deg); }
+    75% { transform: translateY(-4px) rotate(5deg); }
+}
+
+

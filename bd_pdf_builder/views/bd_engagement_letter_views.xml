@@ -11,6 +11,21 @@
                             type="object"
                             string="Print Engagement Letter PDF"
                             class="btn-secondary"/>
+                    <button name="action_print_corporate_service_agreement_pdf"
+                            type="object"
+                            string="Print Corporate Agreement"
+                            class="btn-secondary"
+                            invisible="service_type not in ('corporate', 'mixed')"/>
+                    <button name="action_print_litigation_service_agreement_pdf"
+                            type="object"
+                            string="Print Litigation Agreement"
+                            class="btn-secondary"
+                            invisible="service_type not in ('litigation', 'pre_litigation', 'mixed')"/>
+                    <button name="action_print_arbitration_service_agreement_pdf"
+                            type="object"
+                            string="Print Arbitration Agreement"
+                            class="btn-secondary"
+                            invisible="service_type not in ('arbitration', 'mixed')"/>
                 </xpath>
             </field>
         </record>

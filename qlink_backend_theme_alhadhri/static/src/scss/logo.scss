@@ -1,28 +1,77 @@
-// ###### logo
+// /* ###### logo */
+// .logo_img {
+//     display: block;
+//     /* زيادة حجم الشعار ليكون أكبر */
+//     width: 700px; /* سابقاً 540px */
+//     height: auto;
+
+//     /* تصغير المساحة حول الشعار */
+//     margin: 20px auto;
+//     padding: 0;
+
+//     /* تفعيل حركة التوهج */
+//     animation: logo-glow 3s infinite ease-in-out;
+
+//     /* منع أي تمدد غير مرغوب */
+//     max-width: 95%; /* زيادة قليلاً لتناسب الشاشات الكبيرة */
+// }
+
+// @keyframes logo-glow {
+//     0%, 100% { 
+//         transform: scale(1);
+//         // filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.2)); 
+//         filter: drop-shadow(0px 0px 20px rgba(0, 123, 255, 0.5));
+//     }
+//     50% { 
+//         transform: scale(1.05); /* تكبير النبض أكثر ليبرز الشعار */
+//         filter: drop-shadow(0px 0px 20px rgba(255, 255, 255, 0.6)); 
+//     }
+// }
+
+/* التصميم العام (للدسكتوب) */
 .logo_img {
     display: block;
-    /* 1. تصغير العرض لرقم منطقي يناسب القائمة الجانبية */
-    width: 300px; 
+    width: 320px; /* حجم متوازن للديسكتوب */
     height: auto;
+    margin: 45px auto;
+    filter: drop-shadow(0px 0px 10px rgba(0, 123, 255, 0.3));
+    animation: logo-glow 4s infinite ease-in-out;
+    will-change: transform, filter;
+    transition: width 0.3s ease; /* سلاسة عند التغيير بين الموبايل والدسكتوب */
+    mix-blend-mode: screen; /* يجعل الألوان الفاتحة تبرز والغامقة تختفي */
+    /* أو جرب */
+    // opacity: 0.9; /* تقليل الشفافية قليلاً يدمج اللونين ببراعة */
     
-    /* 2. تصغير المساحة حول الشعار (إلغاء المارجن الزائد) */
-    margin: 0px auto; 
-    padding: 0; /* تأكد أن البادينج صفر لإزالة الفراغات */
-    
-    /* 3. تفعيل حركة التوهج */
-    animation: logo-glow 3s infinite ease-in-out;
-    
-    /* منع أي تمدد غير مرغوب */
-    max-width: 80%; 
 }
 
+/* تحسينات الموبايل (الشاشات أصغر من 768px) */
+@media (max-width: 768px) {
+    .logo_img {
+        width: 220px !important; /* تصغير الشعار ليتناسب مع عرض القائمة الجانبية (270px) */
+        margin: 10px auto 40px !important;
+    }
+    
+    // /* التأكد من أن القائمة تختفي وتظهر بناءً على حالة الـ JS */
+    // #sidebar_panel {
+    //     transform: translateX(100%); /* البداية خارج الشاشة (جهة اليمين) */
+    //     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    //     visibility: hidden;
+    // }
+
+    // #sidebar_panel.open {
+    //     transform: translateX(0); /* الظهور عند الفتح */
+    //     visibility: visible;
+    // }
+}
+
+/* حركة التوهج */
 @keyframes logo-glow {
     0%, 100% { 
         transform: scale(1);
-        filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.2)); 
+        filter: drop-shadow(0px 0px 15px rgba(0, 123, 255, 0.4));
     }
     50% { 
-        transform: scale(1.03); /* حركة تكبير بسيطة جداً مع النبض */
-        filter: drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.6)); 
+        transform: scale(1.03); 
+        filter: drop-shadow(0px 0px 25px rgba(0, 123, 255, 0.6));
     }
 }

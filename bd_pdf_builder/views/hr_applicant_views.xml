@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_hr_applicant_form_pdf_builder" model="ir.ui.view">
+            <field name="name">hr.applicant.form.pdf.builder</field>
+            <field name="model">hr.applicant</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header" position="inside">
+                    <button name="action_print_employee_offer_letter_pdf"
+                            type="object"
+                            string="Print Offer Letter"
+                            class="btn-secondary"
+                            groups="hr_recruitment.group_hr_recruitment_user"/>
+                    <button name="action_print_employment_contract_pdf"
+                            type="object"
+                            string="Print Employment Contract"
+                            class="btn-secondary"
+                            groups="hr_recruitment.group_hr_recruitment_user"/>
+                    <button name="action_print_employee_nda_pdf"
+                            type="object"
+                            string="Print NDA"
+                            class="btn-secondary"
+                            groups="hr_recruitment.group_hr_recruitment_user"/>
+                </xpath>
+                <xpath expr="//page[@name='application_details']/group[1]" position="after">
+                    <group string="Legal Document Details" groups="hr_recruitment.group_hr_recruitment_user">
+                        <group>
+                            <field name="bd_nationality"/>
+                            <field name="bd_passport_no"/>
+                            <field name="bd_qid_no"/>
+                            <field name="bd_date_of_birth"/>
+                            <field name="bd_marital_status"/>
+                            <field name="bd_address"/>
+                        </group>
+                        <group>
+                            <field name="bd_contract_start_date"/>
+                            <field name="bd_basic_salary"/>
+                            <field name="bd_housing_allowance"/>
+                            <field name="bd_transportation_allowance"/>
+                            <field name="bd_phone_allowance"/>
+                            <field name="bd_other_allowance"/>
+                            <field name="bd_annual_leave_days"/>
+                            <field name="bd_probation_period"/>
+                            <field name="bd_ticket_policy"/>
+                            <field name="bd_contract_duration"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

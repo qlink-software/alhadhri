@@ -1,0 +1,101 @@
+/* =====================================================
+   LEGAL SYSTEM – CONDITIONAL CENTER TITLE
+===================================================== */
+
+
+
+/* 1. نطبق التوسيط فقط عندما نكون داخل واجهة النموذج (Form View) 
+   هذا سيمنع ظهور التوسيط في واجهة القائمة (List View) أو البحث */
+.o_form_view_container {
+    
+    .o_control_panel_main {
+        position: relative;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 120px !important; /* قللت الارتفاع قليلاً ليكون عملياً أكثر */
+        background: white !important; /* تأكيد الخلفية هنا أيضاً */
+    }
+
+    .o_control_panel {
+        background-color: white !important; /* خلفية صلبة تمنع رؤية ما تحتها */
+        z-index: 100 !important; /* التأكد من أنه فوق المحتوى */
+        border-bottom: 2px solid #f0f2f5 !important;
+        position: sticky !important;
+        top: 0 !important;
+        /* إضافة ظل خفيف ليعطي شعوراً بأن الهيدر مرتفع عن البطاقات */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    // /* توسيط العنوان فقط */
+    // .o_control_panel_breadcrumbs {
+    //     position: absolute !important;
+    //     left: 50% !important;
+    //     top: 50% !important;
+    //     transform: translate(-50%, -50%) !important;
+    //     margin: 0 !important;
+    //     z-index: 5;
+    //     pointer-events: none;
+    // }
+
+    // /* تنسيق اسم السجل */
+    // .o_breadcrumb .o_last_breadcrumb_item, 
+    // .o_breadcrumb .active {
+    //     pointer-events: auto;
+    //     font-size: 26px !important; 
+    //     font-weight: 800 !important;
+    //     color: $brand-dark !important;
+    //     display: flex;
+    //     flex-direction: column;
+    //     align-items: center;
+    //     // --- تعديل الحجم للشاشات الصغيرة ---
+    //     @media (max-width: 768px) {
+    //         font-size: 8px !important; // تصغير الخط للجوال
+    //     }
+    //     &::after {
+    //         content: '';
+    //         display: block;
+    //         width: 80px;
+    //         height: 3px;
+    //         margin-top: 5px;
+    //         background: linear-gradient(90deg, transparent, $brand-accent, $brand-accent, transparent);
+    //         // تصغير الخط السفلي أيضاً على الجوال
+    //         @media (max-width: 768px) {
+    //             width: 30px;
+    //             height: 2px;
+    //         }
+    //     }
+    // }
+}
+
+
+/* 2. إعادة الأزرار (Actions) والتنقل (Navigation) إلى مكانهما الطبيعي 
+   وتقليل الـ z-index لضمان عدم تداخلهما مع البحث في القوائم الأخرى */
+.o_control_panel_actions, .o_control_panel_navigation {
+    position: relative !important;
+    z-index: 10 !important;
+    flex: 0 1 auto !important;
+}
+
+/* 3. إخفاء المسارات السابقة في وضع النموذج فقط للحفاظ على النظافة البصرية */
+.o_form_view_container .o_breadcrumb_item:not(.active) {
+    display: none !important;
+}
+.o_control_panel .o_breadcrumb {
+    // إضافة مساحة 40px من اليسار لترك مكان للمقبض (Handle)
+    padding-left: 40px !important; 
+    
+    @media (max-width: 768px) {
+        padding-left: 50px !important; // مساحة أكبر قليلاً في الجوال
+    }
+}
+// .o_control_panel {
+//     padding:100px;
+//     border-bottom: var(--ControlPanel-border-bottom, 1px solid #dee2e6);
+//     background-color: white;
+// }
+
+
+
+
+

@@ -1,0 +1,411 @@
+$btn-height: 36px;
+$btn-padding-x: 14px;
+$btn-font-size: 0.9rem;
+/* =====================================================
+   SECTION C: أيقونات العرض العلوية (View Switcher Icons)
+   إصلاح ألوان أيقونات (List, Kanban, Pivot)
+   ===================================================== */
+//    إصلاح ألوان View Switcher (مهم بصريًا)
+.o_control_panel .o_cp_switch_buttons .btn.o_switch_view {
+    color: $text-muted !important;
+
+    &.active {
+        color: $brand-primary !important;
+        background: rgba(3, 42, 130, 0.08) !important;
+        border-bottom: 2px solid $brand-primary !important;
+    }
+
+    .fa {
+        font-size: 1.2rem !important;
+    }
+}
+
+/* =====================================================
+   SECTION D: الأزرار الرئيسية والثانوية (Buttons)
+   ===================================================== */
+%qlawpro-btn-base {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+// 4. زر إنشاء سجل جديد (Add/New) - رشيق ومتناسق
+.o_list_button_add{
+    height: 38px !important; // نفس ارتفاع المسار تماماً
+    background: #ffffff !important; // خلفية بيضاء
+    color: #032a82 !important; // نص أزرق
+    border: 1px solid #032a82 !important; // إطار أزرق يحدد الزر
+    padding: 0 18px !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+
+    &:hover {
+        background: linear-gradient(-135deg, #5874b3, #ffffff) !important;  // ينعكس عند الحوم
+        color: #ffffff !important;
+        transform: none !important; // إلغاء الارتفاع ليبقى رصيناً
+    }
+}
+
+.btn-primary, .o-kanban-button-new {
+    @extend %qlawpro-btn-base;
+
+    // تدرج من الأزرق الملكي إلى أزرق أفتح قليلاً لإعطاء تأثير الإضاءة بدلاً من البهتان
+    background: linear-gradient(-135deg, #032a82 0%, #3b82f6 100%) !important;
+    color: #ffffff !important; // تغيير النص للأبيض ليتباين مع الأزرق الداكن
+    font-weight: 800 !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(3, 42, 130, 0.4) !important;
+    padding: 8px 18px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+    &:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(-135deg, #3b82f6 0%, #032a82 100%) !important; // عكس التدرج عند الحوم يعطي إحساساً بالحركة
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important;
+        filter: brightness(1.1);
+    }
+}
+.o_form_view {
+    .btn-primary {
+        font-size: 0.9rem;
+        padding: 6px 16px !important;
+    }
+}
+.o_form_view {
+    .o_form_statusbar {
+        margin-top: 2px; // Alignment بصري دقيق
+    }
+    .o_cp_buttons .btn,
+    .o_form_statusbar .btn {
+
+        height: $btn-height !important;
+        padding: 0 $btn-padding-x !important;
+        font-size: $btn-font-size !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px !important;
+    }
+}
+
+.o_cp_buttons .btn {
+    margin-left: 6px;
+}
+.btn {
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(3, 42, 130, 0.2);
+    }
+}
+
+/* =====================================================
+   🏛️ QLAWPRO - SECONDARY & OUTLINE BUTTONS FIX
+   تنسيق الأزرار الثانوية وأزرار التحديد
+   ===================================================== */
+
+// 1. الأزرار الثانوية (مثل Cancel أو الأزرار الرمادية)
+.btn-secondary {
+    @extend %qlawpro-btn-base;
+
+    background: #ffffff !important;
+    color: $brand-primary !important;
+    border: 1.5px solid #dbeafe !important;
+    padding: 8px 18px !important;
+
+    &:hover {
+        background: linear-gradient(-135deg, #032a82 0%, #3b82f6 100%) !important;
+
+        color: #ffffff !important;
+    }
+}
+
+// استهداف أزرار التحديد (Outline) وأزرار الفلاتر الثانوية
+.btn-outline-primary, 
+.btn-outline-secondary,
+.o_searchview_facet, // كبسولات الفلترة في صندوق البحث
+.o_control_panel .o_panel_filter_button {
+    
+    background: transparent !important;
+    color: #042273 !important; // اللون الملكي الأساسي
+    border: 1px solid #042273 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    // تنسيق الأيقونات داخل هذه الأزرار
+    .o_button_icon, i {
+        color: inherit !important;
+        font-size: 1.1em;
+    }
+
+    // تأثير الحوم (Hover State)
+    &:hover {
+        background-color: #042273 !important; // يتحول للخلفية الداكنة عند التمرير
+        border-color: #042273 !important;
+        color: #ffffff !important; // النص أبيض لضمان الوضوح
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(4, 34, 115, 0.2) !important;
+        
+        .o_button_icon, i {
+            color: #ffffff !important;
+        }
+    }
+
+    // حالة الزر عند الضغط أو التفعيل (Active/Checked)
+    &:active, &.active, &.show {
+        background-color: #083680 !important;
+        color: #ffffff !important;
+        border-color: #083680 !important;
+    }
+}
+
+// تنسيق خاص لكبسولات الفلترة المحذوفة (Remove Icon)
+.o_searchview_facet .o_facet_remove {
+    color: #5b99ef !important; // الفيروزي لعلامة الحذف
+    &:hover {
+        color: #ff4d4f !important; // أحمر خفيف عند محاولة الحذف
+    }
+}
+
+/* =====================================================
+   إصلاح إضافي لأزرار البحث (Search View Buttons)
+   بناءً على الصور التي أرفقتها سابقاً
+   ===================================================== */
+.o_searchview_dropdown_toggler.btn-outline-secondary {
+    @extend .btn-outline-primary; // لضمان أخذ نفس التنسيق الفخم
+    border: 1px solid $brand-primary !important; // إخفاء الإطار في شريط البحث لمظهر أنظف
+}
+
+/* =====================================================
+   SECTION E: شريط المراحل (Status Bar Prestige) - الإصلاح النهائي
+   ===================================================== */
+
+   .o_field_statusbar > .o_statusbar_status {
+    display: flex !important;
+    align-items: center;
+    gap: 0px; // نعتمد على المارجن السالب فقط
+
+    > .o_arrow_button {
+        position: relative;
+        height: $btn-height !important;
+        padding: 0 20px !important; // زيادة الحشو لتعويض مساحة السهم
+        border: none !important;
+        background-color: #f8f9fa; // لون افتراضي للمراحل غير النشطة
+        
+        // إصلاح الرسم باستخدام clip-path يدعم الاتجاهين
+        // نستخدم متغيرات CSS الخاصة بأودو للتعامل مع الاتجاه
+        &:not(:first-child):before {
+             content: "";
+             position: absolute;
+             top: 0;
+             left: 0;
+             width: 14px;
+             height: 100%;
+             background: inherit;
+        }
+
+        // الرسم الفعلي للسهم
+        clip-path: polygon(
+            calc(100% - 14px) 0%, 
+            100% 50%, 
+            calc(100% - 14px) 100%, 
+            0% 100%, 
+            14px 50%, 
+            0% 0%
+        ) !important;
+
+        // التباعد بين الأزرار (هنا المشكلة الأساسية)
+        // في العربي (RTL) نستخدم margin-left بدلاً من margin-right
+        margin-right: -14px !important;
+
+        // تعديل خاص للغة العربية لضمان عدم تداخل الأسهم بشكل خاطئ
+        &:dir(rtl) {
+            margin-right: 0 !important;
+            margin-left: -14px !important;
+        }
+
+        &.o_arrow_button_current {
+            background: $brand-primary !important;
+            color: #ffffff !important;
+            z-index: 2; // ليكون فوق الأزرار الأخرى
+        }
+
+        // إزالة السهم من أول مرحلة (جهة اليمين في العربي)
+        &:last-child {
+             clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 14px 50%, 0% 0%) !important;
+             &:dir(rtl) {
+                 clip-path: polygon(0% 0%, 0% 100%, 100% 100%, calc(100% - 14px) 50%, 100% 0%) !important;
+             }
+        }
+    }
+}
+.o_form_view {
+    // محاذاة الأزرار مع الـ Statusbar
+    .o_cp_top {
+
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .o_form_statusbar {
+
+        .o_statusbar_status {
+
+            display: flex;
+            align-items: center;
+            height: $btn-height;
+
+            .o_arrow_button {
+
+                height: $btn-height !important;
+                line-height: $btn-height !important;
+                padding: 0 18px !important;
+                font-size: $btn-font-size !important;
+
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+/* =====================================================
+   SECTION F: توافق الموبايل (Mobile Optimization)
+   إصلاح الأبعاد للشاشات الصغيرة
+   ===================================================== */
+@media (max-width: 768px) {
+    .o_search_panel {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .btn-primary, .btn-secondary {
+        min-width: 80px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+
+
+/* =====================================================
+   📱 QLAWPRO 2026 - BUTTONS MOBILE OPTIMIZATION
+   تصغير الأزرار في الشاشات الصغيرة لضمان الرشاقة
+   ===================================================== */
+
+@media (max-width: 768px) {
+    
+    // 1. تصغير الأزرار الرئيسية (Create, Save, Edit)
+    .btn-primary, .btn-secondary, .btn-outline-primary, 
+    .o_list_button_add, .o-kanban-button-new, .o_form_button_save {
+        padding: 6px 12px !important; // تقليل الحشو الداخلي (بدل 15px)
+        font-size: 0.8rem !important;  // خط أصغر وأوضح للجوال
+        min-height: 32px !important;   // ارتفاع رشيق
+        border-radius: 6px !important;
+        letter-spacing: 0px !important;
+        
+        // تصغير الأيقونات داخل الأزرار
+        .fa, i {
+            font-size: 0.85rem !important;
+            margin-left: 4px !important;
+        }
+    }
+
+     // 2. تصغير أزرار شريط الحالة (Statusbar Buttons) - FIXED FOR MOBILE SCROLLING
+     .o_form_statusbar {
+        display: flex !important;
+        flex-direction: column !important; /* Stacks the action buttons safely over the progress trail */
+        align-items: stretch !important;
+        gap: 12px !important;
+        width: 100% !important;
+
+        .o_statusbar_status {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;       /* CRITICAL: Prevents steps from breaking into multiple ugly rows */
+            overflow-x: auto !important;        /* Smooth horizontal scrolling for the stages */
+            overflow-y: hidden !important;
+            width: 100% !important;
+            padding: 4px 10px 10px 10px !important;
+            margin: 0 !important;
+            -webkit-overflow-scrolling: touch !important; /* Smooth inertia momentum on iOS */
+            
+            &::-webkit-scrollbar { 
+                display: none !important; /* Kept clean and hidden */
+            } 
+        }
+
+        .o_arrow_button {
+            min-width: 95px !important;         /* Reduced from 110px since the smaller text allows a more compact footprint */
+            flex: 0 0 auto !important;          /* CRITICAL FIX: Stops the browser from squeezing your buttons into thin columns */
+            font-size: 0.68rem !important;      /* MINIMIZED: Ultra-clean layout sizing for modern mobile viewports */
+            font-weight: 700 !important;        /* Thickens the stroke slightly so the smaller text remains highly readable */
+            letter-spacing: 0.3px !important;   /* Gives the crisp characters breathing room */
+            clip-path: none !important;         /* Removes the geometric arrow cuts on phone screens to protect text layout */
+            border-radius: 6px !important;
+            border: 1px solid rgba(3, 42, 130, 0.15) !important;
+            margin: 0 4px !important;
+            padding: 6px 12px !important;       /* Balanced padding for the new text scale */
+            height: 30px !important;            /* Slightly sleeker component height to match the text scale */
+            line-height: 1.2 !important;        /* Optimal text baseline alignment */
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+    }
+
+
+    // 3. تصغير أزرار التنقل (Pager Buttons)
+    .o_pager {
+        .btn-group .btn {
+            padding: 4px 8px !important;
+            font-size: 0.75rem !important;
+        }
+    }
+
+    // 4. تصغير أزرار الـ Smart Buttons (الإحصائيات)
+    // تحسين الأزرار الذكية (Smart Buttons)
+    .oe_stat_button {
+        border-radius: 12px !important;
+        background: #ffffff;
+        border: 1px solid #eef2f7;
+        transition: 0.25s;
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+
+        .o_button_icon {
+            font-size: 1.1rem !important; // تصغير الأيقونة المضيئة قليلاً
+        }
+
+        .o_stat_info {
+            .o_stat_value { font-size: 0.75rem !important; }
+            .o_stat_text { font-size: 0.65rem !important; }
+        }
+    }
+
+    // 5. تصغير زر البحث (Search Toggler) بجانب الصندوق
+    .o_control_panel .o_cp_searchview .o_searchview_dropdown_toggler {
+        height: 34px !important; // تقليل الارتفاع ليتناسب مع الحقول المصغرة
+        padding: 0 10px !important;
+        
+        .fa-chevron-down, .fa-chevron-right {
+            font-size: 0.7rem !important;
+        }
+    }
+}
+
+
+

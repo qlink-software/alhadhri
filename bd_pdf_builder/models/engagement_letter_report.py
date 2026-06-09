@@ -7,7 +7,7 @@ class BdEngagementLetter(models.Model):
 
     def _get_or_create_engagement_report_action(self):
         xmlid = "bd_pdf_builder.action_engagement_letter_pdf"
-        paperformat = self.env.ref("bd_pdf_builder.paperformat_engagement_letter_pdf", raise_if_not_found=False)
+        paperformat = self.env.ref("bd_pdf_builder.paperformat_bd_standard_pdf", raise_if_not_found=False)
         report_name = "bd_pdf_builder.report_engagement_letter_pdf"
         print_name_expr = "'Engagement Letter - %s' % (object.display_name or object.id)"
 
@@ -70,3 +70,23 @@ class BdEngagementLetter(models.Model):
         self.ensure_one()
         action = self._get_or_create_engagement_report_action()
         return action.report_action(self)
+
+    def _action_print_standard_service_agreement(self, action_xmlid):
+        self.ensure_one()
+        action = self.env.ref(action_xmlid)
+        return action.report_action(self)
+
+    def action_print_corporate_service_agreement_pdf(self):
+        return self._action_print_standard_service_agreement(
+            "bd_pdf_builder.action_corporate_service_agreement_pdf"
+        )
+
+    def action_print_litigation_service_agreement_pdf(self):
+        return self._action_print_standard_service_agreement(
+            "bd_pdf_builder.action_litigation_service_agreement_pdf"
+        )
+
+    def action_print_arbitration_service_agreement_pdf(self):
+        return self._action_print_standard_service_agreement(
+            "bd_pdf_builder.action_arbitration_service_agreement_pdf"
+        )

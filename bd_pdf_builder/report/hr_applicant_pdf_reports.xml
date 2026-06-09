@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="hr_applicant_signature_table" name="HR Applicant Signature Table">
+        <div class="bd-section bd-signature-section">
+            <div class="bd-section-header">Signatures</div>
+            <div class="bd-section-body">
+                <table class="bd-signature-table">
+                    <thead>
+                        <tr>
+                            <th>First Party</th>
+                            <th>Second Party / Candidate</th>
+                            <th>HR / Prepared By</th>
+                            <th>Approval</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div><span>Name</span><strong>Abdulla Al Hadhri</strong></div>
+                                <div><span>Position</span><strong>Managing Partner</strong></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong t-esc="candidate_name or '-'"/></div>
+                                <div><span>Position</span><strong t-esc="job_title or '-'"/></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong t-esc="prepared_by or '-'"/></div>
+                                <div><span>Position</span><strong>Recruitment</strong></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                            <td>
+                                <div><span>Name</span><strong>Management</strong></div>
+                                <div><span>Position</span><strong>Authorized Signatory</strong></div>
+                                <div class="bd-signature-line"><span>Signature</span></div>
+                                <div><span>Date</span><strong t-esc="bd_signature_date or ''"/></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_hr_applicant_offer_letter_pdf">
+        <t t-name="bd_pdf_builder.report_hr_applicant_offer_letter_pdf">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="candidate_name" t-value="doc.partner_name or doc.candidate_id.partner_name or ''"/>
+                    <t t-set="job_title" t-value="doc.job_id.name or ''"/>
+                    <t t-set="prepared_by" t-value="doc.user_id.name or doc.create_uid.name or ''"/>
+                    <t t-set="document_date" t-value="doc.create_date and doc.create_date.strftime('%d/%m/%Y') or ''"/>
+                    <t t-set="start_date" t-value="doc.bd_contract_start_date and doc.bd_contract_start_date.strftime('%d/%m/%Y') or (doc.availability and doc.availability.strftime('%d/%m/%Y') or '')"/>
+                    <t t-set="basic_salary" t-value="doc.bd_basic_salary or 0.0"/>
+                    <t t-set="housing_allowance" t-value="doc.bd_housing_allowance or 0.0"/>
+                    <t t-set="transportation_allowance" t-value="doc.bd_transportation_allowance or 0.0"/>
+                    <t t-set="phone_allowance" t-value="doc.bd_phone_allowance or 0.0"/>
+                    <t t-set="other_allowance" t-value="doc.bd_other_allowance or 0.0"/>
+                    <t t-set="computed_total" t-value="basic_salary + housing_allowance + transportation_allowance + phone_allowance + other_allowance"/>
+                    <t t-set="total_salary" t-value="doc.salary_proposed or computed_total"/>
+                    <t t-set="bd_company" t-value="doc.company_id"/>
+                    <t t-set="bd_title_ar" t-value="'عرض وظيفي'"/>
+                    <t t-set="bd_title_en" t-value="'Job Offer'"/>
+                    <t t-set="bd_info_reference" t-value="doc.id"/>
+                    <t t-set="bd_info_date" t-value="document_date"/>
+                    <t t-set="bd_info_client" t-value="candidate_name"/>
+                    <t t-set="bd_info_prepared_by" t-value="prepared_by"/>
+                    <t t-set="bd_signature_date" t-value="document_date"/>
+
+                    <t t-call="bd_pdf_builder.report_layout_standard">
+                        <div class="bd-section">
+                            <div class="bd-section-header">Offer Summary</div>
+                            <div class="bd-section-body">
+                                <table class="bd-kv-table">
+                                    <tr>
+                                        <th>Candidate</th>
+                                        <td><t t-esc="candidate_name or '-'"/></td>
+                                        <th>Job Title</th>
+                                        <td><t t-esc="job_title or '-'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Department</th>
+                                        <td><t t-esc="doc.department_id.name or '-'"/></td>
+                                        <th>Commencement Date</th>
+                                        <td><t t-esc="start_date or '-'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Salary</th>
+                                        <td><strong>QAR <t t-esc="'{:,.2f}'.format(total_salary or 0.0)"/></strong></td>
+                                        <th>Contract Duration</th>
+                                        <td><t t-esc="doc.bd_contract_duration or 'Indefinite'"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Salary &amp; Allowances</div>
+                            <div class="bd-section-body">
+                                <table class="bd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Allowance</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Basic Salary</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(basic_salary)"/></td></tr>
+                                        <tr><td>Housing Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(housing_allowance)"/></td></tr>
+                                        <tr><td>Transportation Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(transportation_allowance)"/></td></tr>
+                                        <tr><td>Phone Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(phone_allowance)"/></td></tr>
+                                        <tr><td>Other Allowances</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(other_allowance)"/></td></tr>
+                                        <tr class="bd-total-row"><td>Total Salary</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(total_salary or 0.0)"/></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Employment Terms</div>
+                            <div class="bd-section-body">
+                                <table class="bd-table">
+                                    <tbody>
+                                        <tr><th>Yearly Vacation</th><td><t t-esc="doc.bd_annual_leave_days or 21"/> calendar days</td></tr>
+                                        <tr><th>Trial Period</th><td><t t-esc="doc.bd_probation_period or 'Six months as per labor law'"/></td></tr>
+                                        <tr><th>Ticket Exchange</th><td><t t-esc="doc.bd_ticket_policy or 'Economy ticket to home country every 2 years'"/></td></tr>
+                                        <tr><th>Work Hours</th><td>48 hours per week according to the Labor Law, and 36 hours per week during Ramadan.</td></tr>
+                                        <tr><th>Other Holidays</th><td>Official holidays are granted according to business needs and management decisions, including National Day, Eid holidays, and National Sport Day.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Candidate Acceptance</div>
+                            <div class="bd-section-body">
+                                <p>The job offer is valid for three days from the date it is sent to the candidate. Failure to respond within this timeframe will be considered as declining the offer.</p>
+                                <p>Candidate: I, <strong><t t-esc="candidate_name or '________________'"/></strong>, confirm that I accept this offer and will commence my employment on <strong><t t-esc="start_date or '________________'"/></strong>.</p>
+                            </div>
+                        </div>
+
+                        <t t-call="bd_pdf_builder.hr_applicant_signature_table"/>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_hr_applicant_nda_pdf">
+        <t t-name="bd_pdf_builder.report_hr_applicant_nda_pdf">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="candidate_name" t-value="doc.partner_name or doc.candidate_id.partner_name or ''"/>
+                    <t t-set="job_title" t-value="doc.job_id.name or ''"/>
+                    <t t-set="prepared_by" t-value="doc.user_id.name or doc.create_uid.name or ''"/>
+                    <t t-set="document_date" t-value="doc.create_date and doc.create_date.strftime('%d/%m/%Y') or ''"/>
+                    <t t-set="bd_company" t-value="doc.company_id"/>
+                    <t t-set="bd_title_ar" t-value="'اتفاقية عدم الإفصاح عن المعلومات السرية'"/>
+                    <t t-set="bd_title_en" t-value="'Non-Disclosure of Confidential Information Agreement'"/>
+                    <t t-set="bd_info_reference" t-value="doc.id"/>
+                    <t t-set="bd_info_date" t-value="document_date"/>
+                    <t t-set="bd_info_client" t-value="candidate_name"/>
+                    <t t-set="bd_info_prepared_by" t-value="prepared_by"/>
+                    <t t-set="bd_signature_date" t-value="document_date"/>
+
+                    <t t-call="bd_pdf_builder.report_layout_standard">
+                        <div class="bd-section">
+                            <div class="bd-section-header">Parties</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <th class="bd-ar" lang="ar" dir="rtl">الأطراف</th>
+                                        <th class="bd-en" lang="en" dir="ltr">Parties</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p><strong>أولاً:</strong> مكتب الحضري وشركاه للمحاماة والاستشارات القانونية، سجل تجاري رقم 212506، برج البراحة، الطابق الخامس، لوسيل، الدوحة، قطر.</p>
+                                            <p>ويشار إليه فيما بعد بـ "الطرف الأول".</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p><strong>First:</strong> Al Hadhri &amp; Partners Law Firm and Legal Consultations, CR 212506, Al Baraha Tower, 5th Floor, Lusail, Doha, Qatar.</p>
+                                            <p>Hereinafter referred to as the "First Party".</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p><strong>ثانياً:</strong> <t t-esc="candidate_name or '-'"/></p>
+                                            <p>الجنسية: <t t-esc="doc.bd_nationality or '-'"/>، جواز السفر رقم: <t t-esc="doc.bd_passport_no or '-'"/></p>
+                                            <p>رقم الهاتف: <t t-esc="doc.partner_phone or '-'"/>، البريد الإلكتروني: <t t-esc="doc.email_from or '-'"/></p>
+                                            <p>ويشار إليه فيما بعد بـ "الطرف الثاني".</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p><strong>Second:</strong> <t t-esc="candidate_name or '-'"/></p>
+                                            <p>Nationality: <t t-esc="doc.bd_nationality or '-'"/>, Passport No.: <t t-esc="doc.bd_passport_no or '-'"/></p>
+                                            <p>Tel: <t t-esc="doc.partner_phone or '-'"/>, Email: <t t-esc="doc.email_from or '-'"/></p>
+                                            <p>Hereinafter referred to as the "Second Party".</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Preamble</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p>حيث إن الطرف الأول مكتب محاماة مرخص لممارسة مهنة المحاماة ويقدم الاستشارات القانونية ويعد العقود المختلفة، ويتلقى أثناء ذلك معلومات تخص عملاءه وأعماله ذات قيمة قانونية وتجارية.</p>
+                                            <p>وحيث يرغب الطرف الأول في تعيين الطرف الثاني للعمل لديه ولمصلحته ومصلحة عملائه، فإن الطرف الأول قد يتيح للطرف الثاني معلومات يعتبرها سرية.</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p>Whereas the First Party is a law firm licensed to practice law, provide legal consultations, and prepare contracts, and receives information relating to its clients and business with legal and commercial value.</p>
+                                            <p>Whereas the First Party wishes to appoint the Second Party to work for the benefit of the First Party and its clients, the First Party may disclose information it considers confidential.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Confidential Information</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <th class="bd-ar" lang="ar" dir="rtl">تعريف المعلومات السرية</th>
+                                        <th class="bd-en" lang="en" dir="ltr">Definition of Confidential Information</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p>يقصد بالمعلومات السرية كل معلومة يحصل عليها الطرف الثاني، مباشرة أو غير مباشرة، من الطرف الأول أو مكتبه أو عملائه، وتشمل أسرار الأعمال وبيانات العملاء والملكية الفكرية ومعلومات الخدمات وأي معلومات محمية باتفاقيات سرية مع الغير.</p>
+                                            <p>لا تعد المعلومات سرية إذا كانت متاحة للعامة، أو حصل عليها الطرف الثاني من طرف ثالث له حق الإفصاح، أو أصبحت عامة دون إخلال من الطرف الثاني، أو كانت بحوزة الطرف الثاني قبل الإفصاح المشروع عنها.</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p>Confidential Information means all information obtained by the Second Party, directly or indirectly, from the First Party, its office, or clients, including business secrets, client information, intellectual property, service information, and information protected by third-party confidentiality arrangements.</p>
+                                            <p>Information is not confidential if it is public, lawfully received from an authorized third party, becomes public without breach by the Second Party, or was already possessed by the Second Party before lawful disclosure.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Articles</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <th class="bd-ar" lang="ar" dir="rtl">الأحكام</th>
+                                        <th class="bd-en" lang="en" dir="ltr">Provisions</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <ol class="bd-terms-list">
+                                                <li>يعتبر التمهيد وتعريف المعلومات السرية جزءاً لا يتجزأ من هذه الاتفاقية.</li>
+                                                <li>يقر الطرف الثاني بأن المعلومات السرية ذات طبيعة ملكية وسرية، وأن الإخلال بها يسبب ضرراً لا يمكن جبره بالتعويض المالي وحده.</li>
+                                                <li>يلتزم الطرف الثاني بالحفاظ على سرية المعلومات وعدم استخدامها إلا لخدمة مصالح الطرف الأول وعملائه.</li>
+                                                <li>لا يجوز نسخ أو استخراج أو حفظ أي مستندات تحتوي معلومات سرية إلا بموافقة كتابية وبقدر ما يلزم للعمل.</li>
+                                                <li>لا يجوز الإفصاح عن المعلومات السرية لأي طرف ثالث إلا بموافقة خطية مسبقة أو إذا كان الإفصاح مطلوباً قانوناً.</li>
+                                                <li>عند انتهاء العلاقة، يلتزم الطرف الثاني بإعادة جميع المستندات والنسخ والمقتطفات المصنفة كمعلومات سرية.</li>
+                                                <li>يجوز الإفصاح للموظفين أو المستشارين المصرح لهم فقط بالقدر اللازم ولغرض تنفيذ العمل.</li>
+                                                <li>تبقى التزامات السرية نافذة بعد انتهاء علاقة العمل أو العدول عن التعيين.</li>
+                                                <li>تخضع هذه الاتفاقية لقوانين دولة قطر وتختص المحاكم القطرية بأي نزاع ينشأ عنها.</li>
+                                            </ol>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <ol class="bd-terms-list">
+                                                <li>The preamble and definition of Confidential Information form an integral part of this Agreement.</li>
+                                                <li>The Second Party acknowledges that Confidential Information is proprietary and confidential, and breach may cause harm not adequately compensated by money damages alone.</li>
+                                                <li>The Second Party shall keep Confidential Information strictly confidential and use it only for the First Party and its clients.</li>
+                                                <li>No document containing Confidential Information may be copied, extracted, or retained except with written approval and only as necessary for work.</li>
+                                                <li>Confidential Information may not be disclosed to any third party except with prior written approval or where disclosure is legally required.</li>
+                                                <li>Upon termination, the Second Party shall return all documents, copies, and extracts classified as Confidential Information.</li>
+                                                <li>Disclosure is permitted only to authorized employees or advisers on a need-to-know basis for work performance.</li>
+                                                <li>Confidentiality obligations survive termination of employment or withdrawal from appointment.</li>
+                                                <li>This Agreement is governed by the laws of the State of Qatar, and Qatari courts shall have jurisdiction.</li>
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <t t-call="bd_pdf_builder.hr_applicant_signature_table"/>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_hr_applicant_employment_contract_pdf">
+        <t t-name="bd_pdf_builder.report_hr_applicant_employment_contract_pdf">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="candidate_name" t-value="doc.partner_name or doc.candidate_id.partner_name or ''"/>
+                    <t t-set="job_title" t-value="doc.job_id.name or ''"/>
+                    <t t-set="prepared_by" t-value="doc.user_id.name or doc.create_uid.name or ''"/>
+                    <t t-set="document_date" t-value="doc.create_date and doc.create_date.strftime('%d/%m/%Y') or ''"/>
+                    <t t-set="start_date" t-value="doc.bd_contract_start_date and doc.bd_contract_start_date.strftime('%d/%m/%Y') or (doc.availability and doc.availability.strftime('%d/%m/%Y') or '')"/>
+                    <t t-set="birth_date" t-value="doc.bd_date_of_birth and doc.bd_date_of_birth.strftime('%d/%m/%Y') or ''"/>
+                    <t t-set="basic_salary" t-value="doc.bd_basic_salary or 0.0"/>
+                    <t t-set="housing_allowance" t-value="doc.bd_housing_allowance or 0.0"/>
+                    <t t-set="transportation_allowance" t-value="doc.bd_transportation_allowance or 0.0"/>
+                    <t t-set="phone_allowance" t-value="doc.bd_phone_allowance or 0.0"/>
+                    <t t-set="other_allowance" t-value="doc.bd_other_allowance or 0.0"/>
+                    <t t-set="computed_total" t-value="basic_salary + housing_allowance + transportation_allowance + phone_allowance + other_allowance"/>
+                    <t t-set="total_salary" t-value="doc.salary_proposed or computed_total"/>
+                    <t t-set="bd_company" t-value="doc.company_id"/>
+                    <t t-set="bd_title_ar" t-value="'عقد عمل'"/>
+                    <t t-set="bd_title_en" t-value="'Employment Contract'"/>
+                    <t t-set="bd_info_reference" t-value="doc.id"/>
+                    <t t-set="bd_info_date" t-value="document_date"/>
+                    <t t-set="bd_info_client" t-value="candidate_name"/>
+                    <t t-set="bd_info_prepared_by" t-value="prepared_by"/>
+                    <t t-set="bd_signature_date" t-value="document_date"/>
+
+                    <t t-call="bd_pdf_builder.report_layout_standard">
+                        <div class="bd-section">
+                            <div class="bd-section-header">Parties</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <th class="bd-ar" lang="ar" dir="rtl">الأطراف</th>
+                                        <th class="bd-en" lang="en" dir="ltr">Parties</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p>مكتب الحضري وشركاه للمحاماة والاستشارات القانونية والتحكيم، مكتب قطري مؤسس في دولة قطر تحت رخصة تجارية رقم 212506 وعنوانه برج البراحة، لوسيل، الطابق الخامس، الدوحة، قطر.</p>
+                                            <p>ويشار إليه فيما بعد بـ "الطرف الأول".</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p>Al Hadhri &amp; Partners Law Firm, duly organized under the laws of the State of Qatar under Commercial Register No. 212506, located at Al Baraha Tower, Lusail, 5th Floor, Doha, Qatar.</p>
+                                            <p>Hereinafter referred to as the "First Party".</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p>السيد / <strong><t t-esc="candidate_name or '-'"/></strong></p>
+                                            <p>تاريخ الميلاد: <t t-esc="birth_date or '-'"/>، الجنسية: <t t-esc="doc.bd_nationality or '-'"/></p>
+                                            <p>بطاقة شخصية: <t t-esc="doc.bd_qid_no or '-'"/>، جواز السفر: <t t-esc="doc.bd_passport_no or '-'"/></p>
+                                            <p>الحالة الاجتماعية: <t t-esc="doc.bd_marital_status or '-'"/>، محل الإقامة: <t t-esc="doc.bd_address or '-'"/></p>
+                                            <p>ويشار إليه فيما بعد بـ "الطرف الثاني".</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p>Mr. / Ms. <strong><t t-esc="candidate_name or '-'"/></strong></p>
+                                            <p>Date of Birth: <t t-esc="birth_date or '-'"/>, Nationality: <t t-esc="doc.bd_nationality or '-'"/></p>
+                                            <p>QID No.: <t t-esc="doc.bd_qid_no or '-'"/>, Passport No.: <t t-esc="doc.bd_passport_no or '-'"/></p>
+                                            <p>Marital Status: <t t-esc="doc.bd_marital_status or '-'"/>, Address: <t t-esc="doc.bd_address or '-'"/></p>
+                                            <p>Hereinafter referred to as the "Second Party".</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Appointment, Term &amp; Salary</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <p><strong>التعيين:</strong> وافق الطرف الأول على تعيين الطرف الثاني بوظيفة <strong><t t-esc="job_title or '-'"/></strong>، ويلتزم الطرف الثاني بأداء الواجبات والمهام المرتبطة بالوظيفة وأي مهام أخرى لا تختلف جوهرياً عن طبيعتها.</p>
+                                            <p><strong>بداية العقد ومدته:</strong> يسري هذا العقد اعتباراً من <strong><t t-esc="start_date or '-'"/></strong>، ومدته <strong><t t-esc="doc.bd_contract_duration or 'غير محددة'"/></strong>، ويخضع الطرف الثاني لفترة اختبار وفق قانون العمل القطري.</p>
+                                            <p><strong>الأجر:</strong> يستحق الطرف الثاني راتباً إجمالياً قدره <strong>QAR <t t-esc="'{:,.2f}'.format(total_salary or 0.0)"/></strong>.</p>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <p><strong>Appointment:</strong> The First Party appoints the Second Party as <strong><t t-esc="job_title or '-'"/></strong>, and the Second Party shall perform the duties and obligations of the position and any substantially similar duties.</p>
+                                            <p><strong>Term and Start:</strong> This Contract starts on <strong><t t-esc="start_date or '-'"/></strong>, for a duration of <strong><t t-esc="doc.bd_contract_duration or 'Indefinite'"/></strong>, and the Second Party is subject to a probation period under Qatari labor law.</p>
+                                            <p><strong>Salary:</strong> The Second Party is entitled to a total salary of <strong>QAR <t t-esc="'{:,.2f}'.format(total_salary or 0.0)"/></strong>.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table class="bd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Salary Item</th>
+                                            <th>Amount</th>
+                                            <th>Salary Item</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Basic Salary</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(basic_salary)"/></td>
+                                            <td>Housing Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(housing_allowance)"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Transportation Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(transportation_allowance)"/></td>
+                                            <td>Phone Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(phone_allowance)"/></td>
+                                        </tr>
+                                        <tr class="bd-total-row">
+                                            <td>Other Allowance</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(other_allowance)"/></td>
+                                            <td>Total Salary</td><td class="bd-number">QAR <t t-esc="'{:,.2f}'.format(total_salary or 0.0)"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Employment Conditions</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <th class="bd-ar" lang="ar" dir="rtl">الشروط</th>
+                                        <th class="bd-en" lang="en" dir="ltr">Conditions</th>
+                                    </tr>
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <ol class="bd-terms-list">
+                                                <li>يكون نفاذ العقد مشروطاً باستكمال إجراءات العمل والإقامة والفحص الطبي حسب القوانين المعمول بها.</li>
+                                                <li>يستحق الطرف الثاني إجازة سنوية مدفوعة الأجر مقدارها <t t-esc="doc.bd_annual_leave_days or 21"/> يوماً تقويمياً بعد إتمام سنة خدمة.</li>
+                                                <li>ساعات العمل 48 ساعة أسبوعياً بواقع 8 ساعات يومياً، وتكون 36 ساعة أسبوعياً خلال شهر رمضان.</li>
+                                                <li>يلتزم الطرف الثاني بأداء مهامه بأفضل صورة وباتباع تعليمات الطرف الأول وسياساته ولوائحه.</li>
+                                                <li>يلتزم الطرف الثاني باحترام العادات الثقافية والدينية والاجتماعية لدولة قطر وبالامتثال للقوانين المعمول بها.</li>
+                                                <li>يتحمل الطرف الأول تكاليف الإقامة والفحص الطبي والبطاقة الصحية وفق الأنظمة المعتمدة.</li>
+                                            </ol>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <ol class="bd-terms-list">
+                                                <li>The Contract is conditional upon completion of work, residence, and medical requirements under applicable laws.</li>
+                                                <li>The Second Party is entitled to paid annual leave of <t t-esc="doc.bd_annual_leave_days or 21"/> calendar days after one year of service.</li>
+                                                <li>Working hours are 48 hours per week, 8 hours per day, and 36 hours per week during Ramadan.</li>
+                                                <li>The Second Party shall perform duties in the best possible manner and comply with the First Party's instructions, policies, and regulations.</li>
+                                                <li>The Second Party shall respect the cultural, religious, and social customs of Qatar and comply with applicable laws.</li>
+                                                <li>The First Party shall bear residence, medical examination, and health card costs according to approved policies.</li>
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Confidentiality, Data &amp; Restrictions</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <ol class="bd-terms-list">
+                                                <li>لا يجوز للطرف الثاني استخدام أو إفشاء أي معلومات أو بيانات تتعلق بأعمال الطرف الأول أو عملائه إلا في حدود العمل.</li>
+                                                <li>تبقى التزامات السرية نافذة أثناء العمل وبعد انتهائه، ويحق للطرف الأول المطالبة بالتعويض عن أي إخلال.</li>
+                                                <li>يتعهد الطرف الثاني بعدم الارتباط بأي عمل آخر أو التعامل مع الغير بناءً على معلومات الطرف الأول دون موافقة كتابية.</li>
+                                                <li>يقر الطرف الثاني بصحة البيانات والمستندات المقدمة لأغراض التوظيف، وللطرف الأول إنهاء العقد فوراً إذا ثبت تزويرها.</li>
+                                                <li>عند انتهاء العقد، يسلم الطرف الثاني جميع المستندات والمواد والأجهزة والمعلومات التي تخص الطرف الأول.</li>
+                                            </ol>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <ol class="bd-terms-list">
+                                                <li>The Second Party shall not use or disclose any information or data relating to the First Party or its clients except within work duties.</li>
+                                                <li>Confidentiality obligations remain effective during and after employment, and the First Party may claim compensation for breach.</li>
+                                                <li>The Second Party shall not engage in other employment or dealings based on First Party information without written consent.</li>
+                                                <li>The Second Party certifies that employment data and documents are true, and the First Party may immediately terminate the Contract if forgery is discovered.</li>
+                                                <li>Upon termination, the Second Party shall deliver all documents, materials, equipment, and information belonging to the First Party.</li>
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bd-section">
+                            <div class="bd-section-header">Termination, Gratuity &amp; Governing Law</div>
+                            <div class="bd-section-body">
+                                <table class="bd-bilingual-table">
+                                    <tr>
+                                        <td class="bd-ar" lang="ar" dir="rtl">
+                                            <ol class="bd-terms-list">
+                                                <li>ينتهي العقد وفق الحالات المنصوص عليها في قانون العمل القطري، أو بانتهاء مدته إن وجدت، أو خلال فترة الاختبار، أو لسبب مشروع.</li>
+                                                <li>يجوز إنهاء العقد دون سبب بإخطار كتابي وفق مدد الإخطار المقررة قانوناً.</li>
+                                                <li>يستحق الطرف الثاني مكافأة نهاية الخدمة إذا أمضى سنة كاملة في العمل، وتحسب وفق القانون على أساس الأجر الأساسي الأخير.</li>
+                                                <li>يلتزم الطرف الثاني بعدم منافسة الطرف الأول أو التواصل مع عملائه لتقديم خدمات منافسة خلال العمل ولمدة سنة بعد انتهاء العقد وفق الحدود القانونية.</li>
+                                                <li>يخضع هذا العقد للقوانين القطرية، وتختص السلطات القضائية القطرية بأي نزاع ينشأ عن تنفيذه أو تفسيره.</li>
+                                                <li>حرر هذا العقد باللغتين العربية والإنجليزية، وفي حال التعارض يعتد بالنص العربي.</li>
+                                            </ol>
+                                        </td>
+                                        <td class="bd-en" lang="en" dir="ltr">
+                                            <ol class="bd-terms-list">
+                                                <li>The Contract expires in accordance with Qatari labor law, upon expiry of its term if any, during probation, or for lawful cause.</li>
+                                                <li>The Contract may be terminated without cause by written notice according to statutory notice periods.</li>
+                                                <li>The Second Party is entitled to end-of-service gratuity after one year of service, calculated under law based on the last basic wage.</li>
+                                                <li>The Second Party shall not compete with the First Party or contact its clients to provide competing services during employment and for one year after termination within legal limits.</li>
+                                                <li>This Contract is governed by Qatari laws, and Qatari judicial authorities shall have jurisdiction over disputes.</li>
+                                                <li>This Contract is prepared in Arabic and English. In case of discrepancy, the Arabic text shall prevail.</li>
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <t t-call="bd_pdf_builder.hr_applicant_signature_table"/>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <data>
+        <record id="action_hr_applicant_offer_letter_pdf" model="ir.actions.report">
+            <field name="name">Employee Offer Letter</field>
+            <field name="model">hr.applicant</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bd_pdf_builder.report_hr_applicant_offer_letter_pdf</field>
+            <field name="report_file">bd_pdf_builder.report_hr_applicant_offer_letter_pdf</field>
+            <field name="paperformat_id" ref="bd_pdf_builder.paperformat_bd_standard_pdf"/>
+            <field name="binding_model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'Offer Letter - %s' % (object.partner_name or object.id)</field>
+        </record>
+
+        <record id="action_hr_applicant_nda_pdf" model="ir.actions.report">
+            <field name="name">Employee NDA</field>
+            <field name="model">hr.applicant</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bd_pdf_builder.report_hr_applicant_nda_pdf</field>
+            <field name="report_file">bd_pdf_builder.report_hr_applicant_nda_pdf</field>
+            <field name="paperformat_id" ref="bd_pdf_builder.paperformat_bd_standard_pdf"/>
+            <field name="binding_model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'NDA - %s' % (object.partner_name or object.id)</field>
+        </record>
+
+        <record id="action_hr_applicant_employment_contract_pdf" model="ir.actions.report">
+            <field name="name">Employment Contract</field>
+            <field name="model">hr.applicant</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bd_pdf_builder.report_hr_applicant_employment_contract_pdf</field>
+            <field name="report_file">bd_pdf_builder.report_hr_applicant_employment_contract_pdf</field>
+            <field name="paperformat_id" ref="bd_pdf_builder.paperformat_bd_standard_pdf"/>
+            <field name="binding_model_id" ref="hr_recruitment.model_hr_applicant"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'Employment Contract - %s' % (object.partner_name or object.id)</field>
+        </record>
+    </data>
+</odoo>

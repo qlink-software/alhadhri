@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Qlink Backend Theme",
+    'name': "Qlink Alhadhri Theme 18",
     'author': "Qlink Software",
     'website': "http://www.qlinksoftware.com",
     'category': 'Themes/Backend',
@@ -13,21 +13,26 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'qlink_backend_theme_alhadhri/static/src/scss/primary_variables.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/sidebar_custom.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/logo.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/form_sheet.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/model_kanban.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/navbar_menu.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/buttons.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/search_panel.scss',
-            'qlink_backend_theme_alhadhri/static/src/js/web_navbar_appmenu/webNavbarAppMenu.js',
-            "qlink_backend_theme_alhadhri/static/src/xml/top_bar_templates.xml",
-
+            # 1. القوالب أولاً
+            'qlink_alhadhri_theme_18/static/src/xml/top_bar_templates.xml',
+            # 2. ملفات الـ SCSS
+            'qlink_alhadhri_theme_18/static/src/scss/dark_mode_design.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/primary_variables.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/layout_global.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/navbar_custom.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/search_panel.scss',
+            # 'qlink_alhadhri_theme_18/static/src/scss/control_panel.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/sidebar_custom.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/logo.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/buttons_and_status.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/form_view_legal.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/modals_and_kanban.scss',
+            # 3. ملفات الـ JS أخيراً
+            'qlink_alhadhri_theme_18/static/src/js/web_navbar_appmenu/webNavbarAppMenu.js',
         ],
         'web.assets_frontend': [
-            'qlink_backend_theme_alhadhri/static/src/scss/primary_variables.scss',
-            'qlink_backend_theme_alhadhri/static/src/scss/login_desgin.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/primary_variables.scss',
+            'qlink_alhadhri_theme_18/static/src/scss/login_desgin.scss',
         ]
     },
     'images': ['static/description/icon.jpg'],
