@@ -102,6 +102,12 @@ class QlkTask(models.Model):
         if missing:
             raise ValidationError(_("Required Hours must be strictly positive before saving or closing a task."))
 
+    def _sync_required_hours_vals(self, vals):
+        needs_required_hours = not self or any(task.required_hours <= 0 for task in self)
+        if vals.get("hours_spent") and not vals.get("required_hours") and needs_required_hours:
+            vals["required_hours"] = vals["hours_spent"]
+        return vals
+
     @api.constrains("receive_date", "delivery_date")
     def _check_receive_delivery_dates(self):
         for task in self:
@@ -110,6 +116,7 @@ class QlkTask(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [self._sync_required_hours_vals(dict(vals)) for vals in vals_list]
         records = super().create(vals_list)
         records._ensure_required_hours()
         in_progress = records.filtered(
@@ -123,6 +130,7 @@ class QlkTask(models.Model):
     def write(self, vals):
         old_users = {task.id: task.assigned_user_id for task in self}
         old_completion_states = {task.id: task.completion_state for task in self}
+        vals = self._sync_required_hours_vals(dict(vals))
         result = super().write(vals)
         self._ensure_required_hours()
         if "employee_id" in vals:

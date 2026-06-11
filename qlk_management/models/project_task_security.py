@@ -59,6 +59,22 @@ class ProjectTask(models.Model):
         for task in self:
             task.user_ids = [Command.set([task.user_id.id])] if task.user_id else [Command.clear()]
 
+    @api.model
+    def _normalize_assignee_vals(self, vals):
+        """Keep kanban/default single-assignee values aligned with Odoo 18 user_ids."""
+        if "user_ids" in vals or "user_id" not in vals:
+            return vals
+        vals["user_ids"] = [Command.set([vals["user_id"]])] if vals.get("user_id") else [Command.clear()]
+        return vals
+
+    @api.model
+    def default_get(self, fields_list):
+        vals = super().default_get(fields_list)
+        default_user_id = self.env.context.get("default_user_id")
+        if default_user_id and "user_ids" in fields_list and not vals.get("user_ids"):
+            vals["user_ids"] = [Command.set([default_user_id])]
+        return vals
+
     def init(self):
         # Existing databases may already contain project tasks before this required field exists.
         self.env.cr.execute("UPDATE project_task SET required_hours = 0 WHERE required_hours IS NULL")
@@ -74,7 +90,9 @@ class ProjectTask(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
         for vals in vals_list:
+            self._normalize_assignee_vals(vals)
             self._apply_legal_case_defaults(vals)
             self._ensure_allocated_hours_in_vals(vals)
             if vals.get("case_id") and not vals.get("user_ids"):
@@ -89,6 +107,7 @@ class ProjectTask(models.Model):
     def write(self, vals):
         old_assignees = {task.id: set(task.user_ids.ids) for task in self}
         vals = dict(vals)
+        self._normalize_assignee_vals(vals)
         if vals.get("case_id") and not vals.get("project_id"):
             self._apply_legal_case_defaults(vals)
         self._check_required_hours_before_closing(vals)

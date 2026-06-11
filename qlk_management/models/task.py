@@ -75,9 +75,11 @@ class Tasks(models.Model):
     @api.depends("work_hours")
     def _compute_work_hours_display(self):
         for rec in self:
-            hours = int(rec.work_hours)
-            minutes = int(round((rec.work_hours - hours) * 100))
-            rec.work_hours_display = f"{hours:02d}:{minutes:02d}"
+            total_seconds = int(round((rec.work_hours or 0.0) * 3600))
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            rec.work_hours_display = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
     # constraint for work_hours to check the mintes limit
@@ -85,9 +87,10 @@ class Tasks(models.Model):
     def _check_work_hours_limit(self):
         for res in self:
             if res.work_hours:
-                hours = int(res.work_hours)
-                minutes = int(round((res.work_hours - hours) * 100))
-                if minutes >= 60:
+                total_seconds = int(round((res.work_hours or 0.0) * 3600))
+                minutes = (total_seconds % 3600) // 60
+                seconds = total_seconds % 60
+                if minutes >= 60 or seconds >= 60:
                     raise ValidationError("Minutes cannot be 60 or more for ' %s 'task" %res.name)
                 
 
@@ -109,6 +112,15 @@ class Tasks(models.Model):
         if missing:
             raise ValidationError("Required Hours must be strictly positive before saving or closing a task")
 
+    def _sync_hour_vals(self, vals):
+        needs_required_hours = not self or any(record.required_hours <= 0 for record in self)
+        needs_work_hours = not self or any(record.work_hours <= 0 for record in self)
+        if vals.get("work_hours") and not vals.get("required_hours") and needs_required_hours:
+            vals["required_hours"] = vals["work_hours"]
+        if vals.get("required_hours") and not vals.get("work_hours") and needs_work_hours:
+            vals["work_hours"] = vals["required_hours"]
+        return vals
+
     @api.constrains("receive_date", "delivery_date")
     def _check_receive_delivery_dates(self):
         for record in self:
@@ -117,6 +129,7 @@ class Tasks(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [self._sync_hour_vals(dict(vals)) for vals in vals_list]
         records = super().create(vals_list)
         records._ensure_required_hours()
         records._send_assignment_email()
@@ -125,6 +138,7 @@ class Tasks(models.Model):
     def write(self, vals):
         old_users = {record.id: record.user_id for record in self}
         old_states = {record.id: record.state for record in self}
+        vals = self._sync_hour_vals(dict(vals))
         result = super().write(vals)
         self._ensure_required_hours()
         if "user_id" in vals:

@@ -35,8 +35,7 @@
                         <field name="receive_date"/>
                     </group>
                     <group>
-                        <field name="allocated_hours" required="1" widget="float_time" options="{'displaySeconds': True}"/>
-                        <field name="user_ids" string="Assigned User" widget="many2many_avatar_user" readonly="1"/>
+                        <field name="allocated_hours" required="1" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/>
                     </group>
                 </group>
             </xpath>
@@ -65,7 +64,7 @@
                 <field name="qlk_project_id" optional="hide"/>
                 <field name="case_id" optional="show"/>
                 <field name="receive_date" optional="show"/>
-                <field name="allocated_hours" optional="show" widget="float_time" sum="Allocated Time"/>
+                <field name="allocated_hours" optional="show" widget="qlk_float_time_hms" options="{'displaySeconds': True}" sum="Allocated Time"/>
             </xpath>
         </field>
     </record>
@@ -85,7 +84,7 @@
                 <div class="qlk_task_meta mt-2">
                     <span><i class="fa fa-user-o me-1" title="Assigned User"/> <field name="user_ids" widget="many2many_tags"/></span>
                     <span><i class="fa fa-inbox me-1" title="Receive Date"/> <field name="receive_date" widget="datetime"/></span>
-                    <span class="qlk_task_hours"><i class="fa fa-clock-o me-1" title="Allocated Time"/> <field name="allocated_hours" widget="float_time"/></span>
+                    <span class="qlk_task_hours"><i class="fa fa-clock-o me-1" title="Allocated Time"/> <field name="allocated_hours" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/></span>
                     <span t-attf-class="badge rounded-pill qlk_task_badge qlk_task_badge_#{record.state.raw_value or '01_in_progress'}">
                         <i class="fa fa-tasks me-1" title="Status"/> <field name="state"/>
                     </span>

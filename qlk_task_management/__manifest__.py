@@ -13,6 +13,7 @@ provides approval workflows, and surfaces hour summaries in related records.
     "category": "Services",
     "license": "OPL-1",
     "depends": [
+        "web",
         "mail",
         "hr",
         "qlk_security_base",
@@ -28,6 +29,11 @@ provides approval workflows, and surfaces hour summaries in related records.
         "views/hr_employee_views.xml",
         "views/task_menu.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "qlk_task_management/static/src/js/float_time_hms_field.js",
+        ],
+    },
     "installable": True,
     "application": False,
 }

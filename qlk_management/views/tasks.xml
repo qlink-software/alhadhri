@@ -34,10 +34,10 @@
                         <group string="Schedule &amp; Hours / المواعيد والساعات">
                             <field name="receive_date"/>
                             <field name="delivery_date"/>
-                            <field name="required_hours" required="1" widget="float_time" options="{'displaySeconds': True}"/>
+                            <field name="required_hours" required="1" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/>
                             <field name="start_date" />
                             <field name="end_date" />
-                            <field name="work_hours" />
+                            <field name="work_hours" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/>
                             <field name="work_hours_display" />
                             <field name="completed_by" readonly="1"/>
                             <field name="completed_date" readonly="1"/>
@@ -81,7 +81,7 @@
                 <field name="end_date" />
                 <field name="receive_date" />
                 <field name="delivery_date" />
-                <field name="required_hours" widget="float_time" />
+                <field name="required_hours" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/>
                 <field name="priority" 
                     decoration-danger="priority == 'high'"
                     decoration-warning="priority == 'medium'"
@@ -89,7 +89,7 @@
                     />
                 <field name="sub_project_id"/>
                 <field name="attachment_ids" />
-                <field name="work_hours" />
+                <field name="work_hours" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/>
                 <!-- <field name="work_hours_display" /> -->
             </list>
         </field>
@@ -116,7 +116,7 @@
                             <div class="qlk_task_meta mt-3">
                                 <span><i class="fa fa-inbox me-1"/> <field name="receive_date" widget="datetime"/></span>
                                 <span><i class="fa fa-paper-plane-o me-1"/> <field name="delivery_date" widget="datetime"/></span>
-                                <span class="qlk_task_hours"><i class="fa fa-clock-o me-1"/> <field name="required_hours" widget="float_time"/></span>
+                                <span class="qlk_task_hours"><i class="fa fa-clock-o me-1"/> <field name="required_hours" widget="qlk_float_time_hms" options="{'displaySeconds': True}"/></span>
                             </div>
                             <div class="text-muted mt-3"><i class="fa fa-user-o me-1"/> <field name="user_id"/></div>
                     </t>
