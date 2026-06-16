@@ -1,6 +1,6 @@
 /* =========================================================
-   🏛️ QLAWPRO 2026 - MASTER CRYSTAL UI (REFACTOR V2)
-   Theme: Modern Glassmorphism & Enterprise Prestige
+   🏛️ QLAWPRO 2026 - MASTER CRYSTAL UI (REFACTOR V2.5)
+   Theme: Docked Integrated Sidebar, Fluid Scroll & Bold Logo
    Author: Qlink Tech Style
    ========================================================= */
 
@@ -8,315 +8,274 @@
 $brand-primary: #0d266b;
 $brand-dark: #001e69;
 $brand-accent: #009ecc;
-$glass-bg: rgba(3, 26, 87, 0.82); // Deeper premium blue with high alpha for readability
+$glass-bg: rgba(3, 26, 87, 0.85); 
 $glass-border: rgba(255, 255, 255, 0.08);
-$accent-color: #5b99ef;
-$sidebar-width: 300px;            // Optimized from 350px to give content breathing room
-$sidebar-collapsed-width: 65px;   // Wide enough to cleanly center utility icons
-$transition-speed: 0.35s;
+$sidebar-width: 300px; // عرض عريض فخم يعطي مساحة سيادية للشعار والخطوط            
+$transition-speed: 0.35s; 
 $ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-$nav-gradient: linear-gradient(135deg, rgba(3, 26, 87, 0.95) 0%, rgba(4, 34, 115, 0.95) 100%);
+$nav-gradient: linear-gradient(135deg, rgba(3, 26, 87, 1) 0%, rgba(4, 34, 115, 1) 100%);
 
-// 2. BASE SIDEBAR PANEL
-#sidebar_panel {
-    position: fixed;
-    height: calc(100vh - 20px);
-    top: 10px; // Floating aesthetic away from screen edges
-    // left: 10px !important;
-    width: $sidebar-width;
-    padding: 15px 10px;
-    z-index: 1050;
-    transition: all #{$transition-speed} $ease-out-expo;
-    
-    // Premium Glassmorphism Specs
-    background: $nav-gradient !important;
-    backdrop-filter: blur(25px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
-    border: 1px solid $glass-border !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
-    border-radius: 16px; // Soft modern corners
+// زر الهمبرغر (☰) في الـ Navbar العلوي
+.o_modern_sidebar_toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 19px;
+    padding: 0 18px;
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.25s ease;
+    height: 100%;
+    &:hover { color: $brand-accent; }
+}
 
-    // 3. THE HANDLE (Floating Hex Dynamic Pill)
-    .sidebar_handle {
-        position: absolute;
-        right: -5px; 
-        top: 30px;
-        width: 24px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        background: #fff;
-        border: 1px solid rgba(0, 158, 204, 0.3);
-        border-radius: 50%;
-        z-index: 1100;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        transition: all 0.3s $ease-out-expo;
+// 2. INTEGRATED SIDEBAR PANEL (اللوحة الحاضنة الرئيسية)
+#sidebar_panel {
+    position: fixed !important;
+    height: 100vh !important; 
+    max-height: 100vh !important;
+    top: 0 !important; 
+    left: 0 !important; 
+    width: $sidebar-width !important;
+    z-index: 1050 !important; // ليكون فوق كافة عناصر أودو الخلفية
+    transition: transform #{$transition-speed} $ease-out-expo, opacity #{$transition-speed} ease;
+    transform: translateX(0);
+    
+    background: $nav-gradient !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 0px !important; 
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.25) !important;
+    
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important; // منع اللوحة الأم من عمل سكرول مضاعف
+    opacity: 1;
 
-        i {
-            color: $brand-primary;
-            font-size: 11px;
-            transition: transform 0.3s ease;
-        }
+    // 3. THE BRANDING LOGO AREA (تحرير الشعار من قيود أودو المخفية)
+    .sidebar_logo {
+        width: 100% !important;
+        height: 130px !important; // رفع الارتفاع لمنع اختناق صورة الشعار
+        min-height: 330px !important; 
+        padding: 25px 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        flex-shrink: 0 !important; // منع الانكماش نهائياً
+        background: rgba(0, 0, 0, 0.04) !important;
+        margin: 0 !important; // تصفير أي هوامش موروثة خاطئة
 
-        &:hover {
-            background: $brand-accent;
-            transform: scale(1.15);
-            i { color: #fff; }
+        .logo_img {
+            display: block !important;
+            width: 100% !important;
+            max-width: 240px !important; // حجم ضخم، صريح، وواضح في الديسكتوب
+            height: auto !important;
+            max-height: 585px !important; // إعطاء دقة بكسل كاملة للشعار ليظهر فخامته
+            object-fit: contain !important;
+            filter: drop-shadow(0px 4px 12px rgba(0, 158, 204, 0.3)) !important;
+            animation: logo-glow 4s infinite ease-in-out;
+            will-change: transform, filter;
+            transition: all 0.3s ease;
+            opacity: 0.95;
+            margin: 0 auto !important; // تم تصفير الهوامش الرأسية الكبيرة التي تضغطه
+
+            &:hover {
+                transform: scale(1.02);
+                opacity: 1;
+            }
         }
     }
 
-    // 4. MENU ITEMS & HOVER EFFECTS
+    // 4. MENU CONTAINER (حل مشكلة عدم ظهور العناصر والتجمد نهائياً)
     .sidebar {
-        height: 100%;
-        overflow-y: auto;
-        padding-top: 20px;
-        scrollbar-width: none;
-        &::-webkit-scrollbar { display: none; }
+        width: 100% !important;
+        // حساب الارتفاع الصافي المتبقي في الواجهة بدقة لمنع خروج العناصر عن الشاشة
+        height: calc(100vh - 130px) !important; 
+        max-height: calc(100vh - 130px) !important;
+        overflow-y: auto !important; // تفعيل السكرول قسرياً هنا فقط
+        overflow-x: hidden !important;
+        padding: 15px 12px 50px 12px !important; // 50px في الأسفل لتأمين ظهور آخر عنصر مفتوح
+        flex-grow: 1 !important;
+        
+        // إجبار محرك المتصفح على تفعيل السكرول بار الرشيق
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin !important; // إظهار سكرول بار نحيف جداً وأنيق لضمان واجهة مستخدم واضحة
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 
-        .sidebar_menu > li {
-            margin-bottom: 6px;
-            list-style: none;
-            position: relative;
+        &::-webkit-scrollbar {
+            width: 4px !important; // سكرول بار مايكرو غير مزعج بصرياً
+        }
+        &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-radius: 4px;
+        }
 
-            > a {
-                color: rgba(255, 255, 255, 0.75) !important;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 12px 16px !important;
-                margin: 0 6px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                text-decoration: none;
-                transition: all 0.25s ease;
+        // عناصر القائمة الرئيسية داخل أودو
+        .sidebar_menu {
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+            
+            > li {
+                margin-bottom: 6px !important;
+                list-style: none !important;
+                position: relative !important;
+                display: block !important;
 
-                i {
-                    font-size: 16px;
-                    width: 20px;
-                    text-align: center;
-                    opacity: 0.8;
-                }
-
-                &:hover {
-                    background: rgba(255, 255, 255, 0.08) !important;
-                    color: #fff !important;
-                    transform: translateX(4px);
-                    
-                    i { opacity: 1; color: $brand-accent; }
-                }
-            }
-
-            // Active State Treatment
-            &.active, &:has(.sidebar_sub_menu li.active) {
                 > a {
-                    background: rgba(0, 158, 204, 0.15) !important;
-                    color: #fff !important;
-                    font-weight: 600;
-                    border: 1px solid rgba(0, 158, 204, 0.4) !important;
-                    
-                    i {
-                        color: $brand-accent !important;
-                        opacity: 1;
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    font-size: 15px !important; // خط كبير، واضح ومقروء للقانونيين
+                    font-weight: 500 !important;
+                    padding: 12px 16px !important; 
+                    border-radius: 8px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                    text-decoration: none !important;
+                    transition: all 0.2s ease;
+
+                    .sidebar-label {
+                        font-size: 15px !important;
+                        letter-spacing: 0.3px;
                     }
 
-                    // Replaced intrusive glow with elegant micro-indicator
-                    &::before {
-                        content: '';
-                        position: absolute;
-                        left: 0;
-                        top: 25%;
-                        height: 50%;
-                        width: 4px;
-                        background: $brand-accent;
-                        border-radius: 0 4px 4px 0;
+                    &:hover {
+                        background: rgba(255, 255, 255, 0.07) !important;
+                        color: #fff !important;
+                        transform: translateX(4px);
+                    }
+                }
+
+                // Active State
+                &.active, &:has(.sidebar_sub_menu li.active) {
+                    > a {
+                        background: rgba(0, 158, 204, 0.18) !important;
+                        color: #fff !important;
+                        font-weight: 600 !important;
+                        border: 1px solid rgba(0, 158, 204, 0.35) !important;
+                        
+                        &::before {
+                            content: '';
+                            position: absolute;
+                            left: 4px;
+                            top: 25%;
+                            height: 50%;
+                            width: 3px;
+                            background: $brand-accent;
+                            border-radius: 2px;
+                        }
                     }
                 }
             }
         }
     }
 
-    // 5. FIXED "GHOST" / COLLAPSED UTILITY STRIP MODE
+    // وضعية الاختفاء الكامل
     &.collapsed {
-        width: $sidebar-collapsed-width !important;
-        
-        // Dynamic rotate handle icon when collapsed
-        .sidebar_handle i {
-            transform: rotate(180deg);
-        }
-
-        .sidebar_logo, .sidebar-label, span:not(.sidebar-icon), .sidebar_sub_menu {
-            display: none !important;
-        }
-
-        .sidebar_menu > li {
-            display: none !important; // FIX: Keeps links rendering instead of wiping them out
-
-            > a {
-                width: 45px !important;
-                height: 45px !important;
-                padding: 0 !important;
-                margin: 4px auto !important;
-                justify-content: center;
-                border-radius: 10px;
-                background: transparent !important;
-
-                i {
-                    margin: 0 !important;
-                    font-size: 16px;
-                }
-
-                &:hover {
-                    background: rgba(255, 255, 255, 0.08) !important;
-                    transform: scale(1.05);
-                }
-            }
-            
-            &.active > a {
-                background: rgba(0, 158, 204, 0.2) !important;
-                border: 1px solid rgba(0, 158, 204, 0.4) !important;
-                
-                &::before { display: none; }
-            }
-        }
+        transform: translateX(-100%) !important; 
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 }
 
-// 6. SUB-MENU STYLING
+// 5. SUB-MENU STYLING (إصلاح انهيار القوائم الكبيرة جداً مثل الإعدادات)
 .sidebar_sub_menu {
-    background: rgba(0, 0, 0, 0.15) !important;
-    margin: 4px 10px 4px 38px !important;
-    border-radius: 8px;
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    overflow: hidden;
+    background: rgba(0, 0, 0, 0.18) !important;
+    margin: 4px 0 4px 20px !important;
+    border-radius: 6px !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
+    overflow: hidden !important;
     max-height: 0;
     opacity: 0;
-    transition: all 0.3s ease-in-out;
+    padding: 0 !important;
+    transition: max-height 0.3s ease-in-out, opacity 0.25s ease-in-out;
 
     &.open {
-        max-height: 500px;
-        opacity: 1;
-        padding: 6px 0;
+        max-height: 1500px !important; // رفع الرقم لـ 1500px ليستوعب قائمة الإعدادات الطويلة جداً الظاهرة بالفيديو
+        opacity: 1 !important;
+        padding: 6px 0 !important;
     }
 
     li {
-        list-style: none;
+        list-style: none !important;
+        display: block !important;
+        
         a {
-            padding: 8px 16px !important;
-            font-size: 13px !important;
-            color: rgba(255, 255, 255, 0.6) !important;
-            display: block;
-            text-decoration: none;
-            transition: all 0.2s;
+            padding: 9px 16px !important; 
+            font-size: 14px !important; // تكبير خط العناوين الداخلية
+            color: rgba(255, 255, 255, 0.7) !important;
+            display: block !important;
+            text-decoration: none !important;
+            transition: all 0.15s;
             
             &:hover {
                 color: #fff !important;
                 padding-left: 20px !important;
+                background: rgba(255, 255, 255, 0.03) !important;
             }
         }
         &.active > a {
             color: $brand-accent !important;
-            font-weight: 600;
+            font-weight: 600 !important;
         }
     }
 }
 
-// 7. RESPONSIVE LAYOUT MANAGER (DESKTOP)
-@media (min-width: 769px) {
-    // Elegant frame spacing adjustments for Odoo core content wrapper
-    .sidebar-active {
+// 6. DYNAMIC LAYOUT INTEGRATION
+.sidebar-collapsed {
+    margin-left: 0px !important;
+    width: 100% !important;
+    transition: all #{$transition-speed} $ease-out-expo;
+}
+
+.sidebar-active {
+    @media (min-width: 769px) {
         margin-left: $sidebar-width !important;
-        width: calc(100% - (#{$sidebar-width} )) !important;
-        transition: all #{$transition-speed} $ease-out-expo;
+        width: calc(100% - #{$sidebar-width}) !important;
     }
-
-    .sidebar-collapsed {
-        margin-left: 70px !important;
-        width: calc(100% - 70px) !important;
-        transition: all #{$transition-speed} $ease-out-expo;
+    @media (max-width: 768px) {
+        margin-left: 0px !important;
+        width: 100% !important;
     }
- 
+    transition: all #{$transition-speed} $ease-out-expo;
 }
 
-// =========================================================
-// 8. MOBILE OPTIMIZATION OVERHAUL (FORCED DOM VISIBILITY)
-// =========================================================
+.o_main_navbar, .o_control_panel, .o_action_manager {
+    transition: margin-left #{$transition-speed} $ease-out-expo, width #{$transition-speed} $ease-out-expo !important;
+}
+
+/* 7. RESPONSIVE MOBILE OVERRIDES */
 @media (max-width: 768px) {
-    // Elegant frame spacing adjustments for Odoo core content wrapper
-    .sidebar-active {
-        margin-left: 270px !important;
-        width: calc(100% - 270px ) !important;
-        transition: all #{$transition-speed} $ease-out-expo;
-   
-    }
-
-    .sidebar-collapsed {
-        margin-left: 40px !important;
-        width: calc(100% - 40px) !important;
-        transition: all #{$transition-speed} $ease-out-expo;
-      
-    }
-    // 1. Force Odoo content to look beautiful and use 100% viewport scale on mobile
-    .o_main_navbar{
-        width: 100% ! important;
-        margin-left: 0 !important;
-        transition: filter 0.3s $ease-out-expo, brightness 0.3s $ease-out-expo !important;
-    }
-    
-
-    // 2. Base state for the hidden mobile slide-out drawer
     #sidebar_panel {
-        position: fixed !important;
-        top: 0 !important;
-        // left: -290px !important; /* Safely parks the sidebar completely out of viewport sight */
-        width: 270px !important;
-        height: 100vh !important;
-        margin: 0 !important;   /* Strip desktop floating gaps for flawless edge alignment */
-        border-radius: 0 20px 20px 0 !important;
-        box-shadow: none !important;
+        width: 280px !important;
         
-        // CRITICAL FIXES: Force visibility overrides against framework engine suppression
-        display: block !important;    
-        visibility: visible !important; 
-        opacity: 1 !important;        
-        z-index: 99999 !important; /* Forces panel on top of all native Odoo mobile elements */
-        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        // 5. FIXED "GHOST" / COLLAPSED UTILITY STRIP MODE
-        &.collapsed {
-            width: 40px !important;
+        .sidebar_logo {
+            height: 110px !important;
+            min-height: 110px !important;
+            padding: 20px 15px !important;
             
-            // Dynamic rotate handle icon when collapsed
-            .sidebar_handle i {
-                transform: rotate(180deg);
-            }
-
-            .sidebar_logo, .sidebar-label, span:not(.sidebar-icon), .sidebar_sub_menu {
-                display: none !important;
-            }
-
-            .sidebar_menu > li {
-                display: none !important; // FIX: Keeps links rendering instead of wiping them out
-
+            .logo_img {
+                max-width: 180px !important;
+                max-height: 70px !important;
             }
         }
-       
+        
+        .sidebar {
+            height: calc(100vh - 110px) !important;
+            max-height: calc(100vh - 110px) !important;
+        }
     }
+    body:has(#sidebar_panel.open) {
+        .o_action_manager, .o_control_panel {
+            filter: brightness(0.6);
+            pointer-events: none;
+        }
+    }
+}
 
-   
-    // 4. PURE CSS LUXURY BLUR BACKGROUND
-    // Automatically applies the blur if the sidebar element contains the class .open
-    body:has(.o_action_manager.sidebar-active) {
-        .o_main_navbar, 
-        .o_action_manager, 
-        .o_content, 
-        .o_control_panel {
-            
-            display: none;
-            // filter: blur(5px) brightness(0.75) !important;
-            // pointer-events: none !important; /* Prevents clicks through the background while open */
-        }}
+@keyframes logo-glow {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0px 4px 12px rgba(0, 158, 204, 0.3)); }
+    50% { transform: scale(1.02); filter: drop-shadow(0px 6px 20px rgba(0, 158, 204, 0.5)); }
 }

@@ -1320,8 +1320,12 @@ class QlkClientFile(models.Model):
         engagement = approved_engagements.filtered(lambda item: not item.project_id)[:1] or approved_engagements[:1]
         if not engagement:
             raise UserError(_("No client-approved engagement letter was found for this client file."))
-        existing_project = self.env["qlk.project"].search(
-            [("engagement_letter_id", "=", engagement.id), ("client_file_id", "=", self.id)],
+        existing_project = self.env["qlk.project"].with_context(active_test=False).search(
+            [
+                ("engagement_letter_id", "=", engagement.id),
+                ("client_file_id", "=", self.id),
+                ("service_category", "=", self.service_profile_type),
+            ],
             limit=1,
         )
         if existing_project:
@@ -1332,6 +1336,7 @@ class QlkClientFile(models.Model):
                 "res_id": existing_project.id,
                 "view_mode": "form",
                 "target": "current",
+                "context": {"active_test": False},
             }
         project_vals = self._prepare_project_vals_from_engagement(engagement)
         project = self.env["qlk.project"].with_context(

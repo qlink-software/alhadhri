@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.fields import Command
 
 PROJECT_TYPE_SELECTION = [
     ("cm", "CM"),
@@ -163,6 +164,15 @@ class ProjectProject(models.Model):
     translation_requested = fields.Boolean(string="Translation Notified", default=False, copy=False)
     lawyer_assigned = fields.Boolean(string="Lawyer Confirmed", default=False, copy=False)
     is_mp_user = fields.Boolean(compute="_compute_user_permissions", string="Is Current MP")
+    authorized_user_ids = fields.Many2many(
+        "res.users",
+        "project_project_authorized_user_rel",
+        "project_id",
+        "user_id",
+        string="Authorized Users",
+        help="Users allowed to access this project and its tasks.",
+        tracking=True,
+    )
 
     def _build_service_code(self, client_code, service_type):
         if not client_code or not service_type:
@@ -294,6 +304,7 @@ class ProjectProject(models.Model):
                 client_code = vals.get("client_code") or client._get_client_code()
                 vals["service_code"] = self._build_service_code(client_code, vals["service_type"])
         projects = super().create(vals_list)
+        projects._ensure_project_manager_authorized()
         projects._handle_translation_notifications()
         projects._copy_partner_attachments()
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
@@ -352,6 +363,8 @@ class ProjectProject(models.Model):
                 project._check_lawyer_assignment_rights(new_value)
         previous_states = {project.id: project.mini_state for project in self}
         res = super().write(vals)
+        if "user_id" in vals:
+            self._ensure_project_manager_authorized()
         if not self.env.context.get("skip_translation_notification"):
             self._handle_translation_notifications()
         done_records = self.filtered(
@@ -364,6 +377,16 @@ class ProjectProject(models.Model):
         # NOTE: Hours enforcement temporarily disabled; keep for future re-enable.
         # self._check_hours_logged()
         return res
+
+    def _ensure_project_manager_authorized(self):
+        for project in self.sudo():
+            manager = project.user_id
+            if manager and manager not in project.authorized_user_ids:
+                project.with_context(
+                    mail_notrack=True,
+                    skip_translation_notification=True,
+                ).write({"authorized_user_ids": [Command.link(manager.id)]})
+        return True
 
     def _get_service_type_from_engagement(self, engagement):
         service_type = engagement.service_type or engagement.retainer_type or engagement.engagement_type or "corporate"

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_core_cleanup_qlk" model="ir.ui.view">
+        <field name="name">hr.employee.form.core.cleanup.qlk</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <!-- Hide core HR work-permit/visa fields. -->
+            <xpath expr="//separator[@name='has_work_permit']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='permit_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_expire']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='work_permit_expiration_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='work_permit_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='has_work_permit']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide core HR approval/family fields. -->
+            <xpath expr="//group[@name='managers']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='emergency']/separator[following-sibling::field[@name='marital']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='marital']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='spouse_complete_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='spouse_birthdate']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='children']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_hide_qatar_tabs_qlk" model="ir.ui.view">
+        <field name="name">hr.employee.form.hide.qatar.tabs.qlk</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_qatar.view_hr_employee_form_inherit_qatar_profile"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <!-- Hide licenses tab added by HR Qatar. -->
+            <xpath expr="//page[.//field[@name='driving_license_number']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide HR Qatar visa tab and all visa fields. -->
+            <xpath expr="//page[.//field[@name='visa_number']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_number']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_issue_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_expiry_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='visa_destination']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide residence permit fields. -->
+            <xpath expr="//field[@name='residence_permit_issue_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='residence_permit_number']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='residence_permit_expiry_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide HR Qatar family insurance data. -->
+            <xpath expr="//group[field[@name='family_insurance'] and field[@name='family_members_count'] and field[@name='family_insurance_expiry']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='family_insurance']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='family_members_count']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='family_insurance_expiry']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_hide_task_approval_fields_qlk" model="ir.ui.view">
+        <field name="name">hr.employee.form.hide.task.approval.fields.qlk</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="qlk_task_management.view_hr_employee_form_task_inherit"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='approval_state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='approval_comment']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_form_hide_resignation_approval_fields_qlk" model="ir.ui.view">
+        <field name="name">hr.employee.form.hide.resignation.approval.fields.qlk</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="qlk_management.view_employee_form_resignation_tracking"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='approval_state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='approval_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_tree_hide_residence_permit_qlk" model="ir.ui.view">
+        <field name="name">hr.employee.tree.hide.residence.permit.qlk</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_qatar.view_hr_employee_tree_inherit_qatar"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='residence_permit_expiry_date']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -90,6 +90,12 @@
                             <field name="lawyer_id" domain="[('user_id.partner_id.is_lawyer', '=', True)]"/>
                     </group>
                 </page>
+                <page string="Access Control">
+                    <group>
+                        <field name="authorized_user_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <label for="authorized_user_ids" string="Users allowed to access this project and its tasks."/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

@@ -2,6 +2,7 @@
 from datetime import timedelta
 
 from odoo import _, api, fields, models
+from odoo.osv import expression
 from odoo.tools.misc import format_date
 
 
@@ -52,6 +53,70 @@ class LawyerDashboardExtension(models.AbstractModel):
     def _action_payload(self, xml_id):
         action = self.env.ref(xml_id, raise_if_not_found=False)
         return {"id": action.id} if action else False
+
+    @api.model
+    def _assigned_project_domain(self, service_category, employee):
+        user = self.env.user
+        service_domain = expression.OR(
+            [
+                [("service_category", "=", service_category)],
+                [("service_type", "=", service_category)],
+            ]
+        )
+        assignment_domains = [
+            [("lawyer_id.user_id", "=", user.id)],
+            [("responsible_user_ids", "in", [user.id])],
+        ]
+        if employee:
+            assignment_domains.append([("lawyer_id", "=", employee.id)])
+        return expression.AND(
+            [
+                [("active", "=", True)],
+                service_domain,
+                expression.OR(assignment_domains),
+            ]
+        )
+
+    @api.model
+    def _get_project_matter_card(self, key, title, service_category, icon, action_xmlid, employee):
+        project_model = self.env["qlk.project"]
+        action = self._action_payload(action_xmlid)
+        if not action or not project_model.check_access_rights("read", raise_exception=False):
+            return False
+        domain = self._assigned_project_domain(service_category, employee)
+        return {
+            "key": key,
+            "title": title,
+            "count": project_model.search_count(domain),
+            "action": action,
+            "domain": domain,
+            "icon": icon,
+        }
+
+    @api.model
+    def _append_project_matter_cards(self, data, employee):
+        cards = data.setdefault("kpi_cards", [])
+        existing_keys = {card.get("key") for card in cards}
+        matter_cards = [
+            self._get_project_matter_card(
+                "corporate_matters",
+                _("Corporate Matters"),
+                "corporate",
+                "fa-briefcase",
+                "qlk_law_dashboard.action_law_dashboard_corporate_matters",
+                employee,
+            ),
+            self._get_project_matter_card(
+                "arbitration_matters",
+                _("Arbitration Matters"),
+                "arbitration",
+                "fa-gavel",
+                "qlk_law_dashboard.action_law_dashboard_arbitration_matters",
+                employee,
+            ),
+        ]
+        cards.extend(card for card in matter_cards if card and card["key"] not in existing_keys)
+        return data
 
     @api.model
     def _get_working_hours_payload(self, employee):
@@ -303,6 +368,7 @@ class LawyerDashboardExtension(models.AbstractModel):
         user = self.env.user
         employee = self._get_current_employee()
         lang = user.lang or self.env.context.get("lang")
+        self._append_project_matter_cards(data, employee)
 
         working_hours = self._get_working_hours_payload(employee)
         leave_requests = self._get_leave_requests_payload(employee)

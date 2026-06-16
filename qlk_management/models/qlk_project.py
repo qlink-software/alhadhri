@@ -606,7 +606,7 @@ class QlkProject(models.Model):
                     existing_domain.append(("client_file_id", "=", vals["client_file_id"]))
                 if vals.get("service_type"):
                     existing_domain.append(("service_category", "=", self._service_category(vals["service_type"])))
-                existing = self.search(existing_domain, limit=1)
+                existing = self.sudo().with_context(active_test=False).search(existing_domain, limit=1)
                 if existing:
                     raise ValidationError(_("A project already exists for this engagement letter and service profile."))
             vals.setdefault("planned_hours", vals.get("agreed_hours") or 0.0)

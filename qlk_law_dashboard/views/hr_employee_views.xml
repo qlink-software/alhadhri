@@ -5,10 +5,12 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet" position="inside">
-                <group string="Performance">
-                    <field name="monthly_hours_target"/>
-                </group>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="hr_dashboard" string="HR Dashboard" groups="hr.group_hr_user">
+                    <group string="Monthly Target Hours">
+                        <field name="monthly_hours_target"/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

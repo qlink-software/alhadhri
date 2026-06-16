@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="qlink_backend_theme_alhadhri.LanguageSwitcher">
+        <div class="o_language_switcher_systray dropdown px-3 d-flex align-items-center">
+            <a class="dropdown-toggle d-flex align-items-center text-reset text-decoration-none" 
+               href="#" 
+               role="button" 
+               data-bs-toggle="dropdown" 
+               aria-expanded="false" 
+               title="Change Language">
+                <i class="fa fa-language fs-4 text-white"/>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" style="min-width: 280px; z-index: 2000;">
+                <li>
+                    <h6 class="dropdown-header fw-bold text-secondary">Select Language</h6>
+                </li>
+                <li><hr class="dropdown-divider"/></li>
+                
+                <t t-if="state.installedLanguages.length === 0">
+                    <li><span class="dropdown-item-text text-muted small">Loading...</span></li>
+                </t>
+                
+                <t t-foreach="state.installedLanguages" t-as="lang" t-key="lang.code">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center justify-content-between py-2 qlk-lang-btn"
+                           href="#"
+                           t-att-class="this.currentUserLang === lang.code ? 'active fw-bold bg-primary text-white' : ''"
+                           t-on-click.prevent="() => this.switchLanguage(lang.code)">
+                            <span><t t-out="lang.name"/></span>
+                            <span class="text-muted small ms-2" t-att-class="this.currentUserLang === lang.code ? 'text-white-50' : ''">
+                                <t t-out="lang.code"/>
+                            </span>
+                        </a>
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </t>
+</templates>
+

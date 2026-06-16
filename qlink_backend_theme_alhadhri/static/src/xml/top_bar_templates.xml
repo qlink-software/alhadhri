@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
-    <!--customize the navbar menu to have sidebar menu -->
     <t t-inherit="web.NavBar" t-inherit-mode="extension" owl="1"> 
         <xpath expr="//nav[hasclass('o_main_navbar')]" position="replace">
-            <!-- navbar top menu -->
-            <nav class="o_main_navbar d-flex justify-content-between sidebar-movable"
+            <nav class="o_main_navbar d-flex justify-content-between sidebar-movable align-items-center"
                  t-ref="o_main_navbar"
                  t-on-dropdown-item-selected="onNavBarDropdownItemSelection"
                  data-command-category="navbar">
+
+                <button class="o_modern_sidebar_toggle backend_theme_burger_btn" t-on-click="toggleSidebar" aria-label="Toggle Sidebar">
+                    <i class="fa fa-bars"/>
+                </button>
 
                 <DropdownItem
                     t-if="!env.isSmall and currentApp"
@@ -17,8 +19,9 @@
                     attrs="{ href: getMenuItemHref(currentApp), 'data-menu-xmlid': currentApp.xmlid, 'data-section': currentApp.id }"
                 />
                 <div class="o_navbar_breadcrumbs d-contents"/>
-                <!-- systray menu beside the navbar menu -->
-                <div class="o_menu_systray d-flex flex-shrink-0 ms-auto" role="menu">
+                
+                <div class="o_menu_systray d-flex flex-shrink-0 ms-auto align-items-center" role="menu">
+                    <LanguageSwitcher/>
                     <t t-name="qlawpro.DarkModeToggle">
                         <div class="o_dark_mode_toggle nav-item d-flex align-items-center justify-content-center px-2" 
                             t-on-click="toggleDarkMode" 
@@ -45,59 +48,44 @@
                     </t>
                 </div> 
             </nav>
+
             <div t-attf-class="sidebar_panel" id="sidebar_panel">
-                <!-- The Creative Toggle Handle -->
-                <div class="sidebar_handle" t-on-click="toggleSidebar">
-                    <div class="handle_line"></div>
-                    <i t-attf-class="fa #{state.isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}"></i>
-                </div>
-                <!--  -->
+                <!-- <div class="sidebar_handle close_drawer_btn" t-on-click="toggleSidebar" title="إغلاق القائمة">
+                    <i class="fa fa-times"></i>
+                </div> -->
+
                 <div class="sidebar">
-                    <!-- the system logo -->
                     <div class="sidebar_logo">
-                        <img t-if="state.isDark" src="/qlink_alhadhri_theme_18/static/description/alhadri-logo.png" class="logo_img"/>
-                        <img t-else="" src="/qlink_alhadhri_theme_18/static/description/alhadri-logo.png" class="logo_img"/>
+                        <img t-if="state.isDark" src="/qlink_backend_theme_alhadhri/static/description/alhadri-logo.png" class="logo_img"/>
+                        <img t-else="" src="/qlink_backend_theme_alhadhri/static/description/alhadri-logo.png" class="logo_img"/>
                     </div>
-                    <!-- dropdown menus -->
+
                     <ul class="sidebar_menu" t-ref="sidebarLinks">
                         <t t-foreach="menuService.getApps()" t-as="app" t-key="app_index">
                             <li data-toggle="tooltip" data-placement="right"
                                 t-att-title="app.name"
                                 t-att-data-app-id="app.id"
                                 t-att-class="{'active': currentApp and currentApp.id === app.id}"
-                                t-att-data-menu-xmlid="app.xmlid" t-att-data-action-id="app.actionID"
-                                t-on-click="(ev) => (this.state.isCollapsed || this.state.isMobileOpen) ? this.handleAppLiClick(app, ev) : null"> 
+                                t-att-data-menu-xmlid="app.xmlid" t-att-data-action-id="app.actionID"> 
+                                
                                 <a role="menuitem"
-                                    t-att-href="getMenuHref(app)"
-                                    t-on-click="(ev) => this.handleAppClick(app, ev)"
-                                    class="d-flex align-items-center text-decoration-none">
+                                   t-att-href="getMenuHref(app)"
+                                   t-on-click="(ev) => this.handleAppClick(app, ev)"
+                                   class="d-flex align-items-center text-decoration-none">
                                     <span class="sidebar-label"><t t-esc="app.name"/></span>
                                 </a>
-                                                                    <!-- <a role="menuitem"
-                                    t-att-href="getMenuItemHref(app)"
-                                    t-on-click="(ev) => this.handleAppClick(app, ev)"
-                                    class="d-flex align-items-center text-decoration-none">
 
-                                    <div class="nav-icon-container">
-                                        <img t-if="app.webIconData"
-                                            class="o_app_icon sidebar-icon"
-                                            t-attf-src="{{app.webIconData}}"/>
-                                    </div>
-                                    <span><t t-esc="app.name"/></span>
-                                </a> -->
-                                <!-- to get the submenu for any app -->
                                 <ul class="sidebar_sub_menu list-unstyled" style="cursor:pointer;">
                                     <t t-set="sections" t-value="menuService.getMenuAsTree(app.id).childrenTree" />
                                     <t t-foreach="sections" t-as="section" t-key="section.id">
-                                        <!-- if the child has childern  -->
                                         <t t-if="section.childrenTree.length">
                                             <li class="sidebar_has_children" t-att-data-menu-xmlid="section.xmlid">
                                                 <a role="menuitem"
-                                                t-att-href="getMenuHref(section)"
-                                                t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
-                                                class="d-flex align-items-center text-decoration-none dropdown-toggle-custom bg-transparent o_menu_toggle"
-                                                t-att-data-menu-xmlid="section.xmlid">
-                                                <t t-esc="section.name"/>
+                                                   t-att-href="getMenuHref(section)"
+                                                   t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
+                                                   class="d-flex align-items-center text-decoration-none dropdown-toggle-custom bg-transparent o_menu_toggle"
+                                                   t-att-data-menu-xmlid="section.xmlid">
+                                                    <t t-esc="section.name"/>
                                                 </a>
                                                 
                                                 <ul class="list-unstyled sidebar_sub_menu nested_menu">
@@ -110,7 +98,6 @@
                                                 </ul>
                                             </li>
                                         </t>
-                                        <!-- if the child has action (no childern) -->
                                         <t t-else="">
                                             <ul class="ps-0"> 
                                                 <t t-call="web.SectionMenu">
@@ -118,7 +105,6 @@
                                                 </t>
                                             </ul>
                                         </t>
-                                        
                                     </t>
                                 </ul>
                             </li>
@@ -126,44 +112,42 @@
                     </ul>
                 </div>
             </div>
-            <!-- <div class="sidebar-backdrop" t-on-click="toggleSidebar"></div> -->
         </xpath>
     </t>
-    <!-- inherit the "web.SectionMenu" to handel the grandchildren -->
-   <t t-inherit="web.SectionMenu" t-inherit-mode="extension" owl="1">
-    <xpath expr="//li[1]" position="replace">
-        <t t-if="section.childrenTree.length">
-            <li class="sidebar_has_children" t-att-data-menu-xmlid="section.xmlid">
-                <a role="menuitem"
-                   t-att-href="getMenuHref(section)"
-                   t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
-                   class="d-flex align-items-center text-decoration-none dropdown-toggle-custom bg-transparent o_menu_toggle"
-                   t-att-data-menu-xmlid="section.xmlid">
-                   <t t-esc="section.name"/>
-                </a>
-                
-                <ul class="list-unstyled sidebar_sub_menu nested_menu">
-                    <t t-foreach="section.childrenTree" t-as="subSection" t-key="subSection.id">
-                        <t t-call="web.SectionMenu">
-                            <t t-set="section" t-value="subSection"/>
-                            <t t-set="isNested" t-value="true"/>
+
+    <t t-inherit="web.SectionMenu" t-inherit-mode="extension" owl="1">
+        <xpath expr="//li[1]" position="replace">
+            <t t-if="section.childrenTree.length">
+                <li class="sidebar_has_children" t-att-data-menu-xmlid="section.xmlid">
+                    <a role="menuitem"
+                       t-att-href="getMenuHref(section)"
+                       t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
+                       class="d-flex align-items-center text-decoration-none dropdown-toggle-custom bg-transparent o_menu_toggle"
+                       t-att-data-menu-xmlid="section.xmlid">
+                       <t t-esc="section.name"/>
+                    </a>
+                    
+                    <ul class="list-unstyled sidebar_sub_menu nested_menu">
+                        <t t-foreach="section.childrenTree" t-as="subSection" t-key="subSection.id">
+                            <t t-call="web.SectionMenu">
+                                <t t-set="section" t-value="subSection"/>
+                                <t t-set="isNested" t-value="true"/>
+                            </t>
                         </t>
-                    </t>
-                </ul>
-            </li>
-        </t>
+                    </ul>
+                </li>
+            </t>
 
-        <t t-elif="!section.childrenTree.length">
-            <li t-att-data-menu-xmlid="section.xmlid" class="sidebar_menu_item">
-                <a role="menuitem"
-                   t-att-href="getMenuHref(section)"
-                   t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
-                   class="d-flex align-items-center text-decoration-none shadow-none">
-                    <t t-esc="section.name"/>
-                </a>
-            </li>
-        </t>
-    </xpath>
-</t>
-
+            <t t-elif="!section.childrenTree.length">
+                <li t-att-data-menu-xmlid="section.xmlid" class="sidebar_menu_item">
+                    <a role="menuitem"
+                       t-att-href="getMenuHref(section)"
+                       t-on-click.prevent="(ev) => this.handleAppClick(section, ev)"
+                       class="d-flex align-items-center text-decoration-none shadow-none">
+                        <t t-esc="section.name"/>
+                    </a>
+                </li>
+            </t>
+        </xpath>
+    </t>
 </templates>

@@ -24,6 +24,7 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "security/record_rules.xml",
+        "views/lawyer_dashboard_actions.xml",
         "views/hr_employee_views.xml",
         "views/qlk_court_dashboard_menu_inherit.xml",
     ],

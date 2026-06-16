@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.0.11',
+    'version': '18.0.1.0.12',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """
@@ -31,6 +31,7 @@
         'hr_attendance',
         'hr_holidays',
         'hr_payroll_community',
+        'hr_qatar',
         'hr_recruitment',
         'project',
         'hr_timesheet',
@@ -58,6 +59,7 @@
         'security/ir.model.access.csv',
         'security/project_security.xml',
         'security/strict_record_rules.xml',
+        'security/project_task_restricted_rules.xml',
         # 'security/managment_security.xml',
         'data/sequence.xml',
         'data/client_file_data.xml',
@@ -111,6 +113,7 @@
         'views/employee_document_views.xml',
         'views/hr_resignation_request_views.xml',
         'views/hr_employee_view.xml',
+        'views/hr_employee_ui_cleanup_views.xml',
         'views/hr_biometric_views.xml',
         'views/project_task_views.xml',
         'views/sub_project.xml',

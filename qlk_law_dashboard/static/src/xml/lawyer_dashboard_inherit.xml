@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-inherit="qlk_law_qlink_dashboard.Dashboard" t-inherit-mode="extension">
+        <xpath expr="//button[contains(@class, 'qlk-kpi-card')]" position="attributes">
+            <attribute name="t-att-class">'qlk-card qlk-kpi-card qlk-kpi-card--' + (card.key || '')</attribute>
+        </xpath>
+
         <xpath expr="//section[@class='qlk-dashboard__section'][last()]" position="after">
             <t t-set="workingHours" t-value="state.data and state.data.working_hours or {}"/>
             <t t-set="hrAlerts" t-value="state.data and state.data.hr_requests_alerts or {}"/>
