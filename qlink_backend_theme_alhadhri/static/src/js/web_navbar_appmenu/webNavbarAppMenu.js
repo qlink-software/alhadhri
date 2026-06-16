@@ -162,8 +162,8 @@ patch(NavBar.prototype, {
                 await this.menuService.selectMenu(menu);
 
                 // إغلاق تلقائي عند اختيار تطبيق مباشر (مثل Discussion) لتوفير مساحة
-                this.state.isCollapsed = true;
-                this.applySidebarLayout();
+                // this.state.isCollapsed = true;
+                // this.applySidebarLayout();
             }
             
             if (!menu.actionID) return;
@@ -178,8 +178,8 @@ patch(NavBar.prototype, {
             await this.menuService.selectMenu(menu);
     
             // إغلاق السايدبار الفاخر تلقائياً بعد اختيار الشاشة المطلوبة لراحة العين
-            this.state.isCollapsed = true;
-            this.applySidebarLayout();
+            // this.state.isCollapsed = true;
+            // this.applySidebarLayout();
         }
     },
 
@@ -232,8 +232,6 @@ patch(NavBar.prototype, {
     async onNavBarDropdownItemSelection(menu) {
         if (menu) {
             await this.menuService.selectMenu(menu);
-            this.state.isCollapsed = true;
-            this.applySidebarLayout();
         }
     },
 });
