@@ -57,14 +57,14 @@ access_qlk_hr_resignation_reject_wizard_user,qlk.hr.resignation.reject.wizard us
 access_crm_lead_bd_team,crm.lead bd team,crm.model_crm_lead,qlk_management.group_bd_user,1,1,1,0
 access_qlk_case_lawyer,qlk.case lawyer,qlk_law.model_qlk_case,qlk_management.group_pre_litigation_user,1,1,1,0
 access_qlk_case_manager,qlk.case manager,qlk_law.model_qlk_case,qlk_management.group_pre_litigation_manager,1,1,1,1
-access_project_task_lawyer,project.task lawyer,project.model_project_task,qlk_task_management.group_task_user,1,1,1,0
-access_project_task_manager,project.task manager,project.model_project_task,qlk_task_management.group_task_manager,1,1,1,1
-access_project_task_restricted_user,project.task restricted user,project.model_project_task,qlk_management.group_project_restricted_user,1,1,1,0
+access_project_task_lawyer,project.task user,project.model_project_task,qlk_management.group_project_user,1,1,1,0
+access_project_task_manager,project.task manager,project.model_project_task,qlk_management.group_project_manager,1,1,1,1
+access_project_task_restricted_user,project.task user extra,project.model_project_task,qlk_management.group_project_user,1,1,1,0
 access_qlk_task_lawyer_role,qlk.task lawyer role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_user,1,1,1,0
 access_qlk_task_manager_role,qlk.task manager role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_manager,1,1,1,1
-access_project_project_restricted_user,project.project restricted user,project.model_project_project,qlk_management.group_project_restricted_user,1,1,1,0
-access_project_project_bd_manager,project.project bd manager,project.model_project_project,qlk_management.group_bd_manager,1,1,1,0
-access_project_project_el_manager,project.project engagement manager,project.model_project_project,qlk_management.group_el_manager,1,1,1,0
+access_project_project_restricted_user,project.project user,project.model_project_project,qlk_management.group_project_user,1,0,0,0
+access_project_project_bd_manager,project.project manager extra,project.model_project_project,qlk_management.group_project_manager,1,1,1,1
+access_project_project_el_manager,project.project manager legacy extra,project.model_project_project,qlk_management.group_project_manager,1,1,1,1
 access_qlk_case_bd_manager,qlk.case bd manager,qlk_law.model_qlk_case,qlk_management.group_bd_manager,1,1,1,0
 access_qlk_case_el_manager,qlk.case engagement manager,qlk_law.model_qlk_case,qlk_management.group_el_manager,1,1,1,0
 access_qlk_corporate_case_bd_manager,qlk.corporate.case bd manager,qlk_corporate.model_qlk_corporate_case,qlk_management.group_bd_manager,1,1,1,0

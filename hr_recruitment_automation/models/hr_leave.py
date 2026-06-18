@@ -54,14 +54,14 @@ class HrLeave(models.Model):
                 if previous_hajj_count:
                     raise ValidationError(_("Hajj leave can only be taken once per employee."))
 
-    def action_approve(self):
-        res = super().action_approve()
+    def action_approve(self, check_state=True):
+        res = super().action_approve(check_state)
         # يتم فحص السياسة بعد الانتقال للحالة النهائية، وأي خطأ سيؤدي إلى rollback كامل.
         self.filtered(lambda leave: leave.state == "validate")._check_custom_leave_policies()
         return res
 
-    def action_validate(self):
-        res = super().action_validate()
+    def action_validate(self, check_state=True):
+        res = super().action_validate(check_state)
         # فحص إضافي لمسارات الاعتماد الثنائية.
         self.filtered(lambda leave: leave.state == "validate")._check_custom_leave_policies()
         return res
