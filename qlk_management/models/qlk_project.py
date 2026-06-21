@@ -663,7 +663,10 @@ class QlkProject(models.Model):
         if not self.id:
             raise UserError(_("Cannot create service without project."))
         self._ensure_poa_ready()
-        if not self._allows_legal_service(service_type):
+        service_allowed = self._allows_legal_service(service_type)
+        if service_type == "pre_litigation" and self._allows_legal_service("litigation"):
+            service_allowed = True
+        if not service_allowed:
             raise UserError(_("This project service type does not allow this service record."))
         if service_type == "litigation" and not self.litigation_degree_ids:
             raise UserError(_("Select at least one litigation degree before creating a litigation case."))
@@ -797,6 +800,27 @@ class QlkProject(models.Model):
             }
         )
         return self._open_record("qlk.pre.litigation", record, _("Pre-Litigation"))
+
+    def action_create_police_report(self):
+        self._ensure_service_creation("litigation")
+        self.ensure_one()
+        if "qlk.police.complaint" not in self.env:
+            raise UserError(_("The Police Reports module is not installed."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Create Police Report"),
+            "res_model": "qlk.police.complaint",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_project_id": self.id,
+                "default_project_number": self.service_code,
+                "default_client_id": self.client_id.id,
+                "default_employee_id": self.lawyer_id.id,
+                "default_employee_ids": self.lawyer_id.ids,
+                "default_notice_complaint": "complaint",
+            },
+        }
 
     def _open_record(self, model_name, record, title):
         return {

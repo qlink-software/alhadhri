@@ -84,7 +84,7 @@ LEGAL_MANAGER_GROUPS = (
 LEVEL_XMLID_CODES = {
     "qlk_management.litigation_level_first_instance": "F",
     "qlk_management.litigation_level_appeal": "A",
-    "qlk_management.litigation_level_cassation": "CA",
+    "qlk_management.litigation_level_cassation": "C",
     "qlk_management.litigation_level_enforcement": "E",
 }
 

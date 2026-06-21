@@ -40,6 +40,6 @@
               name="Litigation Degrees"
               parent="qlk_management.menu_management_root"
               action="qlk_management.action_litigation_level"
-              groups="qlk_management.group_pre_litigation_manager"
+              groups="base.group_user"
               sequence="999"/>
 </odoo>

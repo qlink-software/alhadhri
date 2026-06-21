@@ -15,6 +15,7 @@ from . import hr_resignation_request
 from . import biometric_integration
 from . import hr_automation
 from . import project_project
+from . import police_complaint
 from . import project_task_security
 from . import ir_attachment
 from . import ir_model

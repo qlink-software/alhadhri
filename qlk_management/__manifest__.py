@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.0.12',
+    'version': '18.0.1.0.14',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """
@@ -39,6 +39,7 @@
         'report_xlsx',
         'qlk_security_base',
         'qlk_law',
+        'qlk_law_police',
         'qlk_council_template',
         'qlk_task_management',
         'qlk_corporate',

@@ -54,7 +54,13 @@
                             string="Create Pre-litigation"
                             class="btn-primary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
-                            invisible="not has_pre_litigation_service"/>
+                            invisible="not has_litigation_service and not has_pre_litigation_service"/>
+                    <button name="action_create_police_report"
+                            type="object"
+                            string="Create Police Report"
+                            class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager"
+                            invisible="not has_litigation_service"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,active,on_hold,done,cancelled"/>
                 </header>
                 <sheet>
@@ -341,6 +347,19 @@
             </xpath>
             <xpath expr="//field[@name='service_code']" position="after">
                 <field name="case_hours" readonly="1" widget="float_time"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_qlk_police_complaint_form_inherit_project" model="ir.ui.view">
+        <field name="name">qlk.police.complaint.form.project</field>
+        <field name="model">qlk.police.complaint</field>
+        <field name="inherit_id" ref="qlk_law_police.view_qlk_police_complaint_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_number']" position="after">
+                <field name="project_id"/>
+                <field name="client_file_id" readonly="1"/>
+                <field name="engagement_id" readonly="1"/>
             </xpath>
         </field>
     </record>

@@ -27,9 +27,9 @@ access_bd_proposal_legal_fee_manager,bd.proposal.legal.fee manager,model_bd_prop
 access_qlk_task_hours_wizard_user,qlk.task.hours.wizard user,model_qlk_task_hours_wizard,,1,1,1,1
 access_lawyer_cost_calculation_user,lawyer.cost.calculation user,model_lawyer_cost_calculation,,1,1,1,1
 access_litigation_level_user,litigation.level user,model_litigation_level,base.group_user,1,0,0,0
-access_litigation_level_manager,litigation.level manager,model_litigation_level,qlk_management.group_pre_litigation_manager,1,1,1,1
+access_litigation_level_manager,litigation.level system administrator,model_litigation_level,base.group_system,1,1,1,1
 access_qlk_litigation_degree_user,qlk.litigation.degree user,model_qlk_litigation_degree,base.group_user,1,0,0,0
-access_qlk_litigation_degree_manager,qlk.litigation.degree manager,model_qlk_litigation_degree,qlk_management.group_pre_litigation_manager,1,1,1,1
+access_qlk_litigation_degree_manager,qlk.litigation.degree system administrator,model_qlk_litigation_degree,base.group_system,1,1,1,1
 access_pre_litigation_user,qlk.pre.litigation user,model_qlk_pre_litigation,qlk_management.group_pre_litigation_user,1,1,1,0
 access_pre_litigation_manager,qlk.pre.litigation manager,model_qlk_pre_litigation,qlk_management.group_pre_litigation_manager,1,1,1,1
 access_pre_litigation_translation_user,qlk.pre.litigation.translation user,model_qlk_pre_litigation_translation,base.group_user,1,1,1,1

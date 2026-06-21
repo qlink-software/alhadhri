@@ -296,9 +296,12 @@ class PreLitigation(models.Model):
             if not record.project_id:
                 raise ValidationError(_("Pre-litigation records must be created from a project."))
             allowed = (
-                record.project_id._allows_legal_service("pre_litigation")
+                (
+                    record.project_id._allows_legal_service("pre_litigation")
+                    or record.project_id._allows_legal_service("litigation")
+                )
                 if hasattr(record.project_id, "_allows_legal_service")
-                else record.project_id.service_type == "pre_litigation"
+                else record.project_id.service_type in ("litigation", "pre_litigation")
             )
             if not allowed:
                 raise ValidationError(_("This project does not allow pre-litigation records."))

@@ -251,9 +251,10 @@ class QlkLegalNumberingEngine(models.AbstractModel):
                 sequence += 1
         if reserved_sequences is not None:
             reserved.add(sequence)
-        code = "%s/%s" % (project.service_code, sequence)
         if category == "litigation":
-            code = "%s/%s" % (code, self._record_degree_code(vals, record=record))
+            code = "%s/%s" % (project.service_code, self._record_degree_code(vals, record=record))
+        else:
+            code = "%s/%s" % (project.service_code, sequence)
         vals.update(
             {
                 "service_category": category,

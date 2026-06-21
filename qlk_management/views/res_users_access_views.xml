@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Access Control" name="qlk_access_control" groups="base.group_system">
-                    <group string="Existing Operational Groups">
+                <page string="Access Summary" name="qlk_access_control" groups="base.group_system">
+                    <group string="Assigned Alhadhri Groups">
                         <field name="qlk_access_group_ids" widget="many2many_tags" readonly="1" nolabel="1"/>
                     </group>
                 </page>

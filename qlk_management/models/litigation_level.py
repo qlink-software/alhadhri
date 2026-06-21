@@ -64,3 +64,16 @@ class QlkLitigationDegree(models.Model):
     )
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
+
+    def init(self):
+        super().init()
+        self.env.cr.execute("SELECT to_regclass('qlk_litigation_degree')")
+        if not self.env.cr.fetchone()[0]:
+            return
+        self.env.cr.execute(
+            """
+            UPDATE qlk_litigation_degree
+               SET code = 'C'
+             WHERE code = 'CA'
+            """
+        )
