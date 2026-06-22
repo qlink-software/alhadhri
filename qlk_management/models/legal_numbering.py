@@ -185,6 +185,24 @@ class QlkLegalNumberingEngine(models.AbstractModel):
         category = self._service_category(project._primary_service_code())
         client_code = self._generate_client_legal_code(project.client_file_id, category)
         company = project.company_id or project.client_file_id.company_id or self.env.company
+        code_field = LEGAL_CLIENT_CODE_FIELDS[category][0]
+        duplicate_file = self.env["qlk.client.file"].sudo().with_context(active_test=False).search(
+            [
+                ("id", "!=", project.client_file_id.id),
+                ("company_id", "=", company.id),
+                ("service_profile_type", "=", category),
+                (code_field, "=", client_code),
+            ],
+            limit=1,
+        )
+        if duplicate_file:
+            raise ValidationError(
+                _(
+                    "Client code %(code)s is assigned to more than one Client File. "
+                    "Project numbering cannot continue without creating duplicate Service Codes."
+                )
+                % {"code": client_code}
+            )
         self._lock("project", company.id, project.client_file_id.id, category)
         domain = [
             ("client_file_id", "=", project.client_file_id.id),
@@ -198,19 +216,28 @@ class QlkLegalNumberingEngine(models.AbstractModel):
             domain,
             parser=self._parse_project_sequence,
         )
-        code = "%s/%s" % (client_code, sequence)
-        while self.env["qlk.project"].sudo().with_context(active_test=False).search_count(
+        degree_code = False
+        if category == "litigation":
+            degree = project.litigation_degree_ids.sorted("sequence")[:1]
+            degree_code = degree.code if degree else "F"
+        code = "%s/%s%s" % (
+            client_code,
+            sequence,
+            "/%s" % degree_code if degree_code else "",
+        )
+        if self.env["qlk.project"].sudo().with_context(active_test=False).search_count(
             [("company_id", "=", company.id), ("service_code", "=", code), ("id", "!=", project.id)]
         ):
-            sequence += 1
-            code = "%s/%s" % (client_code, sequence)
+            raise ValidationError(
+                _("Service Code %(code)s already exists. Check the Client File code and project records.")
+                % {"code": code}
+            )
         return {
             "service_category": category,
             "client_legal_code": client_code,
             "project_sequence": sequence,
             "project_code": code,
             "service_code": code,
-            "name": code,
         }
 
     @api.model
@@ -252,7 +279,13 @@ class QlkLegalNumberingEngine(models.AbstractModel):
         if reserved_sequences is not None:
             reserved.add(sequence)
         if category == "litigation":
-            code = "%s/%s" % (project.service_code, self._record_degree_code(vals, record=record))
+            degree_code = self._record_degree_code(vals, record=record)
+            project_parts = (project.service_code or "").split("/")
+            if len(project_parts) >= 3 and project_parts[-1] in {"F", "A", "C", "E"}:
+                project_parts[-1] = degree_code
+                code = "/".join(project_parts)
+            else:
+                code = "%s/%s" % (project.service_code, degree_code)
         else:
             code = "%s/%s" % (project.service_code, sequence)
         vals.update(
@@ -315,9 +348,13 @@ class QlkLegalNumberingEngine(models.AbstractModel):
                     "project_sequence": project_sequence,
                     "project_code": project.project_code or code,
                 }
-                project.with_context(mail_notrack=True).write(
-                    {key: value for key, value in updates.items() if key in project._fields and value}
-                )
+                changed_values = {
+                    key: value
+                    for key, value in updates.items()
+                    if key in project._fields and value and project[key] != value
+                }
+                if changed_values:
+                    project.with_context(mail_notrack=True).write(changed_values)
 
         self._backfill_model_record_codes("qlk.case", "litigation")
         self._backfill_model_record_codes("qlk.corporate.case", "corporate")

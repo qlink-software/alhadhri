@@ -16,6 +16,60 @@
             <t t-set="warningAlert" t-value="state.data and state.data.warning_alert"/>
             <t t-set="myProjectTasks" t-value="state.data and state.data.my_project_tasks or {}"/>
             <t t-set="myProjectTaskItems" t-value="myProjectTasks.items or []"/>
+            <t t-set="myNotifications" t-value="state.data and state.data.my_notifications or {}"/>
+            <t t-set="notificationCards" t-value="myNotifications.cards or []"/>
+            <t t-set="notificationItems" t-value="myNotifications.items or []"/>
+
+            <section class="qlk-dashboard__section qlk-dashboard__section--notifications">
+                <div class="section-header">
+                    <div>
+                        <h2 t-esc="labels.my_notifications_title" translate="yes"/>
+                        <p t-esc="labels.my_notifications_subtitle" translate="yes"/>
+                        <span class="item__badge badge--danger">
+                            <t t-esc="labels.unread_notifications" translate="yes"/>
+                            (<t t-esc="formatCount(myNotifications.unread_count || 0)"/>)
+                        </span>
+                    </div>
+                    <button t-if="myNotifications.action"
+                            type="button"
+                            class="qlk-link"
+                            t-on-click="() => this.openAction(myNotifications.action, myNotifications.domain || [])">
+                        <span t-esc="labels.view_more" translate="yes"/>
+                    </button>
+                </div>
+
+                <div class="qlk-notification-cards">
+                    <button t-foreach="notificationCards"
+                            t-as="card"
+                            t-key="card.key"
+                            type="button"
+                            class="qlk-card qlk-notification-card"
+                            t-on-click="() => this.openAction(card.action, card.domain || [])">
+                        <span t-esc="card.label"/>
+                        <strong t-esc="formatCount(card.count || 0)"/>
+                        <small t-esc="labels.view_more" translate="yes"/>
+                    </button>
+                </div>
+
+                <article class="qlk-card qlk-notification-history">
+                    <t t-if="notificationItems.length">
+                        <t t-foreach="notificationItems" t-as="item" t-key="item.id">
+                            <button type="button"
+                                    t-att-class="'qlk-notification-row ' + (item.state === 'unread' ? 'is-unread' : '')"
+                                    t-on-click="() => this.openLawyerNotification(item)">
+                                <div>
+                                    <strong t-esc="item.title"/>
+                                    <span t-esc="item.type"/>
+                                </div>
+                                <small t-esc="item.date"/>
+                            </button>
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <div class="qlk-empty" t-esc="labels.no_notifications" translate="yes"/>
+                    </t>
+                </article>
+            </section>
 
             <section class="qlk-dashboard__section qlk-dashboard__section--warning"
                      t-if="warningAlert">

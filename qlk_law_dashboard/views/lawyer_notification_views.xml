@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_qlk_lawyer_notification_list" model="ir.ui.view">
+        <field name="name">qlk.lawyer.notification.list</field>
+        <field name="model">qlk.lawyer.notification</field>
+        <field name="arch" type="xml">
+            <list string="My Notifications" create="false" delete="false"
+                  decoration-info="state == 'unread'">
+                <field name="notification_date"/>
+                <field name="notification_type"/>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="case_id"/>
+                <field name="email_sent"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'unread'"
+                       decoration-success="state == 'read'"/>
+                <button name="action_open_target" type="object" string="Open" class="btn-primary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_qlk_lawyer_notification_form" model="ir.ui.view">
+        <field name="name">qlk.lawyer.notification.form</field>
+        <field name="model">qlk.lawyer.notification</field>
+        <field name="arch" type="xml">
+            <form string="Notification" create="false" delete="false">
+                <header>
+                    <button name="action_open_target" type="object" string="Open Related Record"
+                            class="btn-primary"/>
+                    <button name="action_mark_read" type="object" string="Mark Read"
+                            invisible="state == 'read'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="unread,read"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="notification_date"/>
+                            <field name="notification_type"/>
+                            <field name="user_id"/>
+                            <field name="assigned_by_id"/>
+                        </group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="case_id"/>
+                            <field name="email_sent"/>
+                            <field name="email_address"/>
+                        </group>
+                    </group>
+                    <field name="message" readonly="1"/>
+                    <group invisible="not email_error">
+                        <field name="email_error" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_qlk_lawyer_notification_search" model="ir.ui.view">
+        <field name="name">qlk.lawyer.notification.search</field>
+        <field name="model">qlk.lawyer.notification</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="project_id"/>
+                <field name="case_id"/>
+                <filter name="unread" string="Unread" domain="[('state', '=', 'unread')]"/>
+                <filter name="read" string="Read" domain="[('state', '=', 'read')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'notification_type'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'notification_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_my_lawyer_notifications" model="ir.actions.act_window">
+        <field name="name">My Notifications</field>
+        <field name="res_model">qlk.lawyer.notification</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_qlk_lawyer_notification_search"/>
+    </record>
+
+    <menuitem id="menu_my_lawyer_notifications"
+              name="My Notifications"
+              parent="qlk_law_qlink_dashboard.menu_lawyer_dashboard_root"
+              action="action_my_lawyer_notifications"
+              groups="qlk_law_dashboard.group_qlk_law_dashboard_user,qlk_law.group_qlk_law_lawyer"
+              sequence="10"/>
+
+    <record id="view_qlk_notification_delivery_log_list" model="ir.ui.view">
+        <field name="name">qlk.notification.delivery.log.list</field>
+        <field name="model">qlk.notification.delivery.log</field>
+        <field name="arch" type="xml">
+            <list string="Notification Delivery Log" create="false" edit="false" delete="false">
+                <field name="delivery_date"/>
+                <field name="user_id"/>
+                <field name="email"/>
+                <field name="notification_id"/>
+                <field name="error"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_notification_delivery_log" model="ir.actions.act_window">
+        <field name="name">Notification Delivery Log</field>
+        <field name="res_model">qlk.notification.delivery.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_notification_delivery_log"
+              name="Notification Delivery Log"
+              parent="qlk_law_qlink_dashboard.menu_lawyer_dashboard_root"
+              action="action_notification_delivery_log"
+              groups="qlk_law_dashboard.group_qlk_law_dashboard_manager"
+              sequence="20"/>
+</odoo>

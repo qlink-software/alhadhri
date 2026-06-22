@@ -7,9 +7,9 @@ msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-15 00:00+0000\n"
-"PO-Revision-Date: 2026-06-15 00:00+0000\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2026-06-22 14:55+0300\n"
+"Last-Translator: Al Hadhri Odoo Team\n"
+"Language-Team: Arabic\n"
 "Language: ar_001\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,3 +39,648 @@ msgstr "لا توجد مسائل شركات."
 #: model_terms:ir.actions.act_window,help:qlk_law_dashboard.action_law_dashboard_arbitration_matters
 msgid "No arbitration matters found."
 msgstr "لا توجد مسائل تحكيم."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid ""
+"\n"
+"                <p>Dear Lawyer,</p>\n"
+"                <p>A hearing has been assigned to you.</p>\n"
+"                <p><b>Hearing:</b> %(hearing)s<br/>\n"
+"                <b>Date:</b> %(date)s<br/>\n"
+"                <b>Case:</b> %(case)s<br/>\n"
+"                <b>Client:</b> %(client)s</p>\n"
+"                <p>Please review the hearing details.</p>\n"
+"                <p>Regards,<br/>Al Hadhri &amp; Partners</p>\n"
+"                "
+msgstr ""
+"\n"
+"                <p>عزيزي المحامي,</p>\n"
+"                <p>تم إسناد جلسة إليك.</p>\n"
+"                <p><b>الجلسة:</b> %(hearing)s<br/>\n"
+"                <b>التاريخ:</b> %(date)s<br/>\n"
+"                <b>Case:</b> %(case)s<br/>\n"
+"                <b>العميل:</b> %(client)s</p>\n"
+"                <p>يرجى مراجعة تفاصيل الجلسة.</p>\n"
+"                <p>مع التحية,<br/>الحاضري وشركاؤه</p>\n"
+"                "
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid ""
+"\n"
+"                <p>Dear Lawyer,</p>\n"
+"                <p>A new case has been created and assigned to you.</p>\n"
+"                <p><b>Case Number:</b> %(case_number)s<br/>\n"
+"                <b>Project:</b> %(project)s<br/>\n"
+"                <b>Client:</b> %(client)s<br/>\n"
+"                <b>Case Type:</b> %(case_type)s<br/>\n"
+"                <b>Degree:</b> %(degree)s</p>\n"
+"                <p>Please review the case immediately.</p>\n"
+"                <p>Regards,<br/>Al Hadhri &amp; Partners</p>\n"
+"                "
+msgstr ""
+"\n"
+"                <p>عزيزي المحامي,</p>\n"
+"                <p>تم إنشاء قضية جديدة وإسنادها إليك.</p>\n"
+"                <p><b>رقم القضية:</b> %(case_number)s<br/>\n"
+"                <b>المشروع:</b> %(project)s<br/>\n"
+"                <b>العميل:</b> %(client)s<br/>\n"
+"                <b>نوع القضية:</b> %(case_type)s<br/>\n"
+"                <b>الدرجة:</b> %(degree)s</p>\n"
+"                <p>يرجى مراجعة القضية فورًا.</p>\n"
+"                <p>مع التحية,<br/>الحاضري وشركاؤه</p>\n"
+"                "
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid ""
+"\n"
+"                <p>Dear Lawyer,</p>\n"
+"                <p>A new project has been assigned to you.</p>\n"
+"                <p><b>Service Code:</b> %(code)s<br/>\n"
+"                <b>Client:</b> %(client)s<br/>\n"
+"                <b>Project:</b> %(project)s<br/>\n"
+"                <b>Project Type:</b> %(project_type)s<br/>\n"
+"                <b>Assigned By:</b> %(assigned_by)s<br/>\n"
+"                <b>Date:</b> %(date)s</p>\n"
+"                <p>Please review and start working on the project.</p>\n"
+"                <p>Regards,<br/>Al Hadhri &amp; Partners</p>\n"
+"                "
+msgstr ""
+"\n"
+"                <p>عزيزي المحامي,</p>\n"
+"                <p>تم إسناد مشروع جديد إليك.</p>\n"
+"                <p><b>رمز الخدمة:</b> %(code)s<br/>\n"
+"                <b>العميل:</b> %(client)s<br/>\n"
+"                <b>المشروع:</b> %(project)s<br/>\n"
+"                <b>نوع المشروع:</b> %(project_type)s<br/>\n"
+"                <b>أُسند بواسطة:</b> %(assigned_by)s<br/>\n"
+"                <b>التاريخ:</b> %(date)s</p>\n"
+"                <p>يرجى مراجعة المشروع وبدء العمل عليه.</p>\n"
+"                <p>مع التحية,<br/>الحاضري وشركاؤه</p>\n"
+"                "
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid ""
+"\n"
+"                <p>Dear Lawyer,</p>\n"
+"                <p>A new task has been assigned to you.</p>\n"
+"                <p><b>Task:</b> %(task)s<br/>\n"
+"                <b>Project:</b> %(project)s<br/>\n"
+"                <b>Deadline:</b> %(deadline)s<br/>\n"
+"                <b>Assigned By:</b> %(assigned_by)s</p>\n"
+"                <p>Regards,<br/>Al Hadhri &amp; Partners</p>\n"
+"                "
+msgstr ""
+"\n"
+"                <p>عزيزي المحامي,</p>\n"
+"                <p>تم إسناد مهمة جديدة إليك.</p>\n"
+"                <p><b>المهمة:</b> %(task)s<br/>\n"
+"                <b>المشروع:</b> %(project)s<br/>\n"
+"                <b>الموعد النهائي:</b> %(deadline)s<br/>\n"
+"                <b>أُسند بواسطة:</b> %(assigned_by)s</p>\n"
+"                <p>مع التحية,<br/>الحاضري وشركاؤه</p>\n"
+"                "
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_notification.py:0
+msgid ""
+"\n"
+"                <p>Dear Lawyer,</p>\n"
+"                <p>Today's assigned work summary:</p>\n"
+"                <ul>\n"
+"                    <li>Projects assigned today: %(projects)s</li>\n"
+"                    <li>Cases assigned today: %(cases)s</li>\n"
+"                    <li>Hearings today: %(hearings)s</li>\n"
+"                    <li>Tasks due today: %(tasks)s</li>\n"
+"                </ul>\n"
+"                <p>Regards,<br/>Al Hadhri &amp; Partners</p>\n"
+"                "
+msgstr ""
+"\n"
+"                <p>عزيزي المحامي,</p>\n"
+"                <p>ملخص الأعمال المسندة اليوم:</p>\n"
+"                <ul>\n"
+"                    <li>المشاريع المسندة اليوم: %(projects)s</li>\n"
+"                    <li>القضايا المسندة اليوم: %(cases)s</li>\n"
+"                    <li>جلسات اليوم: %(hearings)s</li>\n"
+"                    <li>المهام المستحقة اليوم: %(tasks)s</li>\n"
+"                </ul>\n"
+"                <p>مع التحية,<br/>الحاضري وشركاؤه</p>\n"
+"                "
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Access ends in %s days"
+msgstr "ينتهي الوصول خلال %s يومًا"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Active HR Warning"
+msgstr "تنبيه موارد بشرية نشط"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Active Warnings"
+msgstr "التنبيهات النشطة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Approved Leave"
+msgstr "إجازة معتمدة"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__assigned_by_id
+msgid "Assigned By"
+msgstr "أُسند بواسطة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Assigned Cases Today"
+msgstr "القضايا المسندة اليوم"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Assigned Projects Today"
+msgstr "المشاريع المسندة اليوم"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__case_id
+#: model:ir.model.fields.selection,name:qlk_law_dashboard.selection__qlk_lawyer_notification__notification_type__case
+msgid "Case"
+msgstr "القضية"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Completed This Week"
+msgstr "المكتمل هذا الأسبوع"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Completed Today"
+msgstr "المكتمل اليوم"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/court_dashboard_extension.py:0
+msgid "Courts Dashboard"
+msgstr "لوحة معلومات المحاكم"
+
+#. module: qlk_law_dashboard
+#: model:ir.actions.server,name:qlk_law_dashboard.ir_cron_daily_lawyer_reminder_ir_actions_server
+msgid "Daily Lawyer Reminder"
+msgstr "التذكير اليومي للمحامي"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Daily Progress"
+msgstr "التقدم اليومي"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields.selection,name:qlk_law_dashboard.selection__qlk_lawyer_notification__notification_type__daily_summary
+msgid "Daily Summary"
+msgstr "الملخص اليومي"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Draft resignation request not yet submitted."
+msgstr "طلب الاستقالة مسودة ولم يُرسل بعد."
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__email_error
+msgid "Email Error"
+msgstr "خطأ البريد الإلكتروني"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Employee-specific hours tracked from task entries by task date."
+msgstr "ساعات الموظف المحتسبة من سجلات المهام حسب تاريخ المهمة."
+
+#. module: qlk_law_dashboard
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_hr_employee_form_inherit_monthly_hours_target
+msgid "HR Dashboard"
+msgstr "لوحة معلومات الموارد البشرية"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "HR Forms"
+msgstr "نماذج الموارد البشرية"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "HR Requests & Alerts"
+msgstr "طلبات وتنبيهات الموارد البشرية"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields.selection,name:qlk_law_dashboard.selection__qlk_lawyer_notification__notification_type__hearing
+msgid "Hearing"
+msgstr "الجلسة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Immediate attention is required for the latest employee warning."
+msgstr "يتطلب أحدث تنبيه للموظف إجراءً فوريًا."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Latest 3 Warnings"
+msgstr "أحدث 3 تنبيهات"
+
+#. module: qlk_law_dashboard
+#: model:ir.module.category,name:qlk_law_dashboard.qlk_management_law_dashboard_category
+msgid "Law Dashboard Category"
+msgstr "فئة لوحة معلومات المحاماة"
+
+#. module: qlk_law_dashboard
+#: model:res.groups,name:qlk_law_dashboard.group_qlk_law_dashboard_manager
+msgid "Law Dashboard Manager"
+msgstr "مدير لوحة معلومات المحاماة"
+
+#. module: qlk_law_dashboard
+#: model:res.groups,name:qlk_law_dashboard.group_qlk_law_dashboard_user
+msgid "Law Dashboard User"
+msgstr "مستخدم لوحة معلومات المحاماة"
+
+#. module: qlk_law_dashboard
+#: model:ir.model,name:qlk_law_dashboard.model_qlk_lawyer_assignment_notification_mixin
+msgid "Lawyer Assignment Notification Helpers"
+msgstr "مساعدات إشعارات إسناد المحامين"
+
+#. module: qlk_law_dashboard
+#: model:ir.model,name:qlk_law_dashboard.model_qlk_lawyer_dashboard
+msgid "Lawyer Dashboard Service"
+msgstr "خدمة لوحة معلومات المحامي"
+
+#. module: qlk_law_dashboard
+#: model:ir.model,name:qlk_law_dashboard.model_qlk_lawyer_notification
+msgid "Lawyer Notification"
+msgstr "إشعار المحامي"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Leave requests, warnings, and employee HR forms."
+msgstr "طلبات الإجازة والتنبيهات ونماذج الموارد البشرية للموظف."
+
+#. module: qlk_law_dashboard
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_lawyer_notification_form
+msgid "Mark Read"
+msgstr "تحديد كمقروء"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__message
+msgid "Message"
+msgstr "الرسالة"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_hr_employee__monthly_hours_target
+msgid "Monthly Hours Target"
+msgstr "هدف الساعات الشهري"
+
+#. module: qlk_law_dashboard
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_hr_employee_form_inherit_monthly_hours_target
+msgid "Monthly Target Hours"
+msgstr "الساعات الشهرية المستهدفة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+#: model:ir.actions.act_window,name:qlk_law_dashboard.action_my_lawyer_notifications
+#: model:ir.ui.menu,name:qlk_law_dashboard.menu_my_lawyer_notifications
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_lawyer_notification_list
+msgid "My Notifications"
+msgstr "إشعاراتي"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid "New Case Assigned To You"
+msgstr "تم إسناد قضية جديدة إليك"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid "New Hearing Assigned To You"
+msgstr "تم إسناد جلسة جديدة إليك"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid "New Project Assigned To You"
+msgstr "تم إسناد مشروع جديد إليك"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/assignment_notifications.py:0
+msgid "New Task Assigned To You"
+msgstr "تم إسناد مهمة جديدة إليك"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "No Active Request"
+msgstr "لا يوجد طلب نشط"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "No active warnings for this employee."
+msgstr "لا توجد تنبيهات نشطة لهذا الموظف."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/court_dashboard_extension.py:0
+msgid "No court data available for your permissions."
+msgstr "لا توجد بيانات محاكم متاحة وفق صلاحياتك."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "No notifications found."
+msgstr "لا توجد إشعارات."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "No resignation request has been submitted."
+msgstr "لم يتم تقديم طلب استقالة."
+
+#. module: qlk_law_dashboard
+#: model:ir.actions.act_window,name:qlk_law_dashboard.action_notification_delivery_log
+#: model:ir.model,name:qlk_law_dashboard.model_qlk_notification_delivery_log
+#: model:ir.ui.menu,name:qlk_law_dashboard.menu_notification_delivery_log
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_notification_delivery_log_list
+msgid "Notification Delivery Log"
+msgstr "سجل تسليم الإشعارات"
+
+#. module: qlk_law_dashboard
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_lawyer_notification_form
+msgid "Open Related Record"
+msgstr "فتح السجل المرتبط"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Open Request"
+msgstr "فتح الطلب"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Open Warning"
+msgstr "فتح التنبيه"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Pending Approval"
+msgstr "بانتظار الاعتماد"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Pending Leave"
+msgstr "إجازة معلقة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Projects, cases, hearings, and tasks assigned to you."
+msgstr "المشاريع والقضايا والجلسات والمهام المسندة إليك."
+
+#. module: qlk_law_dashboard
+#: model:ir.model,name:qlk_law_dashboard.model_qlk_court_dashboard
+msgid "QLK Courts Dashboard Service"
+msgstr "خدمة لوحة معلومات محاكم QLK"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields.selection,name:qlk_law_dashboard.selection__qlk_lawyer_notification__state__read
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_lawyer_notification_search
+msgid "Read"
+msgstr "مقروء"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__read_by_id
+msgid "Read By"
+msgstr "قُرئ بواسطة"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__read_date
+msgid "Read Date"
+msgstr "تاريخ القراءة"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__state
+msgid "Read Status"
+msgstr "حالة القراءة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Rejected Leave"
+msgstr "إجازة مرفوضة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Resignation Status"
+msgstr "حالة الاستقالة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Resignations"
+msgstr "الاستقالات"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__email_sent
+msgid "Sent Email"
+msgstr "تم إرسال البريد"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__target_model
+msgid "Target Model"
+msgstr "النموذج المستهدف"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields,field_description:qlk_law_dashboard.field_qlk_lawyer_notification__target_res_id
+msgid "Target Record"
+msgstr "السجل المستهدف"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Task Name"
+msgstr "اسم المهمة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Tasks Assigned"
+msgstr "المهام المسندة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_notification.py:0
+msgid "The assigned lawyer does not have an email address."
+msgstr "لا يوجد عنوان بريد إلكتروني للمحامي المسند."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "The resignation request was rejected."
+msgstr "تم رفض طلب الاستقالة."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_notification.py:0
+msgid "Today's Assigned Work Summary"
+msgstr "ملخص الأعمال المسندة اليوم"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Track submission, approval, and access end date."
+msgstr "متابعة التقديم والاعتماد وتاريخ انتهاء الوصول."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Unknown"
+msgstr "غير معروف"
+
+#. module: qlk_law_dashboard
+#: model:ir.model.fields.selection,name:qlk_law_dashboard.selection__qlk_lawyer_notification__state__unread
+#: model_terms:ir.ui.view,arch_db:qlk_law_dashboard.view_qlk_lawyer_notification_search
+msgid "Unread"
+msgstr "غير مقروء"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Unread Notifications"
+msgstr "الإشعارات غير المقروءة"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Upcoming Hearings"
+msgstr "جلسات اليوم"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View All"
+msgstr "عرض الكل"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View Documents"
+msgstr "عرض المستندات"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View Leaves"
+msgstr "عرض الإجازات"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View More"
+msgstr "عرض المزيد"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View Resignations"
+msgstr "عرض الاستقالات"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "View Warnings"
+msgstr "عرض التنبيهات"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Warning Date"
+msgstr "تاريخ التنبيه"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Warning Message"
+msgstr "رسالة التنبيه"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "Weekly Progress"
+msgstr "التقدم الأسبوعي"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_notification.py:0
+msgid "You can only access your own notifications."
+msgstr "يمكنك الوصول إلى إشعاراتك فقط."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/court_dashboard_extension.py:0
+msgid "You do not have permission to view this dashboard."
+msgstr "ليس لديك صلاحية لعرض لوحة المعلومات هذه."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "days"
+msgstr "أيام"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "hours"
+msgstr "ساعات"
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "المهام المفتوحة المسندة إليك في المشاريع."
+msgstr "المهام المفتوحة المسندة إليك في المشاريع."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "لا توجد مهام مفتوحة حالياً."
+msgstr "لا توجد مهام مفتوحة حالياً."
+
+#. module: qlk_law_dashboard
+#. odoo-python
+#: code:addons/qlk_law_dashboard/models/lawyer_dashboard_extension.py:0
+msgid "مهامي"
+msgstr "مهامي"

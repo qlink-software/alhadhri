@@ -40,6 +40,9 @@ class BusinessDevelopmentDashboard extends Component {
                 proposals: 0,
                 engagements: 0,
                 projects: 0,
+                corporate_projects: 0,
+                arbitration_projects: 0,
+                litigation_projects: 0,
                 followups: 0,
             }
         );

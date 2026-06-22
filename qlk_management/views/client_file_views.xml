@@ -74,8 +74,18 @@
         <field name="arch" type="xml">
             <form string="Client File">
                 <header>
-                    <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
-                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"/>
+                    <button name="action_create_corporate_project" type="object"
+                            string="Create Corporate Project" class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="service_profile_type != 'corporate'"/>
+                    <button name="action_create_arbitration_project" type="object"
+                            string="Create Arbitration Project" class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="service_profile_type != 'arbitration'"/>
+                    <button name="action_create_litigation_project" type="object"
+                            string="Create Litigation Project" class="btn-primary"
+                            groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
+                            invisible="service_profile_type != 'litigation'"/>
                     <button name="action_request_poa" type="object" string="Request POA" class="btn-secondary"
                             groups="qlk_management.group_bd_manager,qlk_management.group_el_manager,qlk_management.group_client_file_manager,qlk_management.group_project_manager"
                             invisible="not poa_required or poa_status in ('requested', 'waiting_signature', 'uploaded', 'verified')"/>
@@ -231,7 +241,9 @@
                         <page string="Projects">
                             <field name="project_ids" readonly="1">
                                 <list>
-                                    <field name="name"/>
+                                    <field name="service_code" widget="badge"/>
+                                    <field name="name" string="Project Name" column_invisible="1"/>
+                                    <field name="client_id"/>
                                     <field name="engagement_letter_id"/>
                                     <field name="legal_service_type_ids" widget="many2many_tags"/>
                                     <field name="planned_hours" widget="float_time"/>

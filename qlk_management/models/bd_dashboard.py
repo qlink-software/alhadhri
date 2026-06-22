@@ -77,24 +77,27 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
 
     def _project_state_groups(self, project_model, base_domain=None):
         base_domain = list(base_domain or [])
-        if "active" in project_model._fields:
-            base_domain.append(("active", "=", True))
-
-        if "state" in project_model._fields:
-            in_progress_domain = [("state", "=", "open")]
-            done_domain = [("state", "=", "close")]
-            on_hold_domain = [("state", "=", "open")]
-        else:
-            in_progress_domain = [("id", "=", 0)]
-            on_hold_domain = [("id", "=", 0)]
-            done_domain = [("id", "=", 0)]
-
         return self._build_group_cards(
             project_model,
             [
-                {"key": "in_progress", "label": _("In Progress"), "domain": in_progress_domain, "tone": "primary"},
-                {"key": "on_hold", "label": _("On Hold"), "domain": on_hold_domain, "tone": "warning"},
-                {"key": "done", "label": _("Done / Closed"), "domain": done_domain, "tone": "success"},
+                {
+                    "key": "corporate",
+                    "label": _("Corporate Projects"),
+                    "domain": [("service_category", "=", "corporate")],
+                    "tone": "primary",
+                },
+                {
+                    "key": "arbitration",
+                    "label": _("Arbitration Projects"),
+                    "domain": [("service_category", "=", "arbitration")],
+                    "tone": "warning",
+                },
+                {
+                    "key": "litigation",
+                    "label": _("Litigation Projects"),
+                    "domain": [("service_category", "=", "litigation")],
+                    "tone": "success",
+                },
             ],
             base_domain=base_domain,
         )
@@ -169,19 +172,21 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
         proposal_model = self.env["bd.proposal"]
         engagement_model = self.env["bd.engagement.letter"]
         opportunity_model = self.env["crm.lead"]
-        project_model = self.env["project.project"]
+        # Project KPI cards are management totals and must reflect the actual
+        # legal project records, independently from per-record visibility rules.
+        project_model = self.env["qlk.project"].sudo().with_context(active_test=False)
 
         proposal_domain = self._scoped_domain("bd.proposal", user, employee_ids, allow_all)
         engagement_domain = self._scoped_domain("bd.engagement.letter", user, employee_ids, allow_all)
         opportunity_domain = self._scoped_domain("crm.lead", user, employee_ids, allow_all)
-        project_domain = self._scoped_domain("project.project", user, employee_ids, allow_all)
+        project_domain = []
 
         proposal_action = self._action_payload("qlk_management.action_bd_proposal") or self._action_payload(
             "qlk_management.action_proposal"
         )
         engagement_action = self._action_payload("qlk_management.action_bd_engagement_letter")
         opportunity_action = self._action_payload("crm.crm_lead_action_pipeline")
-        project_action = self._action_payload("project.open_view_project_all")
+        project_action = self._action_payload("qlk_management.action_qlk_project")
 
         proposal_groups, proposal_total = self._build_group_cards(
             proposal_model,
@@ -253,6 +258,10 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
         )
 
         project_groups, project_total = self._project_state_groups(project_model, base_domain=project_domain)
+        project_counts = {
+            group["key"]: group["count"]
+            for group in project_groups
+        }
 
         return {
             "palette": {
@@ -268,6 +277,9 @@ class QlkBusinessDevelopmentDashboard(models.AbstractModel):
                 "proposals": proposal_total,
                 "engagements": engagement_total,
                 "projects": project_total,
+                "corporate_projects": project_counts.get("corporate", 0),
+                "arbitration_projects": project_counts.get("arbitration", 0),
+                "litigation_projects": project_counts.get("litigation", 0),
                 "followups": opportunity_followup_total,
             },
             "followups": opportunity_followups,

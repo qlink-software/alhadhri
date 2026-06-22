@@ -1311,48 +1311,26 @@ class QlkClientFile(models.Model):
     def action_create_corporate(self):
         raise UserError(_("Legal services must be created from the related project."))
 
-    def action_create_project(self):
+    def _action_create_service_project(self, service_profile):
         self.ensure_one()
         self.env["qlk.project"]._ensure_legal_manager()
+        if self.service_profile_type != service_profile:
+            raise UserError(
+                _("This Client File is configured for %(actual)s projects, not %(requested)s projects.")
+                % {"actual": self.service_profile_type, "requested": service_profile}
+            )
         approved_engagements = self.engagement_ids.filtered(
             lambda item: item.state == "approved_client"
         ).sorted("date", reverse=True)
-        engagement = approved_engagements.filtered(lambda item: not item.project_id)[:1] or approved_engagements[:1]
+        engagement = approved_engagements[:1]
         if not engagement:
             raise UserError(_("No client-approved engagement letter was found for this client file."))
-        existing_project = self.env["qlk.project"].with_context(active_test=False).search(
-            [
-                ("engagement_letter_id", "=", engagement.id),
-                ("client_file_id", "=", self.id),
-                ("service_category", "=", self.service_profile_type),
-            ],
-            limit=1,
-        )
-        if existing_project:
-            return {
-                "type": "ir.actions.act_window",
-                "name": _("Project"),
-                "res_model": "qlk.project",
-                "res_id": existing_project.id,
-                "view_mode": "form",
-                "target": "current",
-                "context": {"active_test": False},
-            }
         project_vals = self._prepare_project_vals_from_engagement(engagement)
         project = self.env["qlk.project"].with_context(
+            create_from_client_file=True,
             mail_create_nosubscribe=True,
             mail_auto_subscribe_no_notify=True,
         ).create(project_vals)
-        engagement.with_context(
-            mail_create_nosubscribe=True,
-            mail_auto_subscribe_no_notify=True,
-        ).write(
-            {
-                "project_id": engagement.project_id.id or project.id,
-                "client_file_id": engagement.client_file_id.id or self.id,
-                "client_file_ids": [(4, self.id)],
-            }
-        )
         self.message_post(body=_("Project %s has been created from this client file.") % project.display_name)
         return {
             "type": "ir.actions.act_window",
@@ -1362,6 +1340,19 @@ class QlkClientFile(models.Model):
             "view_mode": "form",
             "target": "current",
         }
+
+    def action_create_project(self):
+        self.ensure_one()
+        return self._action_create_service_project(self.service_profile_type)
+
+    def action_create_corporate_project(self):
+        return self._action_create_service_project("corporate")
+
+    def action_create_arbitration_project(self):
+        return self._action_create_service_project("arbitration")
+
+    def action_create_litigation_project(self):
+        return self._action_create_service_project("litigation")
 
     def _prepare_project_vals_from_engagement(self, engagement):
         self.ensure_one()
@@ -1378,6 +1369,11 @@ class QlkClientFile(models.Model):
             if hasattr(engagement, "_get_allowed_litigation_degree_ids_for_transfer")
             else engagement.litigation_degree_ids
         ) or self.allowed_litigation_degree_ids
+        if self.service_profile_type == "litigation" and not litigation_degrees:
+            litigation_degrees = self.env.ref(
+                "qlk_management.qlk_litigation_degree_first_instance",
+                raise_if_not_found=False,
+            ) or self.env["qlk.litigation.degree"].sudo().search([("code", "=", "F")], limit=1)
         normal_attachments, translation_attachments = self._collect_transfer_attachments()
         responsible_users = engagement.lawyer_user_id | engagement.lawyer_ids.mapped("user_id") | engagement.reviewer_id
         planned_hours = (

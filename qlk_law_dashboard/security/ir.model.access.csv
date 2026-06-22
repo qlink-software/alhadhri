@@ -1,1 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_qlk_lawyer_notification_user,qlk.lawyer.notification user,model_qlk_lawyer_notification,qlk_law_dashboard.group_qlk_law_dashboard_user,1,1,0,0
+access_qlk_lawyer_notification_lawyer,qlk.lawyer.notification lawyer,model_qlk_lawyer_notification,qlk_law.group_qlk_law_lawyer,1,1,0,0
+access_qlk_lawyer_notification_manager,qlk.lawyer.notification manager,model_qlk_lawyer_notification,qlk_law_dashboard.group_qlk_law_dashboard_manager,1,1,1,1
+access_qlk_notification_delivery_log_manager,qlk.notification.delivery.log manager,model_qlk_notification_delivery_log,qlk_law_dashboard.group_qlk_law_dashboard_manager,1,0,0,0

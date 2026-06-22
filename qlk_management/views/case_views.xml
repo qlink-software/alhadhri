@@ -11,9 +11,9 @@
 
                 <xpath expr="//div[@id='collapseBasic']//field[@name='name2']" position="before">
                     <field name="service_code" readonly="1" widget="badge"/>
-                    <field name="client_legal_code" readonly="1"/>
-                    <field name="project_legal_code" readonly="1"/>
-                    <field name="record_sequence" readonly="1"/>
+                    <field name="client_legal_code" readonly="1" invisible="1"/>
+                    <field name="project_legal_code" readonly="1" invisible="1"/>
+                    <field name="record_sequence" readonly="1" invisible="1"/>
                 </xpath>
 
                 <xpath expr="//field[@name='is_new']/.." position="before">
@@ -163,9 +163,9 @@
                 <field name="arch" type="xml">
                     <list string="Cases" default_order="create_date desc">
                     <field name="service_code" widget="badge"/>
-                    <field name="client_legal_code"/>
-                    <field name="project_legal_code"/>
-                    <field name="record_sequence"/>
+                    <field name="client_legal_code" column_invisible="1"/>
+                    <field name="project_legal_code" column_invisible="1"/>
+                    <field name="record_sequence" column_invisible="1"/>
                     <field name="project_id"/>
                     <field name="engagement_id"/>
                     <field name="litigation_degree_id" string="Litigation Degree"/>
@@ -196,8 +196,8 @@
                 <field name="arch" type="xml">
                 <search>
                     <field name="service_code"/>
-                    <field name="client_legal_code"/>
-                    <field name="project_legal_code"/>
+                    <field name="client_legal_code" invisible="1"/>
+                    <field name="project_legal_code" invisible="1"/>
                     <field name="record_code"/>
                     <field name="project_id"/>
                     <field name="client_id"/>
@@ -208,8 +208,10 @@
                     <filter name="degree_execution" string="Execution" domain="[('litigation_degree_id.code', '=', 'E')]"/>
                     <group expand="0" string="Group By">
                         <filter name="group_degree" string="Degree" context="{'group_by': 'litigation_degree_id'}"/>
-                        <filter name="group_client_code" string="Client Legal Code" context="{'group_by': 'client_legal_code'}"/>
-                        <filter name="group_project_code" string="Project Legal Code" context="{'group_by': 'project_legal_code'}"/>
+                        <filter name="group_client_code" string="Client Legal Code"
+                                context="{'group_by': 'client_legal_code'}" invisible="1"/>
+                        <filter name="group_project_code" string="Project Legal Code"
+                                context="{'group_by': 'project_legal_code'}" invisible="1"/>
                         <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
                         <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
                     </group>

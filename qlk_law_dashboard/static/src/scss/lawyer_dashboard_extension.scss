@@ -317,3 +317,50 @@
     white-space: normal;
   }
 }
+.qlk-dashboard__section--notifications {
+    .qlk-notification-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .qlk-notification-card {
+        border: 0;
+        text-align: start;
+        cursor: pointer;
+
+        strong {
+            display: block;
+            margin: .5rem 0;
+            font-size: 1.8rem;
+        }
+    }
+
+    .qlk-notification-history {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .qlk-notification-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .9rem 1rem;
+        border: 0;
+        border-bottom: 1px solid rgba(15, 92, 168, .12);
+        background: transparent;
+        text-align: start;
+
+        &.is-unread {
+            background: rgba(15, 92, 168, .08);
+        }
+
+        div {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+}

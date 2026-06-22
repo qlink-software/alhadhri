@@ -31,8 +31,16 @@
                             <strong t-esc="formatNumber(kpis.engagements)"/>
                         </div>
                         <div class="metric-card">
-                            <span>Delivery Projects</span>
-                            <strong t-esc="formatNumber(kpis.projects)"/>
+                            <span>Corporate Projects</span>
+                            <strong t-esc="formatNumber(kpis.corporate_projects)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Arbitration Projects</span>
+                            <strong t-esc="formatNumber(kpis.arbitration_projects)"/>
+                        </div>
+                        <div class="metric-card">
+                            <span>Litigation Projects</span>
+                            <strong t-esc="formatNumber(kpis.litigation_projects)"/>
                         </div>
                         <div class="metric-card">
                             <span>Follow up notifications</span>

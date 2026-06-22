@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "QLK Law Dashboard Alhadhri",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "summary": "Employee performance widgets for the Lawyer Dashboard Alhadhri.",
     "description": "Extends the QLINK Lawyer Dashboard with employee hours, target progress, and leave balance cards.",
     "author": "Qlink",
@@ -24,13 +24,16 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "security/record_rules.xml",
+        "data/lawyer_notification_cron.xml",
         "views/lawyer_dashboard_actions.xml",
+        "views/lawyer_notification_views.xml",
         "views/hr_employee_views.xml",
         "views/qlk_court_dashboard_menu_inherit.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "qlk_law_dashboard/static/src/xml/lawyer_dashboard_inherit.xml",
+            "qlk_law_dashboard/static/src/js/lawyer_notification_dashboard.js",
             "qlk_law_dashboard/static/src/scss/lawyer_dashboard_extension.scss",
         ],
     },

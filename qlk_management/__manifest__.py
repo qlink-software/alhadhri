@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.0.14',
+    'version': '18.0.1.0.16',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """

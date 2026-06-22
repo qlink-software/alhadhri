@@ -376,6 +376,85 @@ class LawyerDashboardExtension(models.AbstractModel):
         hr_forms = self._get_hr_forms_payload(employee)
         resignation_status = self._get_resignation_status_payload(employee, lang)
         my_project_tasks = self._get_my_project_tasks_payload(lang)
+        notification_model = self.env["qlk.lawyer.notification"].sudo()
+        today = fields.Date.context_today(self)
+        today_start = fields.Datetime.to_datetime(today)
+        notification_domain = [("user_id", "=", user.id)]
+        unread_domain = notification_domain + [("state", "=", "unread")]
+        notification_action = self._action_payload(
+            "qlk_law_dashboard.action_my_lawyer_notifications"
+        )
+        project_notification_domain = notification_domain + [
+            ("notification_type", "=", "project"),
+            ("notification_date", ">=", today_start),
+        ]
+        case_notification_domain = notification_domain + [
+            ("notification_type", "=", "case"),
+            ("notification_date", ">=", today_start),
+        ]
+        project_ids = notification_model.search(project_notification_domain).mapped("project_id").ids
+        case_ids = notification_model.search(case_notification_domain).mapped("case_id").ids
+        project_record_domain = [("id", "in", project_ids)]
+        case_record_domain = [("id", "in", case_ids)]
+        employee_ids = user.employee_ids.ids
+        hearing_domain = [
+            ("date", "=", today),
+            "|",
+            "|",
+            ("employee_id", "in", employee_ids),
+            ("employee2_id", "in", employee_ids),
+            ("employee_ids", "in", employee_ids),
+        ]
+        task_domain = [("assigned_user_id", "=", user.id)]
+        notification_cards = [
+            {
+                "key": "projects",
+                "label": _("Assigned Projects Today"),
+                "count": len(project_ids),
+                "action": self._action_payload("qlk_management.action_qlk_project"),
+                "domain": project_record_domain,
+            },
+            {
+                "key": "cases",
+                "label": _("Assigned Cases Today"),
+                "count": len(case_ids),
+                "action": self._action_payload("qlk_law.act_open_qlk_case_view"),
+                "domain": case_record_domain,
+            },
+            {
+                "key": "hearings",
+                "label": _("Upcoming Hearings"),
+                "count": self.env["qlk.hearing"].sudo().search_count(hearing_domain),
+                "action": self._action_payload("qlk_law.act_open_qlk_hearing_dashboard"),
+                "domain": hearing_domain,
+            },
+            {
+                "key": "tasks",
+                "label": _("Tasks Assigned"),
+                "count": self.env["qlk.task"].sudo().search_count(task_domain),
+                "action": self._action_payload("qlk_task_management.action_qlk_task_all"),
+                "domain": task_domain,
+            },
+        ]
+        latest_notifications = notification_model.search(
+            notification_domain,
+            order="notification_date desc, id desc",
+            limit=8,
+        )
+        notification_items = [
+            {
+                "id": notification.id,
+                "title": notification.name,
+                "type": dict(notification._fields["notification_type"].selection).get(
+                    notification.notification_type,
+                    notification.notification_type,
+                ),
+                "date": fields.Datetime.to_string(notification.notification_date),
+                "state": notification.state,
+                "message": notification.message or "",
+            }
+            for notification in latest_notifications
+        ]
 
         labels = data.get("labels") or {}
         labels.update(
@@ -422,6 +501,11 @@ class LawyerDashboardExtension(models.AbstractModel):
                 "task_status_title": _("Status"),
                 "view_all_tasks": _("View All"),
                 "no_project_tasks": _("لا توجد مهام مفتوحة حالياً."),
+                "my_notifications_title": _("My Notifications"),
+                "my_notifications_subtitle": _("Projects, cases, hearings, and tasks assigned to you."),
+                "unread_notifications": _("Unread Notifications"),
+                "view_more": _("View More"),
+                "no_notifications": _("No notifications found."),
             }
         )
         data["labels"] = labels
@@ -453,4 +537,11 @@ class LawyerDashboardExtension(models.AbstractModel):
         }
         data["warning_alert"] = warnings.get("alert")
         data["resignation_status"] = resignation_status
+        data["my_notifications"] = {
+            "unread_count": notification_model.search_count(unread_domain),
+            "cards": notification_cards,
+            "items": notification_items,
+            "action": notification_action,
+            "domain": notification_domain,
+        }
         return data

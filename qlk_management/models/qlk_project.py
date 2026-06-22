@@ -50,7 +50,7 @@ class QlkProject(models.Model):
     _rec_name = "service_code"
     _order = "create_date desc"
 
-    name = fields.Char(string="Legacy Project Name", required=True, default=lambda self: _("New Project"), tracking=True)
+    name = fields.Char(string="Project Name", tracking=True)
     active = fields.Boolean(default=True, tracking=True)
     state = fields.Selection(
         [
@@ -78,6 +78,10 @@ class QlkProject(models.Model):
         self.env.cr.execute("UPDATE qlk_project SET active = true WHERE active IS NULL")
         self.env.cr.execute("UPDATE qlk_project SET service_code = name WHERE service_code IS NULL AND name IS NOT NULL")
         self.env.cr.execute("UPDATE qlk_project SET project_code = service_code WHERE project_code IS NULL AND service_code IS NOT NULL")
+        self.env.cr.execute(
+            "ALTER TABLE qlk_project DROP CONSTRAINT IF EXISTS "
+            "qlk_project_engagement_client_file_service_unique"
+        )
 
     client_id = fields.Many2one(
         "res.partner",
@@ -261,11 +265,6 @@ class QlkProject(models.Model):
     recent_activity_summary = fields.Text(string="Recent Activities", compute="_compute_dashboard_counts", compute_sudo=True)
 
     _sql_constraints = [
-        (
-            "engagement_client_file_service_unique",
-            "unique(engagement_letter_id, client_file_id, service_category)",
-            "A project already exists for this engagement letter and client service profile.",
-        ),
         (
             "service_code_company_unique",
             "unique(service_code, company_id)",
@@ -593,22 +592,25 @@ class QlkProject(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         self._ensure_legal_manager()
+        if not self.env.context.get("create_from_client_file"):
+            raise ValidationError(_("Projects must be created from Client File."))
         for vals in vals_list:
             vals.setdefault("company_id", self.env.company.id)
-            vals.setdefault("service_type", self._primary_service_from_vals(vals))
-            if not vals.get("client_id"):
-                raise ValidationError(_("Cannot create project without client."))
-            if not vals.get("name") or vals.get("name") == _("New Project"):
-                vals["name"] = vals.get("service_code") or _("New Project")
-            if vals.get("engagement_letter_id"):
-                existing_domain = [("engagement_letter_id", "=", vals["engagement_letter_id"])]
-                if vals.get("client_file_id"):
-                    existing_domain.append(("client_file_id", "=", vals["client_file_id"]))
-                if vals.get("service_type"):
-                    existing_domain.append(("service_category", "=", self._service_category(vals["service_type"])))
-                existing = self.sudo().with_context(active_test=False).search(existing_domain, limit=1)
-                if existing:
-                    raise ValidationError(_("A project already exists for this engagement letter and service profile."))
+            client_file = self.env["qlk.client.file"].browse(vals.get("client_file_id")).exists()
+            if not client_file:
+                raise ValidationError(_("Projects must be created from Client File."))
+            vals["client_id"] = client_file.partner_id.id
+            vals.setdefault("service_type", client_file.service_profile_type or self._primary_service_from_vals(vals))
+            if vals.get("service_type") == "litigation" and not vals.get("litigation_degree_ids"):
+                first_instance = self.env.ref(
+                    "qlk_management.qlk_litigation_degree_first_instance",
+                    raise_if_not_found=False,
+                ) or self.env["qlk.litigation.degree"].sudo().search([("code", "=", "F")], limit=1)
+                if not first_instance:
+                    first_instance = self.env["qlk.litigation.degree"].sudo().create(
+                        {"name": _("First Instance"), "code": "F", "sequence": 10}
+                    )
+                vals["litigation_degree_ids"] = [(6, 0, first_instance.ids)]
             vals.setdefault("planned_hours", vals.get("agreed_hours") or 0.0)
         projects = super(
             QlkProject,
@@ -624,6 +626,15 @@ class QlkProject(models.Model):
 
     def write(self, vals):
         previous_remaining = {project.id: project.remaining_hours for project in self}
+        if "client_id" in vals:
+            for project in self:
+                expected_client = project.client_file_id.partner_id
+                if expected_client and vals.get("client_id") != expected_client.id:
+                    raise ValidationError(_("Client is controlled by Client File and cannot be changed manually."))
+        if "client_file_id" in vals:
+            for project in self:
+                if project.client_file_id and vals.get("client_file_id") != project.client_file_id.id:
+                    raise ValidationError(_("Client File cannot be changed after project creation."))
         if any(field in vals for field in ("client_id", "service_type", "legal_service_type_ids", "engagement_letter_id")):
             self._ensure_legal_manager()
         if vals.get("state") == "active":

@@ -413,7 +413,11 @@ class QlkCase(models.Model):
         project._ensure_service_code()
         if not project.service_code or not degree.code:
             return False
-        return "%s/%s/%s" % (project.service_code, 1, degree.code)
+        parts = project.service_code.split("/")
+        if len(parts) >= 3 and parts[-1] in {"F", "A", "C", "E"}:
+            parts[-1] = degree.code
+            return "/".join(parts)
+        return "%s/%s" % (project.service_code, degree.code)
 
     @api.model
     def _service_code_from_vals(self, vals):
