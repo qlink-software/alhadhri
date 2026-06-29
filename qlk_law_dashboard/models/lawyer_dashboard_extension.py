@@ -2,7 +2,6 @@
 from datetime import timedelta
 
 from odoo import _, api, fields, models
-from odoo.osv import expression
 from odoo.tools.misc import format_date
 
 
@@ -18,7 +17,7 @@ class LawyerDashboardExtension(models.AbstractModel):
         if not employee and user.employee_ids:
             employee = user.employee_ids[:1]
         if not employee and "hr.employee" in self.env:
-            employee = self.env["hr.employee"].sudo().search(
+            employee = self.env["hr.employee"].sudo().with_context(active_test=False).search(
                 [("user_id", "=", user.id)],
                 limit=1,
             )
@@ -55,70 +54,6 @@ class LawyerDashboardExtension(models.AbstractModel):
         return {"id": action.id} if action else False
 
     @api.model
-    def _assigned_project_domain(self, service_category, employee):
-        user = self.env.user
-        service_domain = expression.OR(
-            [
-                [("service_category", "=", service_category)],
-                [("service_type", "=", service_category)],
-            ]
-        )
-        assignment_domains = [
-            [("lawyer_id.user_id", "=", user.id)],
-            [("responsible_user_ids", "in", [user.id])],
-        ]
-        if employee:
-            assignment_domains.append([("lawyer_id", "=", employee.id)])
-        return expression.AND(
-            [
-                [("active", "=", True)],
-                service_domain,
-                expression.OR(assignment_domains),
-            ]
-        )
-
-    @api.model
-    def _get_project_matter_card(self, key, title, service_category, icon, action_xmlid, employee):
-        project_model = self.env["qlk.project"]
-        action = self._action_payload(action_xmlid)
-        if not action or not project_model.check_access_rights("read", raise_exception=False):
-            return False
-        domain = self._assigned_project_domain(service_category, employee)
-        return {
-            "key": key,
-            "title": title,
-            "count": project_model.search_count(domain),
-            "action": action,
-            "domain": domain,
-            "icon": icon,
-        }
-
-    @api.model
-    def _append_project_matter_cards(self, data, employee):
-        cards = data.setdefault("kpi_cards", [])
-        existing_keys = {card.get("key") for card in cards}
-        matter_cards = [
-            self._get_project_matter_card(
-                "corporate_matters",
-                _("Corporate Matters"),
-                "corporate",
-                "fa-briefcase",
-                "qlk_law_dashboard.action_law_dashboard_corporate_matters",
-                employee,
-            ),
-            self._get_project_matter_card(
-                "arbitration_matters",
-                _("Arbitration Matters"),
-                "arbitration",
-                "fa-gavel",
-                "qlk_law_dashboard.action_law_dashboard_arbitration_matters",
-                employee,
-            ),
-        ]
-        cards.extend(card for card in matter_cards if card and card["key"] not in existing_keys)
-        return data
-
-    @api.model
     def _get_working_hours_payload(self, employee):
         today = fields.Date.context_today(self)
         week_start = today - timedelta(days=today.weekday())
@@ -134,13 +69,7 @@ class LawyerDashboardExtension(models.AbstractModel):
                 "weekly_progress": 0.0,
             }
 
-        base_domain = [
-            "|",
-            "|",
-            ("employee_id", "=", employee.id),
-            ("assigned_user_id", "=", self.env.user.id),
-            ("create_uid", "=", self.env.user.id),
-        ]
+        base_domain = [("employee_id", "=", employee.id)]
         completed_today = self._sum_task_hours(base_domain + [("date_start", "=", today)])
         completed_week = self._sum_task_hours(
             base_domain + [("date_start", ">=", week_start), ("date_start", "<=", today)]
@@ -368,13 +297,11 @@ class LawyerDashboardExtension(models.AbstractModel):
         user = self.env.user
         employee = self._get_current_employee()
         lang = user.lang or self.env.context.get("lang")
-        self._append_project_matter_cards(data, employee)
 
         working_hours = self._get_working_hours_payload(employee)
         leave_requests = self._get_leave_requests_payload(employee)
         warnings = self._get_warning_payload(employee, lang)
         hr_forms = self._get_hr_forms_payload(employee)
-        resignation_status = self._get_resignation_status_payload(employee, lang)
         my_project_tasks = self._get_my_project_tasks_payload(lang)
         notification_model = self.env["qlk.lawyer.notification"].sudo()
         today = fields.Date.context_today(self)
@@ -405,7 +332,7 @@ class LawyerDashboardExtension(models.AbstractModel):
             ("employee2_id", "in", employee_ids),
             ("employee_ids", "in", employee_ids),
         ]
-        task_domain = [("assigned_user_id", "=", user.id)]
+        task_domain = [("employee_id", "in", employee_ids)]
         notification_cards = [
             {
                 "key": "projects",
@@ -479,8 +406,6 @@ class LawyerDashboardExtension(models.AbstractModel):
                 "warning_alert_subtitle": _("Immediate attention is required for the latest employee warning."),
                 "warning_message_title": _("Warning Message"),
                 "warning_date_title": _("Warning Date"),
-                "resignation_status_title": _("Resignation Status"),
-                "resignation_status_subtitle": _("Track submission, approval, and access end date."),
                 "view_leaves": _("View Leaves"),
                 "view_warnings": _("View Warnings"),
                 "view_documents": _("View Documents"),
@@ -536,7 +461,6 @@ class LawyerDashboardExtension(models.AbstractModel):
             },
         }
         data["warning_alert"] = warnings.get("alert")
-        data["resignation_status"] = resignation_status
         data["my_notifications"] = {
             "unread_count": notification_model.search_count(unread_domain),
             "cards": notification_cards,

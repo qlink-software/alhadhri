@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="qlk_management.DepartmentDashboard" owl="1">
+        <div class="qlk-department-dashboard"
+             t-att-class="'qlk-department-dashboard--' + (data.department || 'corporate')"
+             t-att-style="'--dept-primary: ' + (palette.primary || '#0F5CA8') + '; --dept-accent: ' + (palette.accent || '#22B6C8') + '; --dept-muted: ' + (palette.muted || '#0D3E7A') + '; --dept-success: ' + (palette.success || '#27AE60') + ';'">
+            <t t-if="state.loading">
+                <div class="dept-loading">
+                    <span class="fa fa-spinner fa-spin"/>
+                    <span t-esc="labels.loading"/>
+                </div>
+            </t>
+            <t t-elif="data.access_denied">
+                <div class="dept-empty dept-empty--access">
+                    <span class="fa fa-lock"/>
+                    <strong t-esc="labels.access_denied"/>
+                </div>
+            </t>
+            <t t-else="">
+                <section class="dept-hero">
+                    <div class="dept-hero__copy">
+                        <span class="dept-eyebrow">
+                            <i class="fa fa-user-circle-o"/>
+                            <t t-esc="labels.personal_workspace"/>
+                        </span>
+                        <h1 t-esc="data.title"/>
+                        <p t-esc="data.subtitle"/>
+                        <div class="dept-user">
+                            <span class="dept-user__avatar" t-esc="(data.user.name || '?').charAt(0)"/>
+                            <span>
+                                <strong t-esc="data.user.name"/>
+                                <small t-esc="data.user.company"/>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="dept-hero__metrics">
+                        <div class="dept-hero-metric">
+                            <span t-esc="labels.approved_hours"/>
+                            <strong><t t-esc="formatHours(data.worked_hours)"/> <small t-esc="labels.hour_short"/></strong>
+                        </div>
+                        <div class="dept-hero-metric">
+                            <span t-esc="labels.projects"/>
+                            <strong t-esc="formatCount(data.project_count)"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dept-section">
+                    <div class="dept-section__heading">
+                        <div>
+                            <h2 t-esc="labels.overview"/>
+                            <p t-esc="labels.overview_hint"/>
+                        </div>
+                    </div>
+                    <div class="dept-kpi-grid">
+                        <button t-foreach="data.cards" t-as="card" t-key="card.key"
+                                type="button"
+                                t-att-class="'dept-kpi dept-kpi--' + (card.tone || 'primary')"
+                                t-on-click="() => this.openCard(card)">
+                            <span class="dept-kpi__icon"><i t-att-class="'fa ' + card.icon"/></span>
+                            <span class="dept-kpi__copy">
+                                <small t-esc="card.label"/>
+                                <strong t-esc="formatCount(card.count)"/>
+                            </span>
+                            <i class="fa fa-arrow-right dept-kpi__arrow"/>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="dept-content-grid dept-content-grid--primary">
+                    <article class="dept-panel dept-panel--projects">
+                        <header class="dept-panel__header">
+                            <div>
+                                <h2 t-esc="labels.projects"/>
+                                <p t-esc="labels.projects_hint"/>
+                            </div>
+                            <button type="button" class="dept-link"
+                                    t-on-click="() => this.openAction(data.projects_action, data.projects_domain)">
+                                <t t-esc="labels.view_all"/> <i class="fa fa-arrow-right"/>
+                            </button>
+                        </header>
+                        <div t-if="data.project_states and data.project_states.length" class="dept-state-row">
+                            <button t-foreach="data.project_states" t-as="item" t-key="item.key"
+                                    type="button" class="dept-state-chip"
+                                    t-on-click="() => this.openProjectState(item)">
+                                <span t-esc="item.label"/>
+                                <strong t-esc="item.count"/>
+                            </button>
+                        </div>
+                        <div t-if="data.projects and data.projects.length" class="dept-project-list">
+                            <button t-foreach="data.projects" t-as="project" t-key="project.id"
+                                    type="button" class="dept-project"
+                                    t-on-click="() => this.openRecord(project)">
+                                <div class="dept-project__top">
+                                    <div>
+                                        <span class="dept-project__code" t-esc="project.code"/>
+                                        <h3 t-esc="project.name"/>
+                                        <p><i class="fa fa-building-o"/> <t t-esc="project.client"/></p>
+                                    </div>
+                                    <span t-att-class="'dept-badge dept-badge--' + project.state_value" t-esc="project.state"/>
+                                </div>
+                                <div class="dept-progress">
+                                    <span t-att-class="'dept-progress__bar dept-progress__bar--' + project.hours_state"
+                                          t-att-style="'width: ' + project.usage_percent + '%'"/>
+                                </div>
+                                <div class="dept-project__hours">
+                                    <span><small t-esc="labels.planned"/><strong><t t-esc="formatHours(project.planned_hours)"/>h</strong></span>
+                                    <span><small t-esc="labels.consumed"/><strong><t t-esc="formatHours(project.consumed_hours)"/>h</strong></span>
+                                    <span><small t-esc="labels.remaining"/><strong><t t-esc="formatHours(project.remaining_hours)"/>h</strong></span>
+                                </div>
+                            </button>
+                        </div>
+                        <div t-else="" class="dept-empty">
+                            <i class="fa fa-briefcase"/>
+                            <span t-esc="labels.no_projects"/>
+                        </div>
+                    </article>
+
+                    <article class="dept-panel">
+                        <header class="dept-panel__header">
+                            <div>
+                                <h2 t-esc="labels.matters"/>
+                                <p t-esc="labels.matters_hint"/>
+                            </div>
+                            <button type="button" class="dept-link"
+                                    t-on-click="() => this.openAction(data.matters_action, data.matters_domain)">
+                                <t t-esc="labels.view_all"/> <i class="fa fa-arrow-right"/>
+                            </button>
+                        </header>
+                        <div t-if="data.matters and data.matters.length" class="dept-record-list">
+                            <button t-foreach="data.matters" t-as="matter" t-key="matter.id"
+                                    type="button" class="dept-record"
+                                    t-on-click="() => this.openRecord(matter)">
+                                <span class="dept-record__icon"><i t-att-class="data.department === 'arbitration' ? 'fa fa-gavel' : 'fa fa-building-o'"/></span>
+                                <span class="dept-record__body">
+                                    <strong t-esc="matter.name"/>
+                                    <small><t t-esc="matter.reference"/><t t-if="matter.meta"> · <t t-esc="matter.meta"/></t></small>
+                                </span>
+                                <span t-att-class="'dept-badge dept-badge--' + matter.state_value" t-esc="matter.state"/>
+                            </button>
+                        </div>
+                        <div t-else="" class="dept-empty">
+                            <i class="fa fa-folder-open-o"/>
+                            <span t-esc="labels.no_matters"/>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="dept-content-grid">
+                    <article class="dept-panel">
+                        <header class="dept-panel__header">
+                            <div>
+                                <h2 t-esc="labels.tasks"/>
+                                <p t-esc="labels.tasks_hint"/>
+                            </div>
+                            <button type="button" class="dept-link"
+                                    t-on-click="() => this.openAction(data.tasks_action, data.tasks_domain)">
+                                <t t-esc="labels.view_all"/> <i class="fa fa-arrow-right"/>
+                            </button>
+                        </header>
+                        <div t-if="data.tasks and data.tasks.length" class="dept-record-list">
+                            <button t-foreach="data.tasks" t-as="task" t-key="task.id"
+                                    type="button" class="dept-record dept-record--task"
+                                    t-on-click="() => this.openRecord(task)">
+                                <span t-att-class="'dept-priority dept-priority--' + task.priority_value"/>
+                                <span class="dept-record__body">
+                                    <strong t-esc="task.name"/>
+                                    <small><t t-esc="task.state"/> · <t t-esc="formatHours(task.hours)"/>h</small>
+                                </span>
+                                <span class="dept-record__date" t-esc="task.date"/>
+                            </button>
+                        </div>
+                        <div t-else="" class="dept-empty">
+                            <i class="fa fa-check-square-o"/>
+                            <span t-esc="labels.no_tasks"/>
+                        </div>
+                    </article>
+
+                    <article class="dept-panel">
+                        <header class="dept-panel__header">
+                            <div>
+                                <h2 t-esc="labels.schedule"/>
+                                <p t-esc="labels.schedule_hint"/>
+                            </div>
+                            <button type="button" class="dept-link"
+                                    t-on-click="() => this.openAction(data.schedule.action, data.schedule.domain)">
+                                <t t-esc="labels.view_all"/> <i class="fa fa-arrow-right"/>
+                            </button>
+                        </header>
+                        <div t-if="scheduleItems.length" class="dept-timeline">
+                            <button t-foreach="scheduleItems" t-as="item" t-key="item.id"
+                                    type="button" class="dept-timeline__item"
+                                    t-on-click="() => this.openRecord(item)">
+                                <span class="dept-timeline__marker"><i class="fa fa-calendar"/></span>
+                                <span class="dept-record__body">
+                                    <strong t-esc="item.name"/>
+                                    <small t-esc="item.matter"/>
+                                </span>
+                                <span class="dept-record__date" t-esc="item.date"/>
+                            </button>
+                        </div>
+                        <div t-else="" class="dept-empty">
+                            <i class="fa fa-calendar-o"/>
+                            <span t-esc="labels.no_schedule"/>
+                        </div>
+                    </article>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

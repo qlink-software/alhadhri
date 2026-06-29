@@ -26,6 +26,8 @@ class ResUsers(models.Model):
             "qlk_task_management.group_task_manager",
             "qlk_management.group_hr_user",
             "qlk_management.group_hr_manager",
+            "qlk_management.group_reports_user",
+            "qlk_management.group_reports_manager",
             "qlk_law.group_qlk_law_lawyer",
             "qlk_law.group_qlk_law_manager",
             "qlk_corporate.group_corporate_user",
@@ -57,6 +59,7 @@ class ResUsers(models.Model):
             or self.has_group("qlk_management.group_hr_manager")
             or self.has_group("qlk_corporate.group_corporate_manager")
             or self.has_group("qlk_arbitration.group_arbitration_manager")
+            or self.has_group("qlk_management.group_reports_manager")
         )
 
     # ------------------------------------------------------------------------------
@@ -66,6 +69,10 @@ class ResUsers(models.Model):
         self.ensure_one()
         if self.has_group("qlk_management.group_bd_manager"):
             return self.env.ref("qlk_management.action_bd_dashboard", raise_if_not_found=False)
+        if self.has_group("qlk_corporate.group_corporate_user"):
+            return self.env.ref("qlk_management.action_corporate_dashboard", raise_if_not_found=False)
+        if self.has_group("qlk_arbitration.group_arbitration_user"):
+            return self.env.ref("qlk_management.action_arbitration_dashboard", raise_if_not_found=False)
         return self.env.ref("qlk_management.action_analysis_dashboard", raise_if_not_found=False)
 
     # ------------------------------------------------------------------------------

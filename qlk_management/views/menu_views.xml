@@ -5,13 +5,14 @@
         <menuitem id="menu_qlk_dashboards_root"
                   name="Dashboards"
                   parent="qlk_management.menu_management_root"
-                  groups="qlk_management.group_bd_user,qlk_management.group_bd_manager,qlk_management.group_el_user,qlk_management.group_el_manager,qlk_task_management.group_task_user,qlk_task_management.group_task_manager"
+                  groups="qlk_management.group_reports_user,qlk_management.group_reports_manager"
                   sequence="55"/>
 
         <menuitem id="menu_qlk_analytics_dashboard"
                   name="Analytics Dashboard"
                   parent="menu_qlk_dashboards_root"
                   action="qlk_management.action_analysis_dashboard"
+                  groups="qlk_management.group_reports_user,qlk_management.group_reports_manager"
                   sequence="30"/>
 
     </data>

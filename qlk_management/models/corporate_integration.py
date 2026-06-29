@@ -7,6 +7,24 @@ from odoo.exceptions import UserError, ValidationError
 class CorporateCaseProject(models.Model):
     _inherit = "qlk.corporate.case"
 
+    # الحقول الفعلية المقابلة لساعات الاتفاقية في السجل المؤسسي.
+    _LOCKED_HOUR_FIELDS = frozenset(
+        {
+            "actual_hours_total",
+            "actual_hours_month",
+            "planned_hours",
+            "consumed_hours",
+            "remaining_hours",
+            "over_hours",
+        }
+    )
+
+    lock_hours = fields.Boolean(
+        string="Lock Hours",
+        default=False,
+        help="When enabled, all agreement hours become read-only.",
+    )
+
     engagement_id = fields.Many2one(
         "bd.engagement.letter",
         string="Engagement Letter",
@@ -148,6 +166,8 @@ class CorporateCaseProject(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        # حماية على مستوى ORM لمنع تجاوز القفل عبر RPC أو الاستيراد أو الإجراءات الآلية.
+        self._ensure_hours_unlocked(vals)
         if "project_id" in vals:
             if not vals.get("project_id"):
                 raise ValidationError(_("Corporate records must be linked to a project."))
@@ -169,6 +189,16 @@ class CorporateCaseProject(models.Model):
             if engagement and not engagement._service_allows("corporate"):
                 raise UserError(_("This engagement letter does not allow corporate records."))
         return super().write(vals)
+
+    def _ensure_hours_unlocked(self, vals):
+        """Reject protected hour updates on any locked corporate record."""
+        protected_updates = self._LOCKED_HOUR_FIELDS.intersection(vals)
+        locks_in_same_request = vals.get("lock_hours") is True
+        if protected_updates and (
+            locks_in_same_request or any(record.lock_hours for record in self)
+        ):
+            raise ValidationError(_("Agreement Hours are locked and cannot be modified."))
+        return True
 
     def _apply_project_defaults(self, vals):
         project_id = vals.get("project_id")

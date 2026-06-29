@@ -9,15 +9,17 @@
             <field name="arch" type="xml">
                 <xpath expr="//form/sheet/group/group[1]" position="after">
                     <group>
+                        <!-- القفل يبقي قيم الساعات ظاهرة ويمنع تعديلها من واجهة السجل. -->
+                        <field name="lock_hours"/>
                         <field name="agreement_hours"/>
                         <field name="agreement_start_date"/>
                         <field name="agreement_end_date"/>
-                        <field name="actual_hours_total" readonly="1"/>
-                        <field name="actual_hours_month" readonly="1"/>
-                        <field name="planned_hours" readonly="1" widget="float_time"/>
-                        <field name="consumed_hours" readonly="1" widget="float_time"/>
-                        <field name="remaining_hours" readonly="1" widget="float_time" decoration-danger="remaining_hours &lt; 0"/>
-                        <field name="over_hours" readonly="1"/>
+                        <field name="actual_hours_total" readonly="lock_hours"/>
+                        <field name="actual_hours_month" readonly="lock_hours"/>
+                        <field name="planned_hours" readonly="lock_hours" widget="float_time"/>
+                        <field name="consumed_hours" readonly="lock_hours" widget="float_time"/>
+                        <field name="remaining_hours" readonly="lock_hours" widget="float_time" decoration-danger="remaining_hours &lt; 0"/>
+                        <field name="over_hours" readonly="lock_hours"/>
                     </group>
                 </xpath>
                 <xpath expr="//form/sheet/group/group[1]/field[@name='responsible_employee_id']" position="after">
@@ -66,12 +68,15 @@
                 <xpath expr="//list/field[@name='responsible_employee_id']" position="after">
                     <field name="project_id"/>
                     <field name="engagement_id"/>
+                    <!-- وجود الحقل داخل القائمة يضمن تطبيق readonly عند تفعيل inline editing. -->
+                    <field name="lock_hours" optional="hide"/>
                     <field name="agreement_hours"/>
-                    <field name="planned_hours"/>
-                    <field name="consumed_hours"/>
-                    <field name="remaining_hours"/>
-                    <field name="actual_hours_total"/>
-                    <field name="over_hours"/>
+                    <field name="planned_hours" readonly="lock_hours"/>
+                    <field name="consumed_hours" readonly="lock_hours"/>
+                    <field name="remaining_hours" readonly="lock_hours"/>
+                    <field name="actual_hours_total" readonly="lock_hours"/>
+                    <field name="actual_hours_month" readonly="lock_hours" optional="hide"/>
+                    <field name="over_hours" readonly="lock_hours"/>
                 </xpath>
             </field>
         </record>

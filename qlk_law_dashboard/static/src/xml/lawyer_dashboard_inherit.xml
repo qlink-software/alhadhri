@@ -12,7 +12,6 @@
             <t t-set="warningData" t-value="hrAlerts.warnings or {}"/>
             <t t-set="warningItems" t-value="warningData.latest_items or []"/>
             <t t-set="forms" t-value="hrAlerts.forms or {}"/>
-            <t t-set="resignation" t-value="state.data and state.data.resignation_status or {}"/>
             <t t-set="warningAlert" t-value="state.data and state.data.warning_alert"/>
             <t t-set="myProjectTasks" t-value="state.data and state.data.my_project_tasks or {}"/>
             <t t-set="myProjectTaskItems" t-value="myProjectTasks.items or []"/>
@@ -333,51 +332,6 @@
                         </div>
                     </article>
 
-                    <article class="qlk-card qlk-employee-card muted">
-                        <header>
-                            <div>
-                                <h2 t-esc="labels.resignation_status_title" translate="yes"/>
-                                <small t-esc="labels.resignation_status_subtitle" translate="yes"/>
-                            </div>
-                            <span t-att-class="'item__badge ' + (resignation.state === 'approved' ? 'badge--success' : resignation.state === 'rejected' ? 'badge--danger' : resignation.state === 'submitted' ? 'badge--warning' : '')"
-                                  t-esc="resignation.label || '-'"/>
-                        </header>
-
-                        <div class="qlk-resignation-card__message" t-esc="resignation.message || '-'"/>
-
-                        <div class="qlk-employee-card__rows">
-                            <div class="qlk-employee-row" t-if="resignation.manager">
-                                <span t-esc="labels.manager_title" translate="yes"/>
-                                <strong t-esc="resignation.manager"/>
-                            </div>
-                            <div class="qlk-employee-row" t-if="resignation.effective_date">
-                                <span t-esc="labels.effective_date_title" translate="yes"/>
-                                <strong t-esc="resignation.effective_date"/>
-                            </div>
-                            <div class="qlk-employee-row" t-if="resignation.state === 'approved'">
-                                <span t-esc="labels.remaining_hours_title" translate="yes"/>
-                                <strong>
-                                    <t t-esc="formatCount(resignation.countdown_days || 0)"/>
-                                    <small t-esc="labels.days_unit" translate="yes"/>
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="qlk-card__footer">
-                            <button t-if="resignation.current_request"
-                                    class="qlk-link"
-                                    type="button"
-                                    t-on-click="() => this.openRecord(resignation.current_request)">
-                                <span t-esc="labels.view_request" translate="yes"/>
-                            </button>
-                            <button t-if="resignation.action"
-                                    class="qlk-link"
-                                    type="button"
-                                    t-on-click="() => this.openAction(resignation.action, resignation.domain || [])">
-                                <span t-esc="labels.view_resignations" translate="yes"/>
-                            </button>
-                        </div>
-                    </article>
                 </div>
             </section>
         </xpath>

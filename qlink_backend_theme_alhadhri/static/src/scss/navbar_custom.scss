@@ -101,68 +101,64 @@ html .o_web_client .o_main_navbar {
 //     transition: opacity 0.4s;
 // }
 
-// ================= MODERN LOADING INDICATOR =================
-
+// مؤشر تحميل صغير لا يحجب المحتوى أو يمنع التفاعل مع الشاشة.
 .o_loading_indicator {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-
-    z-index: 1056;
-
-    display: flex;
+    bottom: 16px;
+    left: 16px;
+    right: auto;
+    z-index: 1035;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-
-    padding: 10px 16px;
-    border-radius: 14px;
-
-    // 🎨 Glass effect
-    background: rgba(30, 41, 59, 0.85);
-    backdrop-filter: blur(10px);
-
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.96);
     color: #fff;
-    font-size: 28px;
-    font-weight: 500;
-    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-
-    // ✨ animation
-    animation: fadeInUp 0.35s ease-out;
-
-    transition: all 0.3s ease;
+    &.o-fade-enter,
+    &.o-fade-leave {
+        opacity: 0;
+        transform: translateY(6px);
+    }
 }
 
-// ================= SPINNER INSIDE =================
+// يعتمد الاتجاه على خاصية dir التي يضعها Odoo على عنصر html.
+html[dir="rtl"] .o_loading_indicator {
+    right: 16px;
+    left: auto;
+}
+
+html[dir="ltr"] .o_loading_indicator {
+    right: auto;
+    left: 16px;
+}
+
+// دائرة التحميل صغيرة وخفيفة لتبقى داخل ارتفاع 44px.
 .o_loading_indicator::before {
     content: "";
     width: 14px;
     height: 14px;
-
+    flex: 0 0 14px;
     border: 2px solid rgba(255, 255, 255, 0.25);
     border-top-color: #ffffff;
     border-radius: 50%;
-
-    animation: spin 0.8s linear infinite;
+    animation: qlink-loader-spin 0.75s linear infinite;
 }
 
-// ================= ANIMATIONS =================
-@keyframes spin {
+@keyframes qlink-loader-spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translate(-50%, 20px);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
     }
 }
 

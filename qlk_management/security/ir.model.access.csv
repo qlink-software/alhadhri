@@ -1,13 +1,13 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_sub_project,sub.project,model_sub_project,,1,1,1,1
+access_sub_project,sub.project,model_sub_project,qlk_management.group_project_user,1,1,1,0
 access_task,task,model_task,qlk_task_management.group_task_user,1,0,1,0
 access_task_manager,task manager,model_task,qlk_task_management.group_task_manager,1,1,1,1
-access_request_contact,request.contact,model_request_contact,,1,1,1,1
-access_contact_attachments,contact.attachments,model_contact_attachments,,1,1,1,1
+access_request_contact,request.contact,model_request_contact,qlk_management.group_bd_user,1,1,1,0
+access_contact_attachments,contact.attachments,model_contact_attachments,qlk_management.group_bd_user,1,1,1,0
 access_res_partner_bd_user,res.partner bd user,base.model_res_partner,qlk_management.group_bd_user,1,1,1,1
 access_res_partner_bd_manager,res.partner bd manager,base.model_res_partner,qlk_management.group_bd_manager,1,1,1,1
 access_res_partner_pre_litigation_manager,res.partner pre litigation manager,base.model_res_partner,qlk_management.group_pre_litigation_manager,1,1,1,1
-access_management_dashboard_user,management.dashboard,model_qlk_management_dashboard,,1,0,0,0
+access_management_dashboard_user,management.dashboard,model_qlk_management_dashboard,qlk_management.group_reports_user,1,0,0,0
 access_client_document_user,Client Document User,model_qlk_client_document,qlk_management.group_pre_litigation_user,1,1,1,0
 access_client_document_manager,Client Document Manager,model_qlk_client_document,qlk_management.group_pre_litigation_manager,1,1,1,1
 access_cost_calculation_bd_user,cost.calculation bd user,model_cost_calculation,qlk_management.group_bd_user,1,0,0,0
@@ -24,8 +24,8 @@ access_bd_engagement_letter_fee_user,bd.engagement.letter.fee user,model_bd_enga
 access_bd_engagement_letter_fee_manager,bd.engagement.letter.fee manager,model_bd_engagement_letter_fee,qlk_management.group_el_manager,1,1,1,1
 access_bd_proposal_legal_fee_user,bd.proposal.legal.fee user,model_bd_proposal_legal_fee,qlk_management.group_bd_user,1,1,1,0
 access_bd_proposal_legal_fee_manager,bd.proposal.legal.fee manager,model_bd_proposal_legal_fee,qlk_management.group_bd_manager,1,1,1,1
-access_qlk_task_hours_wizard_user,qlk.task.hours.wizard user,model_qlk_task_hours_wizard,,1,1,1,1
-access_lawyer_cost_calculation_user,lawyer.cost.calculation user,model_lawyer_cost_calculation,,1,1,1,1
+access_qlk_task_hours_wizard_user,qlk.task.hours.wizard user,model_qlk_task_hours_wizard,qlk_task_management.group_task_user,1,1,1,1
+access_lawyer_cost_calculation_user,lawyer.cost.calculation user,model_lawyer_cost_calculation,qlk_management.group_project_manager,1,1,1,1
 access_litigation_level_user,litigation.level user,model_litigation_level,base.group_user,1,0,0,0
 access_litigation_level_manager,litigation.level system administrator,model_litigation_level,base.group_system,1,1,1,1
 access_qlk_litigation_degree_user,qlk.litigation.degree user,model_qlk_litigation_degree,base.group_user,1,0,0,0
@@ -36,7 +36,7 @@ access_pre_litigation_translation_user,qlk.pre.litigation.translation user,model
 access_pre_litigation_approval_user,qlk.pre.litigation.approval user,model_qlk_pre_litigation_approval,base.group_user,1,1,1,1
 access_pre_litigation_approval_wizard_user,qlk.pre.litigation.approval.wizard user,model_qlk_pre_litigation_approval_wizard,base.group_user,1,1,1,1
 access_pre_litigation_approval_wizard_line_user,qlk.pre.litigation.approval.wizard.line user,model_qlk_pre_litigation_approval_wizard_line,base.group_user,1,1,1,1
-access_bd_rejection_wizard_user,bd.rejection.wizard user,model_bd_rejection_wizard,,1,1,1,1
+access_bd_rejection_wizard_user,bd.rejection.wizard user,model_bd_rejection_wizard,qlk_management.group_bd_user,1,1,1,1
 access_bd_report_wizard_manager,bd.report.wizard manager,model_bd_report_wizard,qlk_management.group_bd_manager,1,1,1,1
 access_bd_report_wizard_assistant,bd.report.wizard assistant,model_bd_report_wizard,qlk_management.group_bd_user,1,1,1,1
 access_employee_document_user,employee.document user,model_qlk_employee_document,qlk_management.group_hr_user,1,1,1,0
@@ -57,14 +57,14 @@ access_qlk_hr_resignation_reject_wizard_user,qlk.hr.resignation.reject.wizard us
 access_crm_lead_bd_team,crm.lead bd team,crm.model_crm_lead,qlk_management.group_bd_user,1,1,1,0
 access_qlk_case_lawyer,qlk.case lawyer,qlk_law.model_qlk_case,qlk_management.group_pre_litigation_user,1,1,1,0
 access_qlk_case_manager,qlk.case manager,qlk_law.model_qlk_case,qlk_management.group_pre_litigation_manager,1,1,1,1
+access_qlk_task_corporate_user,qlk.task corporate user,qlk_task_management.model_qlk_task,qlk_corporate.group_corporate_user,1,1,1,0
+access_qlk_task_corporate_manager,qlk.task corporate manager,qlk_task_management.model_qlk_task,qlk_corporate.group_corporate_manager,1,1,1,1
+access_qlk_task_arbitration_user,qlk.task arbitration user,qlk_task_management.model_qlk_task,qlk_arbitration.group_arbitration_user,1,1,1,0
+access_qlk_task_arbitration_manager,qlk.task arbitration manager,qlk_task_management.model_qlk_task,qlk_arbitration.group_arbitration_manager,1,1,1,1
 access_project_task_lawyer,project.task user,project.model_project_task,qlk_management.group_project_user,1,1,1,0
 access_project_task_manager,project.task manager,project.model_project_task,qlk_management.group_project_manager,1,1,1,1
-access_project_task_restricted_user,project.task user extra,project.model_project_task,qlk_management.group_project_user,1,1,1,0
-access_qlk_task_lawyer_role,qlk.task lawyer role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_user,1,1,1,0
-access_qlk_task_manager_role,qlk.task manager role,qlk_task_management.model_qlk_task,qlk_task_management.group_task_manager,1,1,1,1
 access_project_project_restricted_user,project.project user,project.model_project_project,qlk_management.group_project_user,1,0,0,0
-access_project_project_bd_manager,project.project manager extra,project.model_project_project,qlk_management.group_project_manager,1,1,1,1
-access_project_project_el_manager,project.project manager legacy extra,project.model_project_project,qlk_management.group_project_manager,1,1,1,1
+access_project_project_manager,project.project manager,project.model_project_project,qlk_management.group_project_manager,1,1,1,1
 access_qlk_case_bd_manager,qlk.case bd manager,qlk_law.model_qlk_case,qlk_management.group_bd_manager,1,1,1,0
 access_qlk_case_el_manager,qlk.case engagement manager,qlk_law.model_qlk_case,qlk_management.group_el_manager,1,1,1,0
 access_qlk_corporate_case_bd_manager,qlk.corporate.case bd manager,qlk_corporate.model_qlk_corporate_case,qlk_management.group_bd_manager,1,1,1,0
@@ -73,21 +73,23 @@ access_qlk_arbitration_case_bd_manager,qlk.arbitration.case bd manager,qlk_arbit
 access_qlk_arbitration_case_el_manager,qlk.arbitration.case engagement manager,qlk_arbitration.model_qlk_arbitration_case,qlk_management.group_el_manager,1,1,1,0
 access_pre_litigation_bd_manager,qlk.pre.litigation bd manager,model_qlk_pre_litigation,qlk_management.group_bd_manager,1,1,1,0
 access_pre_litigation_el_manager,qlk.pre.litigation engagement manager,model_qlk_pre_litigation,qlk_management.group_el_manager,1,1,1,0
-access_qlk_project_user,qlk.project user,model_qlk_project,qlk_management.group_project_user,1,0,0,0
-access_qlk_project_role_user,qlk.project role user,model_qlk_project,qlk_management.group_project_user,1,0,0,0
-access_qlk_project_role_manager,qlk.project role manager,model_qlk_project,qlk_management.group_project_manager,1,1,1,0
+access_qlk_project_role_user,qlk.project user,model_qlk_project,qlk_management.group_project_user,1,1,1,0
+access_qlk_project_role_manager,qlk.project manager,model_qlk_project,qlk_management.group_project_manager,1,1,1,1
 access_qlk_project_bd_manager,qlk.project bd manager,model_qlk_project,qlk_management.group_bd_manager,1,1,1,0
 access_qlk_project_el_manager,qlk.project engagement manager,model_qlk_project,qlk_management.group_el_manager,1,1,1,0
-access_qlk_project_delete_manager,qlk.project delete manager,model_qlk_project,qlk_management.group_legal_delete_manager,1,0,0,1
+access_qlk_project_corporate_user,qlk.project corporate user,model_qlk_project,qlk_corporate.group_corporate_user,1,0,0,0
+access_qlk_project_corporate_manager,qlk.project corporate manager,model_qlk_project,qlk_corporate.group_corporate_manager,1,0,0,0
+access_qlk_project_arbitration_user,qlk.project arbitration user,model_qlk_project,qlk_arbitration.group_arbitration_user,1,0,0,0
+access_qlk_project_arbitration_manager,qlk.project arbitration manager,model_qlk_project,qlk_arbitration.group_arbitration_manager,1,0,0,0
 access_qlk_legal_service_type_user,qlk.legal.service.type user,model_qlk_legal_service_type,base.group_user,1,0,0,0
 access_qlk_legal_service_type_manager,qlk.legal.service.type manager,model_qlk_legal_service_type,qlk_management.group_el_manager,1,1,1,1
-access_qlk_client_file_user,qlk.client.file user,model_qlk_client_file,qlk_management.group_client_file_user,1,1,0,0
-access_qlk_client_file_role_user,qlk.client.file role user,model_qlk_client_file,qlk_management.group_client_file_user,1,1,0,0
-access_qlk_client_file_role_manager,qlk.client.file role manager,model_qlk_client_file,qlk_management.group_client_file_manager,1,1,1,0
+access_qlk_client_file_role_user,qlk.client.file user,model_qlk_client_file,qlk_management.group_client_file_user,1,1,1,0
+access_qlk_client_file_role_manager,qlk.client.file manager,model_qlk_client_file,qlk_management.group_client_file_manager,1,1,1,1
 access_qlk_client_file_el_manager,qlk.client.file engagement manager,model_qlk_client_file,qlk_management.group_el_manager,1,1,1,0
 access_qlk_client_file_bd_user,qlk.client.file bd user,model_qlk_client_file,qlk_management.group_bd_user,1,1,1,0
 access_qlk_client_file_bd_manager,qlk.client.file bd manager,model_qlk_client_file,qlk_management.group_bd_manager,1,1,1,0
 access_qlk_client_file_system,qlk.client.file system,model_qlk_client_file,base.group_system,1,1,1,1
 access_qlk_client_file_pre_litigation_manager,qlk.client.file pre litigation manager,model_qlk_client_file,qlk_management.group_pre_litigation_manager,1,1,1,0
-access_qlk_client_file_delete_manager,qlk.client.file delete manager,model_qlk_client_file,qlk_management.group_legal_delete_manager,1,0,0,1
+access_qlk_client_file_corporate_user,qlk.client.file corporate user,model_qlk_client_file,qlk_corporate.group_corporate_user,1,0,0,0
+access_qlk_client_file_corporate_manager,qlk.client.file corporate manager,model_qlk_client_file,qlk_corporate.group_corporate_manager,1,1,1,0
 access_qlk_poa_upload_wizard_user,qlk.poa.upload.wizard user,model_qlk_poa_upload_wizard,base.group_user,1,1,1,1

@@ -13,11 +13,35 @@
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_task_management.group_task_manager')])]"/>
         </record>
+        <record id="rule_task_corporate_user" model="ir.rule">
+            <field name="name">Corporate Timesheet User</field>
+            <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+            <field name="domain_force">[('department', '=', 'corporate'), '|', ('assigned_user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_corporate.group_corporate_user')])]"/>
+        </record>
+        <record id="rule_task_corporate_manager" model="ir.rule">
+            <field name="name">Corporate Timesheet Manager</field>
+            <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+            <field name="domain_force">[('department', '=', 'corporate')]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_corporate.group_corporate_manager')])]"/>
+        </record>
+        <record id="rule_task_arbitration_user" model="ir.rule">
+            <field name="name">Arbitration Timesheet User</field>
+            <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+            <field name="domain_force">[('department', '=', 'arbitration'), '|', ('assigned_user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user')])]"/>
+        </record>
+        <record id="rule_task_arbitration_manager" model="ir.rule">
+            <field name="name">Arbitration Timesheet Manager</field>
+            <field name="model_id" ref="qlk_task_management.model_qlk_task"/>
+            <field name="domain_force">[('department', '=', 'arbitration')]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
 
         <record id="rule_bd_proposal_user" model="ir.rule">
             <field name="name">Business Proposal User</field>
             <field name="model_id" ref="model_bd_proposal"/>
-            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="domain_force">['|', '|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_bd_user')])]"/>
         </record>
         <record id="rule_bd_proposal_manager" model="ir.rule">
@@ -30,7 +54,7 @@
         <record id="rule_bd_engagement_letter_user" model="ir.rule">
             <field name="name">Engagement Letter User</field>
             <field name="model_id" ref="model_bd_engagement_letter"/>
-            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="domain_force">['|', '|', ('lawyer_user_id', '=', user.id), ('lawyer_ids.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_el_user')])]"/>
         </record>
         <record id="rule_bd_engagement_letter_manager" model="ir.rule">
@@ -43,7 +67,7 @@
         <record id="rule_qlk_pre_litigation_user" model="ir.rule">
             <field name="name">Pre-Litigation User</field>
             <field name="model_id" ref="model_qlk_pre_litigation"/>
-            <field name="domain_force">['|', ('lawyer_user_id', '=', user.id), ('office_manager_id', '=', user.id)]</field>
+            <field name="domain_force">['|', '|', ('lawyer_user_id', '=', user.id), ('office_manager_id', '=', user.id), ('create_uid', '=', user.id)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_pre_litigation_user')])]"/>
         </record>
         <record id="rule_qlk_pre_litigation_manager" model="ir.rule">
@@ -127,21 +151,22 @@
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_pre_litigation_manager')])]"/>
         </record>
-        <record id="rule_qlk_client_file_delete_manager" model="ir.rule">
-            <field name="name">Client File Delete Permission</field>
+        <record id="rule_qlk_client_file_corporate_user" model="ir.rule">
+            <field name="name">Client File Corporate User</field>
             <field name="model_id" ref="model_qlk_client_file"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_legal_delete_manager')])]"/>
-            <field name="perm_read" eval="False"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">[('corporate_case_ids.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_corporate.group_corporate_user')])]"/>
         </record>
-
+        <record id="rule_qlk_client_file_corporate_manager" model="ir.rule">
+            <field name="name">Client File Corporate Manager</field>
+            <field name="model_id" ref="model_qlk_client_file"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_corporate.group_corporate_manager')])]"/>
+        </record>
         <record id="rule_qlk_project_user" model="ir.rule">
             <field name="name">Project User</field>
             <field name="model_id" ref="model_qlk_project"/>
-            <field name="domain_force">['|', '|', '|', ('lawyer_id.user_id', '=', user.id), ('responsible_user_ids', 'in', [user.id]), ('engagement_letter_id.lawyer_user_id', '=', user.id), ('engagement_letter_id.lawyer_ids.user_id', '=', user.id)]</field>
+            <field name="domain_force">['|', '|', '|', '|', ('lawyer_id.user_id', '=', user.id), ('responsible_user_ids', 'in', [user.id]), ('engagement_letter_id.lawyer_user_id', '=', user.id), ('engagement_letter_id.lawyer_ids.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_project_user')])]"/>
         </record>
         <record id="rule_qlk_project_manager" model="ir.rule">
@@ -150,16 +175,17 @@
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(6, 0, [ref('qlk_management.group_project_manager')])]"/>
         </record>
-        <record id="rule_qlk_project_delete_manager" model="ir.rule">
-            <field name="name">Project Delete Permission</field>
+        <record id="rule_qlk_project_corporate_personal" model="ir.rule">
+            <field name="name">Corporate Personal Projects</field>
             <field name="model_id" ref="model_qlk_project"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(6, 0, [ref('qlk_management.group_legal_delete_manager')])]"/>
-            <field name="perm_read" eval="False"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">['&amp;', '|', ('service_category', '=', 'corporate'), ('service_type', '=', 'corporate'), '|', ('lawyer_id.user_id', '=', user.id), ('responsible_user_ids', 'in', [user.id])]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_corporate.group_corporate_user'), ref('qlk_corporate.group_corporate_manager')])]"/>
         </record>
-
+        <record id="rule_qlk_project_arbitration_personal" model="ir.rule">
+            <field name="name">Arbitration Personal Projects</field>
+            <field name="model_id" ref="model_qlk_project"/>
+            <field name="domain_force">['&amp;', '|', ('service_category', '=', 'arbitration'), ('service_type', '=', 'arbitration'), '|', ('lawyer_id.user_id', '=', user.id), ('responsible_user_ids', 'in', [user.id])]</field>
+            <field name="groups" eval="[(6, 0, [ref('qlk_arbitration.group_arbitration_user'), ref('qlk_arbitration.group_arbitration_manager')])]"/>
+        </record>
     </data>
 </odoo>

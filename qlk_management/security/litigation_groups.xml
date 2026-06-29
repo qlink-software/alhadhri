@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Litigation permissions / صلاحيات التقاضي -->
+    <record id="category_litigation_workflow" model="ir.module.category">
+        <field name="name">Litigation</field><field name="parent_id" ref="qlk_management_manage_category"/><field name="sequence" eval="50"/>
+    </record>
+    <record id="group_pre_litigation_user" model="res.groups">
+        <field name="name">Litigation User</field><field name="category_id" ref="category_litigation_workflow"/><field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_pre_litigation_manager" model="res.groups">
+        <field name="name">Litigation Manager</field><field name="category_id" ref="category_litigation_workflow"/><field name="implied_ids" eval="[(4, ref('group_pre_litigation_user'))]"/>
+    </record>
+</odoo>

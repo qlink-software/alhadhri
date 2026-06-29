@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "QLK Internal Requests",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.1.1",
     "summary": "Internal request workflow with lawyer dashboard integration.",
     "description": """
 Internal Requests
@@ -15,13 +15,13 @@ request summaries directly in the lawyer dashboard.
     "license": "OPL-1",
     "depends": [
         "mail",
+        "hr",
         "qlk_security_base",
         "qlk_management",
         "qlk_law_dashboard",
     ],
     "data": [
         "security/security.xml",
-        "security/request_security.xml",
         "security/ir.model.access.csv",
         "security/record_rules.xml",
         "data/request_mail_templates.xml",

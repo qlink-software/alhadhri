@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data>
-        <!-- Project-specific rules moved into strict_record_rules.xml to keep one rule source per model. -->
-    </data>
-</odoo>

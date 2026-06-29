@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Remove obsolete duplicate ACL/rule rows after canonical records load. -->
+    <function model="qlk.security.cleanup" name="cleanup_legacy_security_groups"/>
+</odoo>

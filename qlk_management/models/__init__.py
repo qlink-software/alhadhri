@@ -31,6 +31,7 @@ from . import qlk_task_hours_wizard
 from . import lawyer_cost_calculation
 from . import res_users
 from . import analysis_dashboard
+from . import department_dashboard
 from . import arbitration_integration
 from . import bd_dashboard
 from . import litigation_level

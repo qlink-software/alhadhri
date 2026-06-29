@@ -19,6 +19,7 @@ class QlkTask(models.Model):
     DEPARTMENT_SELECTION = [
         ("litigation", "Litigation"),
         ("corporate", "Corporate"),
+        ("arbitration", "Arbitration"),
         ("management", "Management"),
     ]
 
@@ -38,6 +39,7 @@ class QlkTask(models.Model):
         ondelete={
             "litigation": "set default",
             "corporate": "set default",
+            "arbitration": "set default",
             "management": "set default",
         },
     )

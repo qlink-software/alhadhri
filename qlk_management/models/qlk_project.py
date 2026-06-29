@@ -645,8 +645,8 @@ class QlkProject(models.Model):
         return result
 
     def unlink(self):
-        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_legal_delete_manager"):
-            raise UserError(_("Only users with Legal Delete Permission can delete projects."))
+        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_project_manager"):
+            raise UserError(_("Only Project Managers can delete projects."))
         return super().unlink()
 
     @api.constrains("client_id", "service_type", "litigation_degree_ids")

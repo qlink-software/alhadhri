@@ -841,8 +841,8 @@ class QlkClientFile(models.Model):
         return result
 
     def unlink(self):
-        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_legal_delete_manager"):
-            raise UserError(_("Only users with Legal Delete Permission can delete client files."))
+        if not self.env.is_superuser() and not self.env.user.has_group("qlk_management.group_client_file_manager"):
+            raise UserError(_("Only Client Managers can delete client files."))
         return super().unlink()
 
     @api.model

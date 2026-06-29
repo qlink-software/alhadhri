@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "QLK Arbitration Legal",
-    "version": "1.0.0",
+    "version": "18.0.1.1.1",
     "summary": "Arbitration case management with sessions, memos, awards, and arbitrator registry.",
     "description": "Manages arbitration disputes including sessions, submissions, awards, and arbitrator records.",
     "author": "Codex",
@@ -17,7 +17,6 @@
     ],
     "data": [
         "security/security.xml",
-        "security/access_rules.xml",
         "security/record_rules.xml",
         "security/ir.model.access.csv",
         "views/arbitration_menu_views.xml",

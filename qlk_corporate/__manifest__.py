@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "QLK Corporate Legal",
-    "version": "1.0.0",
+    "version": "18.0.1.1.1",
     "summary": "Corporate legal case management (companies, contracts, consultations).",
     "description": "Manages corporate legal matters including company cases, contracts, consultations, and documents.",
     "author": "Codex",
@@ -17,7 +17,6 @@
     ],
     "data": [
         "security/security.xml",
-        "security/access_rules.xml",
         "security/record_rules.xml",
         "security/ir.model.access.csv",
         "views/corporate_menu_views.xml",

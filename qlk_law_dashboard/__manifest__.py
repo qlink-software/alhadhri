@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "QLK Law Dashboard Alhadhri",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.2",
     "summary": "Employee performance widgets for the Lawyer Dashboard Alhadhri.",
     "description": "Extends the QLINK Lawyer Dashboard with employee hours, target progress, and leave balance cards.",
     "author": "Qlink",

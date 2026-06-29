@@ -2,16 +2,16 @@
 <odoo>
     <data>
         <record id="qlk_management_task_category" model="ir.module.category">
-            <field name="name">Taska Category</field>
+            <field name="name">Timesheets</field>
             <field name="sequence" eval="45"/>
         </record>
         <record id="group_task_user" model="res.groups">
-            <field name="name">Tasks User</field>
+            <field name="name">Timesheet User</field>
             <field name="category_id" ref="qlk_management_task_category"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         </record>
         <record id="group_task_manager" model="res.groups">
-            <field name="name">Tasks Manager</field>
+            <field name="name">Timesheet Manager</field>
             <field name="category_id" ref="qlk_management_task_category"/>
             <field name="implied_ids" eval="[(4, ref('qlk_task_management.group_task_user'))]"/>
         </record>

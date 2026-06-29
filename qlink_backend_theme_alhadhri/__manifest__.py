@@ -4,7 +4,7 @@
     'author': "Qlink Software",
     'website': "http://www.qlinksoftware.com",
     'category': 'Themes/Backend',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'depends': ['web','mail'],
     'data': [
         # 'views/assets.xml',
