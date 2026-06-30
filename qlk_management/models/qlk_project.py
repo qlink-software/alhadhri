@@ -601,16 +601,6 @@ class QlkProject(models.Model):
                 raise ValidationError(_("Projects must be created from Client File."))
             vals["client_id"] = client_file.partner_id.id
             vals.setdefault("service_type", client_file.service_profile_type or self._primary_service_from_vals(vals))
-            if vals.get("service_type") == "litigation" and not vals.get("litigation_degree_ids"):
-                first_instance = self.env.ref(
-                    "qlk_management.qlk_litigation_degree_first_instance",
-                    raise_if_not_found=False,
-                ) or self.env["qlk.litigation.degree"].sudo().search([("code", "=", "F")], limit=1)
-                if not first_instance:
-                    first_instance = self.env["qlk.litigation.degree"].sudo().create(
-                        {"name": _("First Instance"), "code": "F", "sequence": 10}
-                    )
-                vals["litigation_degree_ids"] = [(6, 0, first_instance.ids)]
             vals.setdefault("planned_hours", vals.get("agreed_hours") or 0.0)
         projects = super(
             QlkProject,

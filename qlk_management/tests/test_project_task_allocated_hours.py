@@ -63,7 +63,10 @@ class TestProjectTaskAllocatedHours(TransactionCase):
                 "date_start": fields.Date.today(),
             }
         )
-        self.assertAlmostEqual(task.required_hours, 4 / 60, places=6)
+        # Compare the synchronized stored values because the database's
+        # Product Unit of Measure precision may round both fields (for example,
+        # 00:04 to 0.07 hours at two decimal places).
+        self.assertAlmostEqual(task.required_hours, task.hours_spent, places=6)
 
     def test_legacy_working_hours_syncs_required_and_work_hours(self):
         task = self.env["task"].create(

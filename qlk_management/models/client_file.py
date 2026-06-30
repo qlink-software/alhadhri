@@ -1370,10 +1370,9 @@ class QlkClientFile(models.Model):
             else engagement.litigation_degree_ids
         ) or self.allowed_litigation_degree_ids
         if self.service_profile_type == "litigation" and not litigation_degrees:
-            litigation_degrees = self.env.ref(
-                "qlk_management.qlk_litigation_degree_first_instance",
-                raise_if_not_found=False,
-            ) or self.env["qlk.litigation.degree"].sudo().search([("code", "=", "F")], limit=1)
+            raise UserError(
+                _("The selected litigation Agreement has no Allowed Litigation Degrees.")
+            )
         normal_attachments, translation_attachments = self._collect_transfer_attachments()
         responsible_users = engagement.lawyer_user_id | engagement.lawyer_ids.mapped("user_id") | engagement.reviewer_id
         planned_hours = (

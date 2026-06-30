@@ -179,6 +179,7 @@ class QlkLegalNumberingEngine(models.AbstractModel):
 
     @api.model
     def _generate_project_code(self, project):
+        """Generate a client-file-local project number under a transaction lock."""
         project.ensure_one()
         if not project.client_file_id:
             raise ValidationError(_("Cannot generate project code without a client file."))
@@ -204,27 +205,31 @@ class QlkLegalNumberingEngine(models.AbstractModel):
                 % {"code": client_code}
             )
         self._lock("project", company.id, project.client_file_id.id, category)
-        domain = [
-            ("client_file_id", "=", project.client_file_id.id),
-            ("company_id", "=", company.id),
-            ("service_category", "=", category),
-            ("id", "!=", project.id),
-        ]
-        sequence = self._get_next_available_sequence(
-            "qlk.project",
-            "project_sequence",
-            domain,
-            parser=self._parse_project_sequence,
+        # MAX + advisory locking is independent from the number of projects in
+        # other client files and prevents concurrent duplicate allocation.
+        self.env.cr.execute(
+            """
+            SELECT COALESCE(
+                       MAX(
+                           CASE
+                               WHEN project_sequence > 0 THEN project_sequence
+                               WHEN split_part(service_code, '/', 2) ~ '^[0-9]+$'
+                                   THEN split_part(service_code, '/', 2)::integer
+                               ELSE 0
+                           END
+                       ),
+                       0
+                   ) + 1
+              FROM qlk_project
+             WHERE client_file_id = %s
+               AND company_id = %s
+               AND id != %s
+            """,
+            [project.client_file_id.id, company.id, project.id],
         )
-        degree_code = False
-        if category == "litigation":
-            degree = project.litigation_degree_ids.sorted("sequence")[:1]
-            degree_code = degree.code if degree else "F"
-        code = "%s/%s%s" % (
-            client_code,
-            sequence,
-            "/%s" % degree_code if degree_code else "",
-        )
+        sequence = self.env.cr.fetchone()[0]
+        # Litigation degrees belong to cases, never to the project identifier.
+        code = "%s/%s" % (client_code, sequence)
         if self.env["qlk.project"].sudo().with_context(active_test=False).search_count(
             [("company_id", "=", company.id), ("service_code", "=", code), ("id", "!=", project.id)]
         ):

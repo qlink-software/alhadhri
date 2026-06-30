@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_qlk_project_hour_adjustment_wizard_form" model="ir.ui.view">
+        <field name="name">qlk.project.hour.adjustment.wizard.form</field>
+        <field name="model">qlk.project.hour.adjustment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Adjust Consumed Hours">
+                <group>
+                    <field name="project_id"/>
+                    <field name="current_value" widget="float_time"/>
+                    <field name="new_value" widget="float_time"/>
+                    <field name="reason" placeholder="Explain why this manual adjustment is required..."/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_qlk_project_agreement_reload_wizard_form" model="ir.ui.view">
+        <field name="name">qlk.project.agreement.reload.wizard.form</field>
+        <field name="model">qlk.project.agreement.reload.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Change Agreement">
+                <group>
+                    <field name="project_id"/>
+                    <field name="agreement_id" options="{'no_create': True}"/>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    Do you want to reload project information from the selected agreement?
+                </div>
+                <footer>
+                    <button name="action_reload" type="object" string="Yes" class="btn-primary"/>
+                    <button name="action_keep" type="object" string="No" class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

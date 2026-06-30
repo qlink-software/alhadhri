@@ -44,3 +44,5 @@ from . import access_control
 from . import project_removal_cleanup
 from . import qlk_project
 from . import client_file
+from . import project_agreement
+from . import project_hours

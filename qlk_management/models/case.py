@@ -385,6 +385,33 @@ class QlkCase(models.Model):
         return vals
 
     @api.model
+    def _validate_project_litigation_degree_vals(self, vals, record=None):
+        """Validate the selected degree before persistence or number allocation."""
+        project_id = vals.get("project_id") or (
+            record.project_id.id if record and record.project_id else False
+        )
+        degree_id = vals.get("litigation_degree_id") or (
+            record.litigation_degree_id.id
+            if record and record.litigation_degree_id
+            else False
+        )
+        project = self.env["qlk.project"].browse(project_id)
+        degree = self.env["qlk.litigation.degree"].browse(degree_id)
+        if not project.exists():
+            raise ValidationError(_("Cases must be created from a project."))
+        if not degree.exists():
+            raise ValidationError(_("Select a litigation degree for this case."))
+        agreement = project.engagement_letter_id
+        allowed_degrees = project.litigation_degree_ids
+        if agreement:
+            allowed_degrees &= agreement.litigation_degree_ids
+        if degree not in allowed_degrees:
+            raise ValidationError(
+                _("The selected litigation degree is not allowed by the project's Agreement.")
+            )
+        return True
+
+    @api.model
     def _degree_from_legacy_litigation_degree(self, legacy_degree):
         xmlids = {
             "first": "qlk_management.qlk_litigation_degree_first_instance",
@@ -610,6 +637,7 @@ class QlkCase(models.Model):
             self._apply_lawyer_employee_defaults(vals)
             self._validate_lawyer_employee_vals(vals)
             self._normalize_litigation_degree_vals(vals)
+            self._validate_project_litigation_degree_vals(vals)
             self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
                 "qlk.case",
                 vals,
@@ -654,6 +682,7 @@ class QlkCase(models.Model):
                     "litigation_level_id": vals.get("litigation_level_id", record.litigation_level_id.id),
                 }
                 self._normalize_litigation_degree_vals(merged_vals)
+                self._validate_project_litigation_degree_vals(merged_vals, record=record)
                 vals.update(merged_vals)
                 self.env["qlk.legal.numbering.engine"]._generate_record_code_vals(
                     "qlk.case",

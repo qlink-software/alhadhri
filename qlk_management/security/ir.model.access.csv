@@ -93,3 +93,8 @@ access_qlk_client_file_pre_litigation_manager,qlk.client.file pre litigation man
 access_qlk_client_file_corporate_user,qlk.client.file corporate user,model_qlk_client_file,qlk_corporate.group_corporate_user,1,0,0,0
 access_qlk_client_file_corporate_manager,qlk.client.file corporate manager,model_qlk_client_file,qlk_corporate.group_corporate_manager,1,1,1,0
 access_qlk_poa_upload_wizard_user,qlk.poa.upload.wizard user,model_qlk_poa_upload_wizard,base.group_user,1,1,1,1
+access_qlk_project_hour_tracking_user,qlk.project.hour.tracking user,model_qlk_project_hour_tracking,qlk_management.group_project_user,1,0,0,0
+access_qlk_project_hour_tracking_manager,qlk.project.hour.tracking manager,model_qlk_project_hour_tracking,qlk_management.group_project_manager,1,0,0,0
+access_qlk_project_hour_audit_manager,qlk.project.hour.audit manager,model_qlk_project_hour_audit,qlk_management.group_project_manager,1,0,0,0
+access_qlk_project_hour_adjustment_wizard,qlk.project.hour.adjustment.wizard,model_qlk_project_hour_adjustment_wizard,qlk_management.group_project_manager,1,1,1,1
+access_qlk_project_agreement_reload_wizard,qlk.project.agreement.reload.wizard,model_qlk_project_agreement_reload_wizard,qlk_management.group_project_manager,1,1,1,1

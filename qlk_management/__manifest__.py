@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "QLK - Management System",
-    'version': '18.0.1.1.1',
+    'version': '18.0.1.2.0',
     'category': 'QLK - Management',
     'summary': "Manage proposals, agreements, approvals and workflows for law firms",
     'description': """
@@ -64,6 +64,7 @@
         'security/employee_document_security.xml',
         'security/hr_resignation_security.xml',
         'security/ir.model.access.csv',
+        'security/project_hours_security.xml',
         'security/strict_record_rules.xml',
         'security/project_task_restricted_rules.xml',
         'security/security_cleanup.xml',
@@ -137,6 +138,7 @@
         'wizard/poa_upload_wizard_views.xml',
         'wizard/employee_document_reject_wizard_views.xml',
         'wizard/hr_resignation_reject_wizard_views.xml',
+        'wizard/project_hours_wizard_views.xml',
 
         # 'views/sound_notification_template.xml',
         # 'wizard/proposal_approval_wizard_views.xml',
